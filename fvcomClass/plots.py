@@ -13,12 +13,12 @@ class Plots:
         self._grid = cls.Grid
         self._ax = cls._ax
 
-    def graphGrid(self):
+    def graph_grid(self):
         nv = self._var.nv.T -1
         h = self._var.h
         tri = Tri.Triangulation(self._var.lon, self._var.lat, triangles=nv)
 
-        levels=np.arange(-38,-4,1)   # depth contours to plot
+        levels=np.arange(-100,-4,1)   # depth contours to plot
 
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')

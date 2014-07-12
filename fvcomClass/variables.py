@@ -2,8 +2,32 @@
 # encoding: utf-8
 
 class _load_var:
-    """ """
-    def __init__(self, data):
+    """
+'Variables' subset in FVCOM class contains the following numpy arrays:
+    x = 
+    y = 
+    xc = 
+    yc = 
+    lon = 
+    lat =
+    lonc = 
+    latc =
+    nv = 
+    h = bathymetry
+    nbe = 
+    a1u = 
+    a2u = 
+    aw0 = 
+    awx = 
+    awy =  
+The other variables possess in-build set of descriptors, ex:
+         _long_name = 'Vertically Averaged x-velocity'
+        |_units = 'meters s-1'
+    ua._|_grid = 'fvcom_grid'
+        |_...
+             
+    """
+    def __init__(self, data, debug=False):
         self.x = data.variables['x'][:]
         self.y = data.variables['y'][:]
         self.xc = data.variables['xc'][:]
@@ -43,8 +67,15 @@ class _load_var:
             self._D3 = False
 
 class _load_grid:
-    ''' '''
-    def __init__(self, data):
+    '''
+'Grid' subset in FVCOM class contains the following numpy arrays:
+    trinodes =
+    siglay =
+    siglev = 
+    nele = 
+    node = 
+    '''
+    def __init__(self, data, debug=False):
         self.trinodes = data.variables['nv'][:]
         self.siglay = data.variables['siglay'][:]
         self.siglev = data.variables['siglev'][:]

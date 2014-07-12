@@ -6,7 +6,7 @@ import numpy as np
 import sys
 from utide import ut_solv, ut_reconstr
 import scipy.io as sio
-import netCDF4 as nc
+#Alternative: import netCDF4 as nc
 from variables import _load_var, _load_grid
 
 #Add local path to utilities
@@ -19,6 +19,17 @@ from plots import *
 
 class FVCOM:
     '''
+A class/structure for FVCOM data.
+  Only takes a file name as input, ex: testFvcom=FVCOM('./pat_to_FVOM_output_file/filename')
+  Functionality strutured as follows:
+                _Data. = raw matlab file data
+               |_Variables. = useable adcp variables and quantities
+               |_QC. = Quality Control metadata
+    testFvcom._|_Utils. = set of useful functions
+               |_Plots. = plotting functions
+               |_method_1
+               | ...      = methods and analysis techniques intrinsic to ADCPs
+               |_method_n
     A class for FVCOM data.
     As of right now, only takes a filename as input. It will then load in the
     data (except for timeseries, since loading in the whole time series can be
@@ -29,30 +40,42 @@ class FVCOM:
         ax = [min(lon_coord), max(lon_coord), min(lat_coord), max(lat_coord)]
     '''
 
-    def __init__(self, filename, ax=[]):
-        self.QC = ['raw data']
-
+    def __init__(self, filename, ax=[], debug=False):
+        ''' Initialize FVCOM class.
+            Notes: assume that the file has been validated nor processed'''
+        self._debug=debug
+         if debug:
+            print '-Debug mode on-" 
+      
         # Add input check and alternative (extract from server)
-        self.Data = nc.Dataset(filename, 'r')
-        #self.Data = sio.netcdf.netcdf_file(filename, 'r')
-
-        self.Variables = _load_var(self.Data)
-        self.Grid = _load_grid(self.Data)
+        self.Data = sio.netcdf.netcdf_file(filename, 'r')
+        #Alternative: self.Data = nc.Dataset(filename, 'r')
+        self.Variables = _load_var(self.Data, debug=self._debug)
+        self.Grid = _load_grid(self.Data, debug=self._debug)
 
         # Invisible parameter
         if ax:
             self._ax = ax
         else:
-            self._ax = [min(self.Variables.lon), max(self.Variables.lon), min(self.Variables.lat), max(self.Variables.lat)]
-
+            self._ax = [min(self.Variables.lon), max(self.Variables.lon),
+                        min(self.Variables.lat), max(self.Variables.lat)]
         self.Utils = Functions(self)
         self.Plots = Plots(self)
 
-    def harmonics(self, ind, twodim=True, **kwarg):
+        #Metadata
+        if hasattr(self.Data, 'QC'):
+            self.QC = self.Data.QC
+        else:
+            self.QC = ['Raw data']
+        
 
+    def harmonics(self, ind, twodim=True, **kwarg):
+        '''Use/Inputs/Outputs of this method has to be clarified !!!'''
+        #Add debug flag in Utide: debug=self._debug
         if twodim:
             self.coef = ut_solv(self.Variables.matlabTime, self.Variables.ua[:, ind],
-                                self.Variables.va[:, ind], self.Variables.lat[ind], **kwarg)
+                                self.Variables.va[:, ind], self.Variables.lat[ind],
+                                debug=self._debug, **kwarg)
             self.QC.append('ut_solv done for velocity')
 
         else:	
@@ -61,6 +84,8 @@ class FVCOM:
             self.QC.append('ut_solv done for elevation')
 
     def reconstr(self, time):
+        '''Use/Inputs/Outputs of this method has to be clarified !!!'''
+        #Add debug flag in Utide: debug=self._debug
         if self.coef['aux']['opt']['twodim']:
             self.U, self.V = ut_reconstr(time, self.coef)
             self.QC.append('ut_reconstr done for velocity')
@@ -68,12 +93,13 @@ class FVCOM:
             self.ts_recon, _ = ut_reconstr(time, self.coef)
             self.QC.append('ut_reconstr done for elevation')
 
+#Test section when running in shell >> python fvcomClass.py
 if __name__ == '__main__':
 
     filename = './test_file/dn_coarse_0001.nc'
     test = FVCOM(filename)
     test.harmonics(0, cnstit='auto', notrend=True, nodiagn=True)
-    test.reconstr(test.time)
+    test.reconstr(test.Variables.matlabTtime)
 
     t = shortest_element_path(test.latc,test.lonc,test.lat,test.lon,test.nv,test.h)
     elements, _ = t.getTargets([[41420,39763],[48484,53441],

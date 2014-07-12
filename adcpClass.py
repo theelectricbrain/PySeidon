@@ -1,16 +1,31 @@
 import numpy as np
-import scipy.io as sio
+#import scipy.io as sio
+import h5py
 
 
 class ADCP:
-
+    ''' 
+A class/structure for ADCP data.
+  Only takes a file name as input, ex: testAdcp=ADCP('./pat_to_matlab_file/filename')
+  Functionality strutured as follows:
+               _Data. = raw matlab file data
+              |_Variables. = useable adcp variables and quantities
+              |_QC. = Quality Control metadata
+    testAdcp._|_Utils. = set of useful functions
+              |_Plots. = plotting functions
+              |_method_1
+              | ...      = methods and analysis techniques intrinsic to ADCPs
+              |_method_n
+    '''
     def __init__(self, filename):
+        ''' Initialize ADCP class. Notes: only handle raw ADCP matlab data at the mo.'''    
+        self.QC = ['Raw data']
+        self.Data = h5py.File(filename)
+        
 
-        self.load(filename)
-
-    def load(self, filename):
-        self.mat = sio.loadmat(filename,
-                               struct_as_record=False, squeeze_me=True)
+    def _load(self, filename):
+        #self.mat = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
+        self.mat = h5py.File(filename)
 
         self.lat = self.mat['lat']
         self.lon = self.mat['lon']
