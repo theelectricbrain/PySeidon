@@ -11,38 +11,39 @@ class Functions:
         self._ax = cls._ax
         self._debug = cls._debug
     
-    def el_region(self, debug=self._debug):
+    def el_region(self, debug=False):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        if debug:
-            print 'Computing region_e..."
+        
+        if debug or self._debug:
+            print 'Computing region_e...'
 
         region_e = np.argwhere((self._var.lonc >= self._ax[0]) &
                                      (self._var.lonc <= self._ax[1]) &
                                      (self._var.latc >= self._ax[2]) &
                                      (self._var.latc <= self._ax[3]))
-        if debug:
-            print '...Passed"
+        if debug or self._debug:
+            print '...Passed'
 
         return region_e
 
-    def node_region(self, debug=self._debug):
+    def node_region(self, debug=False):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        if debug:
-            print 'Computing region_n..."
+        if debug or self._debug:
+            print 'Computing region_n...'
 
         region_n = np.argwhere((self._var.lon >= self._ax[0]) &
                                      (self._var.lon <= self._ax[1]) &
                                      (self._var.lat >= self._ax[2]) &
                                      (self._var.lat <= self._ax[3]))
-        if debug:
-            print '...Passed"
+        if debug or self._debug:
+            print '...Passed'
 
         return region_n
 
-    def centers(self, debug=self._debug):
+    def centers(self, debug=False):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        if debug:
-            print 'Computing elc, hc..."
+        if debug or self._debug:
+            print 'Computing elc, hc...'
 
         size = self._grid.trinodes.T.shape[0]
         size1 = self._var.el.shape[0]
@@ -52,15 +53,15 @@ class Functions:
             elc[:, i] = np.mean(self._var.el[:, v], axis=1)
             hc[i] = np.mean(self._var.h[v], axis=1)
 
-        if debug:
-            print '...Passed"
+        if debug or self._debug:
+            print '...Passed'
 
         return elc, hc
 
-    def hc(self, debug=self._debug):
+    def hc(self, debug=False):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        if debug:
-            print 'Computing hc..."
+        if debug or self._debug:
+            print 'Computing hc...'
 
         size = self._grid.trinodes.T.shape[0]
         size1 = self._var.el.shape[0]
@@ -68,11 +69,11 @@ class Functions:
         for i,v in enumerate(self._grid.trinodes.T):
             elc[:, i] = np.mean(self._var.el[:, v], axis=1)
 
-        if debug:
-            print '...Passed"
+        if debug or self._debug:
+            print '...Passed'
         #No return ???
 
-    def closest_point(self, pt_lon, pt_lat,debug=self._debug):
+    def closest_point(self, pt_lon, pt_lat,debug=False):
         '''
         Finds the closest exact lon, lat centre indexes of an FVCOM class
         to given lon, lat coordinates.
@@ -83,8 +84,8 @@ class Functions:
         Outputs:
           - closest_point_indexes = numpy array of grid indexes
         '''
-        if debug:
-            print 'Computing closest_point_indexes..."
+        if debug or self._debug:
+            print 'Computing closest_point_indexes...'
 
         points = np.array([pt_lon, pt_lat]).T
 
@@ -96,8 +97,8 @@ class Functions:
 
         closest_point_indexes = np.argmin(closest_dist, axis=1)
 
-        if debug:
-            print '...Passed"
+        if debug or self._debug:
+            print '...Passed'
 
         return closest_point_indexes
 

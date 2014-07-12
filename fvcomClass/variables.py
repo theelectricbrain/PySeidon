@@ -28,6 +28,9 @@ The other variables possess in-build set of descriptors, ex:
              
     """
     def __init__(self, data, debug=False):
+        if debug or self._debug:
+            print 'Loading variables...'
+
         self.x = data.variables['x'][:]
         self.y = data.variables['y'][:]
         self.xc = data.variables['xc'][:]
@@ -66,6 +69,9 @@ The other variables possess in-build set of descriptors, ex:
             self.va = data.variables['va']
             self._D3 = False
 
+        if debug or self._debug:
+            print '...Passed'
+
 class _load_grid:
     '''
 'Grid' subset in FVCOM class contains the following numpy arrays:
@@ -76,6 +82,9 @@ class _load_grid:
     node = 
     '''
     def __init__(self, data, debug=False):
+        if debug or self._debug:
+            print 'Loading grid...'
+
         self.trinodes = data.variables['nv'][:]
         self.siglay = data.variables['siglay'][:]
         self.siglev = data.variables['siglev'][:]
@@ -83,4 +92,7 @@ class _load_grid:
         # Need to use len to get size of dimensions
         self.nele = data.dimensions['nele']
         self.node = data.dimensions['node']
+
+        if debug or self._debug:
+            print '...Passed'
 

@@ -43,9 +43,9 @@ A class/structure for FVCOM data.
     def __init__(self, filename, ax=[], debug=False):
         ''' Initialize FVCOM class.
             Notes: assume that the file has been validated nor processed'''
-        self._debug=debug
-         if debug:
-            print '-Debug mode on-" 
+        self._debug = debug
+        if debug:
+            print '-Debug mode on-' 
       
         # Add input check and alternative (extract from server)
         self.Data = sio.netcdf.netcdf_file(filename, 'r')

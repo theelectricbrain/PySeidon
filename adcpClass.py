@@ -17,8 +17,12 @@ A class/structure for ADCP data.
               | ...      = methods and analysis techniques intrinsic to ADCPs
               |_method_n
     '''
-    def __init__(self, filename):
+    def __init__(self, filename, debug=False):
         ''' Initialize ADCP class. Notes: only handle raw ADCP matlab data at the mo.'''    
+        self._debug = debug
+        if debug:
+            print '-Debug mode on-' 
+
         self.QC = ['Raw data']
         self.Data = h5py.File(filename)
         
