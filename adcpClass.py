@@ -5,17 +5,21 @@ import h5py
 
 class ADCP:
     ''' 
-A class/structure for ADCP data.
-  Only takes a file name as input, ex: testAdcp=ADCP('./pat_to_matlab_file/filename')
-  Functionality strutured as follows:
+Description:
+-----------
+  A class/structure for ADCP data.
+  Functionality structured as follows:
                _Data. = raw matlab file data
               |_Variables. = useable adcp variables and quantities
-              |_QC. = Quality Control metadata
+              |_QC = Quality Control metadata
     testAdcp._|_Utils. = set of useful functions
               |_Plots. = plotting functions
               |_method_1
               | ...      = methods and analysis techniques intrinsic to ADCPs
               |_method_n
+Inputs:
+------
+  Only takes a file name as input, ex: testAdcp=ADCP('./pat_to_matlab_file/filename')
     '''
     def __init__(self, filename, debug=False):
         ''' Initialize ADCP class. Notes: only handle raw ADCP matlab data at the mo.'''    

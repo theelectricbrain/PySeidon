@@ -23,8 +23,9 @@ A class/structure for FVCOM data.
   Only takes a file name as input, ex: testFvcom=FVCOM('./pat_to_FVOM_output_file/filename')
   Functionality strutured as follows:
                 _Data. = raw matlab file data
-               |_Variables. = useable adcp variables and quantities
-               |_QC. = Quality Control metadata
+               |_Variables. = fvcom variables and quantities
+               |_Grid. = fvcom grid data
+               |_QC = Quality Control metadata
     testFvcom._|_Utils. = set of useful functions
                |_Plots. = plotting functions
                |_method_1
