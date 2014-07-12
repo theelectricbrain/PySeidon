@@ -19,9 +19,10 @@ from plots import *
 
 class FVCOM:
     '''
-A class/structure for FVCOM data.
-  Only takes a file name as input, ex: testFvcom=FVCOM('./pat_to_FVOM_output_file/filename')
-  Functionality strutured as follows:
+Description:
+----------
+  A class/structure for FVCOM data.
+  Functionality structured as follows:
                 _Data. = raw matlab file data
                |_Variables. = fvcom variables and quantities
                |_Grid. = fvcom grid data
@@ -35,7 +36,12 @@ A class/structure for FVCOM data.
     As of right now, only takes a filename as input. It will then load in the
     data (except for timeseries, since loading in the whole time series can be
     too large)
+Inputs:
+------
+  Takes a file name as input, ex: testFvcom=FVCOM('./pat_to_FVOM_output_file/filename')
 
+Options:
+-------    
     ax can be defined as a region, i.e. a bounding box.
     An example:
         ax = [min(lon_coord), max(lon_coord), min(lat_coord), max(lat_coord)]
