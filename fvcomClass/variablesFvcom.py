@@ -61,7 +61,7 @@ The other variables possess in-build set of descriptors, ex:
             self.v = data.variables['v']
             self.ua = data.variables['ua']
             self.va = data.variables['va']
-            #invisible variables
+            # invisible variables
             self._D3 = True
 
         except KeyError:

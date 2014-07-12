@@ -6,16 +6,16 @@ import numpy as np
 import sys
 from utide import ut_solv, ut_reconstr
 import scipy.io as sio
-#Alternative: import netCDF4 as nc
-from variables import _load_var, _load_grid
+#TR_Alternative: import netCDF4 as nc
+from variablesFvcom import _load_var, _load_grid
 
-#Add local path to utilities
+#TR_comments: Add local path to utilities
 sys.path.append('../utilities/')
 
 #Local import
 from shortest_element_path import shortest_element_path
-from functions import *
-from plots import *
+from functionsFvcom import *
+from plotsFvcom import *
 
 class FVCOM:
     '''
@@ -23,28 +23,31 @@ Description:
 ----------
   A class/structure for FVCOM data.
   Functionality structured as follows:
-                _Data. = raw matlab file data
+                _Data. = raw netcdf file data
                |_Variables. = fvcom variables and quantities
                |_Grid. = fvcom grid data
                |_QC = Quality Control metadata
     testFvcom._|_Utils. = set of useful functions
                |_Plots. = plotting functions
                |_method_1
-               | ...      = methods and analysis techniques intrinsic to ADCPs
+               | ...      = methods and analysis techniques intrinsic to fvcom runs
                |_method_n
-    A class for FVCOM data.
-    As of right now, only takes a filename as input. It will then load in the
-    data (except for timeseries, since loading in the whole time series can be
-    too large)
+
 Inputs:
 ------
-  Takes a file name as input, ex: testFvcom=FVCOM('./pat_to_FVOM_output_file/filename')
+  Takes a file name as input, ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename')
 
 Options:
 -------    
     ax can be defined as a region, i.e. a bounding box.
     An example:
         ax = [min(lon_coord), max(lon_coord), min(lat_coord), max(lat_coord)]
+
+Notes:
+-----
+    As of right now, only takes a filename as input. It will then load in the
+    data (except for timeseries, since loading in the whole time series can be
+    too large)
     '''
 
     def __init__(self, filename, ax=[], debug=False):
@@ -54,20 +57,20 @@ Options:
         if debug:
             print '-Debug mode on-' 
       
-        # Add input check and alternative (extract from server)
+        #TR_comments: Add input check and alternative (extract from server)
         self.Data = sio.netcdf.netcdf_file(filename, 'r')
-        #Alternative: self.Data = nc.Dataset(filename, 'r')
+        #TR_Alternative: self.Data = nc.Dataset(filename, 'r')
         self.Variables = _load_var(self.Data, debug=self._debug)
         self.Grid = _load_grid(self.Data, debug=self._debug)
 
-        # Invisible parameter
+        #Invisible parameter
         if ax:
             self._ax = ax
         else:
             self._ax = [min(self.Variables.lon), max(self.Variables.lon),
                         min(self.Variables.lat), max(self.Variables.lat)]
-        self.Utils = Functions(self)
-        self.Plots = Plots(self)
+        self.Utils = FunctionsFvcom(self)
+        self.Plots = PlotsFvcom(self)
 
         #Metadata
         if hasattr(self.Data, 'QC'):
@@ -78,7 +81,7 @@ Options:
 
     def harmonics(self, ind, twodim=True, **kwarg):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        #Add debug flag in Utide: debug=self._debug
+        #TR_comments: Add debug flag in Utide: debug=self._debug
         if twodim:
             self.coef = ut_solv(self.Variables.matlabTime, self.Variables.ua[:, ind],
                                 self.Variables.va[:, ind], self.Variables.lat[ind],
@@ -92,7 +95,7 @@ Options:
 
     def reconstr(self, time):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        #Add debug flag in Utide: debug=self._debug
+        #TR_comments: Add debug flag in Utide: debug=self._debug
         if self.coef['aux']['opt']['twodim']:
             self.U, self.V = ut_reconstr(time, self.coef)
             self.QC.append('ut_reconstr done for velocity')

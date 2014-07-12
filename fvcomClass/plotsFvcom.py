@@ -7,7 +7,7 @@ import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
 import seaborn
 
-class Plots:
+class PlotsFvcom:
     def __init__(self,cls):
         self._var = cls.Variables
         self._grid = cls.Grid

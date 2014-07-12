@@ -3,7 +3,7 @@
 
 import numpy as np
 
-class Functions:
+class FunctionsFvcom:
     ''' '''
     def __init__(self,cls):
         self._var = cls.Variables
@@ -71,7 +71,7 @@ class Functions:
 
         if debug or self._debug:
             print '...Passed'
-        #No return ???
+        #TR_comments: No return ???
 
     def closest_point(self, pt_lon, pt_lat,debug=False):
         '''
