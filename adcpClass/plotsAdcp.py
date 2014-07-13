@@ -8,10 +8,9 @@ import matplotlib.ticker as ticker
 import seaborn
 
 class PlotsAdcp:
-    ''' '''
+    """'Plots' subset of FVCOM class gathers plotting functions"""
     def __init__(self,cls):
         self._var = cls.Variables
-        self._grid = cls.Grid
         self._debug = cls._debug
 
 #TR_comments: templates

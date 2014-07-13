@@ -4,7 +4,7 @@
 import numpy as np
 
 class FunctionsAdcp:
-    ''' '''
+    ''''Utils' subset of FVCOM class gathers useful functions""" '''
     def __init__(self,cls):
         self._var = cls.Variables
         self._debug = cls._debug

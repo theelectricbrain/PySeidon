@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 import numpy as np
+import sys
 #TR_Alternative: import scipy.io as sio
 import h5py
 
@@ -9,7 +10,7 @@ import h5py
 sys.path.append('../utilities/')
 
 #Local import
-from variblesAdcp import *
+from variablesAdcp import _load_adcp
 from functionsAdcp import *
 from plotsAdcp import *
 
@@ -45,7 +46,7 @@ Inputs:
         self.Data = h5py.File(filename)
         #TR_comments: *_Raw and *_10minavg open with h5py whereas *_davgBS
         #TR_Alternative: self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
-        self.Variables = _load(self.Data, debug=self._debug)
+        self.Variables = _load_adcp(self.Data['adcp'], debug=self._debug)
         self.Utils = FunctionsAdcp(self)
         self.Plots = PlotsAdcp(self)   
 
