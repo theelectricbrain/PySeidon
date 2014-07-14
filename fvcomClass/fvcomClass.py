@@ -7,13 +7,15 @@ import sys
 from utide import ut_solv, ut_reconstr
 import scipy.io as sio
 #TR_Alternative: import netCDF4 as nc
-from variablesFvcom import _load_var, _load_grid
 
-#TR_comments: Add local path to utilities
+#Add local path to utilities
 sys.path.append('../utilities/')
 
-#Local import
+#Utility import
 from shortest_element_path import shortest_element_path
+
+#Local import
+from variablesFvcom import _load_var, _load_grid
 from functionsFvcom import *
 from plotsFvcom import *
 

@@ -8,12 +8,18 @@ import matplotlib.ticker as ticker
 import seaborn
 
 class PlotsFvcom:
-    def __init__(self,cls):
+    """'Plots' subset of FVCOM class gathers plotting functions"""
+    def __init__(self, cls):
         self._var = cls.Variables
         self._grid = cls.Grid
         self._ax = cls._ax
+        self._debug = cls._debug
 
-    def graph_grid(self):
+    def graph_grid(self, debug=False):
+        ''' 2D xy plot of bathymetry and mesh.
+            No inputs required so far'''
+        if debug or self._debug:
+            print 'Plotting grid...'
         nv = self._var.nv.T -1
         h = self._var.h
         tri = Tri.Triangulation(self._var.lon, self._var.lat, triangles=nv)
@@ -37,3 +43,7 @@ class PlotsFvcom:
         ax.yaxis.set_major_formatter(ticks)
         plt.grid()
         plt.show()
+
+        if debug or self._debug:
+            print '...Passed'
+

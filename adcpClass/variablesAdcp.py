@@ -5,24 +5,23 @@ class _load_adcp:
     """
 'Variables' subset in FVCOM class contains the following numpy arrays:
     """
-    def __init__(self, filename, debug=False):
+    def __init__(self,cls, debug=False):
         if debug:
             print 'Loading variables...'
 
-        #self.lat = self.mat['lat']
-        #self.lon = self.mat['lon']
-        #self.data = self.mat['data']
-        #self.north_vel = self.data.north_vel
-        #self.east_vel = self.data.east_vel
-        #self.vert_vel = self.data.vert_vel
-        #self.dir_vel = self.data.dir_vel
-        #self.mag_signed_vel = self.data.mag_signed_vel
-        #self.ucross = self.data.ucross
-        #self.ualong = self.data.ualong
-        #self.pressure = self.mat['pres']
-        #self.surf = self.pressure.surf
-        #self.time = self.mat['time']
-        #self.mtime = self.time.mtime
+        self.lat = cls.Data['lat']
+        self.lon = cls.Data['lon']
+        self.north_vel = cls.Data['data']['north_vel']
+        self.east_vel = cls.Data['data']['east_vel']
+        self.vert_vel = cls.Data['data']['vert_vel']
+        self.dir_vel = cls.Data['data']['dir_vel']
+        self.mag_signed_vel = cls.Data['data']['mag_signed_vel']
+        self.ucross = cls.Data['data']['Ucross']
+        self.ualong = cls.Data['data']['Ualong']
+        self.pressure = cls.Data['pres']
+        self.surf = self.pressure['surf']
+        self.time = cls.Data['time']
+        self.mtime = self.time['mtime']
 
         if debug:
             print '...Passed'

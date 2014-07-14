@@ -33,24 +33,28 @@ Description:
 Inputs:
 ------
   Only takes a file name as input, ex: testAdcp=ADCP('./path_to_matlab_file/filename')
+
+Notes:
+-----
+   Only handle fully processed ADCP matlab data at the mo.
     '''
 
     def __init__(self, filename, debug=False):
         ''' Initialize ADCP class.
-            Notes: only handle raw ADCP matlab data at the mo.'''    
+            Notes: only handle processed ADCP matlab data at the mo.'''    
         self._debug = debug
         if debug:
             print '-Debug mode on-' 
-
+        #TR_comments: find a way to dissociate raw and processed data
         self.QC = ['Raw data']
-        self.Data = h5py.File(filename)
         #TR_comments: *_Raw and *_10minavg open with h5py whereas *_davgBS
+        self.Data = h5py.File(filename)
         #TR_Alternative: self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
-        self.Variables = _load_adcp(self.Data['adcp'], debug=self._debug)
+        self.Variables = _load_adcp(self, debug=self._debug)
         self.Utils = FunctionsAdcp(self)
         self.Plots = PlotsAdcp(self)   
 
 
 if __name__ == '__main__':
-    filename = '../test_files/adcp/GP-120726-BPd_raw.mat'
+    filename = '../test_files/adcp/Flow_GP-130620-BPa_avg5.mat'
     data = ADCP(filename, debug=True)

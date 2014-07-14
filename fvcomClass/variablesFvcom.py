@@ -28,7 +28,7 @@ The other variables possess in-build set of descriptors, ex:
              
     """
     def __init__(self, data, debug=False):
-        if debug or self._debug:
+        if debug:
             print 'Loading variables...'
 
         self.x = data.variables['x'][:]
@@ -69,7 +69,7 @@ The other variables possess in-build set of descriptors, ex:
             self.va = data.variables['va']
             self._D3 = False
 
-        if debug or self._debug:
+        if debug:
             print '...Passed'
 
 class _load_grid:
@@ -82,7 +82,7 @@ class _load_grid:
     node = 
     '''
     def __init__(self, data, debug=False):
-        if debug or self._debug:
+        if debug:
             print 'Loading grid...'
 
         self.trinodes = data.variables['nv'][:]
@@ -93,6 +93,6 @@ class _load_grid:
         self.nele = data.dimensions['nele']
         self.node = data.dimensions['node']
 
-        if debug or self._debug:
+        if debug:
             print '...Passed'
 
