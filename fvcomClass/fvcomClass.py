@@ -4,9 +4,10 @@
 #Libs import
 import numpy as np
 import sys
+sys.path.append('/home/wesley/github/UTide/')
 from utide import ut_solv, ut_reconstr
-import scipy.io as sio
-#TR_Alternative: import netCDF4 as nc
+import netCDF4 as nc
+#WB_Alternative: import scipy.io as sio
 
 #Add local path to utilities
 sys.path.append('../utilities/')
@@ -40,7 +41,7 @@ Inputs:
   Takes a file name as input, ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename')
 
 Options:
--------    
+-------
     ax can be defined as a region, i.e. a bounding box.
     An example:
         ax = [min(lon_coord), max(lon_coord), min(lat_coord), max(lat_coord)]
@@ -57,11 +58,13 @@ Notes:
             Notes: assume that the file has been validated nor processed'''
         self._debug = debug
         if debug:
-            print '-Debug mode on-' 
-      
+            print '-Debug mode on-'
+
         #TR_comments: Add input check and alternative (extract from server)
-        self.Data = sio.netcdf.netcdf_file(filename, 'r')
-        #TR_Alternative: self.Data = nc.Dataset(filename, 'r')
+        #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+        #WB_comments: scipy has causes some errors, and even though can be
+        #             faster, can be unreliable
+        self.Data = nc.Dataset(filename, 'r')
         self.Variables = _load_var(self.Data, debug=self._debug)
         self.Grid = _load_grid(self.Data, debug=self._debug)
 
@@ -79,7 +82,7 @@ Notes:
             self.QC = self.Data.QC
         else:
             self.QC = ['Raw data']
-        
+
 
     def harmonics(self, ind, twodim=True, **kwarg):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
@@ -90,7 +93,7 @@ Notes:
                                 debug=self._debug, **kwarg)
             self.QC.append('ut_solv done for velocity')
 
-        else:	
+        else:
             self.coef = ut_solv(self.Variables.matlabTime, self.Variables.ua[:, ind], [],
                                 self.Variables.lat[ind], **kwarg)
             self.QC.append('ut_solv done for elevation')
@@ -108,14 +111,21 @@ Notes:
 #Test section when running in shell >> python fvcomClass.py
 if __name__ == '__main__':
 
-    filename = './test_file/dn_coarse_0001.nc'
+    #filename = './test_file/dn_coarse_0001.nc'
+    filename = '/home/wesley/ncfiles/smallcape_force_0001.nc'
     test = FVCOM(filename)
     test.harmonics(0, cnstit='auto', notrend=True, nodiagn=True)
-    test.reconstr(test.Variables.matlabTtime)
+    #WB_COMMENTS: fixed matlabttime to matlabtime
+    test.reconstr(test.Variables.matlabTime)
 
-    t = shortest_element_path(test.latc,test.lonc,test.lat,test.lon,test.nv,test.h)
-    elements, _ = t.getTargets([[41420,39763],[48484,53441],
-                                [27241,24226],[21706,17458]])
+    #WB_COMMENTS: This doesn't work with your TR variable convention
+    # t = shortest_element_path(test.latc,test.lonc,test.lat,test.lon,test.nv,test.h)
+    t = shortest_element_path(test.Variables.latc, test.Variables.lonc,
+                              test.Variables.lat, test.Variables.lon,
+                              test.Variables.nv, test.Variables.h)
+
+    elements, _ = t.getTargets([[41420, 39763], [48484, 53441],
+                                [27241, 24226], [21706, 17458]])
 
 
 
