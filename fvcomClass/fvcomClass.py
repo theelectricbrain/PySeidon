@@ -111,8 +111,8 @@ Notes:
 #Test section when running in shell >> python fvcomClass.py
 if __name__ == '__main__':
 
-    #filename = './test_file/dn_coarse_0001.nc'
-    filename = '/home/wesley/ncfiles/smallcape_force_0001.nc'
+    filename = './test_file/dn_coarse_0001.nc'
+    #filename = '/home/wesley/ncfiles/smallcape_force_0001.nc'
     test = FVCOM(filename)
     test.harmonics(0, cnstit='auto', notrend=True, nodiagn=True)
     #WB_COMMENTS: fixed matlabttime to matlabtime
