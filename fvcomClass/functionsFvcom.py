@@ -5,41 +5,14 @@ import numpy as np
 
 class FunctionsFvcom:
     ''''Utils' subset of FVCOM class gathers useful functions""" '''
-    def __init__(self,cls):
+    def __init__(self, cls):
         self._var = cls.Variables
         self._grid = cls.Grid
-        self._ax = cls._ax
+        #Create pointer to FVCOM class
+        cls.Variables = self._var
+        cls.Grid = self._grid
         self._debug = cls._debug
-    
-    def el_region(self, debug=False):
-        '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        
-        if debug or self._debug:
-            print 'Computing region_e...'
-
-        region_e = np.argwhere((self._var.lonc >= self._ax[0]) &
-                                     (self._var.lonc <= self._ax[1]) &
-                                     (self._var.latc >= self._ax[2]) &
-                                     (self._var.latc <= self._ax[3]))
-        if debug or self._debug:
-            print '...Passed'
-
-        return region_e
-
-    def node_region(self, debug=False):
-        '''Use/Inputs/Outputs of this method has to be clarified !!!'''
-        if debug or self._debug:
-            print 'Computing region_n...'
-
-        region_n = np.argwhere((self._var.lon >= self._ax[0]) &
-                                     (self._var.lon <= self._ax[1]) &
-                                     (self._var.lat >= self._ax[2]) &
-                                     (self._var.lat <= self._ax[3]))
-        if debug or self._debug:
-            print '...Passed'
-
-        return region_n
-
+  
     def centers(self, debug=False):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
         if debug or self._debug:
@@ -51,7 +24,7 @@ class FunctionsFvcom:
         hc = np.zeros((size))
         for i,v in enumerate(self._grid.trinodes.T):
             elc[:, i] = np.mean(self._var.el[:, v], axis=1)
-            hc[i] = np.mean(self._var.h[v], axis=1)
+            hc[i] = np.mean(self._grid.h[v], axis=1)
 
         if debug or self._debug:
             print '...Passed'
@@ -101,4 +74,59 @@ class FunctionsFvcom:
             print '...Passed'
 
         return closest_point_indexes
+
+    def el_region(self, debug=False):
+        '''Return element indexes included in bounding box, aka ax'''
+        
+        if debug or self._debug:
+            print 'Computing region_e...'
+
+        region_e = np.argwhere((self._grid.lonc >= self._grid.ax[0]) &
+                                     (self._grid.lonc <= self._grid.ax[1]) &
+                                     (self._grid.latc >= self._grid.ax[2]) &
+                                     (self._grid.latc <= self._grid.ax[3]))
+
+        # Create new grid variable through pointer
+        self._grid.region_e = region_e
+
+        if debug or self._debug:
+            print '...Passed'
+
+        return region_e
+
+    def node_region(self, debug=False):
+        '''Return node indexes included in bounding box, aka ax'''
+        if debug or self._debug:
+            print 'Computing region_n...'
+
+        region_n = np.argwhere((self._grid.lon >= self._grid.ax[0]) &
+                                     (self._grid.lon <= self._grid.ax[1]) &
+                                     (self._grid.lat >= self._grid.ax[2]) &
+                                     (self._grid.lat <= self._grid.ax[3]))
+
+        # Create new grid var through pointer
+        self._grid.region_n = region_n
+
+        if debug or self._debug:
+            print '...Passed'
+
+        return region_n
+
+    def bounding_box(self, ax=[]):
+        """
+        Define bounding box and reset the box by default.
+        Input ex:
+        --------
+          .bounding_box(ax=[min lon, max lon, min lat, max lat])
+        """
+        # reset through pointer
+        if ax:
+            self._grid.ax = ax
+        else:
+            self._grid.ax = [min(self._grid.lon), max(self._grid.lon),
+                             min(self._grid.lat), max(self._grid.lat)]
+          
+
+
+    #def velo_norm(self):
 

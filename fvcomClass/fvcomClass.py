@@ -70,10 +70,10 @@ Notes:
 
         #Invisible parameter
         if ax:
-            self._ax = ax
+            self.Grid.ax = ax
         else:
-            self._ax = [min(self.Variables.lon), max(self.Variables.lon),
-                        min(self.Variables.lat), max(self.Variables.lat)]
+            self.Grid.ax = [min(self.Grid.lon), max(self.Grid.lon),
+                        min(self.Grid.lat), max(self.Grid.lat)]
         self.Utils = FunctionsFvcom(self)
         self.Plots = PlotsFvcom(self)
 
@@ -82,6 +82,10 @@ Notes:
             self.QC = self.Data.QC
         else:
             self.QC = ['Raw data']
+
+        # custom variables
+        #self.Variables.region_e = self.Utils.el_region(self)
+        #self.region_n = self.Utils.node_region(self)
 
 
     def harmonics(self, ind, twodim=True, **kwarg):
@@ -120,9 +124,9 @@ if __name__ == '__main__':
 
     #WB_COMMENTS: This doesn't work with your TR variable convention
     # t = shortest_element_path(test.latc,test.lonc,test.lat,test.lon,test.nv,test.h)
-    t = shortest_element_path(test.Variables.latc, test.Variables.lonc,
-                              test.Variables.lat, test.Variables.lon,
-                              test.Variables.nv, test.Variables.h)
+    t = shortest_element_path(test.Grid.latc, test.Grid.lonc,
+                              test.Grid.lat, test.Grid.lon,
+                              test.Grid.nv, test.Grid.h)
 
     elements, _ = t.getTargets([[41420, 39763], [48484, 53441],
                                 [27241, 24226], [21706, 17458]])
