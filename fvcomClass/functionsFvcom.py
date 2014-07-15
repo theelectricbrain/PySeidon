@@ -2,16 +2,17 @@
 # encoding: utf-8
 
 import numpy as np
+import numexpr as ne
 
 class FunctionsFvcom:
     ''''Utils' subset of FVCOM class gathers useful functions""" '''
     def __init__(self, cls):
+        self._debug = cls._debug
         self._var = cls.Variables
         self._grid = cls.Grid
         #Create pointer to FVCOM class
         cls.Variables = self._var
         cls.Grid = self._grid
-        self._debug = cls._debug
   
     def centers(self, debug=False):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
@@ -130,5 +131,23 @@ class FunctionsFvcom:
           
 
 
-    #def velo_norm(self):
+    def velo_norm(self, debug=False):
+        """Compute velocity norm -> FVCOM.Variables.velo_norm"""
+        if debug or self._debug:
+            print 'Computing velocity norm...'
+        if self._var._3D:
+            u = self._var.u[:, :, self._grid.region_e[:]]
+            v = self._var.v[:, :, self._grid.region_e[:]]
+            ww = self._var.ww[:, :, self._grid.region_e[:]]
+            vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
+        else:
+            u = self._var.ua[:, self._grid.region_e[:]]
+            v = self._var.va[:, self._grid.region_e[:]]
+            vel = ne.evaluate('sqrt(u**2 + v**2)')
+
+        self._var.velo_norm = vel           
+
+        if debug or self._debug:
+            print '...Passed'
+        
 
