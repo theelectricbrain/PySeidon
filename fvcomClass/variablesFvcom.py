@@ -79,8 +79,8 @@ class _load_grid:
         self.awx = data.variables['awx'][:]
         self.awy = data.variables['awy'][:]
         # Need to use len to get size of dimensions
-        self.nele = data.dimensions['nele']
-        self.node = data.dimensions['node']
+        self.nele = len(data.dimensions['nele'])
+        self.node = len(data.dimensions['node'])
         # Custom grid variables
         if debug:
             print '...Passed'

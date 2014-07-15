@@ -10,9 +10,11 @@ class FunctionsFvcom:
         self._debug = cls._debug
         self._var = cls.Variables
         self._grid = cls.Grid
+        self._QC = cls.QC
         #Create pointer to FVCOM class
         cls.Variables = self._var
         cls.Grid = self._grid
+        cls.QC = self._QC
   
     def centers(self, debug=False):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
@@ -127,25 +129,32 @@ class FunctionsFvcom:
             self._grid.ax = [min(self._grid.lon), max(self._grid.lon),
                              min(self._grid.lat), max(self._grid.lat)]
         self.node_region()
-        self.ele_region()
-          
-
+        self.ele_region()          
 
     def velo_norm(self, debug=False):
         """Compute velocity norm -> FVCOM.Variables.velo_norm"""
         if debug or self._debug:
             print 'Computing velocity norm...'
         if self._var._3D:
-            u = self._var.u[:, :, self._grid.region_e[:]]
-            v = self._var.v[:, :, self._grid.region_e[:]]
-            ww = self._var.ww[:, :, self._grid.region_e[:]]
+            #TR_comment: not sure we should compute norm only in bounding box
+            #u = self._var.u[:, :, self._grid.region_e[:]]
+            #v = self._var.v[:, :, self._grid.region_e[:]]
+            #ww = self._var.ww[:, :, self._grid.region_e[:]]
+            u = self._var.u[:, :, :]
+            v = self._var.v[:, :, :]
+            ww = self._var.ww[:, :, :]
             vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
         else:
-            u = self._var.ua[:, self._grid.region_e[:]]
-            v = self._var.va[:, self._grid.region_e[:]]
-            vel = ne.evaluate('sqrt(u**2 + v**2)')
-
-        self._var.velo_norm = vel           
+            #TR_comment: not sure we should compute norm only in bounding box
+            #u = self._var.ua[:, self._grid.region_e[:]]
+            #v = self._var.va[:, self._grid.region_e[:]]
+            u = self._var.ua[:, :]
+            v = self._var.va[:, :]
+            vel = ne.evaluate('sqrt(u**2 + v**2)')      
+        self._var.velo_norm = vel 
+          
+        # Add metadata entry
+        self._QC.append('velocity norm computed')
 
         if debug or self._debug:
             print '...Passed'
