@@ -158,5 +158,3 @@ class FunctionsFvcom:
 
         if debug or self._debug:
             print '...Passed'
-        
-

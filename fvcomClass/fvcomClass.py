@@ -59,12 +59,19 @@ Notes:
         self._debug = debug
         if debug:
             print '-Debug mode on-'
-
         #TR_comments: Add input check and alternative (extract from server)
         #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
         #WB_comments: scipy has causes some errors, and even though can be
         #             faster, can be unreliable
         self.Data = nc.Dataset(filename, 'r')
+
+        #Metadata
+        if hasattr(self.Data, 'QC'):
+            self.QC = self.Data.QC
+        else:
+            self.QC = ['Raw data']
+
+        # Custom fields
         self.Variables = _load_var(self.Data, debug=self._debug)
         self.Grid = _load_grid(self.Data, debug=self._debug)
 
@@ -79,12 +86,6 @@ Notes:
 
         #Bounding box
         self.Utils.bounding_box(ax)
-
-        #Metadata
-        if hasattr(self.Data, 'QC'):
-            self.QC = self.Data.QC
-        else:
-            self.QC = ['Raw data']
 
         # custom variables
         #self.Variables.region_e = self.Utils.el_region(self)

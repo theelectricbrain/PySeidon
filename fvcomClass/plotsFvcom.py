@@ -50,7 +50,7 @@ class PlotsFvcom:
         if var.shape[0] == self._grid.nele:
             lon = self._grid.lonc
             lat = self._grid.latc
-        else var.shape[0] == self._grid.node:     
+        else:     
             lon = self._grid.lon
             lat = self._grid.lat
         tri = Tri.Triangulation(lon, lat, triangles=nv)
