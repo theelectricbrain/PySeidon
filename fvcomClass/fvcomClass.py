@@ -68,14 +68,17 @@ Notes:
         self.Variables = _load_var(self.Data, debug=self._debug)
         self.Grid = _load_grid(self.Data, debug=self._debug)
 
-        #Invisible parameter
-        if ax:
-            self.Grid.ax = ax
-        else:
-            self.Grid.ax = [min(self.Grid.lon), max(self.Grid.lon),
-                        min(self.Grid.lat), max(self.Grid.lat)]
+        #Bounding box
+        #if ax:
+        #    self.Grid.ax = ax
+        #else:
+        #    self.Grid.ax = [min(self.Grid.lon), max(self.Grid.lon),
+        #                min(self.Grid.lat), max(self.Grid.lat)]
         self.Utils = FunctionsFvcom(self)
         self.Plots = PlotsFvcom(self)
+
+        #Bounding box
+        self.Utils.bounding_box(ax)
 
         #Metadata
         if hasattr(self.Data, 'QC'):

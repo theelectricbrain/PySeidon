@@ -75,7 +75,7 @@ class FunctionsFvcom:
 
         return closest_point_indexes
 
-    def el_region(self, debug=False):
+    def ele_region(self, debug=False):
         '''Return element indexes included in bounding box, aka ax'''
         
         if debug or self._debug:
@@ -87,7 +87,7 @@ class FunctionsFvcom:
                                      (self._grid.latc <= self._grid.ax[3]))
 
         # Create new grid variable through pointer
-        self._grid.region_e = region_e
+        self._grid.region_e = region_e[:,0]
 
         if debug or self._debug:
             print '...Passed'
@@ -105,7 +105,7 @@ class FunctionsFvcom:
                                      (self._grid.lat <= self._grid.ax[3]))
 
         # Create new grid var through pointer
-        self._grid.region_n = region_n
+        self._grid.region_n = region_n[:,0]
 
         if debug or self._debug:
             print '...Passed'
@@ -125,6 +125,8 @@ class FunctionsFvcom:
         else:
             self._grid.ax = [min(self._grid.lon), max(self._grid.lon),
                              min(self._grid.lat), max(self._grid.lat)]
+        self.node_region()
+        self.ele_region()
           
 
 
