@@ -1,10 +1,12 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 
+from __future__ import division
 import numpy as np
 import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
+from interpolation_utils import closest_point, interp_at_point
 
 class FunctionsFvcom:
     ''''Utils' subset of FVCOM class gathers useful functions""" '''
@@ -18,7 +20,7 @@ class FunctionsFvcom:
         cls.Grid = self._grid
         cls.QC = self._QC
   
-    def elc(self, debug=False):
+    def _elc(self, debug=False):
         '''Compute elevation at center points -> FVCOM.Variables.elc'''
         if debug or self._debug:
             print 'Computing elc...'
@@ -40,14 +42,14 @@ class FunctionsFvcom:
         self._var.elc = elc
 
 
-    def hc(self, debug=False):
-        '''Compute bathymetry at center points -> FVCOM.Variables.elc'''
+    def _hc(self, debug=False):
+        '''Compute bathymetry at center points -> FVCOM.Variables.hc'''
         if debug or self._debug:
             print 'Computing hc...'
 
         size = self._grid.trinodes.T.shape[0]
         size1 = self._var.el.shape[0]
-        elc = np.zeros((size1, size))
+        hc = np.zeros((size1, size))
         for i,v in enumerate(self._grid.trinodes.T):
             hc[i] = np.mean(self._grid.h[v], axis=1)
 
@@ -61,36 +63,7 @@ class FunctionsFvcom:
         #Custom return 
         self._var.hc = hc       
 
-    def closest_point(self, pt_lon, pt_lat,debug=False):
-        '''
-        Finds the closest exact lon, lat centre indexes of an FVCOM class
-        to given lon, lat coordinates.
-
-        Inputs:
-          - pt_lon = list of longitudes in degrees
-          - pt_lat = list of latitudes in degrees
-        Outputs:
-          - closest_point_indexes = numpy array of grid indexes
-        '''
-        if debug or self._debug:
-            print 'Computing closest_point_indexes...'
-
-        points = np.array([pt_lon, pt_lat]).T
-
-        #point_list = np.array([lon,lat]).T
-        point_list = np.array([self._var.lonc, self._var.latc]).T
-
-        closest_dist = ((point_list[:, 0] - points[:, 0, None])**2 +
-                        (point_list[:, 1] - points[:, 1, None])**2)
-
-        closest_point_indexes = np.argmin(closest_dist, axis=1)
-
-        if debug or self._debug:
-            print '...Passed'
-
-        return closest_point_indexes
-
-    def ele_region(self, debug=False):
+    def _ele_region(self, debug=False):
         '''Return element indexes included in bounding box, aka ax'''
         
         if debug or self._debug:
@@ -109,7 +82,7 @@ class FunctionsFvcom:
 
         return region_e
 
-    def node_region(self, debug=False):
+    def _node_region(self, debug=False):
         '''Return node indexes included in bounding box, aka ax'''
         if debug or self._debug:
             print 'Computing region_n...'
@@ -140,8 +113,8 @@ class FunctionsFvcom:
         else:
             self._grid.ax = [min(self._grid.lon), max(self._grid.lon),
                              min(self._grid.lat), max(self._grid.lat)]
-        self.node_region()
-        self.ele_region()
+        self._node_region()
+        self._ele_region()
 
         # Add metadata entry
         if not quiet:
@@ -191,8 +164,8 @@ class FunctionsFvcom:
         else:
            u = self._var.ua
            v = self._var.va
-        dirFlow = np.arctan2(u,v)
-        dirfFlow = (np.pi/2.0) - dirFlow
+        dirFlow = (np.pi/2.0) - np.arctan2(u,v)
+        dirFlow = dirFlow * (180.0 / np.pi)
 
         #Custom return    
         self._var.dir_flow = dirFlow 
@@ -203,6 +176,75 @@ class FunctionsFvcom:
 
         if debug or self._debug:
             print '...Passed'
+
+    def ebb_flood_split(self, debug=False):
+        """"
+        Compute principal flow directions -> FVCOM.Variables.principal_axes
+        Notes: directions between 0 and 360 deg.
+        """
+        if debug or self._debug:
+            print 'Computing principal flow directions...'
+
+
+
+        #Custom return    
+        #self._var.principal_axes =  
+
+        # Add metadata entry
+        self._QC.append('principal flow directions computed')
+        print '-Principal Flow directions added to FVCOM.Variables.-'
+
+        if debug or self._debug:
+            print '...Passed'
+
+    def principal_axes(self, lon, lat, debug=False):
+        """"
+        Compute principal flow directions and associated variances for (x, y) point
+        Inputs:
+        ------
+          lon = longitude in deg., float
+          lat = latitude in deg., float
+        Outputs:
+        -------
+           pr_axes = 2 principal flow axes, 2 element list
+           pr_ax_var = associated variances, 2 element list            
+        Notes:
+        -----
+          directions between 0 and 360 deg.
+        """
+        if debug or self._debug:
+            print 'Computing principal flow directions...'
+
+        var_interp = interp_at_point(var, pt_lon, pt_lat, self._grid.lonc, self._grid.latc,
+                                  self._grid.trinodes, debug=self._debug)
+
+
+
+        if debug or self._debug:
+            print '...Passed'
+
+    def interpolation_at_point(self, var, pt_lon, pt_lat, debug=False):
+        """
+        Interpol any given variables at any give location.
+        Inputs:
+        ------
+          - var = variable, numpy array, dim=(time, nele or node)
+          - pt_lon = longitude in degrees to find
+          - pt_lat = latitude in degrees to find
+        Outputs:
+        -------
+           - varInterp = var interpolate at (pt_lon, pt_lat)
+        """
+        if any(np.equal(self._grid.nele, var.shape)):
+            lon = self._grid.lonc
+            lat = self._grid.latc
+        else:
+            lon = self._grid.lon
+            lat = self._grid.lat
+
+        varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat,
+                                    self._grid.trinodes , debug=(self._debug or debug))
+        return varInterp
 
     # Functions available only for 3D runs
     def verti_shear(self, t_start, t_end, bot_lvl=[], top_level= [], debug=False):
