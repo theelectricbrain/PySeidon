@@ -13,8 +13,9 @@ class _load_var:
     ua._|_grid = 'fvcom_grid'
         |_...
   Some others shall be generated as methods are being called, ex:
-    norma = depth averaged velocity norm
-    norm = velocity norm
+    hori_velo_norm = horizontal velocity norm
+    velo_norm = velocity norm
+    verti_shear = vertical shear
     ...            
     """
     def __init__(self, data, debug=False):

@@ -85,7 +85,7 @@ Notes:
         self.Plots = PlotsFvcom(self)
 
         #Bounding box
-        self.Utils.bounding_box(ax)
+        self.Utils.bounding_box(ax, quiet=True)
 
         # custom variables
         #self.Variables.region_e = self.Utils.el_region(self)
