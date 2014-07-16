@@ -62,10 +62,12 @@ class PlotsFvcom:
         #Figure window params
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')
-        ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
+        self._fig = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
+        #CS = self._fig.tricontour(tri, -1.0*self._grid.h, levels=levels,
+        #                          shading='faceted',cmap=plt.cm.gist_earth)
 
         #Plotting functions
-        f = ax.tripcolor(tri, var,vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
+        f = self._fig.tripcolor(tri, var,vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
         if mesh:
             plt.triplot(tri)
 
@@ -73,18 +75,24 @@ class PlotsFvcom:
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.gca().patch.set_facecolor('0.5')
-        cbar=fig.colorbar(f, ax=ax)
+        cbar=fig.colorbar(f, ax=self._fig)
         cbar.set_label(title, rotation=-90,labelpad=30)
         scale = 1
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
-        ax.xaxis.set_major_formatter(ticks)
-        ax.yaxis.set_major_formatter(ticks)
-        ax.set_xlim([bb[0],bb[1]])
-        ax.set_ylim([bb[2],bb[3]])
+        self._fig.xaxis.set_major_formatter(ticks)
+        self._fig.yaxis.set_major_formatter(ticks)
+        self._fig.set_xlim([bb[0],bb[1]])
+        self._fig.set_ylim([bb[2],bb[3]])
         plt.grid()
         plt.show()
         if debug or self._debug:
             print '...Passed'
 
-    #def spatial
-
+    def add_points(self, x, y, label, color='black'):
+        """
+        Add scattered points (x,y) on current figure,
+        where x and y are 1D arrays of the same lengths.
+        Label is a string.
+        """
+        plt.scatter(x, y, s=200, color=color)
+        self._fig.annotate(label, xy=(x, y), arrowprops=dict(arrowstyle="->"))
