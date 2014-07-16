@@ -19,7 +19,7 @@ class PlotsFvcom:
         2D xy colormap plot of any given variable and mesh.
         Input:
         -----
-          var = variable located at nodes, 1 dimensional numpy array
+          var = gridded variable, 1 dimensional numpy array
 
         Keywords:
         --------
@@ -46,25 +46,17 @@ class PlotsFvcom:
         
         
         # Mesh triangle
-        nv = self._grid.nv.T -1
-        if var.shape[0] == self._grid.nele:
-            lon = self._grid.lonc
-            lat = self._grid.latc
-        else:     
-            lon = self._grid.lon
-            lat = self._grid.lat
+        nv = self._grid.nv.T -1 
+        lon = self._grid.lon
+        lat = self._grid.lat
         tri = Tri.Triangulation(lon, lat, triangles=nv)
 
         #setting limits and levels of colormap
         if cmin==[]:
-            cmin=round(var[lim].min())
-            if cmin==0.0:
-                cmin = -1.0
+            cmin=var[lim].min()
         if cmax==[]:
-            cmax=round(var[lim].max())
-            if cmax==0.0:
-                cmax==1.0
-        step = round(round(cmax-cmin) / 50.0)
+            cmax=var[lim].max()
+        step = (cmax-cmin) / 50.0
         levels=np.arange(cmin, (cmax+step), step)   # depth contours to plot
 
         #Figure window params
@@ -73,7 +65,7 @@ class PlotsFvcom:
         ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
 
         #Plotting functions
-        plt.tricontourf(tri, var,levels=levels,shading='faceted',cmap=plt.cm.gist_earth)
+        f = ax.tripcolor(tri, var,vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
         if mesh:
             plt.triplot(tri)
 
@@ -81,7 +73,7 @@ class PlotsFvcom:
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.gca().patch.set_facecolor('0.5')
-        cbar=plt.colorbar()
+        cbar=fig.colorbar(f, ax=ax)
         cbar.set_label(title, rotation=-90,labelpad=30)
         scale = 1
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
