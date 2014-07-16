@@ -16,26 +16,28 @@ class FunctionsFvcom:
         cls.Grid = self._grid
         cls.QC = self._QC
   
-    def centers(self, debug=False):
-        '''Use/Inputs/Outputs of this method has to be clarified !!!'''
+    def elc(self, debug=False):
+        '''Compute elevation at center points -> FVCOM.Variables.elc'''
         if debug or self._debug:
-            print 'Computing elc, hc...'
+            print 'Computing elc...'
 
         size = self._grid.trinodes.T.shape[0]
         size1 = self._var.el.shape[0]
         elc = np.zeros((size1, size))
-        hc = np.zeros((size))
         for i,v in enumerate(self._grid.trinodes.T):
             elc[:, i] = np.mean(self._var.el[:, v], axis=1)
-            hc[i] = np.mean(self._grid.h[v], axis=1)
 
         if debug or self._debug:
             print '...Passed'
 
-        return elc, hc
+        # Add metadata entry
+        self._QC.append('central elevation computed')
+
+        self._var.elc = elc
+        #return elc
 
     def hc(self, debug=False):
-        '''Use/Inputs/Outputs of this method has to be clarified !!!'''
+        '''Compute bathymetry at center points -> FVCOM.Variables.elc'''
         if debug or self._debug:
             print 'Computing hc...'
 
@@ -43,11 +45,16 @@ class FunctionsFvcom:
         size1 = self._var.el.shape[0]
         elc = np.zeros((size1, size))
         for i,v in enumerate(self._grid.trinodes.T):
-            elc[:, i] = np.mean(self._var.el[:, v], axis=1)
+            hc[i] = np.mean(self._grid.h[v], axis=1)
 
         if debug or self._debug:
             print '...Passed'
-        #TR_comments: No return ???
+
+        # Add metadata entry
+        self._QC.append('central bathy computed')
+
+        self._var.hc = hc       
+        #return hc
 
     def closest_point(self, pt_lon, pt_lat,debug=False):
         '''
@@ -129,7 +136,11 @@ class FunctionsFvcom:
             self._grid.ax = [min(self._grid.lon), max(self._grid.lon),
                              min(self._grid.lat), max(self._grid.lat)]
         self.node_region()
-        self.ele_region()          
+        self.ele_region()
+
+        # Add metadata entry
+        text = 'bounding box =' + str(self._grid.ax)
+        self._QC.append(text)       
 
     def velo_norm(self, debug=False):
         """Compute velocity norm -> FVCOM.Variables.velo_norm"""
