@@ -70,6 +70,7 @@ class _load_grid:
         self.h = data.variables['h'][:]
         self.nbe = data.variables['nbe'][:]
         self.nv = data.variables['nv'][:]
+        self.trinodes = self.nv.T - 1
         self.siglay = data.variables['siglay'][:]
         self.siglev = data.variables['siglev'][:]
         #TR_comments: what the hell are the a* parameters???

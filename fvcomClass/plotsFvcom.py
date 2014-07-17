@@ -126,6 +126,6 @@ class PlotsFvcom:
           Label = a string
           Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """
-        self._fig.scatter(x, y, s=200, color=color)
+        plt.scatter(x, y, s=200, color=color)
         #TR : annotate does not work on my machine !?
         #self._fig.annotate(label, (x, y), xycoords='data', arrowprops=dict(arrowstyle="->"))

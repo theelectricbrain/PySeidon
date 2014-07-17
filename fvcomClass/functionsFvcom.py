@@ -283,23 +283,31 @@ class FunctionsFvcom:
         -------
            - varInterp = var interpolate at (pt_lon, pt_lat)
         """
-        #Checking if var == h or el or some var of same dimensions
-        if not any(np.equal(self._grid.nele, var.shape)):
-            if len(var.shape)==2:
-                if not hasattr(self._var, 'elc'):
-                    self._elc(debug=debug)
-                    var = self._var.elc
-            else:
-                if not hasattr(self._grid, 'hc'):
-                    hc = self._hc(debug=debug)
-                    var = self._grid.hc
-
+        debug = (debug or self._debug)
+        if debug:
+            print 'Interpoling at point...'
         lon = self._grid.lonc
         lat = self._grid.latc
-        trinodes = self._grid.nv
+        index = closest_point([pt_lon], [pt_lat], lon, lat, debug=debug)[0]
+
+        #Checking if var == h or el or some var of same dimensions
+        #if not any(np.equal(self._grid.nele, var.shape)):
+        #    if len(var.shape)==2:
+        #        if not hasattr(self._var, 'elc'):
+        #            self._elc(debug=debug)
+        #            var = self._var.elc
+        #    else:
+        #        if not hasattr(self._grid, 'hc'):
+        #            hc = self._hc(debug=debug)
+        #            var = self._grid.hc
 
 
-        varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat,
+
+        lon = self._grid.lon
+        lat = self._grid.lat    
+        trinodes = self._grid.trinodes
+
+        varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat, index,
                                     trinodes , debug=(self._debug or debug))
         return varInterp
 
@@ -327,8 +335,8 @@ class FunctionsFvcom:
             sys.exit()  
 
         signal = self.interpolation_at_point(var, pt_lon, pt_lat, debug=debug)
-        Max = round(max(signal),1)	
-        dy = round((Max/20.0),1)
+        Max = max(signal)	
+        dy = (Max/50.0)
         Ranges = np.arange(0,(Max + dy), dy)
         Exceedance = np.zeros(Ranges.shape[0])
         Period = time[-1] - time[0]
