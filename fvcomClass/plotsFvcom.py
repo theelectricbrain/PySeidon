@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
 import seaborn
+from windrose import WindroseAxes
 
 class PlotsFvcom:
     """'Plots' subset of FVCOM class gathers plotting functions"""
@@ -88,6 +89,23 @@ class PlotsFvcom:
         if debug or self._debug:
             print '...Passed'
 
+    def rose_diagram(self, direction, norm):
+        """Plot rose diagram. direction and norm = 1D arrays"""
+
+        #Create new figure
+        fig = plt.figure(figsize=(18,10))
+        plt.rc('font',size='22')
+        rect = [0.1, 0.1, 0.8, 0.8]
+        ax = WindroseAxes(fig, rect)#, axisbg='w')
+        fig.add_axes(ax)
+        #Rose
+        ax.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
+        #adjust legend
+        l = ax.legend()
+        plt.setp(l.get_texts(), fontsize=10)
+        plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
+        plt.show() 
+
     def add_points(self, x, y, label, color='black'):
         """
         Add scattered points (x,y) on current figure,
@@ -96,3 +114,4 @@ class PlotsFvcom:
         """
         plt.scatter(x, y, s=200, color=color)
         self._fig.annotate(label, xy=(x, y), arrowprops=dict(arrowstyle="->"))
+        plt.show()

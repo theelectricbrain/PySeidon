@@ -74,8 +74,8 @@ Notes:
         # Custom fields
         self.Variables = _load_var(self.Data, debug=self._debug)
         self.Grid = _load_grid(self.Data, debug=self._debug)
-        self.Utils = FunctionsFvcom(self)
         self.Plots = PlotsFvcom(self)
+        self.Utils = FunctionsFvcom(self)
 
         #Bounding box
         self.Utils.bounding_box(ax, quiet=True)

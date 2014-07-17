@@ -1,6 +1,7 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.tri as Tri
@@ -49,20 +50,23 @@ def inside_tri( pt_lon, pt_lat, lon, lat, trinodes, debug=False):
       - tri_indexes = numpy array of trinode indexes
     '''
     if debug:
-        print 'Computing closest_point_indexes...'
+        print 'Computing surrounding triangle...'
     
     point = [pt_lon, pt_lat]    
     vert = np.ones((3,2)) #initialise vertice
     #loop through all the trinodes
     i=0
-    while True:
+    while i != trinodes.shape[1]:
         vert[:,0] = lon[trinodes[:,i]]
         vert[:,1] = lat[trinodes[:,i]]
         path = Path(vert)
         tri_indexes = i
         i += 1
         if path.contains_point(point):
-            break      
+            break
+    if i == trinodes.shape[1]:
+        print 'Point has not been found !!!'
+        sys.exit()   
 
     if debug:
         print '...Passed'
@@ -87,14 +91,15 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, trinodes , debug=False):
         print 'Computing var_interp...'
 
     #Get closest indexes
-    #index = closest_point([pt_lon], [pt_lat], lon, lat, debug=debug)[0]
+    #TR: index = closest_point([pt_lon], [pt_lat], lon, lat, debug=debug)[0] doesn't work
     index = inside_tri( pt_lon, pt_lat, lon, lat, trinodes, debug=debug)
     #if debug:
     #    print index
     triIndex = trinodes[:,index].flatten()
+
+    #Triangulation
     #if debug:
     #    print triIndex, lon[triIndex], lat[triIndex]
-    #TR: Not quite sure
     newtri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
     trif = newtri.get_trifinder()
     trif.__call__(pt_lon, pt_lat)
@@ -106,9 +111,10 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, trinodes , debug=False):
         print zi
         fig = plt.figure(figsize=(18,10))
         ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat[triIndex])*np.pi/180.0)))
+        plt.tricontourf(newtri, averEl, cmap=plt.cm.jet)
         plt.triplot(newtri, 'ko-')
         plt.plot(pt_lon, pt_lat, 'ko-')
-        xy = (pt_lon, pt_lat)
+        cbar = plt.colorbar()
         plt.show()
 
     #Choose the right interpolation depending on the variable

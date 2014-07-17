@@ -14,6 +14,7 @@ class FunctionsFvcom:
         self._debug = cls._debug
         self._var = cls.Variables
         self._grid = cls.Grid
+        self._plot = cls.Plots
         self._QC = cls.QC
         #Create pointer to FVCOM class
         cls.Variables = self._var
@@ -150,6 +151,7 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
+    #TR: flow_dir over the whole grid far too slow !!!
     def flow_dir(self, debug=False):
         """"
         Compute flow directions -> FVCOM.Variables.flow_dir
@@ -176,6 +178,58 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
+    def flow_dir_at_point(self, pt_lon, pt_lat, vertical=False, debug=False):
+        """"
+        Flow directions and associated norm at any give location.
+        Inputs:
+        ------
+          - pt_lon = longitude in degrees to find
+          - pt_lat = latitude in degrees to find
+        Outputs:
+        -------
+           - flowDir = flowDir at (pt_lon, pt_lat)
+           - norm = velocity norm at (pt_lon, pt_lat)
+        Keywords:
+        -------
+          -vertical = True, compute flowDir for each vertical level
+        Notes:
+        -----
+          directions between 0 and 360 deg.
+        """
+        debug = debug or self._debug
+        if debug:
+            print 'Computing flow directions at point...'
+
+        #Choose the right pair of velocity components
+        if self._var._3D and vertical:
+           u = self._var.u
+           v = self._var.v
+        else:
+           u = self._var.ua
+           v = self._var.va
+
+        #Extraction at point
+        if debug:
+            print 'Extraction of u and v at point...'
+        U = self.interpolation_at_point(u, pt_lon, pt_lat,
+                                        debug=debug)  
+        V = self.interpolation_at_point(v, pt_lon, pt_lat,
+                                        debug=debug)       
+
+        #Compute directions
+        if debug:
+            print 'Computing arctan2 and norm...'
+        dirFlow = (np.pi/2.0) - np.arctan2(U,V)
+        dirFlow = dirFlow * (180.0 / np.pi)
+        norm = ne.evaluate('sqrt(U**2 + V**2)')
+        if debug:
+            print '...Passed'
+        
+        #Rose diagram
+        self._plot.rose_diagram(dirFlow, norm)
+
+        return dirFlow, norm
+
     def ebb_flood_split(self, debug=False):
         """"
         Compute principal flow directions -> FVCOM.Variables.principal_axes
@@ -183,7 +237,6 @@ class FunctionsFvcom:
         """
         if debug or self._debug:
             print 'Computing principal flow directions...'
-
 
 
         #Custom return    
@@ -196,7 +249,7 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
-    def principal_axes(self, lon, lat, debug=False):
+    def principal_axes(self, lon, lat, dirFlow=[], debug=False):
         """"
         Compute principal flow directions and associated variances for (x, y) point
         Inputs:
