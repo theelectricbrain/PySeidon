@@ -43,8 +43,7 @@ class PlotsFvcom:
         lim = self._grid.region_n
         if dim==self._grid.nele:
             lim = self._grid.region_e
-        bb = self._grid.ax
-        
+        bb = self._grid.ax     
         
         # Mesh triangle
         nv = self._grid.nv.T -1 
@@ -96,22 +95,37 @@ class PlotsFvcom:
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')
         rect = [0.1, 0.1, 0.8, 0.8]
-        ax = WindroseAxes(fig, rect)#, axisbg='w')
-        fig.add_axes(ax)
+        self._fig = WindroseAxes(fig, rect)#, axisbg='w')
+        fig.add_axes(self._fig)
         #Rose
-        ax.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
+        self._fig.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
         #adjust legend
-        l = ax.legend()
+        l = self._fig.legend()
         plt.setp(l.get_texts(), fontsize=10)
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         plt.show() 
 
-    def add_points(self, x, y, label, color='black'):
+    def plot_xy(self, x, y, title=' ', xLabel=' ', yLabel=' '):
+        """Simple Y vs X plot"""
+        fig = plt.figure(figsize=(18,10))
+        plt.rc('font',size='22')
+        self._fig = plt.plot(x, y)
+        scale = 1
+        ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
+        plt.ylabel(yLabel)
+        plt.xlabel(xLabel)
+
+        plt.show()      
+
+    def add_points(self, x, y, label=' ', color='black'):
         """
         Add scattered points (x,y) on current figure,
         where x and y are 1D arrays of the same lengths.
-        Label is a string.
+        Keywords:
+        --------
+          Label = a string
+          Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """
-        plt.scatter(x, y, s=200, color=color)
-        self._fig.annotate(label, xy=(x, y), arrowprops=dict(arrowstyle="->"))
-        plt.show()
+        self._fig.scatter(x, y, s=200, color=color)
+        #TR : annotate does not work on my machine !?
+        #self._fig.annotate(label, (x, y), xycoords='data', arrowprops=dict(arrowstyle="->"))

@@ -3,6 +3,7 @@
 
 from __future__ import division
 import numpy as np
+import sys
 import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
@@ -238,9 +239,7 @@ class FunctionsFvcom:
         if debug or self._debug:
             print 'Computing principal flow directions...'
 
-
-        #Custom return    
-        #self._var.principal_axes =  
+        #TR : still to be defined
 
         # Add metadata entry
         self._QC.append('principal flow directions computed')
@@ -267,9 +266,7 @@ class FunctionsFvcom:
         if debug or self._debug:
             print 'Computing principal flow directions...'
 
-        
-
-
+        #TR: Still to be developed
 
         if debug or self._debug:
             print '...Passed'
@@ -305,6 +302,57 @@ class FunctionsFvcom:
         varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat,
                                     trinodes , debug=(self._debug or debug))
         return varInterp
+
+    def exceedance(self, var, pt_lon, pt_lat, time, debug=False):
+        """
+        This function calculate the excedence curve of a var(time).
+        Inputs:
+        ------
+          - time: time in seconds, 1D array of n elements
+          - var: given quantity, 1D array of n elements
+        Outputs:
+        -------
+           - Exceedance: list of % of occurences
+           - Ranges: list of signal amplitude bins
+        Notes:
+        -----
+          This method is not suitable for SSE
+        """
+        debug = (debug or self._debug)
+        if debug:
+            print 'Computing exceedance...'
+
+        if len(var.shape)!=2:
+            print 'Var has not the right dimensions !!!'
+            sys.exit()  
+
+        signal = self.interpolation_at_point(var, pt_lon, pt_lat, debug=debug)
+        Max = round(max(signal),1)	
+        dy = round((Max/20.0),1)
+        Ranges = np.arange(0,(Max + dy), dy)
+        Exceedance = np.zeros(Ranges.shape[0])
+        Period = time[-1] - time[0]
+
+        N = len(signal)
+        M = len(Ranges)
+
+        for i in range(M):
+            r = Ranges[i]
+            for j in range(N-1):
+                if signal[j] > r:
+                    Exceedance[i] = Exceedance[i] + (time[j+1] - time[j])
+
+        Exceedance = (Exceedance * 100) / Period
+
+        if debug:
+            print '...Passed'
+       
+        #Plot
+        self._plot.plot_xy(Exceedance, Ranges, yLabel='Values',
+                           xLabel='Exceedance probability in %')
+
+        return Exceedance, Ranges
+
 
     # Functions available only for 3D runs
     def verti_shear(self, t_start, t_end, bot_lvl=[], top_level= [], debug=False):
