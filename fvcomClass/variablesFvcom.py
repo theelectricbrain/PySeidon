@@ -67,10 +67,9 @@ class _load_grid:
         self.lat = data.variables['lat'][:]
         self.lonc = data.variables['lonc'][:]
         self.latc = data.variables['latc'][:]
-        self.nv = data.variables['nv'][:]
         self.h = data.variables['h'][:]
         self.nbe = data.variables['nbe'][:]
-        self.trinodes = data.variables['nv'][:]
+        self.nv = data.variables['nv'][:]
         self.siglay = data.variables['siglay'][:]
         self.siglev = data.variables['siglev'][:]
         #TR_comments: what the hell are the a* parameters???

@@ -21,47 +21,46 @@ class FunctionsFvcom:
         cls.QC = self._QC
   
     def _elc(self, debug=False):
-        '''Compute elevation at center points -> FVCOM.Variables.elc'''
+        '''Compute var at center points -> FVCOM.Variables.elc'''
         if debug or self._debug:
-            print 'Computing elc...'
+            print 'Computing central elevation...'
 
-        size = self._grid.trinodes.T.shape[0]
+        size = self._grid.nv.T.shape[0]
         size1 = self._var.el.shape[0]
         elc = np.zeros((size1, size))
-        for i,v in enumerate(self._grid.trinodes.T):
+        for i,v in enumerate(self._grid.nv.T):
             elc[:, i] = np.mean(self._var.el[:, v], axis=1)
 
-        if debug or self._debug:
-            print '...Passed'
-
+        #Custom return    
+        self._var.elc = elc 
+          
         # Add metadata entry
-        self._QC.append('central elevation computed')
+        self._QC.append('elevation at center points computed')
         print '-Central elevation added to FVCOM.Variables.-'
 
-        #Custom return 
-        self._var.elc = elc
-
-
-    def _hc(self, debug=False):
-        '''Compute bathymetry at center points -> FVCOM.Variables.hc'''
         if debug or self._debug:
-            print 'Computing hc...'
+            print '...Passed'     
 
-        size = self._grid.trinodes.T.shape[0]
-        size1 = self._var.el.shape[0]
+    def _hc(self, var, debug=False):
+        '''Compute bathy at center points -> FVCOM.Grid.hc'''
+        if debug or self._debug:
+            print 'Computing central bathy...'
+
+        size = self._grid.nv.T.shape[0]
+        size1 = self._grid.h.shape[0]
         hc = np.zeros((size1, size))
-        for i,v in enumerate(self._grid.trinodes.T):
+        for i,v in enumerate(self._grid.nv.T):
             hc[i] = np.mean(self._grid.h[v], axis=1)
 
-        if debug or self._debug:
-            print '...Passed'
-
+        #Custom return    
+        self._grid.hc = hc 
+          
         # Add metadata entry
-        self._QC.append('central bathy computed')
-        print '-Central bathy added to FVCOM.Variables.-'
+        self._QC.append('bathymetry at center points computed')
+        print '-Central bathy added to FVCOM.Grid.-'
 
-        #Custom return 
-        self._var.hc = hc       
+        if debug or self._debug:
+            print '...Passed'   
 
     def _ele_region(self, debug=False):
         '''Return element indexes included in bounding box, aka ax'''
@@ -215,8 +214,7 @@ class FunctionsFvcom:
         if debug or self._debug:
             print 'Computing principal flow directions...'
 
-        var_interp = interp_at_point(var, pt_lon, pt_lat, self._grid.lonc, self._grid.latc,
-                                  self._grid.trinodes, debug=self._debug)
+        
 
 
 
@@ -235,15 +233,24 @@ class FunctionsFvcom:
         -------
            - varInterp = var interpolate at (pt_lon, pt_lat)
         """
-        if any(np.equal(self._grid.nele, var.shape)):
-            lon = self._grid.lonc
-            lat = self._grid.latc
-        else:
-            lon = self._grid.lon
-            lat = self._grid.lat
+        #Checking if var == h or el or some var of same dimensions
+        if not any(np.equal(self._grid.nele, var.shape)):
+            if len(var.shape)==2:
+                if not hasattr(self._var, 'elc'):
+                    self._elc(debug=debug)
+                    var = self._var.elc
+            else:
+                if not hasattr(self._grid, 'hc'):
+                    hc = self._hc(debug=debug)
+                    var = self._grid.hc
+
+        lon = self._grid.lonc
+        lat = self._grid.latc
+        trinodes = self._grid.nv
+
 
         varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat,
-                                    self._grid.trinodes , debug=(self._debug or debug))
+                                    trinodes , debug=(self._debug or debug))
         return varInterp
 
     # Functions available only for 3D runs

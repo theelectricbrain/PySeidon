@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
+from matplotlib.path import Path
 
 def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
     '''
@@ -34,6 +35,40 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
 
     return closest_point_indexes
 
+def inside_tri( pt_lon, pt_lat, lon, lat, trinodes, debug=False):
+    '''
+    Finds the triangle indexes around given lon, lat centre.
+
+    Inputs:
+      - pt_lon = longitude in degrees to find
+      - pt_lat = latitude in degrees to find
+      - lon = list of longitudes in degrees to search in
+      - lat = list of latitudes in degrees to search in
+      - trinodes = associated trinodes
+    Outputs:
+      - tri_indexes = numpy array of trinode indexes
+    '''
+    if debug:
+        print 'Computing closest_point_indexes...'
+    
+    point = [pt_lon, pt_lat]    
+    vert = np.ones((3,2)) #initialise vertice
+    #loop through all the trinodes
+    i=0
+    while True:
+        vert[:,0] = lon[trinodes[:,i]]
+        vert[:,1] = lat[trinodes[:,i]]
+        path = Path(vert)
+        tri_indexes = i
+        i += 1
+        if path.contains_point(point):
+            break      
+
+    if debug:
+        print '...Passed'
+
+    return tri_indexes
+
 def interp_at_point(var, pt_lon, pt_lat, lon, lat, trinodes , debug=False):
     """
     Interpol any given variables at any give location.
@@ -52,12 +87,29 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, trinodes , debug=False):
         print 'Computing var_interp...'
 
     #Get closest indexes
-    index = closest_point([pt_lon], [pt_lat], lon, lat, debug=debug)
+    #index = closest_point([pt_lon], [pt_lat], lon, lat, debug=debug)[0]
+    index = inside_tri( pt_lon, pt_lat, lon, lat, trinodes, debug=debug)
+    #if debug:
+    #    print index
     triIndex = trinodes[:,index].flatten()
+    #if debug:
+    #    print triIndex, lon[triIndex], lat[triIndex]
     #TR: Not quite sure
     newtri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
     trif = newtri.get_trifinder()
     trif.__call__(pt_lon, pt_lat)
+    if debug:
+        averEl = np.mean(var[:, triIndex], axis=0)
+        print averEl
+        inter = Tri.LinearTriInterpolator(newtri, averEl)
+        zi = inter(pt_lon, pt_lat)
+        print zi
+        fig = plt.figure(figsize=(18,10))
+        ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat[triIndex])*np.pi/180.0)))
+        plt.triplot(newtri, 'ko-')
+        plt.plot(pt_lon, pt_lat, 'ko-')
+        xy = (pt_lon, pt_lat)
+        plt.show()
 
     #Choose the right interpolation depending on the variable
     if len(var.shape)==1:
