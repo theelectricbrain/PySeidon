@@ -95,12 +95,12 @@ class PlotsFvcom:
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')
         rect = [0.1, 0.1, 0.8, 0.8]
-        self._fig = WindroseAxes(fig, rect)#, axisbg='w')
-        fig.add_axes(self._fig)
+        ax = WindroseAxes(fig, rect)#, axisbg='w')
+        fig.add_axes(ax)
         #Rose
-        self._fig.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
+        ax.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
         #adjust legend
-        l = self._fig.legend()
+        l = ax.legend()
         plt.setp(l.get_texts(), fontsize=10)
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         plt.show() 

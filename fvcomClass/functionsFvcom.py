@@ -22,44 +22,27 @@ class FunctionsFvcom:
         cls.Grid = self._grid
         cls.QC = self._QC
   
-    def _elc(self, debug=False):
-        '''Compute var at center points -> FVCOM.Variables.elc'''
-        if debug or self._debug:
-            print 'Computing central elevation...'
-
-        size = self._grid.nv.T.shape[0]
-        size1 = self._var.el.shape[0]
-        elc = np.zeros((size1, size))
-        for i,v in enumerate(self._grid.nv.T):
-            elc[:, i] = np.mean(self._var.el[:, v], axis=1)
-
-        #Custom return    
-        self._var.elc = elc 
-          
-        # Add metadata entry
-        self._QC.append('elevation at center points computed')
-        print '-Central elevation added to FVCOM.Variables.-'
-
-        if debug or self._debug:
-            print '...Passed'     
-
-    def _hc(self, var, debug=False):
-        '''Compute bathy at center points -> FVCOM.Grid.hc'''
+    def _centers(self, var, debug=False):
+        '''Compute bathy and elevation at center points -> FVCOM.Grid.hc, elc'''
         if debug or self._debug:
             print 'Computing central bathy...'
 
-        size = self._grid.nv.T.shape[0]
-        size1 = self._grid.h.shape[0]
-        hc = np.zeros((size1, size))
-        for i,v in enumerate(self._grid.nv.T):
-            hc[i] = np.mean(self._grid.h[v], axis=1)
+        size = self.trinodes.T[elements].shape[0]
+        size1 = self.elev.shape[0]
+        elc = np.zeros((size1, size))
+        hc = np.zeros((size))
+        for ind, value in enumerate(self.trinodes.T[elements]):
+            elc[:, ind] = np.mean(self.elev[:, value-1], axis=1)
+            hc[ind] = np.mean(self.h[value-1])
 
         #Custom return    
-        self._grid.hc = hc 
+        self._grid.hc = hc
+        self._var.elc = elc
           
         # Add metadata entry
         self._QC.append('bathymetry at center points computed')
-        print '-Central bathy added to FVCOM.Grid.-'
+        self._QC.append('elevation at center points computed')
+        print '-Central bathy and elevation added to FVCOM.Grid.-'
 
         if debug or self._debug:
             print '...Passed'   
@@ -220,8 +203,8 @@ class FunctionsFvcom:
         #Compute directions
         if debug:
             print 'Computing arctan2 and norm...'
-        dirFlow = (np.pi/2.0) - np.arctan2(U,V)
-        dirFlow = dirFlow * (180.0 / np.pi)
+        dirFlow = np.arctan2(U,V)
+        dirFlow = np.mod(((np.pi/2.0) - dirFlow) * (180.0 / np.pi), 360.0)
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
@@ -289,19 +272,6 @@ class FunctionsFvcom:
         lon = self._grid.lonc
         lat = self._grid.latc
         index = closest_point([pt_lon], [pt_lat], lon, lat, debug=debug)[0]
-
-        #Checking if var == h or el or some var of same dimensions
-        #if not any(np.equal(self._grid.nele, var.shape)):
-        #    if len(var.shape)==2:
-        #        if not hasattr(self._var, 'elc'):
-        #            self._elc(debug=debug)
-        #            var = self._var.elc
-        #    else:
-        #        if not hasattr(self._grid, 'hc'):
-        #            hc = self._hc(debug=debug)
-        #            var = self._grid.hc
-
-
 
         lon = self._grid.lon
         lat = self._grid.lat    
@@ -398,7 +368,7 @@ class FunctionsFvcom:
             #Compute depth
             h = self._grid.h
             zeta = self.Variables.el[argtime,:] + h[None,:]
-            nv = self._grid.nv[:].T-1
+            nv = self._grid.trinodes
             siglay = self._grid.siglay[:]
             z = zeta[:,None,:]*siglay[None,:,:]
             dep = np.zeros([argtime.shape[0],siglay.shape[0],nv.shape[0]])
