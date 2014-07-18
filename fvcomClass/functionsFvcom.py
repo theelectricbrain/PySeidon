@@ -163,7 +163,7 @@ class FunctionsFvcom:
             print '...Passed'
 
     def flow_dir_at_point(self, pt_lon, pt_lat, vertical=False, debug=False):
-        """"
+        """
         Flow directions and associated norm at any give location.
         Inputs:
         ------

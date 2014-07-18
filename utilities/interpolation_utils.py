@@ -79,19 +79,19 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes , debug=False
 
     #Choose the right interpolation depending on the variable
     if len(var.shape)==1:
-        #triVar = np.zeros(triIndex.shape)
+        triVar = np.zeros(triIndex.shape)
         triVar = var[triIndex]
         inter = Tri.LinearTriInterpolator(newtri, triVar[:])
         varInterp = inter(pt_lon, pt_lat)      
     elif len(var.shape)==2:
-        #triVar = np.zeros((var.shape[0], triIndex.shape[0]))
+        triVar = np.zeros((var.shape[0], triIndex.shape[0]))
         triVar = var[:, triIndex]
         varInterp = np.ones(triVar.shape[0])
         for i in range(triVar.shape[0]):
             inter = Tri.LinearTriInterpolator(newtri, triVar[i,:])
             varInterp[i] = inter(pt_lon, pt_lat)       
     else:
-        #triVar = np.zeros((var.shape[0], var.shape[1], triIndex.shape[0]))
+        triVar = np.zeros((var.shape[0], var.shape[1], triIndex.shape[0]))
         triVar = var[:, :, triIndex]
         varInterp = np.ones(triVar.shape[:-1])
         for i in range(triVar.shape[0]):
