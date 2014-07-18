@@ -162,7 +162,8 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
-    def flow_dir_at_point(self, pt_lon, pt_lat, vertical=False, debug=False):
+    def flow_dir_at_point(self, pt_lon, pt_lat, exceedance=False,
+                          vertical=False, debug=False):
         """
         Flow directions and associated norm at any give location.
         Inputs:
@@ -174,8 +175,9 @@ class FunctionsFvcom:
            - flowDir = flowDir at (pt_lon, pt_lat)
            - norm = velocity norm at (pt_lon, pt_lat)
         Keywords:
-        -------
-          -vertical = True, compute flowDir for each vertical level
+        --------
+          - excedance = True, compute associated exceedance curve
+          - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
           directions between 0 and 360 deg.
@@ -206,6 +208,8 @@ class FunctionsFvcom:
 
         #Rose diagram
         self._plot.rose_diagram(dirFlow, norm)
+        if exceedance:
+            self.exceedance(norm, self._var.julianTime)
 
         return dirFlow, norm
 
@@ -300,7 +304,7 @@ class FunctionsFvcom:
             print 'Computing exceedance...'
 
         #Distinguish between 1D and 2D var
-        if len(var.shape)!=2:
+        if len(var.shape)==2:
             if not pt_lon or pt_lat:
                 print 'Lon, lat coordinates are needed'
                 sys.exit()  
