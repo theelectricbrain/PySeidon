@@ -128,4 +128,5 @@ class PlotsFvcom:
         """
         plt.scatter(x, y, s=200, color=color)
         #TR : annotate does not work on my machine !?
-        self._fig.annotate(label, (x, y), xycoords='data', arrowprops=dict(arrowstyle="->"))
+        plt.annotate(label, xy=(x, y), xycoords='data', xytext=(0.8, 0.95),
+                     textcoords='axes fraction', arrowprops=dict(arrowstyle="->"))

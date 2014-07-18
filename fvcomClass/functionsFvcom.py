@@ -138,17 +138,17 @@ class FunctionsFvcom:
     #TR: flow_dir over the whole grid far too slow !!!
     def flow_dir(self, debug=False):
         """"
-        Compute flow directions -> FVCOM.Variables.flow_dir
-        Notes: directions between 0 and 360 deg.
+        Compute flow directions over the whole grid -> FVCOM.Variables.flow_dir
+        Notes:
+        -----
+          - directions between 0 and 360 deg.
+          - This is very SLOW !!!
         """
         if debug or self._debug:
             print 'Computing flow directions...'
-        if self._var._3D:
-           u = self._var.u
-           v = self._var.v
-        else:
-           u = self._var.ua
-           v = self._var.va
+
+        u = self._var.ua
+        v = self._var.va
         dirFlow = (np.pi/2.0) - np.arctan2(u,v)
         dirFlow = dirFlow * (180.0 / np.pi)
 
@@ -156,8 +156,8 @@ class FunctionsFvcom:
         self._var.dir_flow = dirFlow 
 
         # Add metadata entry
-        self._QC.append('flow directions computed')
-        print '-Flow directions added to FVCOM.Variables.-'
+        self._QC.append('depth averaged flow directions computed')
+        print '-Depth averaged flow directions added to FVCOM.Variables.-'
 
         if debug or self._debug:
             print '...Passed'
@@ -184,13 +184,8 @@ class FunctionsFvcom:
         if debug:
             print 'Computing flow directions at point...'
 
-        #Choose the right pair of velocity components
-        if self._var._3D and vertical:
-           u = self._var.u
-           v = self._var.v
-        else:
-           u = self._var.ua
-           v = self._var.va
+       u = self._var.ua
+       v = self._var.va
 
         #Extraction at point
         if debug:
@@ -208,7 +203,7 @@ class FunctionsFvcom:
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
-        
+
         #Rose diagram
         self._plot.rose_diagram(dirFlow, norm)
 
@@ -293,6 +288,9 @@ class FunctionsFvcom:
         -------
            - Exceedance: list of % of occurences
            - Ranges: list of signal amplitude bins
+        Keywords:
+        --------
+           - graph: True->plots curve; False->does not
         Notes:
         -----
           This method is not suitable for SSE
@@ -303,7 +301,7 @@ class FunctionsFvcom:
 
         #Distinguish between 1D and 2D var
         if len(var.shape)!=2:
-            if not pt_lon or pt_lat
+            if not pt_lon or pt_lat:
                 print 'Lon, lat coordinates are needed'
                 sys.exit()  
             signal = self.interpolation_at_point(var, pt_lon, pt_lat, debug=debug)
@@ -331,111 +329,7 @@ class FunctionsFvcom:
             print '...Passed'
        
         #Plot
-        self._plot.plot_xy(Exceedance, Ranges, yLabel='Values',
+        self._plot.plot_xy(Exceedance, Ranges, yLabel='Amplitudes',
                            xLabel='Exceedance probability in %')
 
         return Exceedance, Ranges
-
-
-    # Functions available only for 3D runs
-    def verti_shear(self, t_start, t_end, bot_lvl=[], top_level= [], debug=False):
-        """
-        Compute vertical shear -> FVCOM.Variables.verti_shear
-        Inputs:
-        ------
-          t_start = start time, datetime64[us] type
-          t_end = end time, datetime64[us] type
-        Keywords:
-        --------
-          bot_lvl = index of the bottom level to consider, integer
-          top_lvl = index of the top level to consider, integer
-        """
-        if debug or self._debug:
-            print 'Computing vertical shear...'
-        if self._var._3D:
-            # Find simulation time contains in [t_start, t_end]
-            time = self._var.matlabTime
-            t = time.shape[0]
-            l = []
-            for i in range(t):
-                date = datetime.fromordinal(int(time[i])) + \
-                       timedelta(days=time[i]%1)-timedelta(days=366)
-                l.append(date)
-            time = np.array(l,dtype='datetime64[us]')
-            t_slice = [t_start, t_end]
-            t_slice = np.array(t_slice,dtype='datetime64[us]')
-
-            if t_slice.shape[0] != 1:
-                argtime = np.argwhere((time>=t_slice[0])&(time<=t_slice[-1])).flatten()
-            if debug or self._debug:
-                print argtime
-            
-            #Compute depth
-            h = self._grid.h
-            zeta = self.Variables.el[argtime,:] + h[None,:]
-            nv = self._grid.trinodes
-            siglay = self._grid.siglay[:]
-            z = zeta[:,None,:]*siglay[None,:,:]
-            dep = np.zeros([argtime.shape[0],siglay.shape[0],nv.shape[0]])
-            for i in range(z.shape[0]):
-                for j in range(nv.shape[0]):
-                    el = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+z[i,:,nv[j,2]])/3
-                    dep[i,:,j] = el
-
-            # Checking if horizontal velocity norm already exists
-            if not hasattr(self._var, 'hori_velo_norm'):
-                self.hori_velo_norm()
-            #Extract horizontal velocity norm contained in t_slice
-            vel = self._var.hori_velo_norm[argtime,:,:]
-
-            #Sigma levels to consider
-            if not top:
-                top = (dep.shape[1]) - 1
-            if not bot:
-                bot = 0
-            sLvl = range(bot, top+1)
-
-            # Compute shear
-            dz = dep[:,sLvl[1:],:] - dep[:,sLvl[:-1],:]
-            dvel = vel[:,sLvl[1:],:] - vel[:,sLvl[:-1],:]           
-            dveldz = dvel / dz
-
-            #Custopm return
-            self._var.verti_shear = dveldz 
-            
-            # Add metadata entry
-            self._QC.append('vertical shear computed')
-            print '-Vertical shear added to FVCOM.Variables.-'
-
-        else:
-            print "This function is only available for 3D FVCOM runs"
-
-        if debug or self._debug:
-            print '...Passed'
-
-    def velo_norm(self, debug=False):
-        """Compute velocity norm -> FVCOM.Variables.velo_norm"""
-        if debug or self._debug:
-            print 'Computing velocity norm...'
-        if self._var._3D:
-            #TR_comment: not sure we should compute norm only in bounding box
-            #u = self._var.u[:, :, self._grid.region_e[:]]
-            #v = self._var.v[:, :, self._grid.region_e[:]]
-            #ww = self._var.ww[:, :, self._grid.region_e[:]]
-            u = self._var.u[:, :, :]
-            v = self._var.v[:, :, :]
-            ww = self._var.ww[:, :, :]
-            vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
-
-            #Custom return    
-            self._var.velo_norm = vel 
-          
-            # Add metadata entry
-            self._QC.append('Velocity norm computed')
-            print '-Velocity norm added to FVCOM.Variables.-'
-
-        else:
-            print "This function is only available for 3D FVCOM runs"
-
-        if debug or self._debug:
-            print '...Passed'

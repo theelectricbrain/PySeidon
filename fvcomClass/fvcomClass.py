@@ -76,6 +76,8 @@ Notes:
         self.Grid = _load_grid(self.Data, debug=self._debug)
         self.Plots = PlotsFvcom(self)
         self.Utils = FunctionsFvcom(self)
+        if self.Variables._3D:
+            self.UtilsThreeD = FunctionsFvcomThreeD(self)
 
         #Bounding box
         self.Utils.bounding_box(ax, quiet=True)
