@@ -184,8 +184,8 @@ class FunctionsFvcom:
         if debug:
             print 'Computing flow directions at point...'
 
-       u = self._var.ua
-       v = self._var.va
+        u = self._var.ua
+        v = self._var.va
 
         #Extraction at point
         if debug:

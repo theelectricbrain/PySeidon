@@ -18,6 +18,7 @@ from shortest_element_path import shortest_element_path
 #Local import
 from variablesFvcom import _load_var, _load_grid
 from functionsFvcom import *
+from functionsFvcomThreeD import *
 from plotsFvcom import *
 
 class FVCOM:
