@@ -281,13 +281,14 @@ class FunctionsFvcom:
                                     trinodes , debug=(self._debug or debug))
         return varInterp
 
-    def exceedance(self, var, pt_lon, pt_lat, time, debug=False):
+    def exceedance(self, var, time, pt_lon=[], pt_lat=[], debug=False):
         """
         This function calculate the excedence curve of a var(time).
         Inputs:
         ------
           - time: time in seconds, 1D array of n elements
-          - var: given quantity, 1D array of n elements
+          - var: given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
+          - pt_lon, pt_lat: coordinates, necessary if var = 2D
         Outputs:
         -------
            - Exceedance: list of % of occurences
@@ -300,11 +301,15 @@ class FunctionsFvcom:
         if debug:
             print 'Computing exceedance...'
 
+        #Distinguish between 1D and 2D var
         if len(var.shape)!=2:
-            print 'Var has not the right dimensions !!!'
-            sys.exit()  
-
-        signal = self.interpolation_at_point(var, pt_lon, pt_lat, debug=debug)
+            if not pt_lon or pt_lat
+                print 'Lon, lat coordinates are needed'
+                sys.exit()  
+            signal = self.interpolation_at_point(var, pt_lon, pt_lat, debug=debug)
+        else:
+            signal=var
+        
         Max = max(signal)	
         dy = (Max/50.0)
         Ranges = np.arange(0,(Max + dy), dy)
