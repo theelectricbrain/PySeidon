@@ -32,11 +32,146 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
 
     closest_point_indexes = np.argmin(closest_dist, axis=1)
     if debug:
+        print closest_point_indexes
         print '...Passed'
 
     return closest_point_indexes
 
-def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes , debug=False):
+def interpN_at_pt(var, pt_lon, pt_lat, lonc, latc, index, trinodes,
+                  aw0, awx, awy, debug=False):
+    """
+    Interpol node variable any given variables at any give location.
+    Inputs:
+      - var = variable, numpy array, dim=(node) or (time, node) or (time, level, node)
+      - pt_lon = longitude in degrees to find
+      - pt_lat = latitude in degrees to find
+      - lonc = list of longitudes of var, numpy array, dim= ele
+      - latc = list of latitudes of var, numpy array, dim= ele
+      - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
+      - index = index of the nearest element
+      - aw0, awx, awy = grid parameters
+    Outputs:
+      - varInterp = var interpolate at (pt_lon, pt_lat)
+    """
+    if debug:
+        print 'Computing var_interp...'
+
+    n1 = trinodes[index,0]
+    n2 = trinodes[index,1]
+    n3 = trinodes[index,2]
+    x0 = pt_lon - lonc[index]
+    y0 = pt_lat - latc[index]
+
+    if len(var.shape)==1:
+        var0 = (aw0[0,index] * var[n1]) \
+             + (aw0[1,index] * var[n2]) \
+             + (aw0[2,index] * var[n3])
+        varX = (awx[0,index] * var[n1]) \
+             + (awx[1,index] * var[n2]) \
+             + (awx[2,index] * var[n3])
+        varY = (awy[0,index] * var[n1]) \
+             + (awy[1,index] * var[n2]) \
+             + (awy[2,index] * var[n3])
+    elif len(var.shape)==2:
+        var0 = (aw0[0,index] * var[:,n1]) \
+             + (aw0[1,index] * var[:,n2]) \
+             + (aw0[2,index] * var[:,n3])
+        varX = (awx[0,index] * var[:,n1]) \
+             + (awx[1,index] * var[:,n2]) \
+             + (awx[2,index] * var[:,n3])
+        varY = (awy[0,index] * var[:,n1]) \
+             + (awy[1,index] * var[:,n2]) \
+             + (awy[2,index] * var[:,n3])
+    else:
+        var0 = (aw0[0,index] * var[:,:,n1]) \
+             + (aw0[1,index] * var[:,:,n2]) \
+             + (aw0[2,index] * var[:,:,n3])
+        varX = (awx[0,index] * var[:,:,n1]) \
+             + (awx[1,index] * var[:,:,n2]) \
+             + (awx[2,index] * var[:,:,n3])
+        varY = (awy[0,index] * var[:,:,n1]) \
+             + (awy[1,index] * var[:,:,n2]) \
+             + (awy[2,index] * var[:,:,n3])
+    varPt = var0 + (varX * x0) + (varY * y0)
+
+    if debug:
+        if len(var.shape)==1:
+            zi = varPt
+            print 'Varpt: ', zi
+        print '...Passed'
+
+    return varPt
+    
+def interpE_at_pt(var, pt_lon, pt_lat, lonc, latc, index, triele, trinodes,
+                  a1u, a2u, debug=False):
+    """
+    Interpol node variable any given variables at any give location.
+    Inputs:
+      - var = variable, numpy array, dim=(nele) or (time, nele) or (time, level, nele)
+      - pt_lon = longitude in degrees to find
+      - pt_lat = latitude in degrees to find
+      - lonc = list of longitudes of var, numpy array, dim= nele
+      - latc = list of latitudes of var, numpy array, dim= nele
+      - triele = FVCOM triele, numpy array, dim=(3,nele)
+      - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
+      - index = index of the nearest element
+      - a1u, a2u = grid parameters
+    Outputs:
+      - varInterp = var interpolate at (pt_lon, pt_lat)
+    """
+    if debug:
+        print 'Computing var_interp...'
+
+    n1 = triele[index,0]
+    n2 = triele[index,1]
+    n3 = triele[index,2]
+    if n1==-1: n1 = trinodes.shape[1] + 1
+    if n2==-1: n2 = trinodes.shape[1] + 1
+    if n3==-1: n3 = trinodes.shape[1] + 1
+
+    x0 = pt_lon - lonc[index]
+    y0 = pt_lat - latc[index]
+
+    if len(var.shape)==1:
+        dvardx = (a1u[0,index] * var[index]) \
+               + (a1u[1,index] * var[n1]) \
+               + (a1u[2,index] * var[n2]) \
+               + (a1u[3,index] * var[n3])
+        dvardy = (a2u[0,index] * var[index]) \
+               + (a2u[1,index] * var[n1]) \
+               + (a2u[2,index] * var[n2]) \
+               + (a2u[3,index] * var[n3])
+        varPt = var[index] + (dvardx * x0) + (dvardy * y0)
+    elif len(var.shape)==2:
+        dvardx = (a1u[0,index] * var[:,index]) \
+               + (a1u[1,index] * var[:,n1]) \
+               + (a1u[2,index] * var[:,n2]) \
+               + (a1u[3,index] * var[:,n3])
+        dvardy = (a2u[0,index] * var[:,index]) \
+               + (a2u[1,index] * var[:,n1]) \
+               + (a2u[2,index] * var[:,n2]) \
+               + (a2u[3,index] * var[:,n3])
+        varPt = var[:,index] + (dvardx * x0) + (dvardy * y0)
+    else:
+        dvardx = (a1u[0,index] * var[:,:,index]) \
+               + (a1u[1,index] * var[:,:,n1]) \
+               + (a1u[2,index] * var[:,:,n2]) \
+               + (a1u[3,index] * var[:,:,n3])
+        dvardy = (a2u[0,index] * var[:,:,index]) \
+               + (a2u[1,index] * var[:,:,n1]) \
+               + (a2u[2,index] * var[:,:,n2]) \
+               + (a2u[3,index] * var[:,:,n3])
+        varPt = var[:,:,index] + (dvardx * x0) + (dvardy * y0)
+
+    if debug:
+        if len(var.shape)==1:
+            zi = varPt
+            print 'Varpt: ', zi
+        print '...Passed'
+
+    return varPt
+
+def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes, debug=False):
     """
     Interpol any given variables at any give location.
     Inputs:
@@ -46,36 +181,34 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes , debug=False
       - lon = list of longitudes of var, numpy array, dim=(nele or node)
       - lat = list of latitudes of var, numpy array, dim=(nele or node)
       - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
-
     Outputs:
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:
         print 'Computing var_interp...'
-
-    #Triangulation
+    #Finding the right indexes
     triIndex = trinodes[index]
-    if debug:
-        print triIndex, lon[triIndex], lat[triIndex]
+    #Triangulation
+    #if debug:
+    #    print triIndex, lon[triIndex], lat[triIndex]
     newtri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
     trif = newtri.get_trifinder()
     trif.__call__(pt_lon, pt_lat)
     if debug:
-        if len(var)==1:
+        if len(var.shape)==1:
             averEl = var[triIndex]
-            print 'Var', averEl
+            #print 'Var', averEl
             inter = Tri.LinearTriInterpolator(newtri, averEl)
             zi = inter(pt_lon, pt_lat)
             print zi
-            plt.tricontourf(newtri, averEl, cmap=plt.cm.jet)
-            cbar = plt.colorbar()
-        fig = plt.figure(figsize=(18,10))
-        ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat[triIndex])*np.pi/180.0)))
-
-        plt.triplot(newtri, 'ko-')
-        plt.plot(pt_lon, pt_lat, 'ko-')
-
-        plt.show()
+            #fig = plt.figure(figsize=(18,10))
+            #ax = fig.add_subplot(111,
+            #     aspect=(1.0/np.cos(np.mean(lat[triIndex])*np.pi/180.0)))
+            #plt.tricontourf(newtri, averEl, cmap=plt.cm.jet)
+            #cbar = plt.colorbar()
+            #plt.triplot(newtri, 'ko-')
+            #plt.plot(pt_lon, pt_lat, 'ko-')
+            #plt.show()
 
     #Choose the right interpolation depending on the variable
     if len(var.shape)==1:

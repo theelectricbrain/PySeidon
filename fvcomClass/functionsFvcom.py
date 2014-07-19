@@ -7,7 +7,8 @@ import sys
 import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
-from interpolation_utils import closest_point, interp_at_point
+from interpolation_utils import * #closest_point, interp_at_point, interpN_at_pt
+import time
 
 class FunctionsFvcom:
     ''''Utils' subset of FVCOM class gathers useful functions""" '''
@@ -201,7 +202,12 @@ class FunctionsFvcom:
         if debug:
             print 'Computing arctan2 and norm...'
         dirFlow = np.arctan2(U,V)
-        dirFlow = np.mod(((np.pi/2.0) - dirFlow) * (180.0 / np.pi), 360.0)
+        #TR: not quite sure here, seems to change from location to location
+        #dirFlow = np.mod(((np.pi/2.0) - dirFlow) * (180.0 / np.pi), 360.0)
+        #dirFlow = ((np.pi/2.0) - dirFlow) * (180.0 / np.pi)
+        #dirFlow = dirFlow * (180.0 / np.pi)
+        #dirFlow = np.pi - dirFlow) * (180.0 / np.pi)
+        dirFlow = np.mod((np.pi - dirFlow) * (180.0 / np.pi), 360.0)
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
@@ -268,16 +274,44 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         if debug:
             print 'Interpoling at point...'
-        lon = self._grid.lonc
-        lat = self._grid.latc
-        index = closest_point([pt_lon], [pt_lat], lon, lat, debug=debug)[0]
-
+        lonc = self._grid.lonc
+        latc = self._grid.latc
         lon = self._grid.lon
-        lat = self._grid.lat    
+        lat = self._grid.lat
         trinodes = self._grid.trinodes
 
-        varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat, index,
-                                    trinodes , debug=(self._debug or debug))
+        # find indexes of the closest element
+        index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
+
+        #change in function of the data you dealing with
+        if any(i == self._grid.node for i in var.shape):
+            if debug:
+                start = time.time() 
+            varInterp = interpN_at_pt(var, pt_lon, pt_lat, lonc, latc, index, trinodes,
+                                      self._grid.aw0, self._grid.awx, self._grid.awy,
+                                      debug=debug)
+            if debug:
+                end = time.time()
+                print "Time elapsed for Richard's method: ", (end - start) 
+            if debug:
+                start = time.time()      
+            #TR_alternative: works only for h and el at the mo i.e. node variables
+            test = interp_at_point(var, pt_lon, pt_lat, lon, lat, index,
+                                   trinodes , debug=debug)
+            if debug:
+                end = time.time()
+                print "Time elapsed for Wesley's method: ", (end - start)
+        else:
+            triele = self._grid.triele
+            if debug:
+                start = time.time() 
+            varInterp = interpE_at_pt(var, pt_lon, pt_lat, lonc, latc, index, triele,
+                                      trinodes, self._grid.a1u, self._grid.a2u,
+                                      debug=debug)
+            if debug:
+                end = time.time()
+                print "Time elapsed for Richard's method: ", (end - start)         
+
         return varInterp
 
     def exceedance(self, var, time, pt_lon=[], pt_lat=[], debug=False):
