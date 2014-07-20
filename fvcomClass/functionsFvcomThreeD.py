@@ -8,9 +8,11 @@ import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
 from interpolation_utils import closest_point, interp_at_point
+import time
 
+#TR comment: This all routine needs to be tested and debugged
 class FunctionsFvcomThreeD:
-    ''''Utils' subset of FVCOM class gathers useful functions""" '''
+    """'UtilsThreeD' subset of FVCOM class gathers useful functions for 3D runs"""
     def __init__(self, cls):
         self._debug = cls._debug
         self._var = cls.Variables
@@ -23,7 +25,41 @@ class FunctionsFvcomThreeD:
         cls.Grid = self._grid
         cls.QC = self._QC
 
-    # Functions available only for 3D runs
+    def depth(self, debug=False):
+        """Compute depth -> FVCOM.Grid.depth"""
+        debug = debug or self._debug
+        if debug:
+            print "Computing depth"
+            start = time.time()
+
+            #Compute depth
+            h = self._grid.h
+            zeta = self.Variables.el[:,:] + h[None,:]
+            nv = self._grid.trinodes
+            siglay = self._grid.siglay[:]
+            z = zeta[:,None,:]*siglay[None,:,:]
+            dep = np.zeros([zeta.shape[0],siglay.shape[0],nv.shape[0]])
+            #for i in range(z.shape[0]):
+            #    for j in range(nv.shape[0]):
+            #        dep[i,:,j] = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+z[i,:,nv[j,2]])/3
+            #TR alternative: over the whole thing
+            dep = (z[:,:,nv[:,0]] + z[:,:,nv[:,1]] + z[:,:,nv[:,2]]) / 3
+            end = time.time()
+            #TR comment: I have doubt on this interp approach
+            print "Computation time method1: ", (end - start)            
+            #TR alternative2: using the interp function
+            for i in range(nv.shape[0]):
+                dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i], self._grid.yc[i],
+                             self._grid.xc, self._grid.yc, i, trinodes,
+                             self._grid.aw0, self._grid.awx, self._grid.awy)
+            end = time.time()
+            print "Computation time method1: ", (end - start)  
+        if debug:
+            #end = time.time()
+            #print "Computation time: ", (end - start)
+
+        self._grid.depth = dep
+
     def verti_shear(self, t_start, t_end, bot_lvl=[], top_level= [], debug=False):
         """
         Compute vertical shear -> FVCOM.Variables.verti_shear

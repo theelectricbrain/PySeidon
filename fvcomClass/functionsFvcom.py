@@ -11,7 +11,7 @@ from interpolation_utils import * #closest_point, interp_at_point, interpN_at_pt
 import time
 
 class FunctionsFvcom:
-    ''''Utils' subset of FVCOM class gathers useful functions""" '''
+    """'Utils' subset of FVCOM class gathers useful functions"""
     def __init__(self, cls):
         self._debug = cls._debug
         self._var = cls.Variables
@@ -276,36 +276,46 @@ class FunctionsFvcom:
             print 'Interpoling at point...'
         lonc = self._grid.lonc
         latc = self._grid.latc
+        xc = self._grid.xc
+        yc = self._grid.yc
         lon = self._grid.lon
         lat = self._grid.lat
         trinodes = self._grid.trinodes
 
-        # find indexes of the closest element
+        # Find indexes of the closest element
         index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
+        # Conversion (lon, lat) to (x, y)
+        pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat, index,
+                                                       trinodes , debug=debug)
+        pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat, index,
+                                                       trinodes , debug=debug)
+
 
         #change in function of the data you dealing with
         if any(i == self._grid.node for i in var.shape):
             if debug:
                 start = time.time() 
-            varInterp = interpN_at_pt(var, pt_lon, pt_lat, lonc, latc, index, trinodes,
+            varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
                                       self._grid.aw0, self._grid.awx, self._grid.awy,
                                       debug=debug)
             if debug:
                 end = time.time()
                 print "Time elapsed for Richard's method: ", (end - start) 
-            if debug:
-                start = time.time()      
+            #if debug:
+            #    start = time.time()      
             #TR_alternative: works only for h and el at the mo i.e. node variables
-            test = interp_at_point(var, pt_lon, pt_lat, lon, lat, index,
-                                   trinodes , debug=debug)
-            if debug:
-                end = time.time()
-                print "Time elapsed for Wesley's method: ", (end - start)
+            #test = interp_at_point(var, pt_lon, pt_lat, lon, lat, index,
+            #                       trinodes , debug=debug)
+            #TR_comment: seems to give same accuracy and computational time
+            #            than Richard's approach
+            #if debug:
+            #    end = time.time()
+            #    print "Time elapsed for Wesley's method: ", (end - start)
         else:
             triele = self._grid.triele
             if debug:
                 start = time.time() 
-            varInterp = interpE_at_pt(var, pt_lon, pt_lat, lonc, latc, index, triele,
+            varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
                                       trinodes, self._grid.a1u, self._grid.a2u,
                                       debug=debug)
             if debug:

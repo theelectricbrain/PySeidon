@@ -37,16 +37,16 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
 
     return closest_point_indexes
 
-def interpN_at_pt(var, pt_lon, pt_lat, lonc, latc, index, trinodes,
+def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
                   aw0, awx, awy, debug=False):
     """
     Interpol node variable any given variables at any give location.
     Inputs:
       - var = variable, numpy array, dim=(node) or (time, node) or (time, level, node)
-      - pt_lon = longitude in degrees to find
-      - pt_lat = latitude in degrees to find
-      - lonc = list of longitudes of var, numpy array, dim= ele
-      - latc = list of latitudes of var, numpy array, dim= ele
+      - pt_x = x coordinate in m to find
+      - pt_y = y coordinate in m to find
+      - xc = list of x coordinates of var, numpy array, dim= ele
+      - yc = list of y coordinates of var, numpy array, dim= ele
       - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
       - index = index of the nearest element
       - aw0, awx, awy = grid parameters
@@ -59,8 +59,8 @@ def interpN_at_pt(var, pt_lon, pt_lat, lonc, latc, index, trinodes,
     n1 = trinodes[index,0]
     n2 = trinodes[index,1]
     n3 = trinodes[index,2]
-    x0 = pt_lon - lonc[index]
-    y0 = pt_lat - latc[index]
+    x0 = pt_x - xc[index]
+    y0 = pt_y - yc[index]
 
     if len(var.shape)==1:
         var0 = (aw0[0,index] * var[n1]) \
@@ -102,16 +102,16 @@ def interpN_at_pt(var, pt_lon, pt_lat, lonc, latc, index, trinodes,
 
     return varPt
     
-def interpE_at_pt(var, pt_lon, pt_lat, lonc, latc, index, triele, trinodes,
+def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
                   a1u, a2u, debug=False):
     """
     Interpol node variable any given variables at any give location.
     Inputs:
       - var = variable, numpy array, dim=(nele) or (time, nele) or (time, level, nele)
-      - pt_lon = longitude in degrees to find
-      - pt_lat = latitude in degrees to find
-      - lonc = list of longitudes of var, numpy array, dim= nele
-      - latc = list of latitudes of var, numpy array, dim= nele
+      - pt_x = x coordinate in m to find
+      - pt_y = y coordinate in m to find
+      - xc = list of x coordinates of var, numpy array, dim= nele
+      - yc = list of y coordinates of var, numpy array, dim= nele
       - triele = FVCOM triele, numpy array, dim=(3,nele)
       - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
       - index = index of the nearest element
@@ -129,8 +129,8 @@ def interpE_at_pt(var, pt_lon, pt_lat, lonc, latc, index, triele, trinodes,
     if n2==-1: n2 = trinodes.shape[1] + 1
     if n3==-1: n3 = trinodes.shape[1] + 1
 
-    x0 = pt_lon - lonc[index]
-    y0 = pt_lat - latc[index]
+    x0 = pt_x - xc[index]
+    y0 = pt_y - yc[index]
 
     if len(var.shape)==1:
         dvardx = (a1u[0,index] * var[index]) \
