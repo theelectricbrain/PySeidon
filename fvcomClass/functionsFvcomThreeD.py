@@ -55,8 +55,8 @@ class FunctionsFvcomThreeD:
             end = time.time()
             print "Computation time method1: ", (end - start)  
         if debug:
-            #end = time.time()
-            #print "Computation time: ", (end - start)
+            end = time.time()
+            print "Computation time in (s): ", (end - start)
 
         self._grid.depth = dep
 

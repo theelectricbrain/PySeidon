@@ -381,3 +381,70 @@ class FunctionsFvcom:
                            xLabel='Exceedance probability in %')
 
         return Exceedance, Ranges
+
+    def vorticity(self, time_index=[], debug=False):
+        """
+        Compute the depth averaged vorticity for a time period:
+        Dva/Dx - Dua/Dy -> vort
+
+        Keyword:
+        ------
+          -time_index: time indexes, 1D array
+        Notes:
+        -----
+          - Very lon if run over every time step
+        """
+        debug = (debug or self._debug)
+        if debug:
+            print 'Computing vorticity...'
+            start = time.time()
+        #Define time_index
+        if time_index:
+           t = np.asarray(time_index)
+        else:
+           t = arange(self._var.va.shape[0])
+           print "It will compute for every time step. This may take a while !"
+        #Surrounding elements
+        n1 = self._grid.triele[:,0]
+        n2 = self._grid.triele[:,1]
+        n3 = self._grid.triele[:,2]
+        #TR comment: not quiet sure what this step does
+        n1[np.where(n1==-1)[0]] = self._grid.trinodes.shape[1] + 1
+        n2[np.where(n2==-1)[0]] = self._grid.trinodes.shape[1] + 1
+        n3[np.where(n3==-1)[0]] = self._grid.trinodes.shape[1] + 1
+        if debug:
+            end = time.time()
+            print "Check element=-1, computation time in (s): ", (end - start)
+            print "start np.multiply" 
+
+        x0 = self._grid.xc
+        y0 = self._grid.yc
+        
+        dvdx = np.zeros((t.shape[0], self._var.va.shape[1]))
+        dudy = np.zeros((t.shape[0],self._var.va.shape[1]))
+
+        j=0
+        for i in t:
+            dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
+                      + np.multiply(self._grid.a1u[1,:], self._var.va[i,n1]) \
+                      + np.multiply(self._grid.a1u[2,:], self._var.va[i,n2]) \
+                      + np.multiply(self._grid.a1u[3,:], self._var.va[i,n3])
+            dudy[j,:] = np.multiply(self._grid.a2u[0,:], self._var.ua[i,:]) \
+                      + np.multiply(self._grid.a2u[1,:], self._var.ua[i,n1]) \
+                      + np.multiply(self._grid.a2u[2,:], self._var.ua[i,n2]) \
+                      + np.multiply(self._grid.a2u[3,:], self._var.ua[i,n3])
+            j+=1
+        if debug:
+            print "loop number ", i
+
+        vort = dvdx - dudy
+
+        # Add metadata entry
+        #self._var.depth_av_vorticity = vort
+        #self._QC.append('depth averaged vorticity computed')
+        #print '-Depth averaged vorticity added to FVCOM.Variables.-'
+        return vort
+
+        if debug:
+            end = time.time()
+            print "Computation time in (s): ", (end - start) 

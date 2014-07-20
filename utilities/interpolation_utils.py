@@ -125,6 +125,7 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
     n1 = triele[index,0]
     n2 = triele[index,1]
     n3 = triele[index,2]
+    #TR comment: not quiet sure what this step does
     if n1==-1: n1 = trinodes.shape[1] + 1
     if n2==-1: n2 = trinodes.shape[1] + 1
     if n3==-1: n3 = trinodes.shape[1] + 1
