@@ -7,7 +7,7 @@ import sys
 import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
-from interpolation_utils import closest_point, interp_at_point
+from interpolation_utils import *
 import time
 
 #TR comment: This all routine needs to be tested and debugged
@@ -49,9 +49,9 @@ class FunctionsFvcomThreeD:
         #print "Computation time method1: ", (end - start)            
         #TR alternative2: using the interp function
         for i in range(nv.shape[0]):
-            dep[:,:,i] = self._util.interpN_at_pt(z, self._grid.xc[i],
-                         self._grid.yc[i], self._grid.xc, self._grid.yc, i,
-                         trinodes, self._grid.aw0, self._grid.awx, self._grid.awy)
+            dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i], self._grid.yc[i],
+                         self._grid.xc, self._grid.yc, i, trinodes,
+                         self._grid.aw0, self._grid.awx, self._grid.awy)
         #end = time.time()
         #print "Computation time method1: ", (end - start)  
         if debug:

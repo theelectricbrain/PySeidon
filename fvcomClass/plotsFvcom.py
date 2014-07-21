@@ -114,7 +114,6 @@ class PlotsFvcom:
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
-
         plt.show()      
 
     def add_points(self, x, y, label=' ', color='black'):
@@ -128,6 +127,8 @@ class PlotsFvcom:
         """
         plt.scatter(x, y, s=100, color=color)
         #TR : annotate does not work on my machine !?
-        plt.annotate(label, xy=(x, y), xycoords='data', xytext=(-10, 10),
+        plt.annotate(label, xy=(x, y), xycoords='data', xytext=(-20, 20),
                      textcoords='offset points', ha='right',
                      arrowprops=dict(arrowstyle="->", shrinkA=0))
+
+
