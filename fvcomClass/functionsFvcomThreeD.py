@@ -34,7 +34,7 @@ class FunctionsFvcomThreeD:
 
         #Compute depth
         h = self._grid.h
-        zeta = self.Variables.el[:,:] + h[None,:]
+        zeta = self._var.el[:,:] + h[None,:]
         nv = self._grid.trinodes
         siglay = self._grid.siglay[:]
         z = zeta[:,None,:]*siglay[None,:,:]
