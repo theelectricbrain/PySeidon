@@ -14,12 +14,14 @@ import time
 class FunctionsFvcomThreeD:
     """'UtilsThreeD' subset of FVCOM class gathers useful functions for 3D runs"""
     def __init__(self, cls):
+        #Inheritance
         self._debug = cls._debug
         self._var = cls.Variables
         self._grid = cls.Grid
         self._plot = cls.Plots
         self._QC = cls.QC
         self._util = cls.Utils
+        self.interpolation_at_point = self._util.interpolation_at_point
         #Create pointer to FVCOM class
         cls.Variables = self._var
         cls.Grid = self._grid
