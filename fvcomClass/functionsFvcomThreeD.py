@@ -46,7 +46,7 @@ class FunctionsFvcomThreeD:
         #dep = (z[:,:,nv[:,0]] + z[:,:,nv[:,1]] + z[:,:,nv[:,2]]) / 3
         #end = time.time()
         #TR comment: I have doubt on this interp approach
-        print "Computation time method1: ", (end - start)            
+        #print "Computation time method1: ", (end - start)            
         #TR alternative2: using the interp function
         for i in range(nv.shape[0]):
             dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i], self._grid.yc[i],
