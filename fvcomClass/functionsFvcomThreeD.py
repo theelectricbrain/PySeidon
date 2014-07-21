@@ -32,28 +32,28 @@ class FunctionsFvcomThreeD:
             print "Computing depth"
             start = time.time()
 
-            #Compute depth
-            h = self._grid.h
-            zeta = self.Variables.el[:,:] + h[None,:]
-            nv = self._grid.trinodes
-            siglay = self._grid.siglay[:]
-            z = zeta[:,None,:]*siglay[None,:,:]
-            dep = np.zeros([zeta.shape[0],siglay.shape[0],nv.shape[0]])
-            #for i in range(z.shape[0]):
-            #    for j in range(nv.shape[0]):
-            #        dep[i,:,j] = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+z[i,:,nv[j,2]])/3
-            #TR alternative: over the whole thing
-            dep = (z[:,:,nv[:,0]] + z[:,:,nv[:,1]] + z[:,:,nv[:,2]]) / 3
-            end = time.time()
-            #TR comment: I have doubt on this interp approach
-            print "Computation time method1: ", (end - start)            
-            #TR alternative2: using the interp function
-            for i in range(nv.shape[0]):
-                dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i], self._grid.yc[i],
-                             self._grid.xc, self._grid.yc, i, trinodes,
-                             self._grid.aw0, self._grid.awx, self._grid.awy)
-            end = time.time()
-            print "Computation time method1: ", (end - start)  
+        #Compute depth
+        h = self._grid.h
+        zeta = self.Variables.el[:,:] + h[None,:]
+        nv = self._grid.trinodes
+        siglay = self._grid.siglay[:]
+        z = zeta[:,None,:]*siglay[None,:,:]
+        dep = np.zeros([zeta.shape[0],siglay.shape[0],nv.shape[0]])
+        #for i in range(z.shape[0]):
+        #    for j in range(nv.shape[0]):
+        #        dep[i,:,j] = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+z[i,:,nv[j,2]])/3
+        #TR alternative: over the whole thing
+        #dep = (z[:,:,nv[:,0]] + z[:,:,nv[:,1]] + z[:,:,nv[:,2]]) / 3
+        #end = time.time()
+        #TR comment: I have doubt on this interp approach
+        print "Computation time method1: ", (end - start)            
+        #TR alternative2: using the interp function
+        for i in range(nv.shape[0]):
+            dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i], self._grid.yc[i],
+                         self._grid.xc, self._grid.yc, i, trinodes,
+                         self._grid.aw0, self._grid.awx, self._grid.awy)
+        end = time.time()
+        print "Computation time method1: ", (end - start)  
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
