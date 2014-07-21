@@ -52,8 +52,8 @@ class FunctionsFvcomThreeD:
             dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i], self._grid.yc[i],
                          self._grid.xc, self._grid.yc, i, trinodes,
                          self._grid.aw0, self._grid.awx, self._grid.awy)
-        end = time.time()
-        print "Computation time method1: ", (end - start)  
+        #end = time.time()
+        #print "Computation time method1: ", (end - start)  
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
