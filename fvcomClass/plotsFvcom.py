@@ -40,22 +40,19 @@ class PlotsFvcom:
             return
 
         # Bounding box nodes, elements and variable
-        lim = self._grid.region_n
-        if dim==self._grid.nele:
-            lim = self._grid.region_e
-        bb = self._grid.ax     
+        bb = self._grid._ax     
         
         # Mesh triangle
-        nv = self._grid.nv.T -1 
+        trinodes = self._grid.trinodes 
         lon = self._grid.lon
         lat = self._grid.lat
-        tri = Tri.Triangulation(lon, lat, triangles=nv)
+        tri = Tri.Triangulation(lon, lat, triangles=trinodes)
 
         #setting limits and levels of colormap
         if cmin==[]:
-            cmin=var[lim].min()
+            cmin=var.min()
         if cmax==[]:
-            cmax=var[lim].max()
+            cmax=var.max()
         step = (cmax-cmin) / 50.0
         levels=np.arange(cmin, (cmax+step), step)   # depth contours to plot
 

@@ -43,10 +43,10 @@ Inputs:
 
 Options:
 -------
-    ax can be defined as a region, i.e. a bounding box.
-    An example:
+    Can be defined for a region only, i.e. a bounding box, as such:
         ax = [min(lon_coord), max(lon_coord), min(lat_coord), max(lat_coord)]
-
+    Can be defined for a time period only, as such:
+        tx = ['2012.11.07','2012.11.09'], string of year.month.date
 Notes:
 -----
     As of right now, only takes a filename as input. It will then load in the
@@ -54,7 +54,7 @@ Notes:
     too large)
     '''
 
-    def __init__(self, filename, ax=[], debug=False):
+    def __init__(self, filename, ax=[], tx=[], debug=False):
         ''' Initialize FVCOM class.
             Notes: assume that the file has been validated nor processed'''
         self._debug = debug
@@ -70,18 +70,20 @@ Notes:
         if hasattr(self.Data, 'QC'):
             self.QC = self.Data.QC
         else:
-            self.QC = ['Raw data']
-
-        # Custom fields
-        self.Variables = _load_var(self.Data, debug=self._debug)
-        self.Grid = _load_grid(self.Data, debug=self._debug)
-        self.Plots = PlotsFvcom(self)
-        self.Utils = FunctionsFvcom(self)
-        if self.Variables._3D:
-            self.UtilsThreeD = FunctionsFvcomThreeD(self)
-
-        #Bounding box
-        self.Utils.bounding_box(ax, quiet=True)
+            text = 'Created from ' + filename
+            self.QC = [text]
+            # Custom fields
+            self.Grid = _load_grid(self.Data, ax, self.QC, debug=self._debug)
+            self.Variables = _load_var(self, tx, self.QC, debug=self._debug)
+            self.Plots = PlotsFvcom(self)
+            self.Utils = FunctionsFvcom(self)
+            if self.Variables._3D:
+                self.UtilsThreeD = FunctionsFvcomThreeD(self)
+            if ax:
+                self.Grid._ax = ax
+            else:
+                self.Grid._ax = [min(self.Grid.lon), max(self.Grid.lon),
+                                 min(self.Grid.lat), max(self.Grid.lat)]
 
     def harmonics(self, ind, twodim=True, **kwarg):
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
