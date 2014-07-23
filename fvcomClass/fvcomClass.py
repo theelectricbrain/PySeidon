@@ -55,8 +55,7 @@ Notes:
     '''
 
     def __init__(self, filename, ax=[], tx=[], debug=False):
-        ''' Initialize FVCOM class.
-            Notes: assume that the file has been validated nor processed'''
+        ''' Initialize FVCOM class.'''
         self._debug = debug
         if debug:
             print '-Debug mode on-'
@@ -73,8 +72,10 @@ Notes:
             text = 'Created from ' + filename
             self.QC = [text]
             # Custom fields
-            self.Grid = _load_grid(self.Data, ax, self.QC, debug=self._debug)
-            self.Variables = _load_var(self, tx, self.QC, debug=self._debug)
+            self.Grid = _load_grid(self.Data, ax, self.QC,
+                                   debug=self._debug)
+            self.Variables = _load_var(self, tx, self.QC,
+                                       debug=self._debug)
             self.Plots = PlotsFvcom(self)
             self.Utils = FunctionsFvcom(self)
             if self.Variables._3D:
@@ -89,13 +90,16 @@ Notes:
         '''Use/Inputs/Outputs of this method has to be clarified !!!'''
         #TR_comments: Add debug flag in Utide: debug=self._debug
         if twodim:
-            self.coef = ut_solv(self.Variables.matlabTime, self.Variables.ua[:, ind],
-                                self.Variables.va[:, ind], self.Variables.lat[ind],
+            self.coef = ut_solv(self.Variables.matlabTime,
+                                self.Variables.ua[:, ind],
+                                self.Variables.va[:, ind],
+                                self.Variables.lat[ind],
                                 debug=self._debug, **kwarg)
             self.QC.append('ut_solv done for velocity')
 
         else:
-            self.coef = ut_solv(self.Variables.matlabTime, self.Variables.ua[:, ind], [],
+            self.coef = ut_solv(self.Variables.matlabTime,
+                                self.Variables.ua[:, ind], [],
                                 self.Variables.lat[ind], **kwarg)
             self.QC.append('ut_solv done for elevation')
 

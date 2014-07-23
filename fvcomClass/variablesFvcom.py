@@ -25,32 +25,60 @@ class _load_var:
         if debug:
             print 'Loading variables...'
         data = cls.Data
+        #Pointer to QC
         self._QC = QC
         QC = self._QC
-        #Bounding box
-        region_e = cls.Grid._region_e
-        region_n = cls.Grid._region_n
-        #Time period
-        self.julianTime = data.variables['time'][:]
-        region_t = self._t_region(tx, debug=debug)
-        #Quick reshape
-        region_t = region_t.T[0,:]
-        self._region_time = region_t
 
-        #Redefine variables in bounding box & time period
-        # elev timeseries
-        self.el = data.variables['zeta'][region_t,region_n] 
+        #Check if time period defined
+        self.julianTime = data.variables['time'][:]      
+        if tx:
+            #Time period           
+            region_t = self._t_region(tx, debug=debug)
+            #Quick reshape
+            region_t = region_t.T[0,:]
+            self._region_time = region_t           
+        else:
+            region_t = range(self.julianTime.shape[0])
+            #-Append message to QC field
+            text = 'Full temporal domain'
+            self._QC.append(text)
         # get time and adjust it to matlab datenum
         self.julianTime = data.variables['time'][region_t]
         self.matlabTime = self.julianTime + 678942
-        try:
-            self.ww = data.variables['ww'][region_t,:,region_e]
-            self.u = data.variables['u'][region_t,:,region_e]
-            self.v = data.variables['v'][region_t,:,region_e]
-            self.ua = data.variables['ua'][region_t,region_e]
-            self.va = data.variables['va'][region_t,region_e]
-            # invisible variables
-            self._3D = True
+
+        #Check if bounding box has been defined
+        if not hasattr(data.Grid, '_region_e'):
+            # elev timeseries
+            self.el = data.variables['zeta'][region_t,:]           
+            try:
+                self.ww = data.variables['ww'][region_t,:,:]
+                self.u = data.variables['u'][region_t,:,:]
+                self.v = data.variables['v'][region_t,:,:]
+                self.ua = data.variables['ua'][region_t,:]
+                self.va = data.variables['va'][region_t,:]
+                # invisible variables
+                self._3D = True
+            except KeyError:
+                self.ua = data.variables['ua'][region_t,:]
+                self.va = data.variables['va'][region_t,:]
+                self._3D = False
+            if debug:
+                print '...Passed'
+        else:       
+            #Bounding box
+            region_e = cls.Grid._region_e
+            region_n = cls.Grid._region_n
+            #Redefine variables in bounding box & time period
+            # elev timeseries
+            self.el = data.variables['zeta'][region_t,region_n] 
+            try:
+                self.ww = data.variables['ww'][region_t,:,region_e]
+                self.u = data.variables['u'][region_t,:,region_e]
+                self.v = data.variables['v'][region_t,:,region_e]
+                self.ua = data.variables['ua'][region_t,region_e]
+                self.va = data.variables['va'][region_t,region_e]
+                # invisible variables
+                self._3D = True
         except KeyError:
             self.ua = data.variables['ua'][region_t,region_e]
             self.va = data.variables['va'][region_t,region_e]
@@ -101,96 +129,107 @@ class _load_grid:
     def __init__(self, data, ax, QC, debug=False):
         if debug:
             print 'Loading grid...'
-        #Define bounding box and time period
-        self.lon = data.variables['lon'][:]
-        self.lat = data.variables['lat'][:]
-        self.lonc = data.variables['lonc'][:]
-        self.latc = data.variables['latc'][:]
-        #self.x = data.variables['x'][:]
-        #self.y = data.variables['y'][:]
-        #self.xc = data.variables['xc'][:]
-        #self.yc = data.variables['yc'][:]
-        #self.h = data.variables['h'][:]
-        #self.siglay = data.variables['siglay'][:,:]
-        #self.siglev = data.variables['siglev'][:,:]
-        #TR_comments: what the hell are the a* parameters???
-        #self.a1u = data.variables['a1u'][:,:]
-        #self.a2u = data.variables['a2u'][:,:]
-        #self.aw0 = data.variables['aw0'][:,:]
-        #self.awx = data.variables['awx'][:,:]
-        #self.awy = data.variables['awy'][:,:]
-        self.nv = data.variables['nv'][:,:]
-        self.nbe = data.variables['nbe'][:,:]
-        #-Need to use len to get size of dimensions
-        #self.nele = len(data.dimensions['nele'])
-        #self.node = len(data.dimensions['node'])
-        #-Pointer to QC
+        #Pointer to QC
         self._QC = QC
         QC = self._QC
-        region_e, region_n = self._bounding_box(ax, debug=debug)
-        #Quick reshape
-        region_e = region_e.T[0,:]
-        region_n = region_n.T[0,:]
-        0/0
-        self._region_e = region_e
-        self._region_n = region_n
-        #TR: add check neighbouring nodes too and append to region_n
-        #Re-indexing nv and nbe, i+1 because of python indexing
-        if debug:
-            print "re-indexing"
-        j = 0
-        NV = np.empty(self.nbe.shape, dtype=int)
-        NBE = np.empty(self.nbe.shape, dtype=int) 
-        for i in region_n:
-            ne = np.where(self.nv==i+1)
-            NV[ne] = j
-            j += 1
-        j =0
-        for i in region_n:
-            no = np.where(self.nbe==i+1)
-            NBE[no] = j
-            j += 1
-        self.trinodes = NV.T
-        self.triele = NBE.T
+        if not ax:
+            #Define grid variables on the entire domain:
+            self.lon = data.variables['lon'][:]
+            self.lat = data.variables['lat'][:]
+            self.lonc = data.variables['lonc'][:]
+            self.latc = data.variables['latc'][:]
+            self.x = data.variables['x'][:]
+            self.y = data.variables['y'][:]
+            self.xc = data.variables['xc'][:]
+            self.yc = data.variables['yc'][:]
+            self.h = data.variables['h'][:]
+            self.siglay = data.variables['siglay'][:,:]
+            self.siglev = data.variables['siglev'][:,:]
+            #TR_comments: what the hell are the a* parameters???
+            self.a1u = data.variables['a1u'][:,:]
+            self.a2u = data.variables['a2u'][:,:]
+            self.aw0 = data.variables['aw0'][:,:]
+            self.awx = data.variables['awx'][:,:]
+            self.awy = data.variables['awy'][:,:]
+            self.nv = data.variables['nv'][:,:]
+            self.nbe = data.variables['nbe'][:,:]
+            #-Need to use len to get size of dimensions
+            self.nele = len(data.dimensions['nele'])
+            self.node = len(data.dimensions['node'])
+            #-Append message to QC field
+            text = 'Full spatial domain'
+            self._QC.append(text)
+        else:           
+            #Define bounding box
+            self.lon = data.variables['lon'][:]
+            self.lat = data.variables['lat'][:]
+            self.lonc = data.variables['lonc'][:]
+            self.latc = data.variables['latc'][:]
+            self.nv = data.variables['nv'][:,:]
+            self.nbe = data.variables['nbe'][:,:]
+            region_e, region_n = self._bounding_box(ax, debug=debug)
+            #Quick reshape
+            region_e = region_e.T[0,:]
+            region_n = region_n.T[0,:]
+            self._region_e = region_e
+            self._region_n = region_n
+            #TR: add check neighbouring nodes too and append to region_n
+            #Re-indexing nv and nbe, i+1 because of python indexing
+            if debug:
+                print "re-indexing"
+            j = 0
+            NV = np.empty(self.nbe.shape, dtype=int)
+            NBE = np.empty(self.nbe.shape, dtype=int) 
+            for i in region_n:
+                ne = np.where(self.nv==i+1)
+                NV[ne] = j
+                j += 1
+            j =0
+            for i in region_n:
+                no = np.where(self.nbe==i+1)
+                NBE[no] = j
+                j += 1
+            self.trinodes = NV.T
+            self.triele = NBE.T
 
-        #Redefine variables in bounding box
-        self.nele = len(region_e)
-        self.node = len(region_n)
-        self.lon = data.variables['lon'][region_n]
-        self.lat = data.variables['lat'][region_n]
-        self.lonc = data.variables['lonc'][region_e]
-        self.latc = data.variables['latc'][region_e]
-        self.x = data.variables['x'][region_n]
-        self.y = data.variables['y'][region_n]
-        self.xc = data.variables['xc'][region_e]
-        self.yc = data.variables['yc'][region_e]
-        self.h = data.variables['h'][region_n]
-        self.siglay = data.variables['siglay'][:,region_n]
-        self.siglev = data.variables['siglev'][:,region_n]
-        #TR_comments: what the hell are the a* parameters???
-        self.a1u = data.variables['a1u'][:,region_e]
-        self.a2u = data.variables['a2u'][:,region_e]
-        self.aw0 = data.variables['aw0'][:,region_e]
-        self.awx = data.variables['awx'][:,region_e]
-        self.awy = data.variables['awy'][:,region_e]
-        self.nv = data.variables['nv'][:,region_e]
-        self.nbe = data.variables['nbe'][:,region_e]
-        #-Need to use len to get size of dimensions
-        self.nele = self.h.shape[0]
-        self.node = self.xc.shape[0]
+            #Redefine variables in bounding box
+            self.nele = len(region_e)
+            self.node = len(region_n)
+            self.lon = data.variables['lon'][region_n]
+            self.lat = data.variables['lat'][region_n]
+            self.lonc = data.variables['lonc'][region_e]
+            self.latc = data.variables['latc'][region_e]
+            self.x = data.variables['x'][region_n]
+            self.y = data.variables['y'][region_n]
+            self.xc = data.variables['xc'][region_e]
+            self.yc = data.variables['yc'][region_e]
+            self.h = data.variables['h'][region_n]
+            self.siglay = data.variables['siglay'][:,region_n]
+            self.siglev = data.variables['siglev'][:,region_n]
+            #TR_comments: what the hell are the a* parameters???
+            self.a1u = data.variables['a1u'][:,region_e]
+            self.a2u = data.variables['a2u'][:,region_e]
+            self.aw0 = data.variables['aw0'][:,region_e]
+            self.awx = data.variables['awx'][:,region_e]
+            self.awy = data.variables['awy'][:,region_e]
+            self.nv = data.variables['nv'][:,region_e]
+            self.nbe = data.variables['nbe'][:,region_e]
+            #-Need to use len to get size of dimensions
+            self.nele = self.h.shape[0]
+            self.node = self.xc.shape[0]
 
-
-        # Custom grid variables
-        if debug:
-            print '...Passed'
+            if debug:
+                print '...Passed'
 
     def _ele_region(self, ax, debug=False):
         '''Return element indexes included in bounding box, aka ax'''       
         if debug:
             print 'Computing region_e...'
 
-        region_e = np.argwhere((self.lonc >= ax[0]) & (self.lonc <= ax[1]) &
-                               (self.latc >= ax[2]) & (self.latc <= ax[3]))          
+        region_e = np.argwhere((self.lonc >= ax[0]) &
+                               (self.lonc <= ax[1]) &
+                               (self.latc >= ax[2]) &
+                               (self.latc <= ax[3]))          
         if debug or self._debug:
             print '...Passed'
 
@@ -201,8 +240,10 @@ class _load_grid:
         if debug:
             print 'Computing region_n...'
 
-        region_n = np.argwhere((self.lon >= ax[0]) & (self.lon <= ax[1]) &
-                               (self.lat >= ax[2]) & (self.lat <= ax[3]))
+        region_n = np.argwhere((self.lon >= ax[0]) &
+                               (self.lon <= ax[1]) &
+                               (self.lat >= ax[2]) &
+                               (self.lat <= ax[3]))
         if debug or self._debug:
             print '...Passed'
 
@@ -212,7 +253,7 @@ class _load_grid:
         """
         Define bounding box and reset the box by default.
         Input ex:
-        --------
+        -------- 
           _bounding_box(ax=[min lon, max lon, min lat, max lat])
         """
         if not ax:

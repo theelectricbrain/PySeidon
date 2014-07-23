@@ -43,7 +43,8 @@ class FunctionsFvcomThreeD:
         dep = np.zeros([zeta.shape[0],siglay.shape[0],nv.shape[0]])
         #for i in range(z.shape[0]):
         #    for j in range(nv.shape[0]):
-        #        dep[i,:,j] = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+z[i,:,nv[j,2]])/3
+        #        dep[i,:,j] = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+
+        #                      z[i,:,nv[j,2]])/3
         #TR alternative: over the whole thing
         #dep = (z[:,:,nv[:,0]] + z[:,:,nv[:,1]] + z[:,:,nv[:,2]]) / 3
         #end = time.time()
@@ -51,9 +52,14 @@ class FunctionsFvcomThreeD:
         #print "Computation time method1: ", (end - start)            
         #TR alternative2: using the interp function
         for i in range(nv.shape[0]):
-            dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i], self._grid.yc[i],
-                         self._grid.xc, self._grid.yc, i, self._grid.trinodes,
-                         self._grid.aw0, self._grid.awx, self._grid.awy)
+            dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i],
+                                       self._grid.yc[i],
+                                       self._grid.xc,
+                                       self._grid.yc, i,
+                                       self._grid.trinodes,
+                                       self._grid.aw0,
+                                       self._grid.awx,
+                                       self._grid.awy)
         #end = time.time()
         #print "Computation time method1: ", (end - start)  
         if debug:
@@ -62,7 +68,8 @@ class FunctionsFvcomThreeD:
 
         self._grid.depth = dep
 
-    def verti_shear(self, t_start, t_end, bot_lvl=[], top_level= [], debug=False):
+    def verti_shear(self, t_start, t_end,
+                    bot_lvl=[], top_level= [], debug=False):
         """
         Compute vertical shear -> FVCOM.Variables.verti_shear
         Inputs:
@@ -74,7 +81,8 @@ class FunctionsFvcomThreeD:
           bot_lvl = index of the bottom level to consider, integer
           top_lvl = index of the top level to consider, integer
         """
-        if debug or self._debug:
+        debug = debug or self._debug
+        if debug:
             print 'Computing vertical shear...'
         if self._var._3D:
             # Find simulation time contains in [t_start, t_end]
@@ -90,21 +98,13 @@ class FunctionsFvcomThreeD:
             t_slice = np.array(t_slice,dtype='datetime64[us]')
 
             if t_slice.shape[0] != 1:
-                argtime = np.argwhere((time>=t_slice[0])&(time<=t_slice[-1])).flatten()
+                argtime = np.argwhere((time>=t_slice[0])&
+                                      (time<=t_slice[-1])).flatten()
             if debug or self._debug:
                 print argtime
             
             #Compute depth
-            h = self._grid.h
-            zeta = self.Variables.el[argtime,:] + h[None,:]
-            nv = self._grid.trinodes
-            siglay = self._grid.siglay[:]
-            z = zeta[:,None,:]*siglay[None,:,:]
-            dep = np.zeros([argtime.shape[0],siglay.shape[0],nv.shape[0]])
-            for i in range(z.shape[0]):
-                for j in range(nv.shape[0]):
-                    dep[i,:,j] = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+z[i,:,nv[j,2]])/3
-
+            dep = self.depth(debug=debug)
             # Checking if horizontal velocity norm already exists
             if not hasattr(self._var, 'hori_velo_norm'):
                 self.hori_velo_norm()
@@ -133,7 +133,7 @@ class FunctionsFvcomThreeD:
         else:
             print "This function is only available for 3D FVCOM runs"
 
-        if debug or self._debug:
+        if debug:
             print '...Passed'
 
     def velo_norm(self, debug=False):
@@ -160,7 +160,8 @@ class FunctionsFvcomThreeD:
         if debug or self._debug:
             print '...Passed'
 
-    def flow_dir_at_point(self, pt_lon, pt_lat, vertical=False, debug=False):
+    def flow_dir_at_point(self, pt_lon, pt_lat,
+                          vertical=False, debug=False):
         """
         Flow directions and associated norm at any give location.
         Inputs:
