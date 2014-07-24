@@ -47,7 +47,7 @@ class _load_var:
         self.matlabTime = self.julianTime + 678942
 
         #Check if bounding box has been defined
-        if not hasattr(data.Grid, '_region_e'):
+        if not hasattr(cls.Grid, '_region_e'):
             # elev timeseries
             self.el = data.variables['zeta'][region_t,:]           
             try:

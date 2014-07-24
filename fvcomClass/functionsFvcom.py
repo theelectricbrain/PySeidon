@@ -91,8 +91,8 @@ class FunctionsFvcom:
 
         u = self._var.ua
         v = self._var.va
-        dirFlow = (np.pi/2.0) - np.arctan2(u,v)
-        dirFlow = dirFlow * (180.0 / np.pi)
+        dirFlow = np.arctan2(u,v)
+        dirFlow = np.mod((dirFlow + np.pi) * (180.0 / np.pi), 360.0)
 
         #Custom return    
         self._var.dir_flow = dirFlow 
@@ -148,7 +148,7 @@ class FunctionsFvcom:
         #dirFlow = ((np.pi/2.0) - dirFlow) * (180.0 / np.pi)
         #dirFlow = dirFlow * (180.0 / np.pi)
         #dirFlow = np.pi - dirFlow) * (180.0 / np.pi)
-        dirFlow = np.mod((dirFlow + ) * (180.0 / np.pi), 360.0)
+        dirFlow = np.mod((dirFlow + np.pi) * (180.0 / np.pi), 360.0)
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
