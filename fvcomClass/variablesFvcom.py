@@ -36,53 +36,89 @@ class _load_var:
             region_t = self._t_region(tx, debug=debug)
             #Quick reshape
             region_t = region_t.T[0,:]
-            self._region_time = region_t           
+            self._region_time = region_t
+            # get time and adjust it to matlab datenum
+            self.julianTime = data.variables['time'][region_t]
+            self.matlabTime = self.julianTime + 678942
+
+            #Check if bounding box has been defined
+            if not hasattr(cls.Grid, '_region_e'):
+                # elev timeseries
+                self.el = data.variables['zeta'][region_t,:]           
+                try:
+                    self.ww = data.variables['ww'][region_t,:,:]
+                    self.u = data.variables['u'][region_t,:,:]
+                    self.v = data.variables['v'][region_t,:,:]
+                    self.ua = data.variables['ua'][region_t,:]
+                    self.va = data.variables['va'][region_t,:]
+                    # invisible variables
+                    self._3D = True
+                except KeyError:
+                    self.ua = data.variables['ua'][region_t,:]
+                    self.va = data.variables['va'][region_t,:]
+                    self._3D = False
+            else:       
+                #Bounding box
+                region_e = cls.Grid._region_e
+                region_n = cls.Grid._region_n
+                #Redefine variables in bounding box & time period
+                # elev timeseries
+                self.el = data.variables['zeta'][region_t,region_n] 
+                try:
+                    self.ww = data.variables['ww'][region_t,:,region_e]
+                    self.u = data.variables['u'][region_t,:,region_e]
+                    self.v = data.variables['v'][region_t,:,region_e]
+                    self.ua = data.variables['ua'][region_t,region_e]
+                    self.va = data.variables['va'][region_t,region_e]
+                    # invisible variables
+                    self._3D = True
+                except KeyError:
+                    self.ua = data.variables['ua'][region_t,region_e]
+                    self.va = data.variables['va'][region_t,region_e]
+                    self._3D = False          
         else:
-            region_t = range(self.julianTime.shape[0])
             #-Append message to QC field
             text = 'Full temporal domain'
             self._QC.append(text)
-        # get time and adjust it to matlab datenum
-        self.julianTime = data.variables['time'][region_t]
-        self.matlabTime = self.julianTime + 678942
+            # get time and adjust it to matlab datenum
+            self.julianTime = data.variables['time'][:]
+            self.matlabTime = self.julianTime + 678942
 
-        #Check if bounding box has been defined
-        if not hasattr(cls.Grid, '_region_e'):
-            # elev timeseries
-            self.el = data.variables['zeta'][region_t,:]           
-            try:
-                self.ww = data.variables['ww'][region_t,:,:]
-                self.u = data.variables['u'][region_t,:,:]
-                self.v = data.variables['v'][region_t,:,:]
-                self.ua = data.variables['ua'][region_t,:]
-                self.va = data.variables['va'][region_t,:]
-                # invisible variables
-                self._3D = True
-            except KeyError:
-                self.ua = data.variables['ua'][region_t,:]
-                self.va = data.variables['va'][region_t,:]
-                self._3D = False
-            if debug:
-                print '...Passed'
-        else:       
-            #Bounding box
-            region_e = cls.Grid._region_e
-            region_n = cls.Grid._region_n
-            #Redefine variables in bounding box & time period
-            # elev timeseries
-            self.el = data.variables['zeta'][region_t,region_n] 
-            try:
-                self.ww = data.variables['ww'][region_t,:,region_e]
-                self.u = data.variables['u'][region_t,:,region_e]
-                self.v = data.variables['v'][region_t,:,region_e]
-                self.ua = data.variables['ua'][region_t,region_e]
-                self.va = data.variables['va'][region_t,region_e]
-                # invisible variables
-                self._3D = True
-            except KeyError:
-                self.ua = data.variables['ua'][region_t,region_e]
-                self.va = data.variables['va'][region_t,region_e]
-                self._3D = False
+            #Check if bounding box has been defined
+            if not hasattr(cls.Grid, '_region_e'):
+                # elev timeseries
+                self.el = data.variables['zeta'][:,:]           
+                try:
+                    self.ww = data.variables['ww'][:,:,:]
+                    self.u = data.variables['u'][:,:,:]
+                    self.v = data.variables['v'][:,:,:]
+                    self.ua = data.variables['ua'][:,:]
+                    self.va = data.variables['va'][:,:]
+                    # invisible variables
+                    self._3D = True
+                except KeyError:
+                    self.ua = data.variables['ua'][:,:]
+                    self.va = data.variables['va'][:,:]
+                    self._3D = False
+            else:       
+                #Bounding box
+                region_e = cls.Grid._region_e
+                region_n = cls.Grid._region_n
+                #Redefine variables in bounding box & time period
+                # elev timeseries
+                self.el = data.variables['zeta'][:,region_n] 
+                try:
+                    self.ww = data.variables['ww'][:,:,region_e]
+                    self.u = data.variables['u'][:,:,region_e]
+                    self.v = data.variables['v'][:,:,region_e]
+                    self.ua = data.variables['ua'][:,region_e]
+                    self.va = data.variables['va'][:,region_e]
+                    # invisible variables
+                    self._3D = True
+                except KeyError:
+                    self.ua = data.variables['ua'][:,region_e]
+                    self.va = data.variables['va'][:,region_e]
+                    self._3D = False
         if debug:
             print '...Passed'
 
