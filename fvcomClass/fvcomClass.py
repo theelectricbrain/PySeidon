@@ -91,7 +91,7 @@ Notes:
             #                            self._debug)
             #TR alternative:
             #self.Grid = _load_grid(self)
-            self.Variables = _load_var(self)
+            self.Variables = _load_var(self, tx)
             self.Plots = PlotsFvcom(self)
             self.Utils = FunctionsFvcom(self)
 

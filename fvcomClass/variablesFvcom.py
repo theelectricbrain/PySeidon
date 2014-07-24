@@ -23,7 +23,7 @@ class _load_var:
     """
     #def __init__(self, data, grid, tx, QC, debug=False):
     #TR alternative
-    def __init__(self, cls):
+    def __init__(self, cls, tx):
         data=cls.Data
         grid=cls.Grid
         self._QC = cls.QC
