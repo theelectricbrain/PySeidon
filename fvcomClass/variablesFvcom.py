@@ -79,10 +79,10 @@ class _load_var:
                 self.va = data.variables['va'][region_t,region_e]
                 # invisible variables
                 self._3D = True
-        except KeyError:
-            self.ua = data.variables['ua'][region_t,region_e]
-            self.va = data.variables['va'][region_t,region_e]
-            self._3D = False
+            except KeyError:
+                self.ua = data.variables['ua'][region_t,region_e]
+                self.va = data.variables['va'][region_t,region_e]
+                self._3D = False
         if debug:
             print '...Passed'
 

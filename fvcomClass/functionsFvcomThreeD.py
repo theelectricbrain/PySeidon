@@ -28,7 +28,12 @@ class FunctionsFvcomThreeD:
         cls.QC = self._QC
 
     def depth(self, debug=False):
-        """Compute depth -> FVCOM.Grid.depth"""
+        """
+        Compute depth -> FVCOM.Grid.depth
+        Notes:
+        -----
+           Can take time over the full domain
+        """
         debug = debug or self._debug
         if debug:
             print "Computing depth"
@@ -80,6 +85,9 @@ class FunctionsFvcomThreeD:
         --------
           bot_lvl = index of the bottom level to consider, integer
           top_lvl = index of the top level to consider, integer
+        Notes:
+        -----
+           Can take time over the full domain
         """
         debug = debug or self._debug
         if debug:
@@ -112,11 +120,11 @@ class FunctionsFvcomThreeD:
             vel = self._var.hori_velo_norm[argtime,:,:]
 
             #Sigma levels to consider
-            if not top:
-                top = (dep.shape[1]) - 1
-            if not bot:
-                bot = 0
-            sLvl = range(bot, top+1)
+            if not top_lvl:
+                top_lvl = (dep.shape[1]) - 1
+            if not bot_lvl:
+                bot_lvl = 0
+            sLvl = range(bot_lvl, top_lvl+1)
 
             # Compute shear
             dz = dep[:,sLvl[1:],:] - dep[:,sLvl[:-1],:]
