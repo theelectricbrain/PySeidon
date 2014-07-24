@@ -81,24 +81,24 @@ class _load_var:
             text = 'Full temporal domain'
             self._QC.append(text)
             # get time and adjust it to matlab datenum
-            self.julianTime = data.variables['time'][:]
+            self.julianTime = data.variables['time']
             self.matlabTime = self.julianTime + 678942
 
             #Check if bounding box has been defined
             if not hasattr(cls.Grid, '_region_e'):
                 # elev timeseries
-                self.el = data.variables['zeta'][:,:]           
+                self.el = data.variables['zeta']          
                 try:
-                    self.ww = data.variables['ww'][:,:,:]
-                    self.u = data.variables['u'][:,:,:]
-                    self.v = data.variables['v'][:,:,:]
-                    self.ua = data.variables['ua'][:,:]
-                    self.va = data.variables['va'][:,:]
+                    self.ww = data.variables['ww']
+                    self.u = data.variables['u']
+                    self.v = data.variables['v']
+                    self.ua = data.variables['ua']
+                    self.va = data.variables['va']
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    self.ua = data.variables['ua'][:,:]
-                    self.va = data.variables['va'][:,:]
+                    self.ua = data.variables['ua']
+                    self.va = data.variables['va']
                     self._3D = False
             else:       
                 #Bounding box
