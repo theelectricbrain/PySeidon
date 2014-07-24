@@ -27,6 +27,7 @@ class _load_var:
         data=cls.Data
         grid=cls.Grid
         self._QC = cls.QC
+        debug = cls._debug
 
         #Pointer to QC
         #self._QC = QC
