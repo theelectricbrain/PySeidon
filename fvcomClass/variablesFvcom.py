@@ -21,17 +21,10 @@ class _load_var:
     verti_shear = vertical shear
     ...            
     """
-    #def __init__(self, data, grid, tx, QC, debug=False):
-    #TR alternative
-    def __init__(self, cls, tx):
-        data=cls.Data
-        grid=cls.Grid
-        self._QC = cls.QC
-        debug = cls._debug
-
+    def __init__(self, data, grid, tx, QC, debug=False):
         #Pointer to QC
-        #self._QC = QC
-        #QC = self._QC
+        self._QC = QC
+        QC = self._QC
 
         if debug:
             print 'Loading variables...'
@@ -217,22 +210,22 @@ class _load_grid:
             self._region_n = region_n
             #TR: add check neighbouring nodes too and append to region_n
             #Re-indexing nv and nbe, i+1 because of python indexing
-            if debug:
-                print "re-indexing"
-            j = 0
-            NV = np.empty(self.nbe.shape, dtype=int)
-            NBE = np.empty(self.nbe.shape, dtype=int) 
-            for i in region_n:
-                ne = np.where(self.nv==i+1)
-                NV[ne] = j
-                j += 1
-            j =0
-            for i in region_n:
-                no = np.where(self.nbe==i+1)
-                NBE[no] = j
-                j += 1
-            self.trinodes = NV.T
-            self.triele = NBE.T
+            #if debug:
+            #    print "re-indexing"
+            #j = 0
+            #NV = np.empty(self.nbe.shape, dtype=int)
+            #NBE = np.empty(self.nbe.shape, dtype=int) 
+            #for i in region_n:
+            #    ne = np.where(self.nv==i+1)
+            #    NV[ne] = j
+            #    j += 1
+            #j =0
+            #for i in region_n:
+            #    no = np.where(self.nbe==i+1)
+            #    NBE[no] = j
+            #    j += 1
+            #self.trinodes = NV.T
+            #self.triele = NBE.T
 
             #Redefine variables in bounding box
             self.nele = len(region_e)

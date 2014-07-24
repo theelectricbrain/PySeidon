@@ -72,38 +72,36 @@ Notes:
             text = 'Created from ' + filename
             self.QC = [text]
             # Calling sub-class
-            self.Grid = _load_grid(self.Data,
-                                   ax,
-                                   self.QC,
-                                   debug=self._debug)
-            #self.Variables = _load_var(self.Data,
-            #                           self.Grid,
-            #                           tx,
-            #                           self.QC,
-            #                           debug=self._debug)
-            #self.Plots = PlotsFvcom(self.Variable,
-            #                        self.Grid,
-            #                        self._debug)
-            #self.Utils = FunctionsFvcom(self.Variable,
-            #                            self.Grid,
-            #                            self.Plots,
-            #                            self.QC,
-            #                            self._debug)
-            #TR alternative:
-            #self.Grid = _load_grid(self)
-            self.Variables = _load_var(self, tx)
-            self.Plots = PlotsFvcom(self)
-            self.Utils = FunctionsFvcom(self)
+            print "This might take some time..."
+            try:
+                self.Grid = _load_grid(self.Data,
+                                       ax,
+                                       self.QC,
+                                       debug=self._debug)
+                self.Variables = _load_var(self.Data,
+                                           self.Grid,
+                                           tx,
+                                           self.QC,
+                                           debug=self._debug)
+            except MemoryError:
+                raise error('---Data too large for machine memory---')
+
+            self.Plots = PlotsFvcom(self.Variable,
+                                    self.Grid,
+                                    self._debug)
+            self.Utils = FunctionsFvcom(self.Variable,
+                                        self.Grid,
+                                        self.Plots,
+                                        self.QC,
+                                        self._debug)
 
             if self.Variables._3D:
-                #self.UtilsThreeD = FunctionsFvcomThreeD(self.Variable,
-                #                                        self.Grid,
-                #                                        self.Plots,
-                #                                        self.Utils,
-                #                                        self.QC,
-                #                                        self._debug)
-                #TR alternative
-                self.UtilsThreeD = FunctionsFvcomThreeD(self)
+                self.UtilsThreeD = FunctionsFvcomThreeD(self.Variable,
+                                                        self.Grid,
+                                                        self.Plots,
+                                                        self.Utils,
+                                                        self.QC,
+                                                        self._debug)
             if ax:
                 self.Grid._ax = ax
             else:
