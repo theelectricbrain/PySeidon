@@ -21,13 +21,19 @@ class _load_var:
     verti_shear = vertical shear
     ...            
     """
-    def __init__(self, data, grid, tx, QC, debug=False):
+    #def __init__(self, data, grid, tx, QC, debug=False):
+    #TR alternative
+    def __init__(self, cls)
+        data=cls.Data
+        grid=cls.Grid
+        self._QC = cls.QC
+
+        #Pointer to QC
+        #self._QC = QC
+        #QC = self._QC
+
         if debug:
             print 'Loading variables...'
-        #Pointer to QC
-        self._QC = QC
-        QC = self._QC
-
         #Check if time period defined
         self.julianTime = data.variables['time'][:]      
         if tx:
