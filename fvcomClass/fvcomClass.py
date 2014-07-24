@@ -84,19 +84,20 @@ Notes:
                                            self.QC,
                                            debug=self._debug)
             except MemoryError:
-                raise error('---Data too large for machine memory---')
+                print '---Data too large for machine memory---'
+                raise
 
-            self.Plots = PlotsFvcom(self.Variable,
+            self.Plots = PlotsFvcom(self.Variables,
                                     self.Grid,
                                     self._debug)
-            self.Utils = FunctionsFvcom(self.Variable,
+            self.Utils = FunctionsFvcom(self.Variables,
                                         self.Grid,
                                         self.Plots,
                                         self.QC,
                                         self._debug)
 
             if self.Variables._3D:
-                self.UtilsThreeD = FunctionsFvcomThreeD(self.Variable,
+                self.UtilsThreeD = FunctionsFvcomThreeD(self.Variables,
                                                         self.Grid,
                                                         self.Plots,
                                                         self.Utils,

@@ -27,9 +27,9 @@ class _load_var:
         QC = self._QC
 
         if debug:
-            print 'Loading variables...'
+            print 'Caching variables...'
         #Check if time period defined
-        self.julianTime = data.variables['time'][:]      
+        self.julianTime = data.variables['time']#[:]      
         if tx:
             #Time period           
             region_t = self._t_region(tx, debug=debug)
@@ -80,24 +80,24 @@ class _load_var:
             text = 'Full temporal domain'
             self._QC.append(text)
             # get time and adjust it to matlab datenum
-            self.julianTime = data.variables['time'][:]
-            self.matlabTime = self.julianTime + 678942
+            self.julianTime = data.variables['time']
+            self.matlabTime = self.julianTime[:] + 678942
 
             #Check if bounding box has been defined
             if not hasattr(grid, '_region_e'):
                 # elev timeseries
-                self.el = data.variables['zeta'][:,:]           
+                self.el = data.variables['zeta']#[:]           
                 try:
-                    self.ww = data.variables['ww'][:,:,:]
-                    self.u = data.variables['u'][:,:,:]
-                    self.v = data.variables['v'][:,:,:]
-                    self.ua = data.variables['ua'][:,:]
-                    self.va = data.variables['va'][:,:]
+                    self.ww = data.variables['ww']#[:]
+                    self.u = data.variables['u']#[:]
+                    self.v = data.variables['v']#[:]
+                    self.ua = data.variables['ua']#[:]
+                    self.va = data.variables['va']#[:]
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    self.ua = data.variables['ua'][:,:]
-                    self.va = data.variables['va'][:,:]
+                    self.ua = data.variables['ua']#[:]
+                    self.va = data.variables['va']#[:]
                     self._3D = False
             else:       
                 #Bounding box
@@ -163,31 +163,31 @@ class _load_grid:
     '''
     def __init__(self, data, ax, QC, debug=False):
         if debug:
-            print 'Loading grid...'
+            print 'Caching grid...'
         #Pointer to QC
         self._QC = QC
         QC = self._QC
         if not ax:
             #Define grid variables on the entire domain:
-            self.lon = data.variables['lon'][:]
-            self.lat = data.variables['lat'][:]
-            self.lonc = data.variables['lonc'][:]
-            self.latc = data.variables['latc'][:]
-            self.x = data.variables['x'][:]
-            self.y = data.variables['y'][:]
-            self.xc = data.variables['xc'][:]
-            self.yc = data.variables['yc'][:]
-            self.h = data.variables['h'][:]
-            self.siglay = data.variables['siglay'][:,:]
-            self.siglev = data.variables['siglev'][:,:]
+            self.lon = data.variables['lon']#[:]
+            self.lat = data.variables['lat']#[:]
+            self.lonc = data.variables['lonc']#[:]
+            self.latc = data.variables['latc']#[:]
+            self.x = data.variables['x']#[:]
+            self.y = data.variables['y']#[:]
+            self.xc = data.variables['xc']#[:]
+            self.yc = data.variables['yc']#[:]
+            self.h = data.variables['h']#[:]
+            self.siglay = data.variables['siglay']#[:]
+            self.siglev = data.variables['siglev']#[:]
             #TR_comments: what the hell are the a* parameters???
-            self.a1u = data.variables['a1u'][:,:]
-            self.a2u = data.variables['a2u'][:,:]
-            self.aw0 = data.variables['aw0'][:,:]
-            self.awx = data.variables['awx'][:,:]
-            self.awy = data.variables['awy'][:,:]
-            self.nv = data.variables['nv'][:,:]
-            self.nbe = data.variables['nbe'][:,:]
+            self.a1u = data.variables['a1u']#[:]
+            self.a2u = data.variables['a2u']#[:]
+            self.aw0 = data.variables['aw0']#[:]
+            self.awx = data.variables['awx']#[:]
+            self.awy = data.variables['awy']#[:]
+            self.nv = data.variables['nv']#[:]
+            self.nbe = data.variables['nbe']#[:]
             #-Need to use len to get size of dimensions
             self.nele = len(data.dimensions['nele'])
             self.node = len(data.dimensions['node'])
@@ -196,12 +196,12 @@ class _load_grid:
             self._QC.append(text)
         else:           
             #Define bounding box
-            self.lon = data.variables['lon'][:]
-            self.lat = data.variables['lat'][:]
-            self.lonc = data.variables['lonc'][:]
-            self.latc = data.variables['latc'][:]
-            self.nv = data.variables['nv'][:,:]
-            self.nbe = data.variables['nbe'][:,:]
+            self.lon = data.variables['lon']#[:]
+            self.lat = data.variables['lat']#[:]
+            self.lonc = data.variables['lonc']#[:]
+            self.latc = data.variables['latc']#[:]
+            self.nv = data.variables['nv']#[:,:]
+            self.nbe = data.variables['nbe']#[:,:]
             region_e, region_n = self._bounding_box(ax, debug=debug)
             #Quick reshape
             region_e = region_e.T[0,:]

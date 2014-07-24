@@ -298,7 +298,7 @@ class FunctionsFvcom:
             signal=var
         
         Max = max(signal)	
-        dy = (Max/50.0)
+        dy = (Max/100.0)
         Ranges = np.arange(0,(Max + dy), dy)
         Exceedance = np.zeros(Ranges.shape[0])
         Period = time[-1] - time[0]
