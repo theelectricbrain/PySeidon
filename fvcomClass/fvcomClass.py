@@ -72,10 +72,10 @@ Notes:
             text = 'Created from ' + filename
             self.QC = [text]
             # Calling sub-class
-            #self.Grid = _load_grid(self.Data,
-            #                       ax,
-            #                       self.QC,
-            #                       debug=self._debug)
+            self.Grid = _load_grid(self.Data,
+                                   ax,
+                                   self.QC,
+                                   debug=self._debug)
             #self.Variables = _load_var(self.Data,
             #                           self.Grid,
             #                           tx,
@@ -90,7 +90,7 @@ Notes:
             #                            self.QC,
             #                            self._debug)
             #TR alternative:
-            self.Grid = _load_grid(self)
+            #self.Grid = _load_grid(self)
             self.Variables = _load_var(self)
             self.Plots = PlotsFvcom(self)
             self.Utils = FunctionsFvcom(self)
