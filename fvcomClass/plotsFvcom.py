@@ -10,11 +10,10 @@ from windrose import WindroseAxes
 
 class PlotsFvcom:
     """'Plots' subset of FVCOM class gathers plotting functions"""
-    def __init__(self, cls):
-        self._var = cls.Variables
-        self._grid = cls.Grid
-        self._debug = cls._debug
-
+    def __init__(self, variable, grid, debug):
+        self._debug = debug
+        self._var = variables
+        self._grid = grid
     def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
         '''
         2D xy colormap plot of any given variable and mesh.

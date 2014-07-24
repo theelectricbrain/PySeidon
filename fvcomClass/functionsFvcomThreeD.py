@@ -13,19 +13,20 @@ import time
 #TR comment: This all routine needs to be tested and debugged
 class FunctionsFvcomThreeD:
     """'UtilsThreeD' subset of FVCOM class gathers useful functions for 3D runs"""
-    def __init__(self, cls):
+    def __init__(self, variable, grid, plot, util, QC, debug):
         #Inheritance
-        self._debug = cls._debug
-        self._var = cls.Variables
-        self._grid = cls.Grid
-        self._plot = cls.Plots
-        self._QC = cls.QC
-        self._util = cls.Utils
+        self._debug = debug
+        self._var = variables
+        self._grid = grid
+        self._plot = plot
+        self._QC = QC
+        self._util = util
         self.interpolation_at_point = self._util.interpolation_at_point
         #Create pointer to FVCOM class
-        cls.Variables = self._var
-        cls.Grid = self._grid
-        cls.QC = self._QC
+        variable = self._var
+        grid = self._grid
+        QC = self._QC
+        util = self._util
 
     def depth(self, debug=False):
         """

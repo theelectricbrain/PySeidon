@@ -72,14 +72,30 @@ Notes:
             text = 'Created from ' + filename
             self.QC = [text]
             # Custom fields
-            self.Grid = _load_grid(self.Data, ax, self.QC,
+            self.Grid = _load_grid(self.Data,
+                                   ax,
+                                   self.QC,
                                    debug=self._debug)
-            self.Variables = _load_var(self, tx, self.QC,
+            self.Variables = _load_var(self.Data,
+                                       self.Grid,
+                                       tx,
+                                       self.QC,
                                        debug=self._debug)
-            self.Plots = PlotsFvcom(self)
-            self.Utils = FunctionsFvcom(self)
+            self.Plots = PlotsFvcom(self.Variable,
+                                    self.Grid,
+                                    self._debug)
+            self.Utils = FunctionsFvcom(self.Variable,
+                                        self.Grid,
+                                        self.Plots,
+                                        self.QC,
+                                        self._debug)
             if self.Variables._3D:
-                self.UtilsThreeD = FunctionsFvcomThreeD(self)
+                self.UtilsThreeD = FunctionsFvcomThreeD(self.Variable,
+                                                        self.Grid,
+                                                        self.Plots,
+                                                        self.Utils,
+                                                        self.QC,
+                                                        self._debug)
             if ax:
                 self.Grid._ax = ax
             else:

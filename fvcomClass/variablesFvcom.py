@@ -21,10 +21,9 @@ class _load_var:
     verti_shear = vertical shear
     ...            
     """
-    def __init__(self, cls, tx, QC, debug=False):
+    def __init__(self, data, grid, tx, QC, debug=False):
         if debug:
             print 'Loading variables...'
-        data = cls.Data
         #Pointer to QC
         self._QC = QC
         QC = self._QC
@@ -42,7 +41,7 @@ class _load_var:
             self.matlabTime = self.julianTime + 678942
 
             #Check if bounding box has been defined
-            if not hasattr(cls.Grid, '_region_e'):
+            if not hasattr(grid, '_region_e'):
                 # elev timeseries
                 self.el = data.variables['zeta'][region_t,:]           
                 try:
@@ -59,8 +58,8 @@ class _load_var:
                     self._3D = False
             else:       
                 #Bounding box
-                region_e = cls.Grid._region_e
-                region_n = cls.Grid._region_n
+                region_e = grid._region_e
+                region_n = grid._region_n
                 #Redefine variables in bounding box & time period
                 # elev timeseries
                 self.el = data.variables['zeta'][region_t,region_n] 
@@ -85,7 +84,7 @@ class _load_var:
             self.matlabTime = self.julianTime + 678942
 
             #Check if bounding box has been defined
-            if not hasattr(cls.Grid, '_region_e'):
+            if not hasattr(grid, '_region_e'):
                 # elev timeseries
                 self.el = data.variables['zeta'][:,:]           
                 try:
@@ -102,8 +101,8 @@ class _load_var:
                     self._3D = False
             else:       
                 #Bounding box
-                region_e = cls.Grid._region_e
-                region_n = cls.Grid._region_n
+                region_e = grid._region_e
+                region_n = grid._region_n
                 #Redefine variables in bounding box & time period
                 # elev timeseries
                 self.el = data.variables['zeta'][:,region_n] 

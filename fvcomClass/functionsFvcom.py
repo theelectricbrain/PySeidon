@@ -12,16 +12,16 @@ import time
 
 class FunctionsFvcom:
     """'Utils' subset of FVCOM class gathers useful functions"""
-    def __init__(self, cls):
-        self._debug = cls._debug
-        self._var = cls.Variables
-        self._grid = cls.Grid
-        self._plot = cls.Plots
-        self._QC = cls.QC
+    def __init__(self, variable, grid, plot, QC, debug):
+        self._debug = debug
+        self._var = variables
+        self._grid = grid
+        self._plot = plot
+        self._QC = QC
         #Create pointer to FVCOM class
-        cls.Variables = self._var
-        cls.Grid = self._grid
-        cls.QC = self._QC
+        variable = self._var
+        grid = self._grid
+        QC = self._QC
   
     def _centers(self, var, debug=False):
         '''Compute bathy and elevation at center points -> FVCOM.Grid.hc, elc'''
