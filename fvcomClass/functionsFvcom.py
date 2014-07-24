@@ -14,7 +14,7 @@ class FunctionsFvcom:
     """'Utils' subset of FVCOM class gathers useful functions"""
     def __init__(self, variable, grid, plot, QC, debug):
         self._debug = debug
-        self._var = variables
+        self._var = variable
         self._grid = grid
         self._plot = plot
         self._QC = QC

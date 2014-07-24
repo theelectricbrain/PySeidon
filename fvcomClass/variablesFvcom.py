@@ -188,6 +188,8 @@ class _load_grid:
             self.awy = data.variables['awy']#[:]
             self.nv = data.variables['nv']#[:]
             self.nbe = data.variables['nbe']#[:]
+            self.trinodes = self.nv.T - 1
+            self.triele = self.nbe.T - 1
             #-Need to use len to get size of dimensions
             self.nele = len(data.dimensions['nele'])
             self.node = len(data.dimensions['node'])
@@ -253,8 +255,8 @@ class _load_grid:
             self.nele = self.h.shape[0]
             self.node = self.xc.shape[0]
 
-            if debug:
-                print '...Passed'
+        if debug:
+            print '...Passed'
 
     def _ele_region(self, ax, debug=False):
         '''Return element indexes included in bounding box, aka ax'''       

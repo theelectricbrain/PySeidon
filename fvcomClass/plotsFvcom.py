@@ -12,7 +12,7 @@ class PlotsFvcom:
     """'Plots' subset of FVCOM class gathers plotting functions"""
     def __init__(self, variable, grid, debug):
         self._debug = debug
-        self._var = variables
+        self._var = variable
         self._grid = grid
     def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
         '''

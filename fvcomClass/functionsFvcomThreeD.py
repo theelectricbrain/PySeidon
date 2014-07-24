@@ -16,7 +16,7 @@ class FunctionsFvcomThreeD:
     def __init__(self, variable, grid, plot, util, QC, debug):
         #Inheritance
         self._debug = debug
-        self._var = variables
+        self._var = variable
         self._grid = grid
         self._plot = plot
         self._QC = QC
