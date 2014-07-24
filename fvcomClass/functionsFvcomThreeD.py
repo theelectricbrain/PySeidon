@@ -22,11 +22,11 @@ class FunctionsFvcomThreeD:
         self._QC = QC
         self._util = util
         self.interpolation_at_point = self._util.interpolation_at_point
+        self.hori_velo_norm = self._util.hori_velo_norm
         #Create pointer to FVCOM class
         variable = self._var
         grid = self._grid
         QC = self._QC
-        util = self._util
 
     def depth(self, debug=False):
         """
@@ -72,7 +72,45 @@ class FunctionsFvcomThreeD:
             end = time.time()
             print "Computation time in (s): ", (end - start)
 
+        # Add metadata entry
         self._grid.depth = dep
+        self._QC.append('depth computed')
+        print '-Flow directions added to FVCOM.Variables.-'
+
+    def depth_at_point(self, pt_lon, pt_lat, debug=False):
+        """
+        Compute depth -> FVCOM.Grid.depth
+        Inputs:
+        ------
+          - pt_lon = longitude in degrees to find
+          - pt_lat = latitude in degrees to find
+        """
+        debug = debug or self._debug
+        if debug:
+            print "Computing depth"
+            start = time.time()
+
+        h = self._grid.h[:]
+        zeta = self._var.el[:,:] + h[None,:]
+        siglay = self._grid.siglay[indexes]
+        z = zeta[:,None,:]*siglay[None,:,:]
+        #Checking if depth already computed
+        if not hasattr(self._grid, 'depth'):
+            #Compute depth
+            dep = self.interpolation_at_point(z, pt_lon,
+                                                 pt_lat,
+                                                 debug=debug)
+        else:
+            index = closest_point([pt_lon], [pt_lat],
+                                  self._grid.lonc,
+                                  self._grid.latc, debug=debug)[0]
+            dep = interp_at_point(z, pt_lon, pt_lat, lon, lat,
+                                  index, self._grid.trinodes, debug=False)          
+        if debug:
+            end = time.time()
+            print "Computation time in (s): ", (end - start)
+
+        return dep
 
     def verti_shear(self, t_start, t_end,
                     bot_lvl=[], top_level= [], debug=False):
@@ -93,57 +131,122 @@ class FunctionsFvcomThreeD:
         debug = debug or self._debug
         if debug:
             print 'Computing vertical shear...'
-        if self._var._3D:
-            # Find simulation time contains in [t_start, t_end]
-            time = self._var.matlabTime
-            t = time.shape[0]
-            l = []
-            for i in range(t):
-                date = datetime.fromordinal(int(time[i])) + \
-                       timedelta(days=time[i]%1)-timedelta(days=366)
-                l.append(date)
-            time = np.array(l,dtype='datetime64[us]')
-            t_slice = [t_start, t_end]
-            t_slice = np.array(t_slice,dtype='datetime64[us]')
+        # Find simulation time contains in [t_start, t_end]
+        time = self._var.matlabTime
+        t = time.shape[0]
+        l = []
+        for i in range(t):
+            date = datetime.fromordinal(int(time[i])) + \
+                   timedelta(days=time[i]%1)-timedelta(days=366)
+            l.append(date)
+        time = np.array(l,dtype='datetime64[us]')
+        t_slice = [t_start, t_end]
+        t_slice = np.array(t_slice,dtype='datetime64[us]')
 
-            if t_slice.shape[0] != 1:
-                argtime = np.argwhere((time>=t_slice[0])&
-                                      (time<=t_slice[-1])).flatten()
-            if debug or self._debug:
-                print argtime
+        if t_slice.shape[0] != 1:
+            argtime = np.argwhere((time>=t_slice[0])&
+                                  (time<=t_slice[-1])).flatten()
+        if debug:
+            print 'Argtime: ', argtime
             
-            #Compute depth
-            dep = self.depth(debug=debug)
-            # Checking if horizontal velocity norm already exists
-            if not hasattr(self._var, 'hori_velo_norm'):
-                self.hori_velo_norm()
-            #Extract horizontal velocity norm contained in t_slice
-            vel = self._var.hori_velo_norm[argtime,:,:]
+        #Compute depth
+        dep = self.depth(debug=debug)
+        # Checking if horizontal velocity norm already exists
+        if not hasattr(self._var, 'hori_velo_norm'):
+            self.hori_velo_norm()
+        #Extract horizontal velocity norm contained in t_slice
+        vel = self._var.hori_velo_norm[argtime,:,:]
 
-            #Sigma levels to consider
-            if not top_lvl:
-                top_lvl = (dep.shape[1]) - 1
-            if not bot_lvl:
-                bot_lvl = 0
-            sLvl = range(bot_lvl, top_lvl+1)
+        #Sigma levels to consider
+        if not top_lvl:
+            top_lvl = (dep.shape[1]) - 1
+        if not bot_lvl:
+            bot_lvl = 0
+        sLvl = range(bot_lvl, top_lvl+1)
 
-            # Compute shear
-            dz = dep[:,sLvl[1:],:] - dep[:,sLvl[:-1],:]
-            dvel = vel[:,sLvl[1:],:] - vel[:,sLvl[:-1],:]           
-            dveldz = dvel / dz
+        # Compute shear
+        dz = dep[:,sLvl[1:],:] - dep[:,sLvl[:-1],:]
+        dvel = vel[:,sLvl[1:],:] - vel[:,sLvl[:-1],:]           
+        dveldz = dvel / dz
 
-            #Custopm return
-            self._var.verti_shear = dveldz 
+        #Custopm return
+        self._var.verti_shear = dveldz 
             
-            # Add metadata entry
-            self._QC.append('vertical shear computed')
-            print '-Vertical shear added to FVCOM.Variables.-'
-
-        else:
-            print "This function is only available for 3D FVCOM runs"
+        # Add metadata entry
+        self._QC.append('vertical shear computed')
+        print '-Vertical shear added to FVCOM.Variables.-'
 
         if debug:
             print '...Passed'
+
+    def verti_shear_at_point(self, t_start, t_end,
+                             pt_lon, pt_lat,
+                             bot_lvl=[], top_level= [], debug=False):
+        """
+        Compute vertical shear -> FVCOM.Variables.verti_shear
+        Inputs:
+        ------
+          - t_start = start time, datetime64[us] type
+          - t_end = end time, datetime64[us] type
+          - pt_lon = longitude in degrees to find
+          - pt_lat = latitude in degrees to find
+        Keywords:
+        --------
+          - bot_lvl = index of the bottom level to consider, integer
+          - top_lvl = index of the top level to consider, integer
+        """
+        debug = debug or self._debug
+        if debug:
+            print 'Computing vertical shear...'
+        # Find simulation time contains in [t_start, t_end]
+        time = self._var.matlabTime
+        t = time.shape[0]
+        l = []
+        for i in range(t):
+            date = datetime.fromordinal(int(time[i])) + \
+                   timedelta(days=time[i]%1)-timedelta(days=366)
+            l.append(date)
+        time = np.array(l,dtype='datetime64[us]')
+        t_slice = [t_start, t_end]
+        t_slice = np.array(t_slice,dtype='datetime64[us]')
+
+        if t_slice.shape[0] != 1:
+            argtime = np.argwhere((time>=t_slice[0])&
+                                  (time<=t_slice[-1])).flatten()
+        if debug:
+            print 'Argtime: ', argtime
+            
+        #Compute depth
+        dep = self.depth_at_point(pt_lon, pt_lat, debug=debug)
+        #Extracting velocity at point
+        u = self._var.u
+        v = self._var.v
+        #Extraction at point
+        if debug:
+            print 'Extraction of u and v at point...'
+        U = self.interpolation_at_point(u, pt_lon, pt_lat,
+                                        debug=debug)  
+        V = self.interpolation_at_point(v, pt_lon, pt_lat,
+                                        debug=debug)
+        norm = ne.evaluate('sqrt(U**2 + V**2)')     
+        vel = norm[argtime,:]
+
+        #Sigma levels to consider
+        if not top_lvl:
+            top_lvl = (dep.shape[1]) - 1
+        if not bot_lvl:
+            bot_lvl = 0
+        sLvl = range(bot_lvl, top_lvl+1)
+
+        # Compute shear
+        dz = dep[:,sLvl[1:]] - dep[:,sLvl[:-1]]
+        dvel = vel[:,sLvl[1:]] - vel[:,sLvl[:-1]]           
+        dveldz = dvel / dz
+
+        if debug:
+            print '...Passed'
+
+        return dveldz             
 
     def velo_norm(self, debug=False):
         """Compute velocity norm -> FVCOM.Variables.velo_norm"""
@@ -170,7 +273,7 @@ class FunctionsFvcomThreeD:
             print '...Passed'
 
     def flow_dir_at_point(self, pt_lon, pt_lat,
-                          vertical=False, debug=False):
+                          vertical=True, debug=False):
         """
         Flow directions and associated norm at any give location.
         Inputs:

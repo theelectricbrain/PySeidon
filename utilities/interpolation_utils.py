@@ -195,13 +195,13 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes, debug=False)
     newtri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
     trif = newtri.get_trifinder()
     trif.__call__(pt_lon, pt_lat)
-    if debug:
-        if len(var.shape)==1:
-            averEl = var[triIndex]
+    #if debug:
+        #if len(var.shape)==1:
+            #averEl = var[triIndex]
             #print 'Var', averEl
-            inter = Tri.LinearTriInterpolator(newtri, averEl)
-            zi = inter(pt_lon, pt_lat)
-            print zi
+            #inter = Tri.LinearTriInterpolator(newtri, averEl)
+            #zi = inter(pt_lon, pt_lat)
+            #print zi
             #fig = plt.figure(figsize=(18,10))
             #ax = fig.add_subplot(111,
             #     aspect=(1.0/np.cos(np.mean(lat[triIndex])*np.pi/180.0)))

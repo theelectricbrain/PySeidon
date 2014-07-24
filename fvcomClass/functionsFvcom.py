@@ -3,6 +3,7 @@
 
 from __future__ import division
 import numpy as np
+from scipy import linalg as LA
 import sys
 import numexpr as ne
 from datetime import datetime
@@ -160,24 +161,30 @@ class FunctionsFvcom:
 
         return dirFlow, norm
 
-    def ebb_flood_split(self, debug=False):
+    def ebb_flood_split_at_point(self, pt_lon, pt_lat, debug=False):
         """"
-        Compute principal flow directions -> FVCOM.Variables.principal_axes
-        Notes: directions between 0 and 360 deg.
+        Compute time indexes for ebb and flood i.e. ebb = 1, flood = -1
+        Inputs:
+        ------
+          - pt_lon = longitude in degrees to find
+          - pt_lat = latitude in degrees to find
+        Outputs:
+        -------
+          - EnFindex = 1D array of 1 and -1, size of FVCOM.Variables.julianTime     
         """
         if debug or self._debug:
             print 'Computing principal flow directions...'
 
         #TR : still to be defined
 
-        # Add metadata entry
-        self._QC.append('principal flow directions computed')
-        print '-Principal Flow directions added to FVCOM.Variables.-'
+
 
         if debug or self._debug:
             print '...Passed'
+        
+        return EnFindex
 
-    def principal_axes(self, lon, lat, dirFlow=[], debug=False):
+    def principal_axes_at_point(self, pt_lon, pt_lat, dirFlow=[], debug=False):
         """"
         Compute principal flow directions and associated variances for (x, y) point
         Inputs:
@@ -194,11 +201,52 @@ class FunctionsFvcom:
         """
         if debug or self._debug:
             print 'Computing principal flow directions...'
-
         #TR: Still to be developed
+
+        #Extracting velocity component at point
+        u = self._var.ua
+        v = self._var.va
+        if debug:
+            print 'Extraction of u and v at point...'
+        U = self.interpolation_at_point(u, pt_lon, pt_lat,
+                                        debug=debug)  
+        V = self.interpolation_at_point(v, pt_lon, pt_lat,
+                                        debug=debug) 
+        M = np.matrix([U,V]).T
+        Mdev = M - np.tile(np.mean(M,0),(M.shape[0],1))
+        #Covariance
+        print "Computing covariance..."
+        if debug:
+            start = time.time()  
+        R = np.cov(Mdev)    
+        if debug:
+            end = time.time()
+            print "...processing time: ", (end - start)
+        #Eigen values and vectors
+        print "Computing eigen values and vectors..."
+        if debug:
+            start = time.time()
+        #TR alternative: eigVal, eigVec = np.linalg.eig(R)
+        eigVal, eigVec = LA.eig(R)
+        if debug:
+            end = time.time()
+            print "...processing time: ", (end - start)
+        #BP comments: Sort eignvalues in descending order
+        #BP comments: so that major axis is given by first eigenvecto
+        eigValF = np.sort(eigVal)[::-1]
+        ilambda = np.argsort(eigVal)[::-1]
+        #BP comments: Reconstruct the eigenvalue matrix
+        eigVal=diag(eigValF)
+        #BP comments: reorder the eigenvectors
+        eigVec = eigVec[ilambda,:]
+        ra = np.arctan2(eigVec[0,1], eigVec[1,1])
+        pr_axes = -ra*180.0/np.pi+90.0
+        pr_ax_var = diag(eigVal[0])/np.trace(eigVal)
 
         if debug or self._debug:
             print '...Passed'
+
+        return pr_axes, pr_ax_var
 
     def interpolation_at_point(self, var, pt_lon, pt_lat, debug=False):
         """
@@ -298,7 +346,7 @@ class FunctionsFvcom:
             signal=var
         
         Max = max(signal)	
-        dy = (Max/100.0)
+        dy = (Max/30.0)
         Ranges = np.arange(0,(Max + dy), dy)
         Exceedance = np.zeros(Ranges.shape[0])
         Period = time[-1] - time[0]
