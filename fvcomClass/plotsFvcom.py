@@ -49,9 +49,9 @@ class PlotsFvcom:
 
         #setting limits and levels of colormap
         if cmin==[]:
-            cmin=var.min()
+            cmin=var[:].min()
         if cmax==[]:
-            cmax=var.max()
+            cmax=var[:].max()
         step = (cmax-cmin) / 50.0
         levels=np.arange(cmin, (cmax+step), step)   # depth contours to plot
 
@@ -96,7 +96,7 @@ class PlotsFvcom:
         #Rose
         ax.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
         #adjust legend
-        l = ax.legend()
+        l = ax.legend(shadow=True)
         plt.setp(l.get_texts(), fontsize=10)
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         plt.show() 

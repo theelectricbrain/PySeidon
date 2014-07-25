@@ -3,7 +3,7 @@
 
 from __future__ import division
 import numpy as np
-from scipy import linalg as LA
+#from scipy import linalg as LA
 import sys
 import numexpr as ne
 from datetime import datetime
@@ -123,7 +123,8 @@ class FunctionsFvcom:
           - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
-          directions between 0 and 360 deg.
+          -directions between 0 and 360 deg., i.e. 90=North, 180=West,
+           270=South, 0/360=East
         """
         debug = debug or self._debug
         if debug:
@@ -184,69 +185,107 @@ class FunctionsFvcom:
         
         return EnFindex
 
-    def principal_axes_at_point(self, pt_lon, pt_lat, dirFlow=[], debug=False):
+    def principal_axis_at_point(self, pt_lon, pt_lat, time=[], debug=False):
         """"
         Compute principal flow directions and associated variances for (x, y) point
         Inputs:
         ------
-          lon = longitude in deg., float
-          lat = latitude in deg., float
+          -lon = longitude in deg., float
+          -lat = latitude in deg., float
         Outputs:
         -------
-           pr_axes = 2 principal flow axes, 2 element list
-           pr_ax_var = associated variances, 2 element list            
+           -pr_axis = principal flow ax1s, number in degrees
+           -pr_ax_var = associated variance
+        Keywords:
+        --------
+           -time = list of time indexes to work in            
         Notes:
         -----
-          directions between 0 and 360 deg.
+          directions between -180 and 180, i.e. 0=North, -90=West, 90=East
+          adapted from Pierre Poulain's code
         """
         if debug or self._debug:
             print 'Computing principal flow directions...'
         #TR: Still to be developed
 
         #Extracting velocity component at point
-        u = self._var.ua
-        v = self._var.va
+        if time:
+            u = self._var.ua[time,:]
+            v = self._var.va[time,:]
+        else:
+            u = self._var.ua
+            v = self._var.va
+
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat,
                                         debug=debug)  
         V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                         debug=debug) 
-        M = np.matrix([U,V]).T
-        Mdev = M - np.tile(np.mean(M,0),(M.shape[0],1))
-        #Covariance
-        print "Computing covariance..."
+        coord = np.matrix([U,V]).T
+        center = np.mean(coord,0)
+        coord = coord - center
+        inertia = np.dot(coord.transpose(), coord)
+        e_values, e_vectors = np.linalg.eig(inertia)
+
         if debug:
-            start = time.time()  
-        R = np.cov(Mdev)    
-        if debug:
-            end = time.time()
-            print "...processing time: ", (end - start)
-        #Eigen values and vectors
-        print "Computing eigen values and vectors..."
-        if debug:
-            start = time.time()
-        #TR alternative: eigVal, eigVec = np.linalg.eig(R)
-        eigVal, eigVec = LA.eig(R)
-        if debug:
-            end = time.time()
-            print "...processing time: ", (end - start)
-        #BP comments: Sort eignvalues in descending order
-        #BP comments: so that major axis is given by first eigenvecto
-        eigValF = np.sort(eigVal)[::-1]
-        ilambda = np.argsort(eigVal)[::-1]
-        #BP comments: Reconstruct the eigenvalue matrix
-        eigVal=diag(eigValF)
-        #BP comments: reorder the eigenvectors
-        eigVec = eigVec[ilambda,:]
-        ra = np.arctan2(eigVec[0,1], eigVec[1,1])
-        pr_axes = -ra*180.0/np.pi+90.0
-        pr_ax_var = diag(eigVal[0])/np.trace(eigVal)
+            print "(unordered) eigen values:"
+            print e_values
+            print "(unordered) eigen vectors:"
+            print e_vectors
+
+        # order eigen values (and eigen vectors)
+        # axis1 is the principal axis with the biggest eigen value (eval1)
+        # axis2 is the principal axis with the second biggest eigen value (eval2)
+        for i in xrange(len(e_values)):
+            # find biggest eigen value
+            if e_values[i] == max(e_values):
+                eval1 = e_values[i]
+                axis1 = e_vectors[:,i]
+            # find smallest eigen value
+            else:
+                eval2 = e_values[i]
+                axis2 = e_vectors[:,i]
+
+        pr_axis = np.mod((np.arctan2(axis1[0], axis1[1])*180.0/np.pi), 180)
+        pr_ax_var = eval1/np.sum(e_values)
+
+        #TR comment: THis Brian Polagye's and Kristen thyng approach
+        #M = np.matrix([U,V]).T
+        #Mdev = M - np.tile(np.mean(M,0),(M.shape[0],1))
+        ##Covariance
+        #print "Computing covariance..."
+        #if debug:
+        #    start = time.time()  
+        #R = np.cov(Mdev)    
+        #if debug:
+        #    end = time.time()
+        #    print "...processing time: ", (end - start)
+        ##Eigen values and vectors
+        #print "Computing eigen values and vectors..."
+        #if debug:
+        #    start = time.time()
+        ##TR alternative: eigVal, eigVec = np.linalg.eig(R)
+        #eigVal, eigVec = LA.eig(R)
+        #if debug:
+        #    end = time.time()
+        #    print "...processing time: ", (end - start)
+        ##BP comments: Sort eignvalues in descending order
+        ##BP comments: so that major axis is given by first eigenvecto
+        #eigValF = np.sort(eigVal)[::-1]
+        #ilambda = np.argsort(eigVal)[::-1]
+        ##BP comments: Reconstruct the eigenvalue matrix
+        #eigVal=diag(eigValF)
+        ##BP comments: reorder the eigenvectors
+        #eigVec = eigVec[ilambda,:]
+        #ra = np.arctan2(eigVec[0,1], eigVec[1,1])
+        #pr_axes = -ra*180.0/np.pi+90.0
+        #pr_ax_var = diag(eigVal[0])/np.trace(eigVal)
 
         if debug or self._debug:
             print '...Passed'
 
-        return pr_axes, pr_ax_var
+        return pr_axis, pr_ax_var
 
     def interpolation_at_point(self, var, pt_lon, pt_lat, debug=False):
         """
@@ -289,7 +328,7 @@ class FunctionsFvcom:
                                       debug=debug)
             if debug:
                 end = time.time()
-                print "Time elapsed for Richard's method: ", (end - start) 
+                print "Processing time: ", (end - start) 
             #if debug:
             #    start = time.time()      
             #TR_alternative: works only for h and el at the mo i.e. node variables
@@ -309,7 +348,7 @@ class FunctionsFvcom:
                                       debug=debug)
             if debug:
                 end = time.time()
-                print "Time elapsed for Richard's method: ", (end - start)         
+                print "Processing time: ", (end - start)         
 
         return varInterp
 

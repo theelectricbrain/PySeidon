@@ -54,7 +54,7 @@ def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:
-        print 'Computing var_interp...'
+        print 'Interpolating at node...'
 
     n1 = trinodes[index,0]
     n2 = trinodes[index,1]
@@ -120,7 +120,7 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:
-        print 'Computing var_interp...'
+        print 'Interpolating at element...'
 
     n1 = triele[index,0]
     n2 = triele[index,1]
@@ -186,7 +186,7 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes, debug=False)
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:
-        print 'Computing var_interp...'
+        print 'Interpolating at point...'
     #Finding the right indexes
     triIndex = trinodes[index]
     #Triangulation

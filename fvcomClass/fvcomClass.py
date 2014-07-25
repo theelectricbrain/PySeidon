@@ -103,6 +103,8 @@ Notes:
                                                         self.Utils,
                                                         self.QC,
                                                         self._debug)
+            if debug:
+                print 'Finding bounding box...'
             if ax:
                 self.Grid._ax = ax
             else:
