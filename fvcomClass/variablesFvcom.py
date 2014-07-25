@@ -27,7 +27,7 @@ class _load_var:
         QC = self._QC
 
         if debug:
-            print 'Caching variables...'
+            print 'Pointing at variables...'
         #Check if time period defined
         self.julianTime = data.variables['time']#[:]      
         if tx:

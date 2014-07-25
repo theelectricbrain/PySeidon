@@ -105,8 +105,9 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
-    def flow_dir_at_point(self, pt_lon, pt_lat, exceedance=False,
-                          vertical=False, debug=False):
+    #TR comment: should add time=[] here
+    def flow_dir_at_point(self, pt_lon, pt_lat, time=[],
+                          exceedance=False, vertical=False, debug=False):
         """
         Flow directions and associated norm at any give location.
         Inputs:
@@ -119,6 +120,7 @@ class FunctionsFvcom:
            - norm = velocity norm at (pt_lon, pt_lat)
         Keywords:
         --------
+           -time = time indexes to work in, list of integers
           - excedance = True, compute associated exceedance curve
           - vertical = True, compute flowDir for each vertical level
         Notes:
@@ -130,8 +132,12 @@ class FunctionsFvcom:
         if debug:
             print 'Computing flow directions at point...'
 
-        u = self._var.ua
-        v = self._var.va
+        if time:
+            u = self._var.ua[time,:]
+            v = self._var.va[time,:]
+        else:
+            u = self._var.ua
+            v = self._var.va
 
         #Extraction at point
         if debug:
@@ -150,7 +156,7 @@ class FunctionsFvcom:
         #dirFlow = ((np.pi/2.0) - dirFlow) * (180.0 / np.pi)
         #dirFlow = dirFlow * (180.0 / np.pi)
         #dirFlow = np.pi - dirFlow) * (180.0 / np.pi)
-        dirFlow = np.mod((dirFlow + np.pi) * (180.0 / np.pi), 360.0)
+        dirFlow = np.mod((np.pi - dirFlow) * (180.0 / np.pi), 360.0)
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
@@ -187,7 +193,7 @@ class FunctionsFvcom:
 
     def principal_axis_at_point(self, pt_lon, pt_lat, time=[], debug=False):
         """"
-        Compute principal flow directions and associated variances for (x, y) point
+        Compute principal flow directions and associated variances for (lon, lat) point
         Inputs:
         ------
           -lon = longitude in deg., float
@@ -198,7 +204,7 @@ class FunctionsFvcom:
            -pr_ax_var = associated variance
         Keywords:
         --------
-           -time = list of time indexes to work in            
+           -time = time indexes to work in, list of integers            
         Notes:
         -----
           directions between -180 and 180, i.e. 0=North, -90=West, 90=East
@@ -226,7 +232,13 @@ class FunctionsFvcom:
         center = np.mean(coord,0)
         coord = coord - center
         inertia = np.dot(coord.transpose(), coord)
+        if debug:
+            start = time.time()
+            print 'Computing eigen values and vectors...'
         e_values, e_vectors = np.linalg.eig(inertia)
+        if debug:
+            end = time.time()
+            print "...processing time: ", (end - start)
 
         if debug:
             print "(unordered) eigen values:"
