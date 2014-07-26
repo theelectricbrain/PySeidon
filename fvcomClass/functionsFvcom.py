@@ -84,7 +84,8 @@ class FunctionsFvcom:
         Compute flow directions over the whole grid -> FVCOM.Variables.flow_dir
         Notes:
         -----
-          - directions between 0 and 360 deg.
+          -directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
+           180=West, 270=South
           - This is very SLOW !!!
         """
         if debug or self._debug:
@@ -92,8 +93,12 @@ class FunctionsFvcom:
 
         u = self._var.ua
         v = self._var.va
-        dirFlow = np.arctan2(u,v)
-        dirFlow = np.mod((dirFlow + np.pi) * (180.0 / np.pi), 360.0)
+        dirFlow = np.rad2deg(np.arctan2(V,U))#
+        #Adapt to Rose diagram
+        #ind = np.where(dirFlow<0)[0]
+        #dirFlow[ind] = 360.0 + dirFlow[ind]
+        #TR: not quite sure here, seems to change from location to location
+        dirFlow = np.mod(-90 - dirFlow, 360.0)
 
         #Custom return    
         self._var.dir_flow = dirFlow 
@@ -105,7 +110,6 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
-    #TR comment: should add time=[] here
     def flow_dir_at_point(self, pt_lon, pt_lat, time=[],
                           exceedance=False, vertical=False, debug=False):
         """
@@ -125,8 +129,8 @@ class FunctionsFvcom:
           - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
-          -directions between 0 and 360 deg., i.e. 90=North, 180=West,
-           270=South, 0/360=East
+          -directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
+           180=West, 270=South 
         """
         debug = debug or self._debug
         if debug:
@@ -150,13 +154,13 @@ class FunctionsFvcom:
         #Compute directions
         if debug:
             print 'Computing arctan2 and norm...'
-        dirFlow = np.arctan2(U,V)
+        dirFlow = np.rad2deg(np.arctan2(V,U))#
+        #Adapt to Rose diagram
+        #ind = np.where(dirFlow<0)[0]
+        #dirFlow[ind] = 360.0 + dirFlow[ind]
         #TR: not quite sure here, seems to change from location to location
-        #dirFlow = np.mod(((np.pi/2.0) - dirFlow) * (180.0 / np.pi), 360.0)
-        #dirFlow = ((np.pi/2.0) - dirFlow) * (180.0 / np.pi)
-        #dirFlow = dirFlow * (180.0 / np.pi)
-        #dirFlow = np.pi - dirFlow) * (180.0 / np.pi)
-        dirFlow = np.mod((np.pi - dirFlow) * (180.0 / np.pi), 360.0)
+        dirFlow = np.mod(-90 - dirFlow, 360.0)
+        #dirFlow = (np.pi+dirFlow) * (180.0 / np.pi)
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
@@ -207,8 +211,8 @@ class FunctionsFvcom:
            -time = time indexes to work in, list of integers            
         Notes:
         -----
-          directions between -180 and 180, i.e. 0=North, -90=West, 90=East
-          adapted from Pierre Poulain's code
+          -directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
+           180=West, 270=South
         """
         if debug or self._debug:
             print 'Computing principal flow directions...'
@@ -259,7 +263,8 @@ class FunctionsFvcom:
                 eval2 = e_values[i]
                 axis2 = e_vectors[:,i]
 
-        pr_axis = np.mod((np.arctan2(axis1[0], axis1[1])*180.0/np.pi), 180)
+        pr_axis = np.rad2deg(np.arctan2(axis1[1], axis1[2]))
+        pr_axis = np.mod(-90 -pr_axis, 360.0)
         pr_ax_var = eval1/np.sum(e_values)
 
         #TR comment: THis Brian Polagye's and Kristen thyng approach
