@@ -8,7 +8,8 @@ import sys
 import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
-from interpolation_utils import * #closest_point, interp_at_point, interpN_at_pt
+from interpolation_utils import *
+from miscellaneous import *
 import time
 
 class FunctionsFvcom:
@@ -98,7 +99,8 @@ class FunctionsFvcom:
         #ind = np.where(dirFlow<0)[0]
         #dirFlow[ind] = 360.0 + dirFlow[ind]
         #TR: not quite sure here, seems to change from location to location
-        dirFlow = np.mod(-90 - dirFlow, 360.0)
+        #express principal axis in compass
+        dirFlow = np.mod(90 - dirFlow, 360.0)
 
         #Custom return    
         self._var.dir_flow = dirFlow 
@@ -156,11 +158,11 @@ class FunctionsFvcom:
             print 'Computing arctan2 and norm...'
         dirFlow = np.rad2deg(np.arctan2(V,U))#
         #Adapt to Rose diagram
-        #ind = np.where(dirFlow<0)[0]
-        #dirFlow[ind] = 360.0 + dirFlow[ind]
         #TR: not quite sure here, seems to change from location to location
-        dirFlow = np.mod(-90 - dirFlow, 360.0)
-        #dirFlow = (np.pi+dirFlow) * (180.0 / np.pi)
+        dirFlow = np.mod(90.0 - dirFlow, 360.0)
+        #TR alternative:
+        #dirFlow = op_angles_from_vectors(U,V, debug=debug)
+        #Compute velocity norm
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
@@ -233,74 +235,76 @@ class FunctionsFvcom:
         V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                         debug=debug) 
         coord = np.matrix([U,V]).T
-        center = np.mean(coord,0)
+        center = np.mean(coord,1)
         coord = coord - center
-        inertia = np.dot(coord.transpose(), coord)
+
+        #Pierre Poulain's approach
+        #inertia = np.dot(coord.transpose(), coord)
+        #if debug:
+        #    start = time.time()
+        #    print 'Computing eigen values and vectors...'
+        #e_values, e_vectors = np.linalg.eig(inertia)
+        #if debug:
+        #    end = time.time()
+        #    print "...processing time: ", (end - start)
+        #
+        #if debug:
+        #    print "(unordered) eigen values:"
+        #    print e_values
+        #    print "(unordered) eigen vectors:"
+        #    print e_vectors
+
+        ## order eigen values (and eigen vectors)
+        ## axis1 is the principal axis with the biggest eigen value (eval1)
+        ## axis2 is the principal axis with the second biggest eigen value (eval2)
+        #for i in xrange(len(e_values)):
+        #    # find biggest eigen value
+        #    if e_values[i] == max(e_values):
+        #        eval1 = e_values[i]
+        #        axis1 = e_vectors[:,i]
+        #    # find smallest eigen value
+        #    else:
+        #        eval2 = e_values[i]
+        #        axis2 = e_vectors[:,i]
+
+        #pr_axis = np.rad2deg(np.arctan2(axis1[1], axis1[0]))
+        #pr_axis = np.mod(-90 -pr_axis, 360.0)
+        #pr_ax_var = eval1/np.sum(e_values)
+
+        #TR comment: THis Brian Polagye's and Kristen thyng approach
+        ##Covariance
+        print "Computing covariance..."
         if debug:
-            start = time.time()
-            print 'Computing eigen values and vectors...'
-        e_values, e_vectors = np.linalg.eig(inertia)
+            start = time.time() 
+        R = np.cov(coord)    
         if debug:
             end = time.time()
             print "...processing time: ", (end - start)
+        ##Eigen values and vectors
+        print "Computing eigen values and vectors..."
+        if debug:
+            start = time.time()
+        eigVal, eigVec = np.linalg.eig(R)
+        #TR alternative: eigVal, eigVec = LA.eig(R)
+        if debug:
+            end = time.time()
+            print "...processing time: ", (end - start)
+        #BP comments: Sort eignvalues in descending order
+        #BP comments: so that major axis is given by first eigenvecto
+        eigValF = np.sort(eigVal)[::-1]
+        ilambda = np.argsort(eigVal)[::-1]
+        #BP comments: Reconstruct the eigenvalue matrix
+        eigVal=diag(eigValF)
+        ##BP comments: reorder the eigenvectors
+        eigVec = eigVec[ilambda,:]
+        ra = np.rad2deg(np.arctan2(eigVec[0,1], eigVec[1,1]))
+        #express principal axis in compass
+        pr_axes = np.mod(90.0 - ra, 360.0)
+        pr_ax_var = (eigVal[0]/np.trace(eigVal))[0]
 
         if debug:
-            print "(unordered) eigen values:"
-            print e_values
-            print "(unordered) eigen vectors:"
-            print e_vectors
-
-        # order eigen values (and eigen vectors)
-        # axis1 is the principal axis with the biggest eigen value (eval1)
-        # axis2 is the principal axis with the second biggest eigen value (eval2)
-        for i in xrange(len(e_values)):
-            # find biggest eigen value
-            if e_values[i] == max(e_values):
-                eval1 = e_values[i]
-                axis1 = e_vectors[:,i]
-            # find smallest eigen value
-            else:
-                eval2 = e_values[i]
-                axis2 = e_vectors[:,i]
-
-        pr_axis = np.rad2deg(np.arctan2(axis1[1], axis1[2]))
-        pr_axis = np.mod(-90 -pr_axis, 360.0)
-        pr_ax_var = eval1/np.sum(e_values)
-
-        #TR comment: THis Brian Polagye's and Kristen thyng approach
-        #M = np.matrix([U,V]).T
-        #Mdev = M - np.tile(np.mean(M,0),(M.shape[0],1))
-        ##Covariance
-        #print "Computing covariance..."
-        #if debug:
-        #    start = time.time()  
-        #R = np.cov(Mdev)    
-        #if debug:
-        #    end = time.time()
-        #    print "...processing time: ", (end - start)
-        ##Eigen values and vectors
-        #print "Computing eigen values and vectors..."
-        #if debug:
-        #    start = time.time()
-        ##TR alternative: eigVal, eigVec = np.linalg.eig(R)
-        #eigVal, eigVec = LA.eig(R)
-        #if debug:
-        #    end = time.time()
-        #    print "...processing time: ", (end - start)
-        ##BP comments: Sort eignvalues in descending order
-        ##BP comments: so that major axis is given by first eigenvecto
-        #eigValF = np.sort(eigVal)[::-1]
-        #ilambda = np.argsort(eigVal)[::-1]
-        ##BP comments: Reconstruct the eigenvalue matrix
-        #eigVal=diag(eigValF)
-        ##BP comments: reorder the eigenvectors
-        #eigVec = eigVec[ilambda,:]
-        #ra = np.arctan2(eigVec[0,1], eigVec[1,1])
-        #pr_axes = -ra*180.0/np.pi+90.0
-        #pr_ax_var = diag(eigVal[0])/np.trace(eigVal)
-
-        if debug or self._debug:
-            print '...Passed'
+            end = time.time()
+            print "...processing time: ", (end - start)
 
         return pr_axis, pr_ax_var
 

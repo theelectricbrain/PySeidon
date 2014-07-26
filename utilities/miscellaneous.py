@@ -12,6 +12,71 @@ def date2py(matlab_datenum):
 
     return python_datetime
 
+def op_angles_from_vectors(u, v, debug=False):
+    """
+    This function takes in vectors in the form (u,v) and compares them in
+    order to find the angles of the vectors without any wrap-around issues.
+    This is accomplished by finding the smallest difference between angles
+    compared at different wrap-around values.
+    This appears to work correctly.
+
+    Inputs:
+    ------
+      -u = velocity component along x (West-East) direction, 1D array
+      -v = velocity component along y (South-North) direction, 1D array
+    Outputs:
+    -------
+      -angle = corresponidng angle in degrees, 1D array
+    Notes:
+    -----
+      -Angles are reported in compass coordinates, i.e. 0 and 360 deg.,
+       0/360=East, 90=North, 180=West, 270=South
+    """
+    if debug:
+        print 'Computing angles from velocity component...'
+        start = time.time()
+
+    phi = np.mod((-1.0*np.arctan2(v,u)) * (180.0/np.pi) + 90.0, 360.0)
+    if len(phi.shape)==1:#Assuming the only dimension is time
+        #Compute difference between angles
+        diff1 = np.abs(phi[:-1]-phi[1:]) #initial difference between angles
+        diff2 = np.abs(phi[:-1]-phi[1:]-360.0) #diff when moved down a ring
+        diff3 = np.abs(phi[:-1]-phi[1:]+360.0) #diff when moved up a ring
+
+        index1 = np.where((diff2 < diff1) & (diff2 < diff3))[0]
+        index2 = np.where((diff3 < diff1) & (diff3 < diff2))[0]
+
+        phi[index1] = np.mod(phi[index1] - 360.0, 360.0)
+        phi[index2] = np.mod(phi[index2] + 360.0, 360.0)
+    elif len(phi.shape)==2:#Assuming the only dimension is time and sigma level
+        #Compute difference between angles
+        diff1 = np.abs(phi[:-1,:]-phi[1:,:]) #initial difference between angles
+        diff2 = np.abs(phi[:-1,:]-phi[1:,:]-360.0) #diff when moved down a ring
+        diff3 = np.abs(phi[:-1,:]-phi[1:,:]+360.0) #diff when moved up a ring
+
+        index1 = np.where((diff2 < diff1) & (diff2 < diff3))[0]
+        index2 = np.where((diff3 < diff1) & (diff3 < diff2))[0]
+
+        phi[index1] = phi[index1] - 360.0
+        phi[index2] = phi[index2] + 360.0
+    else: #Assuming the only dimension is time ,sigma level and element
+        #Compute difference between angles
+        diff1 = np.abs(phi[:-1,:,:]-phi[1:,:,:]) #initial difference between angles
+        diff2 = np.abs(phi[:-1,:,:]-phi[1:,:,:]-360.0) #diff when moved down a ring
+        diff3 = np.abs(phi[:-1,:,:]-phi[1:,:,:]+360.0) #diff when moved up a ring
+
+        index1 = np.where((diff2 < diff1) & (diff2 < diff3))[0]
+        index2 = np.where((diff3 < diff1) & (diff3 < diff2))[0]
+
+        phi[index1] = phi[index1] - 360.0
+        phi[index2] = phi[index2] + 360.0     
+
+    if debug:
+        end = time.time()
+        print "...processing time: ", (end - start)
+    
+    return phi
+
 def signal_extremum(signal):
     """
     This function spots the extremum of a random signal(x).
