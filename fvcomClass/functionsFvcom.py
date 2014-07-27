@@ -3,7 +3,7 @@
 
 from __future__ import division
 import numpy as np
-#from scipy import linalg as LA
+from scipy import linalg as LA
 import sys
 import numexpr as ne
 from datetime import datetime
@@ -112,7 +112,7 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
-    def flow_dir_at_point(self, pt_lon, pt_lat, time=[],
+    def flow_dir_at_point(self, pt_lon, pt_lat, time_ind=[],
                           exceedance=False, vertical=False, debug=False):
         """
         Flow directions and associated norm at any give location.
@@ -139,8 +139,8 @@ class FunctionsFvcom:
             print 'Computing flow directions at point...'
 
         if time:
-            u = self._var.ua[time,:]
-            v = self._var.va[time,:]
+            u = self._var.ua[time_ind,:]
+            v = self._var.va[time_ind,:]
         else:
             u = self._var.ua
             v = self._var.va
@@ -174,56 +174,37 @@ class FunctionsFvcom:
 
         return dirFlow, norm
 
-    def ebb_flood_split_at_point(self, pt_lon, pt_lat, debug=False):
+    def ebb_flood_split_at_point(self, pt_lon, pt_lat, time_ind=[], debug=False):
         """"
-        Compute time indexes for ebb and flood i.e. ebb = 1, flood = -1
-        Inputs:
-        ------
-          - pt_lon = longitude in degrees to find
-          - pt_lat = latitude in degrees to find
-        Outputs:
-        -------
-          - EnFindex = 1D array of 1 and -1, size of FVCOM.Variables.julianTime     
-        """
-        if debug or self._debug:
-            print 'Computing principal flow directions...'
-
-        #TR : still to be defined
-
-
-
-        if debug or self._debug:
-            print '...Passed'
-        
-        return EnFindex
-
-    def principal_axis_at_point(self, pt_lon, pt_lat, time=[], debug=False):
-        """"
-        Compute principal flow directions and associated variances for (lon, lat) point
+        Compute time indexes for ebb and flood but also the 
+        principal flow directions and associated variances for (lon, lat) point
         Inputs:
         ------
           -lon = longitude in deg., float
           -lat = latitude in deg., float
+          -time_ind = time indexes to work in, 1D array of integers  
         Outputs:
         -------
+           -floodIndex = flood time index, 1D array of integers
+           -ebbIndex = ebb time index, 1D array of integers
            -pr_axis = principal flow ax1s, number in degrees
            -pr_ax_var = associated variance
         Keywords:
         --------
-           -time = time indexes to work in, list of integers            
+                       
         Notes:
         -----
+          -may take time to compute if time period too long
           -directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
            180=West, 270=South
         """
-        if debug or self._debug:
+        debug = debug or self._debug
+        if debug:
             print 'Computing principal flow directions...'
-        #TR: Still to be developed
-
         #Extracting velocity component at point
-        if time:
-            u = self._var.ua[time,:]
-            v = self._var.va[time,:]
+        if time_ind:
+            u = self._var.ua[time_ind,:]
+            v = self._var.va[time_ind,:]
         else:
             u = self._var.ua
             v = self._var.va
@@ -234,7 +215,7 @@ class FunctionsFvcom:
                                         debug=debug)  
         V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                         debug=debug) 
-        coord = np.matrix([U,V]).T
+        coord = np.matrix([U,V])
         center = np.mean(coord,1)
         coord = coord - center
 
@@ -285,28 +266,86 @@ class FunctionsFvcom:
         if debug:
             start = time.time()
         eigVal, eigVec = np.linalg.eig(R)
-        #TR alternative: eigVal, eigVec = LA.eig(R)
         if debug:
             end = time.time()
             print "...processing time: ", (end - start)
+            print eigVal, eigVec
+
+        #TR performance test with Scipy
+        #if debug:
+        #    start = time.time()
+        #eigValS, eigVecS = LA.eig(R)
+        #if debug:
+        #    end = time.time()
+        #    print "...processing time with Scipy: ", (end - start)
+        #    print eigValS, eigVecS
+
         #BP comments: Sort eignvalues in descending order
         #BP comments: so that major axis is given by first eigenvecto
         eigValF = np.sort(eigVal)[::-1]
         ilambda = np.argsort(eigVal)[::-1]
+        #TR performance test with Scipy
+        #eigValFS = np.sort(eigValS)[::-1]
+        #ilambdaS = np.argsort(eigValS)[::-1]
         #BP comments: Reconstruct the eigenvalue matrix
-        eigVal=diag(eigValF)
+        eigVal = np.diag(eigValF)
+        #TR performance test with Scipy
+        #eigValS = np.diag(eigValFS)
         ##BP comments: reorder the eigenvectors
         eigVec = eigVec[ilambda,:]
-        ra = np.rad2deg(np.arctan2(eigVec[0,1], eigVec[1,1]))
+        ra = np.arctan2(eigVec[0,1], eigVec[1,1])
+        #TR performance test with Scipy
+        #eigVecS = eigVec[ilambdaS,:]
+        #raS = np.arctan2(eigVecS[0,1], eigVecS[1,1])        
         #express principal axis in compass
-        pr_axes = np.mod(90.0 - ra, 360.0)
+        pr_axis = np.mod(90.0 - np.rad2deg(ra), 360.0)
         pr_ax_var = (eigVal[0]/np.trace(eigVal))[0]
+        #TR performance test with Scipy
+        #pr_axisS = np.mod(90.0 - np.rad2deg(raS), 360.0)
+        #pr_ax_varS = (eigValS[0]/np.trace(eigValS))[0]
+        #print 'Results with Numpy: ', pr_axis, pr_ax_var
+        #print 'Results with Scipy: ', pr_axisS, pr_ax_varS
+
+        #Computing ebb and flood indexes:
+        print "Computing flood and ebb axis..."
+        if debug:
+            start = time.time()
+        dirFlow = np.arctan2(V,U)
+        #Define bins of angles
+        if ra == 0.0:
+            binP = [0.0, np.pi/2.0]
+            binP = [0.0, -np.pi/2.0]
+        elif ra > 0.0:
+            if ra == np.pi:
+                binP = [np.pi/2.0 , np.pi]
+                binM = [-np.pi, -np.pi/2.0 ]        
+            elif ra < (np.pi/2.0):
+                binP = [0.0, ra + (np.pi/2.0)]
+                binM = [-((np.pi/2.0)-ra), 0.0]
+            else:
+                binP = [ra - (np.pi/2.0), np.pi]
+                binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
+        else:
+            if ra == -np.pi:
+                binP = [np.pi/2.0 , np.pi]
+                binM = [-np.pi, -np.pi/2.0]
+            elif ra > -(np.pi/2.0):
+                binP = [0.0, ra + (np.pi/2.0)]
+                binM = [ ((-np.pi/2.0)+ra), 0.0]
+            else:
+                binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
+                binM = [-np.pi, ra + (np.pi/2.0)]
+                                
+        test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
+                ((dirFlow > binM[0]) * (dirFlow < binM[1])))
+        floodIndex = np.where(test == True)[0]
+        ebbIndex = np.where(test == False)[0]
 
         if debug:
             end = time.time()
             print "...processing time: ", (end - start)
 
-        return pr_axis, pr_ax_var
+        return floodIndex, ebbIndex, pr_axis, pr_ax_var
 
     def interpolation_at_point(self, var, pt_lon, pt_lat, debug=False):
         """
