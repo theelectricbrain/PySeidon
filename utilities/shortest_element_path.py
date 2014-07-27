@@ -1,6 +1,6 @@
 #from __future__ import division
 #import netCDF4 as nc
-#import numpy as np
+import numpy as np
 import scipy.spatial
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -9,7 +9,7 @@ import matplotlib.ticker as ticker
 import seaborn
 
 class shortest_element_path:
-    def __init__(self, lonc, latc, lon, lat, nv, h):
+    def __init__(self, lonc, latc, lon, lat, trinodes, h):
 
         #self.data = nc.Dataset(filename,'r')
 
@@ -19,7 +19,7 @@ class shortest_element_path:
         self.latc = latc
         self.lat = lat
         self.lon = lon
-        self.nv = nv
+        self.trinodes = trinodes
         self.h = h
 
         #z = np.vstack((latc,lonc)).T
@@ -133,10 +133,10 @@ class shortest_element_path:
         #h = self.data.variables['h'][:]
         lat = self.lat
         lon = self.lon
-        nv = self.nv.T - 1
+        trinodes = self.trinodes
         h = self.h
 
-        tri = Tri.Triangulation(lon, lat, triangles=nv)  # xy or latlon based on how you are #Grand Passage
+        tri = Tri.Triangulation(lon, lat, triangles=trinodes)  # xy or latlon based on how you are #Grand Passage
 
         levels=np.arange(-38,6,1)   # depth contours to plot
 

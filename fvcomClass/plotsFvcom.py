@@ -7,6 +7,8 @@ import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
 import seaborn
 from windrose import WindroseAxes
+from interpolation_utils import *
+from shortest_element_path import *
 
 class PlotsFvcom:
     """'Plots' subset of FVCOM class gathers plotting functions"""
@@ -85,6 +87,7 @@ class PlotsFvcom:
             print '...Passed'
 
     def rose_diagram(self, direction, norm):
+
         """Plot rose diagram. direction and norm = 1D arrays"""
 
         #Create new figure
@@ -127,4 +130,74 @@ class PlotsFvcom:
                      textcoords='offset points', ha='right',
                      arrowprops=dict(arrowstyle="->", shrinkA=0))
 
-
+    def vertical_slice(self, var, start_pt, end_pt, cmax=[], cmin=[], debug=False):
+        """
+        Draw vertical slice in var along the shortest path between
+        start_point, end_pt.
+ 
+        Inputs:
+        ------
+          -var = 2D dimensional (sigma level, element) variable, array
+          -start_pt = starting point, [longitude, latitude]
+          -end_pt = ending point, [longitude, latitude]
+        """
+        debug = debug or self._debug
+        if not self._var._3D:
+            print "Error: Only available for 3D runs."
+            raise
+        else: 
+            lons = [start_pt[0], end_pt[0]]
+            lats = [start_pt[1], end_pt[1]]
+            #Finding the closest elements to start and end points
+            ind = closest_point(lons, lats, self._grid.lonc, self._grid.latc, debug)
+            #Finding the shortest path between start and end points
+            print "Computing shortest path..."
+            short_path = shortest_element_path(self._grid.lonc,
+                                               self._grid.latc,
+                                               self._grid.lon,
+                                               self._grid.lat,
+                                               self._grid.trinodes,
+                                               self._grid.h)
+            el, _ = short_path.getTargets([ind])
+            #Extract along path
+            varP = var[:,el]
+            x = self._grid.xc[el]
+            y = self._grid.yc[el]
+            siglay = self._grid.siglay[:, el]
+            line = np.zeros(siglay.shape)
+            #Pythagore
+            line[:,1:] = np.sqrt(np.square(x[1:]-x[:-1]) + np.square(y[1:]-y[:-1]))
+            return el, varP, siglay, line
+            #Computing depth
+            #print "Computing depth..."
+            #TR comment: the interpolation here is not perfect but doesn't
+            #            matter too much for plotting purposes
+            #size = self._grid.trinodes[el].shape[0]
+            #size1 = self._var.el.shape[0]
+            #elc = np.zeros((size1, size))
+            #hc = np.zeros((size))
+            #for ind,value in enumerate(self._grid.trinodes.T[el[0]]):
+            #    elc[:, ind] = np.mean(self._var.el[:, value-1], axis=1)
+            #    hc[ind] = np.mean(self._grid.h[value-1])
+            #Plot features
+            #if not cmax:
+            #    cmax = np.max(var)
+            #if not cmin:
+            #    cmin = np.min(var)
+            #plt.clf()
+            #fig,ax = plt.subplots()
+            #plt.rc('font',size='22')
+            #levels = np.linspace(0,3.3,34)
+            #cs = ax.contourf(line,siglay,var,levels=levels, cmap=plt.cm.jet)
+            #ax.contour(line,siglay,mean_vel,cs.levels, colors='k')
+            #cbar = fig.colorbar(cs,ax=ax)
+            #cbar.set_label(r'Velocity $(m/s)$', rotation=-90,labelpad=30)
+            #if eastwest:
+            #    ax.set_xlabel('Longitude')
+            #else:
+            #    ax.set_xlabel('Latitude')
+            #ax.set_title('vel_mean')
+            #scale = 1
+            #ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
+            #ax.xaxis.set_major_formatter(ticks)
+            #ax.yaxis.set_major_formatter(ticks)                                   

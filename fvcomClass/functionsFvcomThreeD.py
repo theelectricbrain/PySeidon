@@ -118,8 +118,8 @@ class FunctionsFvcomThreeD:
         Compute vertical shear -> FVCOM.Variables.verti_shear
         Inputs:
         ------
-          t_start = start time, datetime64[us] type
-          t_end = end time, datetime64[us] type
+          t_start = start time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
+          t_end = end time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
         Keywords:
         --------
           bot_lvl = index of the bottom level to consider, integer
@@ -186,8 +186,8 @@ class FunctionsFvcomThreeD:
         Compute vertical shear -> FVCOM.Variables.verti_shear
         Inputs:
         ------
-          - t_start = start time, datetime64[us] type
-          - t_end = end time, datetime64[us] type
+          - t_start = start time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
+          - t_end = end time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
           - pt_lon = longitude in degrees to find
           - pt_lat = latitude in degrees to find
         Keywords:
