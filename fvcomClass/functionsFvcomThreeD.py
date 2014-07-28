@@ -8,6 +8,7 @@ import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
 from interpolation_utils import *
+from miscellaneous import *
 import time
 
 #TR comment: This all routine needs to be tested and debugged
@@ -23,6 +24,7 @@ class FunctionsFvcomThreeD:
         self._util = util
         self.interpolation_at_point = self._util.interpolation_at_point
         self.hori_velo_norm = self._util.hori_velo_norm
+
         #Create pointer to FVCOM class
         variable = self._var
         grid = self._grid
@@ -30,44 +32,32 @@ class FunctionsFvcomThreeD:
 
     def depth(self, debug=False):
         """
-        Compute depth -> FVCOM.Grid.depth
+        Compute new grid variable 'depth' -> FVCOM.Grid.depth
+
         Notes:
         -----
-           Can take time over the full domain
+          - Can take time over the full domain
         """
         debug = debug or self._debug
         if debug:
-            print "Computing depth"
+            print "Computing depth..."
             start = time.time()
 
         #Compute depth
-        h = self._grid.h
+        #Different interpolation method if partial dat
+        if hasattr(self._grid, '_region_e'):
+            h = self._grid.h[self._grid_region_e]
+        else:
+            h = self._grid.h
         zeta = self._var.el[:,:] + h[None,:]
-        nv = self._grid.trinodes
         siglay = self._grid.siglay[:]
         z = zeta[:,None,:]*siglay[None,:,:]
-        dep = np.zeros([zeta.shape[0],siglay.shape[0],nv.shape[0]])
-        #for i in range(z.shape[0]):
-        #    for j in range(nv.shape[0]):
-        #        dep[i,:,j] = (z[i,:,nv[j,0]]+z[i,:,nv[j,1]]+
-        #                      z[i,:,nv[j,2]])/3
-        #TR alternative: over the whole thing
-        #dep = (z[:,:,nv[:,0]] + z[:,:,nv[:,1]] + z[:,:,nv[:,2]]) / 3
-        #end = time.time()
-        #TR comment: I have doubt on this interp approach
-        #print "Computation time method1: ", (end - start)            
-        #TR alternative2: using the interp function
-        for i in range(nv.shape[0]):
-            dep[:,:,i] = interpN_at_pt(z, self._grid.xc[i],
-                                       self._grid.yc[i],
-                                       self._grid.xc,
-                                       self._grid.yc, i,
-                                       self._grid.trinodes,
-                                       self._grid.aw0,
-                                       self._grid.awx,
-                                       self._grid.awy)
-        #end = time.time()
-        #print "Computation time method1: ", (end - start)  
+        dep = np.zeros([self._grid.ntime,self._grid.nlevel,self._grid.node])
+        for i in range(self._grid.node):
+            dep[:,:,i] = interpolation_at_point(z[:,:,i],
+                                                self._grid.lonc[i],
+                                                self._grid.latc[i], debug=debug)
+
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
@@ -79,7 +69,8 @@ class FunctionsFvcomThreeD:
 
     def depth_at_point(self, pt_lon, pt_lat, debug=False):
         """
-        Compute depth -> FVCOM.Grid.depth
+        Compute depth at given point
+
         Inputs:
         ------
           - pt_lon = longitude in degrees to find
@@ -90,86 +81,72 @@ class FunctionsFvcomThreeD:
             print "Computing depth"
             start = time.time()
 
-        h = self._grid.h[:]
-        zeta = self._var.el[:,:] + h[None,:]
-        siglay = self._grid.siglay[indexes]
-        z = zeta[:,None,:]*siglay[None,:,:]
-        #Checking if depth already computed
+        #Finding index        
+        index = closest_point([pt_lon], [pt_lat],
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)[0]
+
         if not hasattr(self._grid, 'depth'):
             #Compute depth
+            h = self._grid.h[index]
+            zeta = self._var.el[:,index] + h
+            siglay = self._grid.siglay[:]
+            z = zeta[:,None]*siglay[None,:,index]
+            dep = np.zeros([self._grid.ntime,self._grid.nlevel])
             dep = self.interpolation_at_point(z, pt_lon,
                                                  pt_lat,
                                                  debug=debug)
         else:
-            index = closest_point([pt_lon], [pt_lat],
-                                  self._grid.lonc,
-                                  self._grid.latc, debug=debug)[0]
-            dep = interp_at_point(z, pt_lon, pt_lat, lon, lat,
-                                  index, self._grid.trinodes, debug=False)          
+            dep = self._grid.depth[:,:,index]         
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
 
         return dep
 
-    def verti_shear(self, t_start, t_end,
-                    bot_lvl=[], top_level= [], debug=False):
+    def verti_shear(self, debug=False):
         """
-        Compute vertical shear -> FVCOM.Variables.verti_shear
+        Compute new variable 'vertical shear' -> FVCOM.Variables.verti_shear
+
         Inputs:
         ------
-          t_start = start time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
-          t_end = end time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
         Keywords:
         --------
-          bot_lvl = index of the bottom level to consider, integer
-          top_lvl = index of the top level to consider, integer
+          - bot_lvl = index of the bottom level to consider, integer
+          - top_lvl = index of the top level to consider, integer
         Notes:
         -----
-           Can take time over the full domain
+          - Can take time over the full domain
         """
         debug = debug or self._debug
         if debug:
             print 'Computing vertical shear...'
-        # Find simulation time contains in [t_start, t_end]
-        time = self._var.matlabTime
-        t = time.shape[0]
-        l = []
-        for i in range(t):
-            date = datetime.fromordinal(int(time[i])) + \
-                   timedelta(days=time[i]%1)-timedelta(days=366)
-            l.append(date)
-        time = np.array(l,dtype='datetime64[us]')
-        t_slice = [t_start, t_end]
-        t_slice = np.array(t_slice,dtype='datetime64[us]')
+              
+        #Compute depth if necessary
+        if not hasattr(self._grid, 'depth'):        
+           depth = self.depth(debug=debug)
+        depth = self._grid.depth
 
-        if t_slice.shape[0] != 1:
-            argtime = np.argwhere((time>=t_slice[0])&
-                                  (time<=t_slice[-1])).flatten()
-        if debug:
-            print 'Argtime: ', argtime
-            
-        #Compute depth
-        dep = self.depth(debug=debug)
         # Checking if horizontal velocity norm already exists
         if not hasattr(self._var, 'hori_velo_norm'):
             self.hori_velo_norm()
-        #Extract horizontal velocity norm contained in t_slice
-        vel = self._var.hori_velo_norm[argtime,:,:]
+        vel = self._var.hori_velo_norm
 
         #Sigma levels to consider
-        if not top_lvl:
-            top_lvl = (dep.shape[1]) - 1
-        if not bot_lvl:
-            bot_lvl = 0
+        top_lvl = (self._grid.nlevel) - 1
+        bot_lvl = 0
         sLvl = range(bot_lvl, top_lvl+1)
 
         # Compute shear
-        dz = dep[:,sLvl[1:],:] - dep[:,sLvl[:-1],:]
+        dz = depth[:,sLvl[1:],:] - depth[:,sLvl[:-1],:]
         dvel = vel[:,sLvl[1:],:] - vel[:,sLvl[:-1],:]           
         dveldz = dvel / dz
 
-        #Custopm return
+        #Custom return
         self._var.verti_shear = dveldz 
             
         # Add metadata entry
@@ -179,84 +156,105 @@ class FunctionsFvcomThreeD:
         if debug:
             print '...Passed'
 
-    def verti_shear_at_point(self, t_start, t_end,
-                             pt_lon, pt_lat,
-                             bot_lvl=[], top_level= [], debug=False):
+    def verti_shear_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[],  time_ind=[],
+                             bot_lvl=[], top_level= [], graph=True, debug=False):
         """
         Compute vertical shear -> FVCOM.Variables.verti_shear
         Inputs:
         ------
-          - t_start = start time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
-          - t_end = end time,'yyyy-mm-ddThh:mm:ss', datetime64[us] type
           - pt_lon = longitude in degrees to find
           - pt_lat = latitude in degrees to find
         Keywords:
         --------
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - time_ind = time indexes to work in, list of integers
           - bot_lvl = index of the bottom level to consider, integer
           - top_lvl = index of the top level to consider, integer
+          - graph = plot graph if True
         """
         debug = debug or self._debug
         if debug:
-            print 'Computing vertical shear...'
-        # Find simulation time contains in [t_start, t_end]
-        time = self._var.matlabTime
-        t = time.shape[0]
-        l = []
-        for i in range(t):
-            date = datetime.fromordinal(int(time[i])) + \
-                   timedelta(days=time[i]%1)-timedelta(days=366)
-            l.append(date)
-        time = np.array(l,dtype='datetime64[us]')
-        t_slice = [t_start, t_end]
-        t_slice = np.array(t_slice,dtype='datetime64[us]')
+            print 'Computing vertical shear at point...'
 
-        if t_slice.shape[0] != 1:
-            argtime = np.argwhere((time>=t_slice[0])&
-                                  (time<=t_slice[-1])).flatten()
-        if debug:
-            print 'Argtime: ', argtime
-            
+        # Find time interval to work in
+        argtime = []
+        if time_ind:
+            argtime = time_ind
+        elif t_start:
+            if type(t_start)==str:
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+            else:
+                argtime = arange(t_start, t_end) 
+
         #Compute depth
         dep = self.depth_at_point(pt_lon, pt_lat, debug=debug)
-        #Extracting velocity at point
-        u = self._var.u
-        v = self._var.v
-        #Extraction at point
-        if debug:
-            print 'Extraction of u and v at point...'
-        U = self.interpolation_at_point(u, pt_lon, pt_lat,
-                                        debug=debug)  
-        V = self.interpolation_at_point(v, pt_lon, pt_lat,
-                                        debug=debug)
-        norm = ne.evaluate('sqrt(U**2 + V**2)')     
-        vel = norm[argtime,:]
+        if argtime:
+            depth = dep[argtime,:]
+        else:
+            depth = dep
 
         #Sigma levels to consider
         if not top_lvl:
-            top_lvl = (dep.shape[1]) - 1
+            top_lvl = (self._grid.nlevel) - 1
         if not bot_lvl:
             bot_lvl = 0
         sLvl = range(bot_lvl, top_lvl+1)
 
-        # Compute shear
-        dz = dep[:,sLvl[1:]] - dep[:,sLvl[:-1]]
-        dvel = vel[:,sLvl[1:]] - vel[:,sLvl[:-1]]           
-        dveldz = dvel / dz
+
+        # Checking if vertical shear already exists
+        if not hasattr(self._var, 'verti_shear'): 
+             
+            #Extracting velocity at point
+            if argtime:
+                u = self._var.u[argtime,:,:]
+                v = self._var.v[argtime,:,:]
+            else:
+                u = self._var.u
+                v = self._var.v
+
+            #Extraction at point
+            if debug:
+                print 'Extraction of u and v at point...'
+            U = self.interpolation_at_point(u, pt_lon, pt_lat,
+                                            debug=debug)  
+            V = self.interpolation_at_point(v, pt_lon, pt_lat,
+                                            debug=debug)
+            norm = ne.evaluate('sqrt(U**2 + V**2)')     
+
+            # Compute shear
+            dz = depth[:,sLvl[1:]] - depth[:,sLvl[:-1]]
+            dvel = norm[:,sLvl[1:]] - norm[:,sLvl[:-1]]           
+            dveldz = dvel / dz
+        else:
+            dveldz = interpolation_at_point(self._var.verti_shear,
+                                            pt_lon, pt_lat, debug=debug)
 
         if debug:
             print '...Passed'
 
+        #Plot mean values
+        if graph:
+            mean_depth = np.mean((depth[:,sLvl[1:]]
+                       + depth[:,sLvl[:-1]]) / 2.0, 0)
+            mean_dveldz = np.mean(dveldz,0)
+            self._plot.plot_xy(mean_dveldz, mean_depth, title='Shear profile ',
+                               xLabel='Shear (1/s) ', yLabel='Depth (m) ')
+
         return dveldz             
 
     def velo_norm(self, debug=False):
-        """Compute velocity norm -> FVCOM.Variables.velo_norm"""
+        """
+        Compute new variable 'velocity norm' -> FVCOM.Variables.velo_norm
+
+        Notes:
+        -----
+          -Can take time over the full domain
+        """
         if debug or self._debug:
             print 'Computing velocity norm...'
 
-        #TR_comment: not sure we should compute norm only in bounding box
-        #u = self._var.u[:, :, self._grid.region_e[:]]
-        #v = self._var.v[:, :, self._grid.region_e[:]]
-        #ww = self._var.ww[:, :, self._grid.region_e[:]]
+        #Computing velocity norm
         u = self._var.u[:, :, :]
         v = self._var.v[:, :, :]
         ww = self._var.ww[:, :, :]
@@ -272,63 +270,152 @@ class FunctionsFvcomThreeD:
         if debug or self._debug:
             print '...Passed'
 
-    def flow_dir_at_point(self, pt_lon, pt_lat,
+    def velo_norm_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
+                           debug=False):
+        """
+        Compute vertical shear -> FVCOM.Variables.verti_shear
+        Inputs:
+        ------
+          - pt_lon = longitude in degrees to find
+          - pt_lat = latitude in degrees to find
+        Keywords:
+        --------
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - time_ind = time indexes to work in, list of integers
+        """
+         debug = debug or self._debug
+        if debug:
+            print 'Computing velocity norm at point...'
+       
+        # Find time interval to work in
+        argtime = []
+        if time_ind:
+            argtime = time_ind
+        elif t_start:
+            if type(t_start)==str:
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+            else:
+                argtime = arange(t_start, t_end)
+
+        #computing velocity norm
+        if argtime:
+            if not hasattr(self._var, 'velo_norm'):             
+                u = self._var.u[argtime, :, :]
+                v = self._var.v[argtime, :, :]
+                ww = self._var.ww[argtime, :, :]
+                vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
+            else:
+                vel = self._var.velo_norm[argtime, :, :]
+        else:
+            if not hasattr(self._var, 'velo_norm'):             
+                u = self._var.u
+                v = self._var.v
+                ww = self._var.ww
+                vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
+            else:
+                vel = self._var.velo_norm
+
+       #Interpolation
+       velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
+                                               debug=debug)
+
+        if debug:
+            print '...passed'
+
+       return velo_norm 
+
+
+    def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
                           vertical=True, debug=False):
         """
         Flow directions and associated norm at any give location.
+
         Inputs:
         ------
           - pt_lon = longitude in degrees to find
           - pt_lat = latitude in degrees to find
         Outputs:
         -------
-           - flowDir = flowDir at (pt_lon, pt_lat)
-           - norm = velocity norm at (pt_lon, pt_lat)
+          - flowDir = flowDir at (pt_lon, pt_lat)
+          - norm = velocity norm at (pt_lon, pt_lat)
         Keywords:
         -------
-          -vertical = True, compute flowDir for each vertical level
+          - time_ind = time indexes to work in, list of integers
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
-          directions between 0 and 360 deg.
+          - directions between 0 and 360 deg.
         """
         debug = debug or self._debug
         if debug:
             print 'Computing flow directions at point...'
 
-        #Choose the right pair of velocity components
-        if self._var._3D and vertical:
-           u = self._var.u
-           v = self._var.v
+        # Find time interval to work in
+        argtime = []
+        if time_ind:
+            argtime = time_ind
+        elif t_start:
+            if type(t_start)==str:
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+            else:
+                argtime = arange(t_start, t_end)
+        
+        #Checking
+        if not hasattr(self._var, 'dir_flow'):
+            #Choose the right pair of velocity components
+            if argtime:
+                if self._var._3D and vertical:
+                    u = self._var.u[argtime,:,:]
+                    v = self._var.v[argtime,:,:]
+                else:
+                    u = self._var.ua[argtime,:]
+                    v = self._var.va[argtime,:]
+            else:
+                if self._var._3D and vertical:
+                   u = self._var.u
+                   v = self._var.v
+                else:
+                   u = self._var.ua
+                   v = self._var.va
+
+            #Extraction at point
+            if debug:
+                print 'Extraction of u and v at point...'
+            U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
+                                                  debug=debug)  
+            V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
+                                                  debug=debug)       
+
+            #Compute directions
+            if debug:
+                print 'Computing arctan2 and norm...'
+            dirFlow = np.arctan2(U,V)
+            dirFlow = np.mod(((np.pi/2.0) - dirFlow) * (180.0 / np.pi), 360.0)
+
         else:
-           u = self._var.ua
-           v = self._var.va
-
-        #Extraction at point
+            if argtime:
+                dir_flow = self._var.dir_flow[argtime,:,:]
+                dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
+                                                            debug=debug)   
+            else:
+                dirFlow = self._util.interpolation_at_point(self._var.dir_flow,
+                                                            pt_lon, pt_lat, debug=debug) 
+         
         if debug:
-            print 'Extraction of u and v at point...'
-        U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
-                                              debug=debug)  
-        V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
-                                              debug=debug)       
-
-        #Compute directions
-        if debug:
-            print 'Computing arctan2 and norm...'
-        dirFlow = np.arctan2(U,V)
-        dirFlow = np.mod(((np.pi/2.0) - dirFlow) * (180.0 / np.pi), 360.0)
-        norm = ne.evaluate('sqrt(U**2 + V**2)')
-        if debug:
-            print '...Passed'
+                print '...Passed'
 
         return dirFlow, norm
 
     def flow_dir(self, debug=False):
         """"
-        Compute flow directions over the whole grid -> FVCOM.Variables.flow_dir
+        Compute new variable 'flow directions' -> FVCOM.Variables.flow_dir
         Notes:
         -----
           - directions between 0 and 360 deg.
-          - This is very very SLOW !!!
+          - Can take time over the full domain
         """
         if debug or self._debug:
             print 'Computing flow directions...'

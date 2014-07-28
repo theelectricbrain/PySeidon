@@ -172,7 +172,8 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
 
     return varPt
 
-def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes, debug=False):
+def interp_at_point(var, pt_lon, pt_lat, lon, lat,
+                    index=[], trinodes=[], tri=[], debug=False):
     """
     Interpol any given variables at any give location.
     Inputs:
@@ -188,12 +189,15 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat, index, trinodes, debug=False)
     if debug:
         print 'Interpolating at point...'
     #Finding the right indexes
-    triIndex = trinodes[index]
+
     #Triangulation
     #if debug:
     #    print triIndex, lon[triIndex], lat[triIndex]
-    newtri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
-    trif = newtri.get_trifinder()
+    if not tri:
+        triIndex = trinodes[index]
+        tri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
+
+    trif = tri.get_trifinder()
     trif.__call__(pt_lon, pt_lat)
     #if debug:
         #if len(var.shape)==1:

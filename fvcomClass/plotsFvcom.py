@@ -9,6 +9,7 @@ import seaborn
 from windrose import WindroseAxes
 from interpolation_utils import *
 from shortest_element_path import *
+from miscellaneous import depth_at_FVCOM_element as depth_at_ind
 
 class PlotsFvcom:
     """'Plots' subset of FVCOM class gathers plotting functions"""
@@ -130,7 +131,8 @@ class PlotsFvcom:
                      textcoords='offset points', ha='right',
                      arrowprops=dict(arrowstyle="->", shrinkA=0))
 
-    def vertical_slice(self, var, start_pt, end_pt, cmax=[], cmin=[], debug=False):
+    def vertical_slice(self, var, start_pt, end_pt, time_ind,
+                       cmax=[], cmin=[], debug=False):
         """
         Draw vertical slice in var along the shortest path between
         start_point, end_pt.
@@ -140,6 +142,7 @@ class PlotsFvcom:
           -var = 2D dimensional (sigma level, element) variable, array
           -start_pt = starting point, [longitude, latitude]
           -end_pt = ending point, [longitude, latitude]
+          -time_ind = reference time indexes for surface elevation, list of integer
         """
         debug = debug or self._debug
         if not self._var._3D:
@@ -163,10 +166,13 @@ class PlotsFvcom:
             varP = var[:,el]
             x = self._grid.xc[el]
             y = self._grid.yc[el]
-            siglay = self._grid.siglay[:, el]
-            line = np.zeros(siglay.shape)
+            depth = np.zeros((self._grid.siglay.shape[0], el.shape[0]))
+            for ind in el:
+                depth[:,ind] = depth_at_ind(ind, trinodes, time_ind)
+            line = np.zeros(depth.shape)
             #Pythagore
             line[:,1:] = np.sqrt(np.square(x[1:]-x[:-1]) + np.square(y[1:]-y[:-1]))
+
             return el, varP, siglay, line
             #Computing depth
             #print "Computing depth..."

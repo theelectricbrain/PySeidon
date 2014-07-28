@@ -3,6 +3,7 @@
 
 from jdcal import gcal2jd
 import numpy as np
+import matplotlib.tri as Tri
 
 class _load_var:
     """
@@ -39,6 +40,8 @@ class _load_var:
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time'][region_t]
             self.matlabTime = self.julianTime + 678942
+            #Add time dimension to grid variables
+            grid.ntime = self.julianTime.shape[0]
 
             #Check if bounding box has been defined
             if not hasattr(grid, '_region_e'):
@@ -52,6 +55,8 @@ class _load_var:
                     self.va = data.variables['va'][region_t,:]
                     # invisible variables
                     self._3D = True
+                    #Add time dimension to grid variables
+                    grid.nlevel = self.ww.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][region_t,:]
                     self.va = data.variables['va'][region_t,:]
@@ -71,6 +76,8 @@ class _load_var:
                     self.va = data.variables['va'][region_t,region_e]
                     # invisible variables
                     self._3D = True
+                    #Add time dimension to grid variables
+                    grid.nlevel = self.ww.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][region_t,region_e]
                     self.va = data.variables['va'][region_t,region_e]
@@ -82,6 +89,8 @@ class _load_var:
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time']
             self.matlabTime = self.julianTime[:] + 678942
+            #Add time dimension to grid variables
+            grid.ntime = self.julianTime.shape[0]
 
             #Check if bounding box has been defined
             if not hasattr(grid, '_region_e'):
@@ -95,6 +104,8 @@ class _load_var:
                     self.va = data.variables['va']#[:]
                     # invisible variables
                     self._3D = True
+                    #Add time dimension to grid variables
+                    grid.nlevel = self.ww.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua']#[:]
                     self.va = data.variables['va']#[:]
@@ -114,6 +125,8 @@ class _load_var:
                     self.va = data.variables['va'][:,region_e]
                     # invisible variables
                     self._3D = True
+                    #Add time dimension to grid variables
+                    grid.nlevel = self.ww.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][:,region_e]
                     self.va = data.variables['va'][:,region_e]
@@ -210,50 +223,37 @@ class _load_grid:
             region_n = region_n.T[0,:]
             self._region_e = region_e
             self._region_n = region_n
+            #Redefine lon lat in region
+            lon = data.variables['lon'][region_n]
+            lat = data.variables['lat'][region_n]
+            lonc = data.variables['lonc'][region_e]
+            latc = data.variables['latc'][region_e]
             #TR: add check neighbouring nodes too and append to region_n
-            #Re-indexing nv and nbe, i+1 because of python indexing
-            #if debug:
-            #    print "re-indexing"
-            #j = 0
-            #NV = np.empty(self.nbe.shape, dtype=int)
-            #NBE = np.empty(self.nbe.shape, dtype=int) 
-            #for i in region_n:
-            #    ne = np.where(self.nv==i+1)
-            #    NV[ne] = j
-            #    j += 1
-            #j =0
-            #for i in region_n:
-            #    no = np.where(self.nbe==i+1)
-            #    NBE[no] = j
-            #    j += 1
-            #self.trinodes = NV.T
-            #self.triele = NBE.T
+            if debug:
+                print "re-indexing"
+            self.trinodes = Tri.Triangulation(lon[region_n],
+                                              lat[region_n], np.array([[0,1,2]]))
+            self.triele = Tri.Triangulation(lonc[region_e],
+                                            self.latc[region_e], np.array([[0,1,2]]))
 
             #Redefine variables in bounding box
             self.nele = len(region_e)
             self.node = len(region_n)
-            self.lon = data.variables['lon'][region_n]
-            self.lat = data.variables['lat'][region_n]
-            self.lonc = data.variables['lonc'][region_e]
-            self.latc = data.variables['latc'][region_e]
-            self.x = data.variables['x'][region_n]
-            self.y = data.variables['y'][region_n]
-            self.xc = data.variables['xc'][region_e]
-            self.yc = data.variables['yc'][region_e]
-            self.h = data.variables['h'][region_n]
-            self.siglay = data.variables['siglay'][:,region_n]
-            self.siglev = data.variables['siglev'][:,region_n]
+            self.x = data.variables['x']#[region_n]
+            self.y = data.variables['y']#[region_n]
+            self.xc = data.variables['xc']#[region_e]
+            self.yc = data.variables['yc']#[region_e]
+            self.h = data.variables['h']#[region_n]
+            self.siglay = data.variables['siglay']#[:,region_n]
+            self.siglev = data.variables['siglev']#[:,region_n]
             #TR_comments: what the hell are the a* parameters???
-            self.a1u = data.variables['a1u'][:,region_e]
-            self.a2u = data.variables['a2u'][:,region_e]
-            self.aw0 = data.variables['aw0'][:,region_e]
-            self.awx = data.variables['awx'][:,region_e]
-            self.awy = data.variables['awy'][:,region_e]
-            self.nv = data.variables['nv'][:,region_e]
-            self.nbe = data.variables['nbe'][:,region_e]
-            #-Need to use len to get size of dimensions
-            self.nele = self.h.shape[0]
-            self.node = self.xc.shape[0]
+            self.a1u = data.variables['a1u']#[:,region_e]
+            self.a2u = data.variables['a2u']#[:,region_e]
+            self.aw0 = data.variables['aw0']#[:,region_e]
+            self.awx = data.variables['awx']#[:,region_e]
+            self.awy = data.variables['awy']#[:,region_e]
+            self.nv = data.variables['nv']#[:,region_e]
+            self.nbe = data.variables['nbe']#[:,region_e]
 
         if debug:
             print '...Passed'

@@ -126,7 +126,7 @@ class FunctionsFvcom:
            - norm = velocity norm at (pt_lon, pt_lat)
         Keywords:
         --------
-           -time = time indexes to work in, list of integers
+          - time_ind = time indexes to work in, list of integers
           - excedance = True, compute associated exceedance curve
           - vertical = True, compute flowDir for each vertical level
         Notes:
@@ -373,42 +373,54 @@ class FunctionsFvcom:
         # Find indexes of the closest element
         index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
         # Conversion (lon, lat) to (x, y)
-        pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat, index,
-                                                       trinodes , debug=debug)
-        pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat, index,
-                                                       trinodes , debug=debug)
-
+        #Different interpolation method if partial data
+        if not hasattr(self._grid, '_region_e'):
+            pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
+                                   index=index, trinodes=trinodes, debug=debug)
+            pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
+                                   index=index, trinodes=trinodes, debug=debug)
 
         #change in function of the data you dealing with
         if any(i == self._grid.node for i in var.shape):
-            if debug:
-                start = time.time() 
-            varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
+            #Different interpolation method if partial data
+            if hasattr(self._grid, '_region_e'):
+                if debug:
+                    start = time.time() 
+                varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat,
+                                            tri=trinodes , debug=debug)
+                if debug:
+                    end = time.time()
+                    print "Processing time: ", (end - start) 
+            else:
+                if debug:
+                    start = time.time() 
+                varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
                                       self._grid.aw0, self._grid.awx, self._grid.awy,
                                       debug=debug)
-            if debug:
-                end = time.time()
-                print "Processing time: ", (end - start) 
-            #if debug:
-            #    start = time.time()      
-            #TR_alternative: works only for h and el at the mo i.e. node variables
-            #test = interp_at_point(var, pt_lon, pt_lat, lon, lat, index,
-            #                       trinodes , debug=debug)
-            #TR_comment: seems to give same accuracy and computational time
-            #            than Richard's approach
-            #if debug:
-            #    end = time.time()
-            #    print "Time elapsed for Wesley's method: ", (end - start)
+                if debug:
+                    end = time.time()
+                    print "Processing time: ", (end - start) 
+
         else:
             triele = self._grid.triele
-            if debug:
-                start = time.time() 
-            varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                      trinodes, self._grid.a1u, self._grid.a2u,
-                                      debug=debug)
-            if debug:
-                end = time.time()
-                print "Processing time: ", (end - start)         
+            #Different interpolation method if partial data
+            if hasattr(self._grid, '_region_e'):
+                if debug:
+                    start = time.time() 
+                varInterp = interp_at_point(var, pt_lon, pt_lat, lonc, latc,
+                                            tri=triele , debug=debug)
+                if debug:
+                    end = time.time()
+                    print "Processing time: ", (end - start) 
+            else:
+                if debug:
+                    start = time.time() 
+                varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
+                                          trinodes, self._grid.a1u, self._grid.a2u,
+                                          debug=debug)
+                if debug:
+                    end = time.time()
+                    print "Processing time: ", (end - start)         
 
         return varInterp
 

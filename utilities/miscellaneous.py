@@ -77,6 +77,43 @@ def op_angles_from_vectors(u, v, debug=False):
     
     return phi
 
+def depth_at_FVCOM_element(ind, trinodes, time_ind):
+    """
+    Input:
+      -ind = element index, integer
+      -trinodes = grid trinodes
+      -time_ind = reference time indexes for surface elevation, list of integer
+    Output: deoth at element, 1D array
+
+    """
+    indexes = trinodes[ind,:]
+    h = self._grid.h[indexes]
+    zeta = np.mean(self._var.el[time_ind,indexes],0) + h[:]   
+    siglay = self._grid.siglay[:,indexes]
+    z = zeta[None,:]*siglay[:,:]
+    dep = np.mean(z,1)
+
+    return dep
+
+def time_to_index(t_start, t_end, time, debug=False):
+    """Convert datetime64[us] string in FVCOM index"""
+        # Find simulation time contains in [t_start, t_end]
+        t = time.shape[0]
+        l = []
+        for i in range(t):
+            date = datetime.fromordinal(int(time[i])) + \
+                   timedelta(days=time[i]%1)-timedelta(days=366)
+            l.append(date)
+        time = np.array(l,dtype='datetime64[us]')
+        t_slice = [t_start, t_end]
+        t_slice = np.array(t_slice,dtype='datetime64[us]')
+
+        if t_slice.shape[0] != 1:
+            argtime = np.argwhere((time>=t_slice[0])&
+                                  (time<=t_slice[-1])).flatten()
+        if debug:
+            print 'Argtime: ', argtime
+
 def signal_extremum(signal):
     """
     This function spots the extremum of a random signal(x).

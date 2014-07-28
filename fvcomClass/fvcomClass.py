@@ -85,6 +85,7 @@ Notes:
                                            debug=self._debug)
             except MemoryError:
                 print '---Data too large for machine memory---'
+                print 'Tip: use ax or tx too use partial data'
                 raise
 
             self.Plots = PlotsFvcom(self.Variables,
