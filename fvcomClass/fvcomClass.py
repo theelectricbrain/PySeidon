@@ -219,12 +219,9 @@ if __name__ == '__main__':
     test.harmonics(0, cnstit='auto', notrend=True, nodiagn=True)
     #WB_COMMENTS: fixed matlabttime to matlabtime
     test.reconstr(test.Variables.matlabTime)
-
-    #WB_COMMENTS: This doesn't work with your TR variable convention
-    # t = shortest_element_path(test.latc,test.lonc,test.lat,test.lon,test.nv,test.h)
     t = shortest_element_path(test.Grid.latc, test.Grid.lonc,
                               test.Grid.lat, test.Grid.lon,
-                              test.Grid.nv, test.Grid.h)
+                              test.Grid.trinodes, test.Grid.h)
 
     elements, _ = t.getTargets([[41420, 39763], [48484, 53441],
                                 [27241, 24226], [21706, 17458]])

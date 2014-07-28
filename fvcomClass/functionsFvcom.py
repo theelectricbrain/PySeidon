@@ -26,17 +26,26 @@ class FunctionsFvcom:
         QC = self._QC
   
     def _centers(self, var, debug=False):
-        '''Compute bathy and elevation at center points -> FVCOM.Grid.hc, elc'''
-        if debug or self._debug:
+        """
+        Compute bathy and elevation at center points -> FVCOM.Grid.hc, elc
+
+        Notes:
+        -----
+          - Can take time over the full domain
+        """
+        debug = debug or self._debug
+        if debug:
             print 'Computing central bathy...'
 
-        size = self.trinodes.T[elements].shape[0]
-        size1 = self.elev.shape[0]
+        #Interpolation at centers
+        size = self._grid.nele
+        size1 = self._grid.ntime
         elc = np.zeros((size1, size))
         hc = np.zeros((size))
-        for ind, value in enumerate(self.trinodes.T[elements]):
-            elc[:, ind] = np.mean(self.elev[:, value-1], axis=1)
-            hc[ind] = np.mean(self.h[value-1])
+        #TR comment: I am dubeous about the interpolation method here
+        for ind, value in enumerate(self._grid.trinodes):
+            elc[:, ind] = np.mean(self._var.el[:, value-1], axis=1)
+            hc[ind] = np.mean(self._grid.h[value-1])
 
         #Custom return    
         self._grid.hc = hc
@@ -47,24 +56,25 @@ class FunctionsFvcom:
         self._QC.append('elevation at center points computed')
         print '-Central bathy and elevation added to FVCOM.Grid.-'
 
-        if debug or self._debug:
+        if debug:
             print '...Passed'   
 
     def hori_velo_norm(self, debug=False):
-        """Compute horizontal velocity norm -> FVCOM.Variables.hori_velo_norm"""
-        if debug or self._debug:
+        """
+        Compute new variable 'horizontal velocity norm' -> FVCOM.Variables.hori_velo_norm
+
+        Notes:
+        -----
+          - Can take time over the full domain
+        """
+        debug = debug or self._debug
+        if debug:
             print 'Computing horizontal velocity norm...'
         if self._var._3D:
-            #TR_comment: not sure we should compute norm only in bounding box
-            #u = self._var.u[:, :, self._grid.region_e[:]]
-            #v = self._var.v[:, :, self._grid.region_e[:]]
             u = self._var.u[:, :, :]
             v = self._var.v[:, :, :]
             vel = ne.evaluate('sqrt(u**2 + v**2)')
         else:
-            #TR_comment: not sure we should compute norm only in bounding box
-            #u = self._var.ua[:, self._grid.region_e[:]]
-            #v = self._var.va[:, self._grid.region_e[:]]
             u = self._var.ua[:, :]
             v = self._var.va[:, :]
             vel = ne.evaluate('sqrt(u**2 + v**2)')  
@@ -76,25 +86,25 @@ class FunctionsFvcom:
         self._QC.append('horizontal velocity norm computed')
         print '-Horizontal velocity norm added to FVCOM.Variables.-'
 
-        if debug or self._debug:
+        if debug:
             print '...Passed'
 
-    #TR: flow_dir over the whole grid far too slow !!!
     def flow_dir(self, debug=False):
         """"
         Compute flow directions over the whole grid -> FVCOM.Variables.flow_dir
+
         Notes:
         -----
-          -directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
-           180=West, 270=South
-          - This is very SLOW !!!
+          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
+            180=West, 270=South
+          - Can take time over the full domain
         """
         if debug or self._debug:
             print 'Computing flow directions...'
 
         u = self._var.ua
         v = self._var.va
-        dirFlow = np.rad2deg(np.arctan2(V,U))#
+        dirFlow = np.rad2deg(np.arctan2(V,U))
         #Adapt to Rose diagram
         #ind = np.where(dirFlow<0)[0]
         #dirFlow[ind] = 360.0 + dirFlow[ind]
@@ -103,7 +113,7 @@ class FunctionsFvcom:
         dirFlow = np.mod(90 - dirFlow, 360.0)
 
         #Custom return    
-        self._var.dir_flow = dirFlow 
+        self._var.dir_flow_hori = dirFlow 
 
         # Add metadata entry
         self._QC.append('depth averaged flow directions computed')
@@ -112,10 +122,11 @@ class FunctionsFvcom:
         if debug or self._debug:
             print '...Passed'
 
-    def flow_dir_at_point(self, pt_lon, pt_lat, time_ind=[],
+    def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
                           exceedance=False, vertical=False, debug=False):
         """
         Flow directions and associated norm at any give location.
+
         Inputs:
         ------
           - pt_lon = longitude in degrees to find
@@ -126,6 +137,8 @@ class FunctionsFvcom:
            - norm = velocity norm at (pt_lon, pt_lat)
         Keywords:
         --------
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
           - time_ind = time indexes to work in, list of integers
           - excedance = True, compute associated exceedance curve
           - vertical = True, compute flowDir for each vertical level
@@ -138,9 +151,20 @@ class FunctionsFvcom:
         if debug:
             print 'Computing flow directions at point...'
 
-        if time:
-            u = self._var.ua[time_ind,:]
-            v = self._var.va[time_ind,:]
+        # Find time interval to work in
+        argtime = []
+        if time_ind:
+            argtime = time_ind
+        elif t_start:
+            if type(t_start)==str:
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+            else:
+                argtime = arange(t_start, t_end)
+
+        #Choose the right pair of velocity components
+        if argtime:
+            u = self._var.ua[argtime,:]
+            v = self._var.va[argtime,:]
         else:
             u = self._var.ua
             v = self._var.va
@@ -152,16 +176,25 @@ class FunctionsFvcom:
                                         debug=debug)  
         V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                         debug=debug)       
+ 
+        #Checking if dir_flow already computed
+        if not hasattr(self._var, 'dir_flow_hori'):
+            #Compute directions
+            if debug:
+                print 'Computing arctan2 and norm...'
+            dirFlow = np.rad2deg(np.arctan2(V,U))#
+            #Adapt to Rose diagram
+            #TR: not quite sure here, seems to change from location to location
+            dirFlow = np.mod(90.0 - dirFlow, 360.0)
+        else:
+            if argtime:
+                dir_flow = self._var.dir_flow_hori[argtime,:,:]
+                dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
+                                                            debug=debug)   
+            else:
+                dirFlow = self._util.interpolation_at_point(self._var.dir_flow_hori,
+                                                            pt_lon, pt_lat, debug=debug) 
 
-        #Compute directions
-        if debug:
-            print 'Computing arctan2 and norm...'
-        dirFlow = np.rad2deg(np.arctan2(V,U))#
-        #Adapt to Rose diagram
-        #TR: not quite sure here, seems to change from location to location
-        dirFlow = np.mod(90.0 - dirFlow, 360.0)
-        #TR alternative:
-        #dirFlow = op_angles_from_vectors(U,V, debug=debug)
         #Compute velocity norm
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
@@ -170,51 +203,71 @@ class FunctionsFvcom:
         #Rose diagram
         self._plot.rose_diagram(dirFlow, norm)
         if exceedance:
-            self.exceedance(norm, self._var.julianTime)
+            self.exceedance(norm, time_ind=argtime)
 
         return dirFlow, norm
 
-    def ebb_flood_split_at_point(self, pt_lon, pt_lat, time_ind=[], debug=False):
+    def ebb_flood_split_at_point(self, pt_lon, pt_lat,
+                                 t_start=[], t_end=[], time_ind=[], debug=False):
         """"
         Compute time indexes for ebb and flood but also the 
         principal flow directions and associated variances for (lon, lat) point
+
         Inputs:
         ------
-          -lon = longitude in deg., float
-          -lat = latitude in deg., float
-          -time_ind = time indexes to work in, 1D array of integers  
+          - lon = longitude in deg., float
+          - lat = latitude in deg., float
         Outputs:
         -------
-           -floodIndex = flood time index, 1D array of integers
-           -ebbIndex = ebb time index, 1D array of integers
-           -pr_axis = principal flow ax1s, number in degrees
-           -pr_ax_var = associated variance
+          - floodIndex = flood time index, 1D array of integers
+          - ebbIndex = ebb time index, 1D array of integers
+          - pr_axis = principal flow ax1s, number in degrees
+          - pr_ax_var = associated variance
         Keywords:
         --------
-                       
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index(integer)
+          - time_ind = time indexes to work in, 1D array of integers         
         Notes:
         -----
-          -may take time to compute if time period too long
-          -directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
-           180=West, 270=South
+          - may take time to compute if time period too long
+          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
+            180=West, 270=South
+          - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
         if debug:
             print 'Computing principal flow directions...'
-        #Extracting velocity component at point
+
+        # Find time interval to work in
+        argtime = []
         if time_ind:
-            u = self._var.ua[time_ind,:]
-            v = self._var.va[time_ind,:]
+            argtime = time_ind
+        elif t_start:
+            if type(t_start)==str:
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+            else:
+                argtime = arange(t_start, t_end)
+
+        #Choose the right pair of velocity components
+        if argtime:
+            u = self._var.ua[argtime,:]
+            v = self._var.va[argtime,:]
         else:
             u = self._var.ua
             v = self._var.va
 
+        #Extraction at point
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat,
                                         debug=debug)  
         V = self.interpolation_at_point(v, pt_lon, pt_lat,
-                                        debug=debug) 
+                                        debug=debug)  
+
+        #Build deviation matrix
         coord = np.matrix([U,V])
         center = np.mean(coord,1)
         coord = coord - center
@@ -261,6 +314,7 @@ class FunctionsFvcom:
         if debug:
             end = time.time()
             print "...processing time: ", (end - start)
+
         ##Eigen values and vectors
         print "Computing eigen values and vectors..."
         if debug:
@@ -311,6 +365,7 @@ class FunctionsFvcom:
         if debug:
             start = time.time()
         dirFlow = np.arctan2(V,U)
+
         #Define bins of angles
         if ra == 0.0:
             binP = [0.0, np.pi/2.0]
@@ -350,6 +405,7 @@ class FunctionsFvcom:
     def interpolation_at_point(self, var, pt_lon, pt_lat, debug=False):
         """
         Interpol any given variables at any give location.
+
         Inputs:
         ------
           - var = variable, numpy array, dim=(time, nele or node)
@@ -424,18 +480,19 @@ class FunctionsFvcom:
 
         return varInterp
 
-    def exceedance(self, var, time, pt_lon=[], pt_lat=[], debug=False):
+    def exceedance(self, var, time_ind, pt_lon=[], pt_lat=[], debug=False):
         """
         This function calculate the excedence curve of a var(time).
+
         Inputs:
         ------
-          - time: time in seconds, 1D array of n elements
-          - var: given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
-          - pt_lon, pt_lat: coordinates, necessary if var = 2D
+          - time_ind = time in seconds, 1D array of n elements
+          - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
+          - pt_lon, pt_lat = coordinates, necessary if var = 2D
         Outputs:
         -------
-           - Exceedance: list of % of occurences
-           - Ranges: list of signal amplitude bins
+           - Exceedance = list of % of occurences
+           - Ranges = list of signal amplitude bins
         Keywords:
         --------
            - graph: True->plots curve; False->does not
@@ -482,29 +539,43 @@ class FunctionsFvcom:
 
         return Exceedance, Ranges
 
-    def vorticity(self, time_index=[], debug=False):
+    def vorticity(self, time_ind=[], t_start=[], t_end=[], debug=False):
         """
-        Compute the depth averaged vorticity for a time period:
-        Dva/Dx - Dua/Dy -> vort
-
-        Keyword:
-        ------
-          -time_index: time indexes, 1D array
+        Compute the depth averaged vorticity for a time period.
+     
+        Outputs:
+        -------
+          - vort = horizontal vorticity (1/s), 2D array (time, nele)
+        Keywords:
+        -------
+          - time_ind = time indexes to work in, list of integers
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
         Notes:
         -----
-          - Very lon if run over every time step
+          - Can take time over the full domain
         """
         debug = (debug or self._debug)
         if debug:
             print 'Computing vorticity...'
             start = time.time()
-        #Define time_index
-        if time_index:
-           t = np.asarray(time_index)
+
+        # Find time interval to work in
+        t = []
+        if time_ind:
+            t = time_ind
+        elif t_start:
+            if type(t_start)==str:
+                t = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+            else:
+                t = arange(t_start, t_end)
         else:
-           t = arange(self._var.va.shape[0])
-           print "It will compute for every time step. This may take a while !"
+            t = arange(self._grid.ntime)  
+
         #Surrounding elements
+        #TR comment: I am not sure this one would work with new regioning protocol
         n1 = self._grid.triele[:,0]
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
@@ -520,8 +591,8 @@ class FunctionsFvcom:
         x0 = self._grid.xc
         y0 = self._grid.yc
         
-        dvdx = np.zeros((t.shape[0], self._var.va.shape[1]))
-        dudy = np.zeros((t.shape[0],self._var.va.shape[1]))
+        dvdx = np.zeros((self._grid.ntime,self._grid.nele))
+        dudy = np.zeros((self._grid.ntime,self._grid.nele))
 
         j=0
         for i in t:
@@ -543,8 +614,8 @@ class FunctionsFvcom:
         #self._var.depth_av_vorticity = vort
         #self._QC.append('depth averaged vorticity computed')
         #print '-Depth averaged vorticity added to FVCOM.Variables.-'
-        return vort
 
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start) 
+        return vort

@@ -199,10 +199,10 @@ class _load_grid:
             self.aw0 = data.variables['aw0']#[:]
             self.awx = data.variables['awx']#[:]
             self.awy = data.variables['awy']#[:]
-            self.nv = data.variables['nv']#[:]
-            self.nbe = data.variables['nbe']#[:]
-            self.trinodes = self.nv[:].T - 1
-            self.triele = self.nbe[:].T - 1
+            #self.nv = data.variables['nv']#[:]
+            #self.nbe = data.variables['nbe']#[:]
+            self.trinodes = data.variables['nv'][:].T - 1
+            self.triele = data.variables['nbe'][:].T - 1
             #-Need to use len to get size of dimensions
             self.nele = len(data.dimensions['nele'])
             self.node = len(data.dimensions['node'])
@@ -215,8 +215,8 @@ class _load_grid:
             self.lat = data.variables['lat']#[:]
             self.lonc = data.variables['lonc']#[:]
             self.latc = data.variables['latc']#[:]
-            self.nv = data.variables['nv']#[:,:]
-            self.nbe = data.variables['nbe']#[:,:]
+            #self.nv = data.variables['nv']#[:,:]
+            #self.nbe = data.variables['nbe']#[:,:]
             region_e, region_n = self._bounding_box(ax, debug=debug)
             #Quick reshape
             region_e = region_e.T[0,:]
@@ -252,8 +252,8 @@ class _load_grid:
             self.aw0 = data.variables['aw0']#[:,region_e]
             self.awx = data.variables['awx']#[:,region_e]
             self.awy = data.variables['awy']#[:,region_e]
-            self.nv = data.variables['nv']#[:,region_e]
-            self.nbe = data.variables['nbe']#[:,region_e]
+            #self.nv = data.variables['nv']#[:,region_e]
+            #self.nbe = data.variables['nbe']#[:,region_e]
 
         if debug:
             print '...Passed'

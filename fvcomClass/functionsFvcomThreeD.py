@@ -75,6 +75,9 @@ class FunctionsFvcomThreeD:
         ------
           - pt_lon = longitude in degrees to find
           - pt_lat = latitude in degrees to find
+        Outputs:
+        -------
+          - dep = depth, 2D array (ntime, nlevel)
         """
         debug = debug or self._debug
         if debug:
@@ -108,16 +111,6 @@ class FunctionsFvcomThreeD:
         """
         Compute new variable 'vertical shear' -> FVCOM.Variables.verti_shear
 
-        Inputs:
-        ------
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
-        Keywords:
-        --------
-          - bot_lvl = index of the bottom level to consider, integer
-          - top_lvl = index of the top level to consider, integer
         Notes:
         -----
           - Can take time over the full domain
@@ -164,6 +157,9 @@ class FunctionsFvcomThreeD:
         ------
           - pt_lon = longitude in degrees to find
           - pt_lat = latitude in degrees to find
+        Outputs:
+        -------
+          - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
         Keywords:
         --------
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
@@ -172,6 +168,9 @@ class FunctionsFvcomThreeD:
           - bot_lvl = index of the bottom level to consider, integer
           - top_lvl = index of the top level to consider, integer
           - graph = plot graph if True
+        Notes:
+        -----
+          - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
         if debug:
@@ -274,17 +273,24 @@ class FunctionsFvcomThreeD:
                            debug=False):
         """
         Compute vertical shear -> FVCOM.Variables.verti_shear
+
         Inputs:
         ------
           - pt_lon = longitude in degrees to find
           - pt_lat = latitude in degrees to find
+        Outputs:
+        -------
+          - velo_norm = velocity norm, 2D array (time, level)
         Keywords:
         --------
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
           - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
           - time_ind = time indexes to work in, list of integers
+        Notes:
+        -----
+          - use time_ind or t_start and t_end, not both
         """
-         debug = debug or self._debug
+        debug = debug or self._debug
         if debug:
             print 'Computing velocity norm at point...'
        
@@ -316,14 +322,14 @@ class FunctionsFvcomThreeD:
             else:
                 vel = self._var.velo_norm
 
-       #Interpolation
-       velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
+        #Interpolation
+        velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
                                                debug=debug)
 
         if debug:
             print '...passed'
 
-       return velo_norm 
+        return velo_norm 
 
 
     def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
@@ -347,7 +353,9 @@ class FunctionsFvcomThreeD:
           - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
-          - directions between 0 and 360 deg.
+          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
+            180=West, 270=South
+          - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
         if debug:
@@ -363,7 +371,7 @@ class FunctionsFvcomThreeD:
             else:
                 argtime = arange(t_start, t_end)
         
-        #Checking
+        #Checking if dir_flow already computed
         if not hasattr(self._var, 'dir_flow'):
             #Choose the right pair of velocity components
             if argtime:
@@ -375,11 +383,11 @@ class FunctionsFvcomThreeD:
                     v = self._var.va[argtime,:]
             else:
                 if self._var._3D and vertical:
-                   u = self._var.u
-                   v = self._var.v
+                    u = self._var.u
+                    v = self._var.v
                 else:
-                   u = self._var.ua
-                   v = self._var.va
+                    u = self._var.ua
+                    v = self._var.va
 
             #Extraction at point
             if debug:
@@ -392,8 +400,8 @@ class FunctionsFvcomThreeD:
             #Compute directions
             if debug:
                 print 'Computing arctan2 and norm...'
-            dirFlow = np.arctan2(U,V)
-            dirFlow = np.mod(((np.pi/2.0) - dirFlow) * (180.0 / np.pi), 360.0)
+            dirFlow = np.rad2deg(np.arctan2(V,U))
+            dirFlow = np.mod(90.0 - dirFlow, 360.0)
 
         else:
             if argtime:
@@ -414,7 +422,8 @@ class FunctionsFvcomThreeD:
         Compute new variable 'flow directions' -> FVCOM.Variables.flow_dir
         Notes:
         -----
-          - directions between 0 and 360 deg.
+          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
+            180=West, 270=South
           - Can take time over the full domain
         """
         if debug or self._debug:
@@ -423,8 +432,8 @@ class FunctionsFvcomThreeD:
         u = self._var.u
         v = self._var.v
 
-        dirFlow = (np.pi/2.0) - np.arctan2(u,v)
-        dirFlow = dirFlow * (180.0 / np.pi)
+        dirFlow = np.rad2deg(np.arctan2(V,U))
+        dirFlow = np.mod(90 - dirFlow, 360.0)
 
         #Custom return    
         self._var.dir_flow = dirFlow 

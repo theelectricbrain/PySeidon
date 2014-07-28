@@ -20,15 +20,16 @@ class PlotsFvcom:
     def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
         '''
         2D xy colormap plot of any given variable and mesh.
+
         Input:
         -----
-          var = gridded variable, 1 dimensional numpy array
+          - var = gridded variable, 1 dimensional numpy array
 
         Keywords:
         --------
-          cmin = min limit colorbar
-          cmax = max limit colorbar
-          mesh = True, with mesh; False, without mesh
+          - cmin = min limit colorbar
+          - cmax = max limit colorbar
+          - mesh = True, with mesh; False, without mesh
         '''
         if debug or self._debug:
             print 'Plotting grid...'
@@ -120,10 +121,11 @@ class PlotsFvcom:
         """
         Add scattered points (x,y) on current figure,
         where x and y are 1D arrays of the same lengths.
+
         Keywords:
         --------
-          Label = a string
-          Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
+          - Label = a string
+          - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """
         plt.scatter(x, y, s=100, color=color)
         #TR : annotate does not work on my machine !?
@@ -131,7 +133,8 @@ class PlotsFvcom:
                      textcoords='offset points', ha='right',
                      arrowprops=dict(arrowstyle="->", shrinkA=0))
 
-    def vertical_slice(self, var, start_pt, end_pt, time_ind,
+    def vertical_slice(self, var, start_pt, end_pt,
+                       time_ind=[], t_start=[], t_end=[],
                        cmax=[], cmin=[], debug=False):
         """
         Draw vertical slice in var along the shortest path between
@@ -139,10 +142,14 @@ class PlotsFvcom:
  
         Inputs:
         ------
-          -var = 2D dimensional (sigma level, element) variable, array
-          -start_pt = starting point, [longitude, latitude]
-          -end_pt = ending point, [longitude, latitude]
-          -time_ind = reference time indexes for surface elevation, list of integer
+          - var = 2D dimensional (sigma level, element) variable, array
+          - start_pt = starting point, [longitude, latitude]
+          - end_pt = ending point, [longitude, latitude]
+          - time_ind = reference time indexes for surface elevation, list of integer
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
         """
         debug = debug or self._debug
         if not self._var._3D:
@@ -153,6 +160,7 @@ class PlotsFvcom:
             lats = [start_pt[1], end_pt[1]]
             #Finding the closest elements to start and end points
             ind = closest_point(lons, lats, self._grid.lonc, self._grid.latc, debug)
+
             #Finding the shortest path between start and end points
             print "Computing shortest path..."
             short_path = shortest_element_path(self._grid.lonc,
@@ -162,11 +170,24 @@ class PlotsFvcom:
                                                self._grid.trinodes,
                                                self._grid.h)
             el, _ = short_path.getTargets([ind])
+
             #Extract along path
             varP = var[:,el]
             x = self._grid.xc[el]
             y = self._grid.yc[el]
-            depth = np.zeros((self._grid.siglay.shape[0], el.shape[0]))
+            depth = np.zeros((self._grid.nlevel, el.shape[0]))
+
+            # Find time interval to work in
+            argtime = []
+            if time_ind:
+                argtime = time_ind
+            elif t_start:
+                if type(t_start)==str:
+                    argtime = time_to_index(t_start, t_end,
+                                            self._var.matlabTime, debug=debug)
+                else:
+                    argtime = arange(t_start, t_end)
+
             for ind in el:
                 depth[:,ind] = depth_at_ind(ind, trinodes, time_ind)
             line = np.zeros(depth.shape)

@@ -97,22 +97,23 @@ def depth_at_FVCOM_element(ind, trinodes, time_ind):
 
 def time_to_index(t_start, t_end, time, debug=False):
     """Convert datetime64[us] string in FVCOM index"""
-        # Find simulation time contains in [t_start, t_end]
-        t = time.shape[0]
-        l = []
-        for i in range(t):
-            date = datetime.fromordinal(int(time[i])) + \
-                   timedelta(days=time[i]%1)-timedelta(days=366)
-            l.append(date)
-        time = np.array(l,dtype='datetime64[us]')
-        t_slice = [t_start, t_end]
-        t_slice = np.array(t_slice,dtype='datetime64[us]')
+    # Find simulation time contains in [t_start, t_end]
+    t = time.shape[0]
+    l = []
+    for i in range(t):
+        date = datetime.fromordinal(int(time[i])) + \
+               timedelta(days=time[i]%1)-timedelta(days=366)
+        l.append(date)
+    time = np.array(l,dtype='datetime64[us]')
+    t_slice = [t_start, t_end]
+    t_slice = np.array(t_slice,dtype='datetime64[us]')
 
-        if t_slice.shape[0] != 1:
-            argtime = np.argwhere((time>=t_slice[0])&
-                                  (time<=t_slice[-1])).flatten()
-        if debug:
-            print 'Argtime: ', argtime
+    if t_slice.shape[0] != 1:
+        argtime = np.argwhere((time>=t_slice[0])&
+                              (time<=t_slice[-1])).flatten()
+    if debug:
+        print 'Argtime: ', argtime
+    return argtime
 
 def signal_extremum(signal):
     """
