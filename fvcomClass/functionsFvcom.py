@@ -70,14 +70,9 @@ class FunctionsFvcom:
         debug = debug or self._debug
         if debug:
             print 'Computing horizontal velocity norm...'
-        if self._var._3D:
-            u = self._var.u[:, :, :]
-            v = self._var.v[:, :, :]
-            vel = ne.evaluate('sqrt(u**2 + v**2)')
-        else:
-            u = self._var.ua[:, :]
-            v = self._var.va[:, :]
-            vel = ne.evaluate('sqrt(u**2 + v**2)')  
+        u = self._var.ua[:, :]
+        v = self._var.va[:, :]
+        vel = ne.evaluate('sqrt(u**2 + v**2)')  
 
         #Custom return    
         self._var.hori_velo_norm = vel 
@@ -170,11 +165,15 @@ class FunctionsFvcom:
             v = self._var.va
 
         #Extraction at point
+        # Finding closest point
+        index = closest_point([pt_lon], [pt_lat],
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)[0]
         if debug:
             print 'Extraction of u and v at point...'
-        U = self.interpolation_at_point(u, pt_lon, pt_lat,
+        U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
                                         debug=debug)  
-        V = self.interpolation_at_point(v, pt_lon, pt_lat,
+        V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
                                         debug=debug)       
  
         #Checking if dir_flow already computed
@@ -190,10 +189,11 @@ class FunctionsFvcom:
             if len(argtime):
                 dir_flow = self._var.dir_flow_hori[argtime,:,:]
                 dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
-                                                            debug=debug)   
+                                                            index=index, debug=debug)   
             else:
                 dirFlow = self._util.interpolation_at_point(self._var.dir_flow_hori,
-                                                            pt_lon, pt_lat, debug=debug) 
+                                                            pt_lon, pt_lat,
+                                                            index=index, debug=debug) 
 
         #Compute velocity norm
         norm = ne.evaluate('sqrt(U**2 + V**2)')
@@ -260,11 +260,15 @@ class FunctionsFvcom:
             v = self._var.va
 
         #Extraction at point
+        # Finding closest point
+        index = closest_point([pt_lon], [pt_lat],
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)[0]
         if debug:
             print 'Extraction of u and v at point...'
-        U = self.interpolation_at_point(u, pt_lon, pt_lat,
+        U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
                                         debug=debug)  
-        V = self.interpolation_at_point(v, pt_lon, pt_lat,
+        V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
                                         debug=debug)  
 
         #Build deviation matrix
@@ -402,7 +406,7 @@ class FunctionsFvcom:
 
         return floodIndex, ebbIndex, pr_axis, pr_ax_var
 
-    def interpolation_at_point(self, var, pt_lon, pt_lat, debug=False):
+    def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], debug=False):
         """
         Interpol any given variables at any give location.
 
@@ -414,6 +418,12 @@ class FunctionsFvcom:
         Outputs:
         -------
            - varInterp = var interpolate at (pt_lon, pt_lat)
+        Keywords:
+        --------
+          - index = element index, integer
+        Notes:
+        -----
+          - use index if closest element already known
         """
         debug = (debug or self._debug)
         if debug:
@@ -426,15 +436,16 @@ class FunctionsFvcom:
         lat = self._grid.lat
         trinodes = self._grid.trinodes
 
-        # Find indexes of the closest element
-        index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
-        # Conversion (lon, lat) to (x, y)
-        #Different interpolation method if partial data
-        if not hasattr(self._grid, '_region_e'):
-            pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
-                                   index=index, trinodes=trinodes, debug=debug)
-            pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
-                                   index=index, trinodes=trinodes, debug=debug)
+        if not len(index):
+            # Find indexes of the closest element
+            index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
+            # Conversion (lon, lat) to (x, y)
+            #Different interpolation method if partial data
+            if not hasattr(self._grid, '_region_e'):
+                pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
+                                       index=index, trinodes=trinodes, debug=debug)
+                pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
+                                       index=index, trinodes=trinodes, debug=debug)
 
         #change in function of the data you dealing with
         if any(i == self._grid.node for i in var.shape):
@@ -448,6 +459,9 @@ class FunctionsFvcom:
                     end = time.time()
                     print "Processing time: ", (end - start) 
             else:
+                if len(index):
+                    pt_x = self._grid.x[index]
+                    pt_y = self._grid.y[index]
                 if debug:
                     start = time.time() 
                 varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
@@ -469,6 +483,9 @@ class FunctionsFvcom:
                     end = time.time()
                     print "Processing time: ", (end - start) 
             else:
+                if len(index):
+                    pt_x = self._grid.xc[index]
+                    pt_y = self._grid.yc[index]
                 if debug:
                     start = time.time() 
                 varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
@@ -505,10 +522,10 @@ class FunctionsFvcom:
             print 'Computing exceedance...'
 
         #Distinguish between 1D and 2D var
-        if len(var.shape)==2:
+        if len(var.shape)>1:
             if not pt_lon or pt_lat:
                 print 'Lon, lat coordinates are needed'
-                sys.exit()  
+                sys.exit()
             signal = self.interpolation_at_point(var, pt_lon, pt_lat, debug=debug)
         else:
             signal=var

@@ -240,12 +240,16 @@ class FunctionsFvcomThreeD:
                 v = self._var.v
 
             #Extraction at point
+            # Finding closest point
+            index = closest_point([pt_lon], [pt_lat],
+                                  self._grid.lonc,
+                                  self._grid.latc, debug=debug)[0]
             if debug:
                 print 'Extraction of u and v at point...'
             U = self.interpolation_at_point(u, pt_lon, pt_lat,
-                                            debug=debug)  
+                                            index=index, debug=debug)  
             V = self.interpolation_at_point(v, pt_lon, pt_lat,
-                                            debug=debug)
+                                            index=index, debug=debug)
             norm = ne.evaluate('sqrt(U**2 + V**2)')     
 
             # Compute shear
@@ -254,7 +258,8 @@ class FunctionsFvcomThreeD:
             dveldz = dvel / dz
         else:
             dveldz = interpolation_at_point(self._var.verti_shear,
-                                            pt_lon, pt_lat, debug=debug)
+                                            pt_lon, pt_lat,
+                                            index=index, debug=debug)
 
         if debug:
             print '...Passed'
@@ -283,8 +288,8 @@ class FunctionsFvcomThreeD:
         #Computing velocity norm
         u = self._var.u[:, :, :]
         v = self._var.v[:, :, :]
-        ww = self._var.ww[:, :, :]
-        vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
+        w = self._var.w[:, :, :]
+        vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
 
         #Custom return    
         self._var.velo_norm = vel 
@@ -299,7 +304,7 @@ class FunctionsFvcomThreeD:
     def velo_norm_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
                            debug=False):
         """
-        Compute vertical shear -> FVCOM.Variables.verti_shear
+        Compute the velocity norm at a given point
 
         Inputs:
         ------
@@ -331,28 +336,41 @@ class FunctionsFvcomThreeD:
             else:
                 argtime = arange(t_start, t_end)
 
-        #computing velocity norm
         if len(argtime):
             if not hasattr(self._var, 'velo_norm'):             
                 u = self._var.u[argtime, :, :]
                 v = self._var.v[argtime, :, :]
-                ww = self._var.ww[argtime, :, :]
-                vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
+                w = self._var.w[argtime, :, :]
             else:
                 vel = self._var.velo_norm[argtime, :, :]
         else:
             if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u
-                v = self._var.v
-                ww = self._var.ww
-                vel = ne.evaluate('sqrt(u**2 + v**2 + ww**2)')
+                u = self._var.u[:, :, :]
+                v = self._var.v[:, :, :]
+                w = self._var.w[:, :, :]
             else:
-                vel = self._var.velo_norm
+                vel = self._var.velo_norm[:, :, :]
 
-        #Interpolation
-        velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
-                                               debug=debug)
 
+        # Finding closest point
+        index = closest_point([pt_lon], [pt_lat],
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)[0]
+
+        #Computing horizontal velocity norm
+        if debug:
+            print 'Extraction of u, v and w at point...'
+        if not hasattr(self._var, 'velo_norm'): 
+            U = self.interpolation_at_point(u, pt_lon, pt_lat,
+                                            index=index, debug=debug)  
+            V = self.interpolation_at_point(self._var.v, pt_lon, pt_lat,
+                                            index=index, debug=debug)
+            W = self.interpolation_at_point(self._var.w, pt_lon, pt_lat,
+                                            index=index, debug=debug)
+            velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+        else:
+            velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
+                                                    index=index, debug=debug)
         if debug:
             print '...passed'
 
@@ -390,6 +408,11 @@ class FunctionsFvcomThreeD:
         if debug:
             print 'Computing flow directions at point...'
 
+        # Finding closest point
+        index = closest_point([pt_lon], [pt_lat],
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)[0]
+
         # Find time interval to work in
         argtime = []
         if len(time_ind):
@@ -422,9 +445,9 @@ class FunctionsFvcomThreeD:
             if debug:
                 print 'Extraction of u and v at point...'
             U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
-                                                  debug=debug)  
+                                                  index=index, debug=debug)  
             V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
-                                                  debug=debug)       
+                                                  index=index, debug=debug)       
 
             #Compute directions
             if debug:
@@ -436,10 +459,11 @@ class FunctionsFvcomThreeD:
             if len(argtime):
                 dir_flow = self._var.dir_flow[argtime,:,:]
                 dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
-                                                            debug=debug)   
+                                                            index=index, debug=debug)   
             else:
                 dirFlow = self._util.interpolation_at_point(self._var.dir_flow,
-                                                            pt_lon, pt_lat, debug=debug) 
+                                                            index=index, pt_lon, pt_lat,
+                                                            debug=debug) 
          
         if debug:
                 print '...Passed'

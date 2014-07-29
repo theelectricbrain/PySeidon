@@ -10,7 +10,7 @@ class _load_var:
 'Variables' subset in FVCOM class contains the numpy arrays:
 -----------------------------------------------------------
   Some variables are directly passed on from FVCOM output
-  (i.e. el, julianTime, ww, u, v, ua, va) and possess in-build
+  (i.e. el, julianTime, w, u, v, ua, va) and possess in-build
   set of descriptors, ex:
          _long_name = 'Vertically Averaged x-velocity'
         |_units = 'meters s-1'
@@ -48,7 +48,7 @@ class _load_var:
                 # elev timeseries
                 self.el = data.variables['zeta'][region_t,:]           
                 try:
-                    self.ww = data.variables['ww'][region_t,:,:]
+                    self.w = data.variables['ww'][region_t,:,:]
                     self.u = data.variables['u'][region_t,:,:]
                     self.v = data.variables['v'][region_t,:,:]
                     self.ua = data.variables['ua'][region_t,:]
@@ -56,7 +56,7 @@ class _load_var:
                     # invisible variables
                     self._3D = True
                     #Add time dimension to grid variables
-                    grid.nlevel = self.ww.shape[1]
+                    grid.nlevel = self.w.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][region_t,:]
                     self.va = data.variables['va'][region_t,:]
@@ -69,7 +69,7 @@ class _load_var:
                 # elev timeseries
                 self.el = data.variables['zeta'][region_t,region_n] 
                 try:
-                    self.ww = data.variables['ww'][region_t,:,region_e]
+                    self.w = data.variables['ww'][region_t,:,region_e]
                     self.u = data.variables['u'][region_t,:,region_e]
                     self.v = data.variables['v'][region_t,:,region_e]
                     self.ua = data.variables['ua'][region_t,region_e]
@@ -77,7 +77,7 @@ class _load_var:
                     # invisible variables
                     self._3D = True
                     #Add time dimension to grid variables
-                    grid.nlevel = self.ww.shape[1]
+                    grid.nlevel = self.w.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][region_t,region_e]
                     self.va = data.variables['va'][region_t,region_e]
@@ -97,7 +97,7 @@ class _load_var:
                 # elev timeseries
                 self.el = data.variables['zeta']#[:]           
                 try:
-                    self.ww = data.variables['ww']#[:]
+                    self.w = data.variables['ww']#[:]
                     self.u = data.variables['u']#[:]
                     self.v = data.variables['v']#[:]
                     self.ua = data.variables['ua']#[:]
@@ -105,7 +105,7 @@ class _load_var:
                     # invisible variables
                     self._3D = True
                     #Add time dimension to grid variables
-                    grid.nlevel = self.ww.shape[1]
+                    grid.nlevel = self.w.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua']#[:]
                     self.va = data.variables['va']#[:]
@@ -118,7 +118,7 @@ class _load_var:
                 # elev timeseries
                 self.el = data.variables['zeta'][:,region_n] 
                 try:
-                    self.ww = data.variables['ww'][:,:,region_e]
+                    self.w = data.variables['ww'][:,:,region_e]
                     self.u = data.variables['u'][:,:,region_e]
                     self.v = data.variables['v'][:,:,region_e]
                     self.ua = data.variables['ua'][:,region_e]
@@ -126,7 +126,7 @@ class _load_var:
                     # invisible variables
                     self._3D = True
                     #Add time dimension to grid variables
-                    grid.nlevel = self.ww.shape[1]
+                    grid.nlevel = self.w.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][:,region_e]
                     self.va = data.variables['va'][:,region_e]
