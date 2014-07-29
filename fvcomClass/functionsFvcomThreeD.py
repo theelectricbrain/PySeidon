@@ -109,7 +109,7 @@ class FunctionsFvcomThreeD:
             start = time.time()
 
         #Finding index
-        if not index:      
+        if index==[]:      
             index = closest_point([pt_lon], [pt_lat],
                                   self._grid.lonc,
                                   self._grid.latc, debug=debug)[0]
@@ -205,9 +205,9 @@ class FunctionsFvcomThreeD:
 
         # Find time interval to work in
         argtime = []
-        if len(time_ind):
+        if not time_ind==[]:
             argtime = time_ind
-        elif t_start:
+        elif not t_start==[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
@@ -215,15 +215,15 @@ class FunctionsFvcomThreeD:
 
         #Compute depth
         dep = self.depth_at_point(pt_lon, pt_lat, debug=debug)
-        if len(argtime):
+        if not argtime==[]:
             depth = dep[argtime,:]
         else:
             depth = dep
 
         #Sigma levels to consider
-        if not top_lvl:
+        if not top_lvl==[]:
             top_lvl = (self._grid.nlevel) - 1
-        if not bot_lvl:
+        if not bot_lvl==[]:
             bot_lvl = 0
         sLvl = range(bot_lvl, top_lvl+1)
 
@@ -232,7 +232,7 @@ class FunctionsFvcomThreeD:
         if not hasattr(self._var, 'verti_shear'): 
              
             #Extracting velocity at point
-            if len(argtime):
+            if not argtime==[]:
                 u = self._var.u[argtime,:,:]
                 v = self._var.v[argtime,:,:]
             else:
@@ -328,15 +328,15 @@ class FunctionsFvcomThreeD:
        
         # Find time interval to work in
         argtime = []
-        if len(time_ind):
+        if not time_ind=[]:
             argtime = time_ind
-        elif t_start:
+        elif not t_start=[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
                 argtime = arange(t_start, t_end)
 
-        if len(argtime):
+        if not argtime==[]:
             if not hasattr(self._var, 'velo_norm'):             
                 u = self._var.u[argtime, :, :]
                 v = self._var.v[argtime, :, :]
@@ -415,9 +415,9 @@ class FunctionsFvcomThreeD:
 
         # Find time interval to work in
         argtime = []
-        if len(time_ind):
+        if not time_ind==[]:
             argtime = time_ind
-        elif t_start:
+        elif not t_start==[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
@@ -426,7 +426,7 @@ class FunctionsFvcomThreeD:
         #Checking if dir_flow already computed
         if not hasattr(self._var, 'dir_flow'):
             #Choose the right pair of velocity components
-            if len(argtime):
+            if not argtime==[]:
                 if self._var._3D and vertical:
                     u = self._var.u[argtime,:,:]
                     v = self._var.v[argtime,:,:]
@@ -456,14 +456,14 @@ class FunctionsFvcomThreeD:
             dirFlow = np.mod(90.0 - dirFlow, 360.0)
 
         else:
-            if len(argtime):
+            if not argtime==[]:
                 dir_flow = self._var.dir_flow[argtime,:,:]
                 dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
                                                             index=index, debug=debug)   
             else:
                 dirFlow = self._util.interpolation_at_point(self._var.dir_flow,
-                                                            index=index, pt_lon, pt_lat,
-                                                            debug=debug) 
+                                                            pt_lon, pt_lat,
+                                                            index=index, debug=debug) 
          
         if debug:
                 print '...Passed'
@@ -547,9 +547,9 @@ class FunctionsFvcomThreeD:
 
             # Find time interval to work in
             argtime = []
-            if len(time_ind):
+            if not time_ind==[]:
                 argtime = time_ind
-            elif len(t_start):
+            elif not t_start==[]:
                 if type(t_start)==str:
                     argtime = time_to_index(t_start, t_end,
                                             self._var.matlabTime, debug=debug)
@@ -567,7 +567,7 @@ class FunctionsFvcomThreeD:
                 depth[:,:,I] = self.depth_at_point([], [], index=ind)
                 I+=1
             # Average depth over time
-            if len(argtime):
+            if not argtime==[]:
                 depth = np.mean(depth[argtime,:,:], 0)
             else:
                 depth = np.mean(depth, 0)
@@ -589,9 +589,9 @@ class FunctionsFvcomThreeD:
             #yi = np.linspace(y.min(), y.max(), ny)
 
             #Plot features
-            if not cmax:
+            if cmax==[]:
                 cmax = np.max(varP)
-            if not cmin:
+            if cmin==[]:
                 cmin = np.min(varP)
             #plt.clf()
             plt.subplots()

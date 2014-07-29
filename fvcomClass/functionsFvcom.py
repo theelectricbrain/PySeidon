@@ -148,16 +148,16 @@ class FunctionsFvcom:
 
         # Find time interval to work in
         argtime = []
-        if len(time_ind):
+        if not time_ind==[]:
             argtime = time_ind
-        elif t_start:
+        elif not t_start==[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        if len(argtime):
+        if not argtime==[]:
             u = self._var.ua[argtime,:]
             v = self._var.va[argtime,:]
         else:
@@ -186,7 +186,7 @@ class FunctionsFvcom:
             #TR: not quite sure here, seems to change from location to location
             dirFlow = np.mod(90.0 - dirFlow, 360.0)
         else:
-            if len(argtime):
+            if not argtime==[]:
                 dir_flow = self._var.dir_flow_hori[argtime,:,:]
                 dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
                                                             index=index, debug=debug)   
@@ -243,16 +243,16 @@ class FunctionsFvcom:
 
         # Find time interval to work in
         argtime = []
-        if time_ind:
+        if not time_ind==[]:
             argtime = time_ind
-        elif t_start:
+        elif not t_start==[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        if len(argtime):
+        if not argtime==[]:
             u = self._var.ua[argtime,:]
             v = self._var.va[argtime,:]
         else:
@@ -436,16 +436,16 @@ class FunctionsFvcom:
         lat = self._grid.lat
         trinodes = self._grid.trinodes
 
-        if not len(index):
+        if index==[]:
             # Find indexes of the closest element
             index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
-            # Conversion (lon, lat) to (x, y)
-            #Different interpolation method if partial data
-            if not hasattr(self._grid, '_region_e'):
-                pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
-                                       index=index, trinodes=trinodes, debug=debug)
-                pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
-                                       index=index, trinodes=trinodes, debug=debug)
+        # Conversion (lon, lat) to (x, y)
+        #Different interpolation method if partial data
+        if not hasattr(self._grid, '_region_e'):
+            pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
+                                   index=index, trinodes=trinodes, debug=debug)
+            pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
+                                   index=index, trinodes=trinodes, debug=debug)
 
         #change in function of the data you dealing with
         if any(i == self._grid.node for i in var.shape):
@@ -459,9 +459,6 @@ class FunctionsFvcom:
                     end = time.time()
                     print "Processing time: ", (end - start) 
             else:
-                if len(index):
-                    pt_x = self._grid.x[index]
-                    pt_y = self._grid.y[index]
                 if debug:
                     start = time.time() 
                 varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
@@ -483,9 +480,6 @@ class FunctionsFvcom:
                     end = time.time()
                     print "Processing time: ", (end - start) 
             else:
-                if len(index):
-                    pt_x = self._grid.xc[index]
-                    pt_y = self._grid.yc[index]
                 if debug:
                     start = time.time() 
                 varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
@@ -581,9 +575,9 @@ class FunctionsFvcom:
 
         # Find time interval to work in
         t = []
-        if len(time_ind):
+        if not time_ind==[]:
             t = time_ind
-        elif t_start:
+        elif not t_start==[]:
             if type(t_start)==str:
                 t = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
@@ -636,3 +630,5 @@ class FunctionsFvcom:
             end = time.time()
             print "Computation time in (s): ", (end - start) 
         return vort
+
+
