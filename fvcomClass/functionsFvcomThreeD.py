@@ -11,6 +11,7 @@ from interpolation_utils import *
 from miscellaneous import *
 from shortest_element_path import *
 import time
+import seaborn
 
 #TR comment: This all routine needs to be tested and debugged
 class FunctionsFvcomThreeD:
@@ -41,23 +42,38 @@ class FunctionsFvcomThreeD:
         """
         debug = debug or self._debug
         if debug:
-            print "Computing depth..."
             start = time.time()
 
+        print "Computing depth..."
         #Compute depth
         #Different interpolation method if partial dat
         if hasattr(self._grid, '_region_e'):
-            h = self._grid.h[self._grid_region_e]
-        else:
-            h = self._grid.h
+            #h = self._grid.h[self._grid._region_e]
+            print 'This functionality has benn tested yet'
+            raise
+        
+        size = self._grid.nele
+        size1 = self._grid.ntime
+        size2 = self._grid.nlevel
+        elc = np.zeros((size1, size))
+        hc = np.zeros((size))
+        siglay = np.zeros((size2, size))
+        #TR comment: I am dubeous about the interpolation method here
+        #            as we assume values been in the exact center
+        for ind, value in enumerate(self._grid.trinodes):
+            elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
+            hc[ind] = np.mean(self._grid.h[value])
+            siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
+
         zeta = self._var.el[:,:] + h[None,:]
-        siglay = self._grid.siglay[:]
-        z = zeta[:,None,:]*siglay[None,:,:]
-        dep = np.zeros([self._grid.ntime,self._grid.nlevel,self._grid.node])
-        for i in range(self._grid.node):
-            dep[:,:,i] = interpolation_at_point(z[:,:,i],
-                                                self._grid.lonc[i],
-                                                self._grid.latc[i], debug=debug)
+        dep = zeta[:,None,:]*siglay[None,:,:]
+        #TR comment: needed to re-think depth calculation
+        #            as to be compatible with regioning
+        #dep = np.zeros([self._grid.ntime,self._grid.nlevel,self._grid.node])
+        #for i in range(self._grid.node):
+        #    dep[:,:,i] = interpolation_at_point(z[:,:,i],
+        #                                        self._grid.lonc[i],
+        #                                        self._grid.latc[i], debug=debug)
 
         if debug:
             end = time.time()
@@ -89,7 +105,7 @@ class FunctionsFvcomThreeD:
         """
         debug = debug or self._debug
         if debug:
-            print "Computing depth"
+            print "Computing depth..."
             start = time.time()
 
         #Finding index
@@ -97,21 +113,19 @@ class FunctionsFvcomThreeD:
             index = closest_point([pt_lon], [pt_lat],
                                   self._grid.lonc,
                                   self._grid.latc, debug=debug)[0]
-        else:
-            pt_lon = self._grid.lon[index]
-            pt_lat = self._grid.lat[index]
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
-            h = self._grid.h[index]
-            zeta = self._var.el[:,index] + h
-            siglay = self._grid.siglay[:]
-            z = zeta[:,None]*siglay[None,:,index]
-            dep = np.zeros([self._grid.ntime,self._grid.nlevel])
-            if not index: 
-                dep = self.interpolation_at_point(z, pt_lon,
-                                                     pt_lat,
-                                                     debug=debug)
+            value = self._grid.trinodes[index]
+            h = np.mean(self._grid.h[value])
+            zeta = np.mean(self._var.el[:,value],1) + h
+            siglay = np.mean(self._grid.siglay[:,value],1)
+            dep = zeta[:,None]*siglay[None,:]
+            #TR comment: needed to re-think depth calculation
+            #            as to be compatible with regioning
+            #dep = np.zeros([self._grid.ntime,self._grid.nlevel])
+            #dep = self.interpolation_at_point(z, pt_lon,
+            #                                  pt_lat, debug=debug)
         else:
             dep = self._grid.depth[:,:,index]         
         if debug:
@@ -126,7 +140,7 @@ class FunctionsFvcomThreeD:
 
         Notes:
         -----
-          - Can take time over the full domain
+          - Can take time over the full doma
         """
         debug = debug or self._debug
         if debug:
@@ -163,7 +177,7 @@ class FunctionsFvcomThreeD:
             print '...Passed'
 
     def verti_shear_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[],  time_ind=[],
-                             bot_lvl=[], top_level= [], graph=True, debug=False):
+                             bot_lvl=[], top_lvl=[], graph=True, debug=False):
         """
         Compute vertical shear -> FVCOM.Variables.verti_shear
         Inputs:
@@ -191,17 +205,17 @@ class FunctionsFvcomThreeD:
 
         # Find time interval to work in
         argtime = []
-        if time_ind:
+        if len(time_ind):
             argtime = time_ind
         elif t_start:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
-                argtime = arange(t_start, t_end) 
+                argtime = np.arange(t_start, t_end) 
 
         #Compute depth
         dep = self.depth_at_point(pt_lon, pt_lat, debug=debug)
-        if argtime:
+        if len(argtime):
             depth = dep[argtime,:]
         else:
             depth = dep
@@ -218,7 +232,7 @@ class FunctionsFvcomThreeD:
         if not hasattr(self._var, 'verti_shear'): 
              
             #Extracting velocity at point
-            if argtime:
+            if len(argtime):
                 u = self._var.u[argtime,:,:]
                 v = self._var.v[argtime,:,:]
             else:
@@ -309,7 +323,7 @@ class FunctionsFvcomThreeD:
        
         # Find time interval to work in
         argtime = []
-        if time_ind:
+        if len(time_ind):
             argtime = time_ind
         elif t_start:
             if type(t_start)==str:
@@ -318,7 +332,7 @@ class FunctionsFvcomThreeD:
                 argtime = arange(t_start, t_end)
 
         #computing velocity norm
-        if argtime:
+        if len(argtime):
             if not hasattr(self._var, 'velo_norm'):             
                 u = self._var.u[argtime, :, :]
                 v = self._var.v[argtime, :, :]
@@ -378,7 +392,7 @@ class FunctionsFvcomThreeD:
 
         # Find time interval to work in
         argtime = []
-        if time_ind:
+        if len(time_ind):
             argtime = time_ind
         elif t_start:
             if type(t_start)==str:
@@ -389,7 +403,7 @@ class FunctionsFvcomThreeD:
         #Checking if dir_flow already computed
         if not hasattr(self._var, 'dir_flow'):
             #Choose the right pair of velocity components
-            if argtime:
+            if len(argtime):
                 if self._var._3D and vertical:
                     u = self._var.u[argtime,:,:]
                     v = self._var.v[argtime,:,:]
@@ -419,7 +433,7 @@ class FunctionsFvcomThreeD:
             dirFlow = np.mod(90.0 - dirFlow, 360.0)
 
         else:
-            if argtime:
+            if len(argtime):
                 dir_flow = self._var.dir_flow[argtime,:,:]
                 dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
                                                             debug=debug)   
@@ -509,9 +523,9 @@ class FunctionsFvcomThreeD:
 
             # Find time interval to work in
             argtime = []
-            if time_ind:
+            if len(time_ind):
                 argtime = time_ind
-            elif t_start:
+            elif len(t_start):
                 if type(t_start)==str:
                     argtime = time_to_index(t_start, t_end,
                                             self._var.matlabTime, debug=debug)
@@ -529,13 +543,26 @@ class FunctionsFvcomThreeD:
                 depth[:,:,I] = self.depth_at_point([], [], index=ind)
                 I+=1
             # Average depth over time
-            depth = np.mean(depth[argtime,:,:], 0)
+            if len(argtime):
+                depth = np.mean(depth[argtime,:,:], 0)
+            else:
+                depth = np.mean(depth, 0)
+              
             # Compute distance along line
             x = self._grid.xc[ele]
             y = self._grid.yc[ele]
-            # Pythagore 
+            # Pythagore + cumulative path 
             line = np.zeros(depth.shape)
-            line[:,1:] = np.sqrt(np.square(x[1:]-x[:-1]) + np.square(y[1:]-y[:-1]))
+            dl = np.sqrt(np.square(x[1:]-x[:-1]) + np.square(y[1:]-y[:-1]))
+            for i in range(1,dl.shape[0]):
+                dl[i] = dl[i] + dl[i-1]
+            line[:,1:] = dl[:]
+           
+            #turn into gridded
+            #print 'Compute gridded data'
+            #nx, ny = 100, 100
+            #xi = np.linspace(x.min(), x.max(), nx)
+            #yi = np.linspace(y.min(), y.max(), ny)
 
             #Plot features
             if not cmax:
@@ -543,20 +570,19 @@ class FunctionsFvcomThreeD:
             if not cmin:
                 cmin = np.min(varP)
             #plt.clf()
-            fig,ax = plt.subplots()
+            plt.subplots()
             plt.rc('font',size='22')
             #levels = np.linspace(0,3.3,34)
             #cs = ax.contourf(line,depth,varP,levels=levels, cmap=plt.cm.jet)
-            cs = ax.contourf(line,depth,varP, cmap=plt.cm.jet)
-            ax.contour(line,depth,varP,cs.levels, colors='k')
-            cbar = fig.colorbar(cs,ax=ax)
-            cbar.set_label(title, rotation=-90,labelpad=30)
-            #ax.set_title('vel_mean')
-            scale = 1
-            ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
-            ax.xaxis.set_major_formatter(ticks)
-            ax.yaxis.set_major_formatter(ticks)
-            ax.ylabel('Latitude')
-            ax.xlabel('Longitude')
-            0/0
-
+            plt.contourf(line,depth,varP,vmax=cmax,vmin=cmin,cmap=plt.get_cmap('rainbow'))
+            plt.contour(line,depth,varP,cs.levels,linewidths=0.5,colors='k')
+            cbar = plt.colorbar()
+            #cbar.set_label(title, rotation=-90,labelpad=30)
+            #ax.set_title()
+            plt.title(title)
+            #scale = 1
+            #ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
+            #ax.xaxis.set_major_formatter(ticks)
+            #ax.yaxis.set_major_formatter(ticks)
+            plt.xlabel('Distance along line (m)')
+            plt.ylabel('Depth (m)')

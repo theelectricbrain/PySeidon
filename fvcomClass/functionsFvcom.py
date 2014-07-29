@@ -153,7 +153,7 @@ class FunctionsFvcom:
 
         # Find time interval to work in
         argtime = []
-        if time_ind:
+        if len(time_ind):
             argtime = time_ind
         elif t_start:
             if type(t_start)==str:
@@ -162,7 +162,7 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        if argtime:
+        if len(argtime):
             u = self._var.ua[argtime,:]
             v = self._var.va[argtime,:]
         else:
@@ -187,7 +187,7 @@ class FunctionsFvcom:
             #TR: not quite sure here, seems to change from location to location
             dirFlow = np.mod(90.0 - dirFlow, 360.0)
         else:
-            if argtime:
+            if len(argtime):
                 dir_flow = self._var.dir_flow_hori[argtime,:,:]
                 dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
                                                             debug=debug)   
@@ -252,7 +252,7 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        if argtime:
+        if len(argtime):
             u = self._var.ua[argtime,:]
             v = self._var.va[argtime,:]
         else:
@@ -564,7 +564,7 @@ class FunctionsFvcom:
 
         # Find time interval to work in
         t = []
-        if time_ind:
+        if len(time_ind):
             t = time_ind
         elif t_start:
             if type(t_start)==str:

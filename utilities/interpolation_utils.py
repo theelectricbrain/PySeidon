@@ -176,7 +176,9 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
                     index=[], trinodes=[], tri=[], debug=False):
     """
     Interpol any given variables at any give location.
+
     Inputs:
+    ------
       - var = variable, numpy array, dim=(time, nele or node)
       - pt_lon = longitude in degrees to find
       - pt_lat = latitude in degrees to find
@@ -193,8 +195,8 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     #Triangulation
     #if debug:
     #    print triIndex, lon[triIndex], lat[triIndex]
+    triIndex = trinodes[index]
     if not tri:
-        triIndex = trinodes[index]
         tri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
 
     trif = tri.get_trifinder()
@@ -203,7 +205,7 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
         #if len(var.shape)==1:
             #averEl = var[triIndex]
             #print 'Var', averEl
-            #inter = Tri.LinearTriInterpolator(newtri, averEl)
+            #inter = Tri.LinearTriInterpolator(tri, averEl)
             #zi = inter(pt_lon, pt_lat)
             #print zi
             #fig = plt.figure(figsize=(18,10))
@@ -219,14 +221,14 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     if len(var.shape)==1:
         triVar = np.zeros(triIndex.shape)
         triVar = var[triIndex]
-        inter = Tri.LinearTriInterpolator(newtri, triVar[:])
+        inter = Tri.LinearTriInterpolator(tri, triVar[:])
         varInterp = inter(pt_lon, pt_lat)      
     elif len(var.shape)==2:
         triVar = np.zeros((var.shape[0], triIndex.shape[0]))
         triVar = var[:, triIndex]
         varInterp = np.ones(triVar.shape[0])
         for i in range(triVar.shape[0]):
-            inter = Tri.LinearTriInterpolator(newtri, triVar[i,:])
+            inter = Tri.LinearTriInterpolator(tri, triVar[i,:])
             varInterp[i] = inter(pt_lon, pt_lat)       
     else:
         triVar = np.zeros((var.shape[0], var.shape[1], triIndex.shape[0]))
@@ -234,7 +236,7 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
         varInterp = np.ones(triVar.shape[:-1])
         for i in range(triVar.shape[0]):
            for j in range(triVar.shape[1]):
-               inter = Tri.LinearTriInterpolator(newtri, triVar[i,j,:])
+               inter = Tri.LinearTriInterpolator(tri, triVar[i,j,:])
                varInterp[i,j] = inter(pt_lon, pt_lat)
 
     if debug:
