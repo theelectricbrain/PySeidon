@@ -9,6 +9,7 @@ from datetime import datetime
 from datetime import timedelta
 from interpolation_utils import *
 from miscellaneous import *
+from shortest_element_path import *
 import time
 
 #TR comment: This all routine needs to be tested and debugged
@@ -67,7 +68,7 @@ class FunctionsFvcomThreeD:
         self._QC.append('depth computed')
         print '-Flow directions added to FVCOM.Variables.-'
 
-    def depth_at_point(self, pt_lon, pt_lat, debug=False):
+    def depth_at_point(self, pt_lon, pt_lat, index=[], debug=False):
         """
         Compute depth at given point
 
@@ -78,16 +79,27 @@ class FunctionsFvcomThreeD:
         Outputs:
         -------
           - dep = depth, 2D array (ntime, nlevel)
+        Keywords:
+        --------
+          - index = element index, interger
+        Notes:
+        -----
+          - index is used in case one knows already at which
+            element depth is requested
         """
         debug = debug or self._debug
         if debug:
             print "Computing depth"
             start = time.time()
 
-        #Finding index        
-        index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+        #Finding index
+        if not index:      
+            index = closest_point([pt_lon], [pt_lat],
+                                  self._grid.lonc,
+                                  self._grid.latc, debug=debug)[0]
+        else:
+            pt_lon = self._grid.lon[index]
+            pt_lat = self._grid.lat[index]
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
@@ -96,9 +108,10 @@ class FunctionsFvcomThreeD:
             siglay = self._grid.siglay[:]
             z = zeta[:,None]*siglay[None,:,index]
             dep = np.zeros([self._grid.ntime,self._grid.nlevel])
-            dep = self.interpolation_at_point(z, pt_lon,
-                                                 pt_lat,
-                                                 debug=debug)
+            if not index: 
+                dep = self.interpolation_at_point(z, pt_lon,
+                                                     pt_lat,
+                                                     debug=debug)
         else:
             dep = self._grid.depth[:,:,index]         
         if debug:
@@ -332,7 +345,7 @@ class FunctionsFvcomThreeD:
         return velo_norm 
 
 
-    def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
+    def flow_dir_at_point(self, pt_lon, pt_lat, time_ind=[], t_start=[], t_end=[],
                           vertical=True, debug=False):
         """
         Flow directions and associated norm at any give location.
@@ -348,8 +361,10 @@ class FunctionsFvcomThreeD:
         Keywords:
         -------
           - time_ind = time indexes to work in, list of integers
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
           - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
@@ -444,4 +459,104 @@ class FunctionsFvcomThreeD:
 
         if debug or self._debug:
             print '...Passed'
+
+    def _vertical_slice(self, var, start_pt, end_pt,
+                        time_ind=[], t_start=[], t_end=[],
+                        title='Title', cmax=[], cmin=[], debug=False):
+        """
+        Draw vertical slice in var along the shortest path between
+        start_point, end_pt.
+ 
+        Inputs:
+        ------
+          - var = 2D dimensional (sigma level, element) variable, array
+          - start_pt = starting point, [longitude, latitude]
+          - end_pt = ending point, [longitude, latitude]
+        Keywords:
+        --------
+          - time_ind = reference time indexes for surface elevation, list of integer
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+        Keywords for plot:
+        -----------------
+          - title = plot title, string
+          - cmin = minimum limit colorbar
+          - cmax = maximum limit colorbar
+        """
+        debug = debug or self._debug
+        if not self._var._3D:
+            print "Error: Only available for 3D runs."
+            raise
+        else: 
+            lons = [start_pt[0], end_pt[0]]
+            lats = [start_pt[1], end_pt[1]]
+            #Finding the closest elements to start and end points
+            ind = closest_point(lons, lats, self._grid.lonc, self._grid.latc, debug)
+
+            #Finding the shortest path between start and end points
+            print "Computing shortest path..."
+            short_path = shortest_element_path(self._grid.lonc[:],
+                                               self._grid.latc[:],
+                                               self._grid.lon[:],
+                                               self._grid.lat[:],
+                                               self._grid.trinodes[:],
+                                               self._grid.h[:])
+            el, _ = short_path.getTargets([ind])           
+            # Plot shortest path
+            short_path.graphGrid(plot=True)
+
+            # Find time interval to work in
+            argtime = []
+            if time_ind:
+                argtime = time_ind
+            elif t_start:
+                if type(t_start)==str:
+                    argtime = time_to_index(t_start, t_end,
+                                            self._var.matlabTime, debug=debug)
+                else:
+                    argtime = arange(t_start, t_end)
+ 
+            #Extract along line
+            ele=np.asarray(el[:])[0,:]
+            varP = var[:,ele]
+            # Depth along line
+            print "Computing depth..."
+            depth = np.zeros((self._grid.ntime, self._grid.nlevel, ele.shape[0]))
+            I=0
+            for ind in ele:
+                depth[:,:,I] = self.depth_at_point([], [], index=ind)
+                I+=1
+            # Average depth over time
+            depth = np.mean(depth[argtime,:,:], 0)
+            # Compute distance along line
+            x = self._grid.xc[ele]
+            y = self._grid.yc[ele]
+            # Pythagore 
+            line = np.zeros(depth.shape)
+            line[:,1:] = np.sqrt(np.square(x[1:]-x[:-1]) + np.square(y[1:]-y[:-1]))
+
+            #Plot features
+            if not cmax:
+                cmax = np.max(varP)
+            if not cmin:
+                cmin = np.min(varP)
+            #plt.clf()
+            fig,ax = plt.subplots()
+            plt.rc('font',size='22')
+            #levels = np.linspace(0,3.3,34)
+            #cs = ax.contourf(line,depth,varP,levels=levels, cmap=plt.cm.jet)
+            cs = ax.contourf(line,depth,varP, cmap=plt.cm.jet)
+            ax.contour(line,depth,varP,cs.levels, colors='k')
+            cbar = fig.colorbar(cs,ax=ax)
+            cbar.set_label(title, rotation=-90,labelpad=30)
+            #ax.set_title('vel_mean')
+            scale = 1
+            ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
+            ax.xaxis.set_major_formatter(ticks)
+            ax.yaxis.set_major_formatter(ticks)
+            ax.ylabel('Latitude')
+            ax.xlabel('Longitude')
+            0/0
 

@@ -15,12 +15,12 @@ class shortest_element_path:
 
         #latc = self.data.variables['latc'][:]
         #lonc = self.data.variables['lonc'][:]
-        self.lonc = lonc
-        self.latc = latc
-        self.lat = lat
-        self.lon = lon
-        self.trinodes = trinodes
-        self.h = h
+        self.lonc = lonc[:]
+        self.latc = latc[:]
+        self.lat = lat[:]
+        self.lon = lon[:]
+        self.trinodes = trinodes[:]
+        self.h = h[:]
 
         #z = np.vstack((latc,lonc)).T
         z = np.vstack((lonc,latc)).T
@@ -131,25 +131,26 @@ class shortest_element_path:
         #lon = self.data.variables['lon'][:]
         #nv = self.data.variables['nv'][:].T -1
         #h = self.data.variables['h'][:]
-        lat = self.lat
-        lon = self.lon
-        trinodes = self.trinodes
-        h = self.h
+        #lat = self.self.lat
+        #lon = self.lon
+        #trinodes = self.trinodes[:]
+        #h = self.h
 
-        tri = Tri.Triangulation(lon, lat, triangles=trinodes)  # xy or latlon based on how you are #Grand Passage
+        tri = Tri.Triangulation(self.lon, self.lat, triangles=self.trinodes) 
+        # xy or latlon based on how you are #Grand Passage
 
-        levels=np.arange(-38,6,1)   # depth contours to plot
+        #levels=np.arange(-38,6,1)   # depth contours to plot
 
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')
-        ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
-        plt.tricontourf(tri, -h,levels=levels,shading='faceted',cmap=plt.cm.gist_earth)
+        ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(self.lat)*np.pi/180.0)))
+        #plt.tricontourf(tri,-self.h,shading='faceted',cmap=plt.cm.gist_earth)
         plt.triplot(tri)
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.gca().patch.set_facecolor('0.5')
-        cbar=plt.colorbar()
-        cbar.set_label('Water Depth (m)', rotation=-90,labelpad=30)
+        #cbar=plt.colorbar()
+        #cbar.set_label('Water Depth (m)', rotation=-90,labelpad=30)
 
         scale = 1
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
@@ -178,6 +179,8 @@ class shortest_element_path:
         plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=2, ncol=3)
         #plt.legend()
         if plot:
+            plt.ylabel('Latitude')
+            plt.xlabel('Longitude')
             plt.show()
 
 

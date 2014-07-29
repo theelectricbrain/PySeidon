@@ -417,7 +417,7 @@ class FunctionsFvcom:
         """
         debug = (debug or self._debug)
         if debug:
-            print 'Interpoling at point...'
+            print 'Interpolaling at point...'
         lonc = self._grid.lonc
         latc = self._grid.latc
         xc = self._grid.xc

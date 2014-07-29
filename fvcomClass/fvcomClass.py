@@ -104,6 +104,7 @@ Notes:
                                                         self.Utils,
                                                         self.QC,
                                                         self._debug)
+                self.Plots.vertical_slice = self.UtilsThreeD._vertical_slice
             if debug:
                 print 'Finding bounding box...'
             if ax:
@@ -122,36 +123,19 @@ Notes:
 
         Inputs:
         ------
-        Takes an index so that ut_solv can be run on the data and twodim.
-        twodim=True means that ut_solv will be done for velocity, and
-        twodim=False means that ut_solv will be done for elevation.
+        - Takes an index so that ut_solv can be run on the data and twodim.
+        - twodim=True means that ut_solv will be done for velocity, and
+        - twodim=False means that ut_solv will be done for elevation.
 
         Options:
         -------
-        Options are the same as for ut_solv, which are shown below with
-        their default values:
-        conf_int=True
-        cnstit='auto'
-        notrend=0
-        prefilt=[]
-        nodsatlint=0
-        nodsatnone=0
-        gwchlint=0
-        gwchnone=0
-        infer=[]
-        inferaprx=0
-        rmin=1
-        method='cauchy'
-        tunrdn=1
-        linci=0
-        white=0
-        nrlzn=200
-        lsfrqosmp=1
-        nodiagn=0
-        diagnplots=0
-        diagnminsnr=2
-        ordercnstit=[]
-        runtimedisp='yyy'
+        - Options are the same as for ut_solv, which are shown below with
+          their default values:
+            conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
+            nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
+            rmin=1; method='cauchy'; tunrdn=1; linci=0; white=0; nrlzn=200;
+            lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
+            ordercnstit=[]; runtimedisp='yyy'
 
         Notes:
         -----
