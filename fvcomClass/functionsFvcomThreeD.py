@@ -157,7 +157,7 @@ class FunctionsFvcomThreeD:
         vel = self._var.hori_velo_norm
 
         #Sigma levels to consider
-        top_lvl = (self._grid.nlevel) - 1
+        top_lvl = self._grid.nlevel - 1
         bot_lvl = 0
         sLvl = range(bot_lvl, top_lvl+1)
 
@@ -222,7 +222,7 @@ class FunctionsFvcomThreeD:
 
         #Sigma levels to consider
         if not top_lvl==[]:
-            top_lvl = (self._grid.nlevel) - 1
+            top_lvl = self._grid.nlevel - 1
         if not bot_lvl==[]:
             bot_lvl = 0
         sLvl = range(bot_lvl, top_lvl+1)
@@ -328,9 +328,9 @@ class FunctionsFvcomThreeD:
        
         # Find time interval to work in
         argtime = []
-        if not time_ind=[]:
+        if not time_ind==[]:
             argtime = time_ind
-        elif not t_start=[]:
+        elif not t_start==[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
@@ -598,10 +598,12 @@ class FunctionsFvcomThreeD:
             plt.rc('font',size='22')
             #levels = np.linspace(0,3.3,34)
             #cs = ax.contourf(line,depth,varP,levels=levels, cmap=plt.cm.jet)
-            plt.contourf(line,depth,varP,vmax=cmax,vmin=cmin,cmap=plt.get_cmap('rainbow'))
-            plt.contour(line,depth,varP,cs.levels,linewidths=0.5,colors='k')
+            cs = plt.contourf(line,depth,varP,vmax=cmax,vmin=cmin,
+                              cmap=plt.get_cmap('rainbow'))
             cbar = plt.colorbar()
             #cbar.set_label(title, rotation=-90,labelpad=30)
+            plt.contour(line,depth,varP,cs.levels,
+                        linewidths=0.5,colors='k')
             #ax.set_title()
             plt.title(title)
             #scale = 1
