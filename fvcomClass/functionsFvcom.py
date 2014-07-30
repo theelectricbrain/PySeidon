@@ -10,6 +10,7 @@ from datetime import datetime
 from datetime import timedelta
 from interpolation_utils import *
 from miscellaneous import *
+from BP_tools import *
 import time
 
 class FunctionsFvcom:
@@ -199,7 +200,6 @@ class FunctionsFvcom:
         norm = ne.evaluate('sqrt(U**2 + V**2)')
         if debug:
             print '...Passed'
-
         #Rose diagram
         self._plot.rose_diagram(dirFlow, norm)
         if exceedance:
@@ -236,9 +236,11 @@ class FunctionsFvcom:
           - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
             180=West, 270=South
           - use time_ind or t_start and t_end, not both
+          - assume that flood is aligned with principal direction
         """
         debug = debug or self._debug
         if debug:
+            start = time.time()
             print 'Computing principal flow directions...'
 
         # Find time interval to work in
@@ -271,105 +273,16 @@ class FunctionsFvcom:
         V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
                                         debug=debug)  
 
-        #Build deviation matrix
-        coord = np.matrix([U,V])
-        center = np.mean(coord,1)
-        coord = coord - center
-
-        #Pierre Poulain's approach
-        #inertia = np.dot(coord.transpose(), coord)
-        #if debug:
-        #    start = time.time()
-        #    print 'Computing eigen values and vectors...'
-        #e_values, e_vectors = np.linalg.eig(inertia)
-        #if debug:
-        #    end = time.time()
-        #    print "...processing time: ", (end - start)
-        #
-        #if debug:
-        #    print "(unordered) eigen values:"
-        #    print e_values
-        #    print "(unordered) eigen vectors:"
-        #    print e_vectors
-
-        ## order eigen values (and eigen vectors)
-        ## axis1 is the principal axis with the biggest eigen value (eval1)
-        ## axis2 is the principal axis with the second biggest eigen value (eval2)
-        #for i in xrange(len(e_values)):
-        #    # find biggest eigen value
-        #    if e_values[i] == max(e_values):
-        #        eval1 = e_values[i]
-        #        axis1 = e_vectors[:,i]
-        #    # find smallest eigen value
-        #    else:
-        #        eval2 = e_values[i]
-        #        axis2 = e_vectors[:,i]
-
-        #pr_axis = np.rad2deg(np.arctan2(axis1[1], axis1[0]))
-        #pr_axis = np.mod(-90 -pr_axis, 360.0)
-        #pr_ax_var = eval1/np.sum(e_values)
-
-        #TR comment: THis Brian Polagye's and Kristen thyng approach
-        ##Covariance
-        print "Computing covariance..."
+        #WB version of BP's principal axis
         if debug:
-            start = time.time() 
-        R = np.cov(coord)    
+            print 'Computin principal axis at point...'
+        pr_axis, pr_ax_var = principal_axis(U, V)
+
+        #ebb/flood split
         if debug:
-            end = time.time()
-            print "...processing time: ", (end - start)
-
-        ##Eigen values and vectors
-        print "Computing eigen values and vectors..."
-        if debug:
-            start = time.time()
-        eigVal, eigVec = np.linalg.eig(R)
-        if debug:
-            end = time.time()
-            print "...processing time: ", (end - start)
-            print eigVal, eigVec
-
-        #TR performance test with Scipy
-        #if debug:
-        #    start = time.time()
-        #eigValS, eigVecS = LA.eig(R)
-        #if debug:
-        #    end = time.time()
-        #    print "...processing time with Scipy: ", (end - start)
-        #    print eigValS, eigVecS
-
-        #BP comments: Sort eignvalues in descending order
-        #BP comments: so that major axis is given by first eigenvecto
-        eigValF = np.sort(eigVal)[::-1]
-        ilambda = np.argsort(eigVal)[::-1]
-        #TR performance test with Scipy
-        #eigValFS = np.sort(eigValS)[::-1]
-        #ilambdaS = np.argsort(eigValS)[::-1]
-        #BP comments: Reconstruct the eigenvalue matrix
-        eigVal = np.diag(eigValF)
-        #TR performance test with Scipy
-        #eigValS = np.diag(eigValFS)
-        ##BP comments: reorder the eigenvectors
-        eigVec = eigVec[ilambda,:]
-        ra = np.arctan2(eigVec[0,1], eigVec[1,1])
-        #TR performance test with Scipy
-        #eigVecS = eigVec[ilambdaS,:]
-        #raS = np.arctan2(eigVecS[0,1], eigVecS[1,1])        
-        #express principal axis in compass
-        pr_axis = np.mod(90.0 - np.rad2deg(ra), 360.0)
-        pr_ax_var = (eigVal[0]/np.trace(eigVal))[0]
-        #TR performance test with Scipy
-        #pr_axisS = np.mod(90.0 - np.rad2deg(raS), 360.0)
-        #pr_ax_varS = (eigValS[0]/np.trace(eigValS))[0]
-        #print 'Results with Numpy: ', pr_axis, pr_ax_var
-        #print 'Results with Scipy: ', pr_axisS, pr_ax_varS
-
-        #Computing ebb and flood indexes:
-        print "Computing flood and ebb axis..."
-        if debug:
-            start = time.time()
-        dirFlow = np.arctan2(V,U)
-
+            print 'Splitting ebb and flood at point...'
+        ra = (pr_axis - 90.0) * np.pi /180.0    
+        dirFlow = np.arctan2(U,V) * 180 / np.pi
         #Define bins of angles
         if ra == 0.0:
             binP = [0.0, np.pi/2.0]
@@ -399,6 +312,11 @@ class FunctionsFvcom:
                 ((dirFlow > binM[0]) * (dirFlow < binM[1])))
         floodIndex = np.where(test == True)[0]
         ebbIndex = np.where(test == False)[0]
+
+        #TR fit with Rose diagram angle convention
+        pr_axis = pr_axis - 90.0
+        if pr_axis<0.0:
+            pr_axis[ind] = pr_axis[ind] + 360   
 
         if debug:
             end = time.time()

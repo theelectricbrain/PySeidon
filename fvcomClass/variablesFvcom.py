@@ -1,6 +1,7 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 
+from __future__ import division
 from jdcal import gcal2jd
 import numpy as np
 import matplotlib.tri as Tri

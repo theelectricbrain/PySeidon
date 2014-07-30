@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-from rawADCPclass import rawADCP
+#from rawADCPclass import rawADCP
 from datetime import datetime
 from datetime import timedelta
 import scipy.io as sio

@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 #Libs import
+from __future__ import division
 import numpy as np
 import sys
 sys.path.append('/home/wesley/github/UTide/')
