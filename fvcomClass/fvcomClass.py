@@ -91,6 +91,12 @@ Notes:
                 print '---  to use partial data'
                 raise
 
+            # Define bounding box
+            if ax:
+                self.Grid._ax = ax
+            else:
+                self.Grid._ax = []
+
             self.Plots = PlotsFvcom(self.Variables,
                                     self.Grid,
                                     self._debug)
@@ -113,8 +119,6 @@ Notes:
             if ax:
                 self.Grid._ax = ax
             else:
-                #self.Grid._ax = [min(self.Grid.lon), max(self.Grid.lon),
-                #                 min(self.Grid.lat), max(self.Grid.lat)]
                 self.Grid._ax = []
 
     def Harmonic_analysis(self, ind, twodim=True, **kwarg):
