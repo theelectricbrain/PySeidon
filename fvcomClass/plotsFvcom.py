@@ -40,7 +40,8 @@ class PlotsFvcom:
           - cmax = maximum limit colorbar
           - mesh = True, with mesh; False, without mesh
         '''
-        if debug or self._debug:
+        debug = debug or self._debug
+        if debug:
             print 'Plotting grid...'
         # Figure if var had nele or node dimensions
         if var.shape[0] == self._grid.nele:
@@ -68,6 +69,7 @@ class PlotsFvcom:
             lon = self._grid.lon[:]
             lat = self._grid.lat[:]
             tri = Tri.Triangulation(lon, lat, triangles=trinodes)
+            self._grid.triangle = tri
         else:
             tri = self._grid.triangle
 
