@@ -17,8 +17,10 @@ class PlotsFvcom:
         self._debug = debug
         self._var = variable
         self._grid = grid
+        self._grid._ax = grid._ax
         #Back pointer
         grid = self._grid
+
 
         if debug:
             print "Computing bounding box..."
@@ -57,14 +59,14 @@ class PlotsFvcom:
         # Bounding box nodes, elements and variable
         bb = self._grid._ax     
 
-        if not hasattr(self._grid, 'triDelaunay'):        
+        if not hasattr(self._grid, 'triangle'):        
             # Mesh triangle
             trinodes = self._grid.trinodes 
             lon = self._grid.lon
             lat = self._grid.lat
             tri = Tri.Triangulation(lon, lat, triangles=trinodes)
         else:
-            tri = self._grid.triDelaunay
+            tri = self._grid.triangle
 
         #setting limits and levels of colormap
         if cmin==[]:
