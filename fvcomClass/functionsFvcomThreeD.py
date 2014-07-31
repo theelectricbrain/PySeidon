@@ -124,7 +124,7 @@ class FunctionsFvcomThreeD:
             #Compute depth
             h = self.interpolation_at_point(self._grid.h, pt_lon, pt_lat,
                                             index=index, debug=debug)
-            el = self.interpolation_at_point(self._var.zeta, pt_lon, pt_lat,
+            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
                                              index=index, debug=debug)
             siglay = self.interpolation_at_point(self._grid.siglay, pt_lon, pt_lat,
                                                  index=index, debug=debug)
@@ -587,7 +587,11 @@ class FunctionsFvcomThreeD:
             depth = np.zeros((self._grid.ntime, self._grid.nlevel, ele.shape[0]))
             I=0
             for ind in ele:
-                depth[:,:,I] = self.depth_at_point([], [], index=ind)
+                value = self._grid.trinodes[ind]
+                h = np.mean(self._grid.h[value])
+                zeta = np.mean(self._var.el[:,value],1) + h
+                siglay = np.mean(self._grid.siglay[:,value],1)
+                depth[:,:,I] =  zeta[:,None]*siglay[None,:]
                 I+=1
             # Average depth over time
             if not argtime==[]:
@@ -620,17 +624,16 @@ class FunctionsFvcomThreeD:
             step = (cmax-cmin) / 20.0
             levels=np.arange(cmin, (cmax+step), step)
             #plt.clf()
-            plt.figure(figsize=(18,10))
-            plt.subplots()
+            fig = plt.figure(figsize=(18,10))
             plt.rc('font',size='22')
+            fig.add_subplot(111) #,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
             #levels = np.linspace(0,3.3,34)
             #cs = ax.contourf(line,depth,varP,levels=levels, cmap=plt.cm.jet)
             cs = plt.contourf(line,depth,varP,levels=levels, vmax=cmax,vmin=cmin,
-                              cmap=plt.get_cmap('rainbow'))
-            cbar = plt.colorbar()
+                              cmap=plt.get_cmap('jet'))
+            cbar = fig.colorbar(cs)
             #cbar.set_label(title, rotation=-90,labelpad=30)
-            plt.contour(line,depth,varP,cs.levels,
-                        linewidths=0.5,colors='k')
+            plt.contour(line,depth,varP,cs.levels) #, linewidths=0.5,colors='k')
             #ax.set_title()
             plt.title(title)
             #scale = 1
