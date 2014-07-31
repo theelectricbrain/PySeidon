@@ -64,37 +64,6 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
 
     return closest_point_indexes
 
-def closest_point_KDTree( pt_lon, pt_lat, tree, debug=False):
-    '''
-    Finds the closest exact lon, lat centre indexes of an FVCOM class
-    to given lon, lat coordinates.
-
-    Inputs:
-      - pt_lon = list of longitudes in degrees to find
-      - pt_lat = list of latitudes in degrees to find
-      - tree = KDT tree
-    Outputs:
-      - closest_point_indexes = numpy array of grid indexes
-    '''
-    if debug:
-        print 'Computing closest_point_indexes...'
-
-    points = np.array([pt_lon, pt_lat]) 
-    closest_point_indexes = np.zeros(points.shape[0])
-    for i in range(points.shape[1]):
-        dist, ndx = tree.query([points[:,1]], k=1)    
-        ndx = d.argsort()
-        closest_point_indexes[i] = ndx[0]
-    if debug:
-        print 'Closest dist: ', closest_dist
-
-
-    if debug:
-        print 'closest_point_indexes', closest_point_indexes
-        print '...Passed'
-
-    return closest_point_indexes
-
 def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
                   aw0, awx, awy, debug=False):
     """

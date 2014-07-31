@@ -56,15 +56,17 @@ class PlotsFvcom:
             print "Computing bounding box..."
         if self._grid._ax==[]:
             #Bounding box
-            self._grid._ax = [min(self._grid.lon), max(self._grid.lon),
-                             min(self._grid.lat), max(self._grid.lat)]
+            lon = self._grid.lon[:]
+            lat = self._grid.lat[:]
+            self._grid._ax = [min(lon), max(lon),
+                             min(lat), max(lat)]
         bb = self._grid._ax     
 
         if not hasattr(self._grid, 'triangle'):        
             # Mesh triangle
             trinodes = self._grid.trinodes 
-            lon = self._grid.lon
-            lat = self._grid.lat
+            lon = self._grid.lon[:]
+            lat = self._grid.lat[:]
             tri = Tri.Triangulation(lon, lat, triangles=trinodes)
         else:
             tri = self._grid.triangle
