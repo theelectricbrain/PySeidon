@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
 from matplotlib.path import Path
+from scipy.spatial import KDTree
 
 def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
     '''
@@ -24,8 +25,10 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
     if debug:
         print 'Computing closest_point_indexes...'
 
+    lonc=lon[:]
+    latc=lat[:]
     points = np.array([pt_lon, pt_lat]).T
-    point_list = np.array([lon, lat]).T
+    point_list = np.array([lonc, latc]).T
 
     #closest_dist = (np.square((point_list[:, 0] - points[:, 0, None])) +
     #                np.square((point_list[:, 1] - points[:, 1, None])))
@@ -51,6 +54,37 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
     #    dist=((point_list-points[i,:])**2).sum(axis=1)    
     #    ndx = d.argsort()
     #    closest_point_indexes[i] = ndx[0]
+    if debug:
+        print 'Closest dist: ', closest_dist
+
+
+    if debug:
+        print 'closest_point_indexes', closest_point_indexes
+        print '...Passed'
+
+    return closest_point_indexes
+
+def closest_point_KDTree( pt_lon, pt_lat, tree, debug=False):
+    '''
+    Finds the closest exact lon, lat centre indexes of an FVCOM class
+    to given lon, lat coordinates.
+
+    Inputs:
+      - pt_lon = list of longitudes in degrees to find
+      - pt_lat = list of latitudes in degrees to find
+      - tree = KDT tree
+    Outputs:
+      - closest_point_indexes = numpy array of grid indexes
+    '''
+    if debug:
+        print 'Computing closest_point_indexes...'
+
+    points = np.array([pt_lon, pt_lat]) 
+    closest_point_indexes = np.zeros(points.shape[0])
+    for i in range(points.shape[1]):
+        dist, ndx = tree.query([points[:,1]], k=1)    
+        ndx = d.argsort()
+        closest_point_indexes[i] = ndx[0]
     if debug:
         print 'Closest dist: ', closest_dist
 
