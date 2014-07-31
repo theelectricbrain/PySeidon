@@ -91,8 +91,8 @@ class FunctionsFvcomThreeD:
 
         Inputs:
         ------
-          - pt_lon = longitude in degrees to find
-          - pt_lat = latitude in degrees to find
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
         Outputs:
         -------
           - dep = depth, 2D array (ntime, nlevel)
@@ -180,11 +180,12 @@ class FunctionsFvcomThreeD:
     def verti_shear_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[],  time_ind=[],
                              bot_lvl=[], top_lvl=[], graph=True, debug=False):
         """
-        Compute vertical shear -> FVCOM.Variables.verti_shear
+        Compute vertical shear at any given location
+
         Inputs:
         ------
-          - pt_lon = longitude in degrees to find
-          - pt_lat = latitude in degrees to find
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
         Outputs:
         -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
@@ -305,12 +306,12 @@ class FunctionsFvcomThreeD:
     def velo_norm_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
                            debug=False):
         """
-        Compute the velocity norm at a given point
+        Compute the velocity norm at any given location
 
         Inputs:
         ------
-          - pt_lon = longitude in degrees to find
-          - pt_lat = latitude in degrees to find
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
         Outputs:
         -------
           - velo_norm = velocity norm, 2D array (time, level)
@@ -381,12 +382,12 @@ class FunctionsFvcomThreeD:
     def flow_dir_at_point(self, pt_lon, pt_lat, time_ind=[], t_start=[], t_end=[],
                           vertical=True, debug=False):
         """
-        Flow directions and associated norm at any give location.
+        Compute flow directions and associated norm at any given location.
 
         Inputs:
         ------
-          - pt_lon = longitude in degrees to find
-          - pt_lat = latitude in degrees to find
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
         Outputs:
         -------
           - flowDir = flowDir at (pt_lon, pt_lat)
@@ -474,6 +475,7 @@ class FunctionsFvcomThreeD:
     def flow_dir(self, debug=False):
         """"
         Compute new variable 'flow directions' -> FVCOM.Variables.flow_dir
+
         Notes:
         -----
           - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,

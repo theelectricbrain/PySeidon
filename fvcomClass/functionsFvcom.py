@@ -125,8 +125,8 @@ class FunctionsFvcom:
 
         Inputs:
         ------
-          - pt_lon = longitude in degrees to find
-          - pt_lat = latitude in degrees to find
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
         Outputs:
         -------
            - flowDir = flowDir at (pt_lon, pt_lat)
@@ -215,8 +215,8 @@ class FunctionsFvcom:
 
         Inputs:
         ------
-          - lon = longitude in deg., float
-          - lat = latitude in deg., float
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
         Outputs:
         -------
           - floodIndex = flood time index, 1D array of integers
@@ -336,8 +336,8 @@ class FunctionsFvcom:
         Inputs:
         ------
           - var = variable, numpy array, dim=(time, nele or node)
-          - pt_lon = longitude in degrees to find
-          - pt_lat = latitude in degrees to find
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
         Outputs:
         -------
            - varInterp = var interpolate at (pt_lon, pt_lat)
