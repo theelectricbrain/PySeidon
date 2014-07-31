@@ -203,13 +203,13 @@ class FunctionsFvcom:
         #Rose diagram
         self._plot.rose_diagram(dirFlow, norm)
         if exceedance:
-            self.exceedance(norm, time_ind=argtime)
+            self.exceedance(norm)
 
         return dirFlow, norm
 
     def ebb_flood_split_at_point(self, pt_lon, pt_lat,
                                  t_start=[], t_end=[], time_ind=[], debug=False):
-        """"
+        """
         Compute time indexes for ebb and flood but also the 
         principal flow directions and associated variances for (lon, lat) point
 
@@ -281,8 +281,13 @@ class FunctionsFvcom:
         #ebb/flood split
         if debug:
             print 'Splitting ebb and flood at point...'
-        ra = (pr_axis - 90.0) * np.pi /180.0    
-        dirFlow = np.arctan2(U,V) * 180 / np.pi
+        # reverse 0-360 deg convention
+        ra = (-pr_axis - 90.0) * np.pi /180.0
+        if ra>np.pi:
+            ra = ra - (2.0*np.pi)
+        elif ra<-np.pi:
+            ra = ra + (2.0*np.pi)    
+        dirFlow = np.arctan2(V,U)
         #Define bins of angles
         if ra == 0.0:
             binP = [0.0, np.pi/2.0]
@@ -409,25 +414,24 @@ class FunctionsFvcom:
 
         return varInterp
 
-    def exceedance(self, var, time_ind, pt_lon=[], pt_lat=[], debug=False):
+    def exceedance(self, var, pt_lon=[], pt_lat=[], debug=False):
         """
         This function calculate the excedence curve of a var(time).
 
         Inputs:
         ------
-          - time_ind = time in seconds, 1D array of n elements
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
           - pt_lon, pt_lat = coordinates, necessary if var = 2D
         Outputs:
         -------
-           - Exceedance = list of % of occurences
-           - Ranges = list of signal amplitude bins
+          - Exceedance = list of % of occurences
+          - Ranges = list of signal amplitude bins
         Keywords:
         --------
-           - graph: True->plots curve; False->does not
+          - graph: True->plots curve; False->does not
         Notes:
         -----
-          This method is not suitable for SSE
+          - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
         if debug:
@@ -446,7 +450,9 @@ class FunctionsFvcom:
         dy = (Max/30.0)
         Ranges = np.arange(0,(Max + dy), dy)
         Exceedance = np.zeros(Ranges.shape[0])
-        Period = time[-1] - time[0]
+        dt = self._var.julianTime[1] - self._var.julianTime[0]
+        Period = var.shape[0] * dt
+        time = np.arange(0.0, Period, dt)
 
         N = len(signal)
         M = len(Ranges)

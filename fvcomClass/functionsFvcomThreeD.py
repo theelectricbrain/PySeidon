@@ -214,17 +214,21 @@ class FunctionsFvcomThreeD:
             else:
                 argtime = np.arange(t_start, t_end) 
 
+        # Finding closest point
+        index = closest_point([pt_lon], [pt_lat],
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)[0]
         #Compute depth
-        dep = self.depth_at_point(pt_lon, pt_lat, debug=debug)
+        dep = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)
         if not argtime==[]:
             depth = dep[argtime,:]
         else:
             depth = dep
 
         #Sigma levels to consider
-        if not top_lvl==[]:
+        if top_lvl==[]:
             top_lvl = self._grid.nlevel - 1
-        if not bot_lvl==[]:
+        if bot_lvl==[]:
             bot_lvl = 0
         sLvl = range(bot_lvl, top_lvl+1)
 
@@ -241,10 +245,6 @@ class FunctionsFvcomThreeD:
                 v = self._var.v
 
             #Extraction at point
-            # Finding closest point
-            index = closest_point([pt_lon], [pt_lat],
-                                  self._grid.lonc,
-                                  self._grid.latc, debug=debug)[0]
             if debug:
                 print 'Extraction of u and v at point...'
             U = self.interpolation_at_point(u, pt_lon, pt_lat,
@@ -364,9 +364,9 @@ class FunctionsFvcomThreeD:
         if not hasattr(self._var, 'velo_norm'): 
             U = self.interpolation_at_point(u, pt_lon, pt_lat,
                                             index=index, debug=debug)  
-            V = self.interpolation_at_point(self._var.v, pt_lon, pt_lat,
+            V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                             index=index, debug=debug)
-            W = self.interpolation_at_point(self._var.w, pt_lon, pt_lat,
+            W = self.interpolation_at_point(w, pt_lon, pt_lat,
                                             index=index, debug=debug)
             velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
         else:
@@ -590,16 +590,20 @@ class FunctionsFvcomThreeD:
             #yi = np.linspace(y.min(), y.max(), ny)
 
             #Plot features
+            #setting limits and levels of colormap
             if cmax==[]:
                 cmax = np.max(varP)
             if cmin==[]:
                 cmin = np.min(varP)
+            step = (cmax-cmin) / 20.0
+            levels=np.arange(cmin, (cmax+step), step)
             #plt.clf()
+            plt.figure(figsize=(18,10))
             plt.subplots()
             plt.rc('font',size='22')
             #levels = np.linspace(0,3.3,34)
             #cs = ax.contourf(line,depth,varP,levels=levels, cmap=plt.cm.jet)
-            cs = plt.contourf(line,depth,varP,vmax=cmax,vmin=cmin,
+            cs = plt.contourf(line,depth,varP,levels=levels, vmax=cmax,vmin=cmin,
                               cmap=plt.get_cmap('rainbow'))
             cbar = plt.colorbar()
             #cbar.set_label(title, rotation=-90,labelpad=30)
