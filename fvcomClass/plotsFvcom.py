@@ -17,19 +17,10 @@ class PlotsFvcom:
         self._debug = debug
         self._var = variable
         self._grid = grid
-        self._grid._ax = grid._ax
         #Back pointer
         grid = self._grid
+        #self._grid._ax = grid._ax
 
-
-        if debug:
-            print "Computing bounding box..."
-        if self._grid._ax==[]:
-            #Bounding box
-            self._grid._ax = [np.min(self.Grid.lon), np.max(self.Grid.lon),
-                             np.min(self.Grid.lat), np.max(self.Grid.lat)]
-
-        
     def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
         '''
         2D xy colormap plot of any given variable and mesh.
@@ -57,6 +48,12 @@ class PlotsFvcom:
             return
 
         # Bounding box nodes, elements and variable
+        if debug:
+            print "Computing bounding box..."
+        if self._grid._ax==[]:
+            #Bounding box
+            self._grid._ax = [min(self._grid.lon), max(self._grid.lon),
+                             min(self._grid.lat), max(self._grid.lat)]
         bb = self._grid._ax     
 
         if not hasattr(self._grid, 'triangle'):        

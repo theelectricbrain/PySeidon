@@ -92,10 +92,10 @@ Notes:
                 raise
 
             # Define bounding box
-            if ax:
-                self.Grid._ax = ax
-            else:
-                self.Grid._ax = []
+            #if not ax==[]:
+            #    self.Grid._ax = ax
+            #else:
+            #    self.Grid._ax = []
 
             self.Plots = PlotsFvcom(self.Variables,
                                     self.Grid,
@@ -114,12 +114,12 @@ Notes:
                                                         self.QC,
                                                         self._debug)
                 self.Plots.vertical_slice = self.UtilsThreeD._vertical_slice
-            if debug:
-                print 'Finding bounding box...'
-            if ax:
-                self.Grid._ax = ax
-            else:
-                self.Grid._ax = []
+            #if debug:
+            #    print 'Finding bounding box...'
+            #if ax:
+            #    self.Grid._ax = ax
+            #else:
+            #    self.Grid._ax = []
 
     def Harmonic_analysis(self, ind, twodim=True, **kwarg):
         '''

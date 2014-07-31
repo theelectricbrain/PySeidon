@@ -178,6 +178,7 @@ class _load_grid:
     def __init__(self, data, ax, QC, debug=False):
         if debug:
             print 'Caching grid...'
+        self._ax = ax
         #Pointer to QC
         self._QC = QC
         QC = self._QC
