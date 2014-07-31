@@ -32,23 +32,31 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
 
     #closest_point_indexes = np.argmin(closest_dist, axis=1)
     
-    #Optimize version of this bottleneck
-    point_list0 = point_list[:, 0]
-    points0 = points[:, 0, None]
-    point_list1 = point_list[:, 1]
-    points1 = points[:, 1, None]
+    #Wesley's optimized version of this bottleneck
+    #point_list0 = point_list[:, 0]
+    #points0 = points[:, 0, None]
+    #point_list1 = point_list[:, 1]
+    #points1 = points[:, 1, None]
+    #
+    #closest_dist = ((point_list0 - points0) *
+    #                (point_list0 - points0) +
+    #                (point_list1 - points1) *
+    #                (point_list1 - points1)
+    #                )
+    #closest_point_indexes = np.argmin(closest_dist, axis=1)
 
-    closest_dist = ((point_list0 - points0) *
-                    (point_list0 - points0) +
-                    (point_list1 - points1) *
-                    (point_list1 - points1)
-                    )
-
-    print closest_dist
-
-    closest_point_indexes = np.argmin(closest_dist, axis=1)
+    #Thomas' optimized version of this bottleneck    
+    closest_point_indexes = np.zeros(points.shape[0])
+    for i in range(points.shape[0]):
+        dist=((point_list-points[i,:])**2).sum(axis=1)    
+        ndx = d.argsort()
+        closest_point_indexes[i] = ndx[0]
     if debug:
-        print closest_point_indexes
+        print 'Closest dist: ', closest_dist
+
+
+    if debug:
+        print 'closest_point_indexes', closest_point_indexes
         print '...Passed'
 
     return closest_point_indexes
