@@ -24,11 +24,27 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
     if debug:
         print 'Computing closest_point_indexes...'
 
-    points = np.array([pt_lon, pt_lat]).T
-    point_list = np.array([lon, lat]).T
+    #points = np.array([pt_lon, pt_lat]).T
+    #point_list = np.array([lon, lat]).T
 
-    closest_dist = (np.square((point_list[:, 0] - points[:, 0, None])) +
-                    np.square((point_list[:, 1] - points[:, 1, None])))
+    #closest_dist = (np.square((point_list[:, 0] - points[:, 0, None])) +
+    #                np.square((point_list[:, 1] - points[:, 1, None])))
+
+    #closest_point_indexes = np.argmin(closest_dist, axis=1)
+    
+    #Optimize version of this bottleneck
+    point_list0 = point_list[:, 0]
+    points0 = points[:, 0, None]
+    point_list1 = point_list[:, 1]
+    points1 = points[:, 1, None]
+
+    closest_dist = ((point_list0 - points0) *
+                    (point_list0 - points0) +
+                    (point_list1 - points1) *
+                    (point_list1 - points1)
+                    )
+
+    print closest_dist
 
     closest_point_indexes = np.argmin(closest_dist, axis=1)
     if debug:

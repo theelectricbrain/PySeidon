@@ -61,20 +61,26 @@ class FunctionsFvcomThreeD:
         siglay = np.zeros((size2, size))
         #TR comment: I am dubeous about the interpolation method here
         #            as we assume values been in the exact center
-        for ind, value in enumerate(self._grid.trinodes):
-            elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
-            hc[ind] = np.mean(self._grid.h[value])
-            siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
+        try:
+            for ind, value in enumerate(self._grid.trinodes):
+                elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
+                hc[ind] = np.mean(self._grid.h[value])
+                siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
 
-        zeta = self._var.el[:,:] + h[None,:]
-        dep = zeta[:,None,:]*siglay[None,:,:]
-        #TR comment: needed to re-think depth calculation
-        #            as to be compatible with regioning
-        #dep = np.zeros([self._grid.ntime,self._grid.nlevel,self._grid.node])
-        #for i in range(self._grid.node):
-        #    dep[:,:,i] = interpolation_at_point(z[:,:,i],
-        #                                        self._grid.lonc[i],
-        #                                        self._grid.latc[i], debug=debug)
+            zeta = self._var.el[:,:] + h[None,:]
+            dep = zeta[:,None,:]*siglay[None,:,:]
+            #TR comment: needed to re-think depth calculation
+            #            as to be compatible with regioning
+            #dep = np.zeros([self._grid.ntime,self._grid.nlevel,self._grid.node])
+            #for i in range(self._grid.node):
+            #    dep[:,:,i] = interpolation_at_point(z[:,:,i],
+            #                                        self._grid.lonc[i],
+            #                                        self._grid.latc[i], debug=debug)
+        except MemoryError:
+            print '---Data too large for machine memory---'
+            print 'Tip: use ax or tx during class initialisation'
+            print '---  to use partial data'
+            raise
 
         if debug:
             end = time.time()
@@ -157,15 +163,21 @@ class FunctionsFvcomThreeD:
             self.hori_velo_norm()
         vel = self._var.hori_velo_norm
 
-        #Sigma levels to consider
-        top_lvl = self._grid.nlevel - 1
-        bot_lvl = 0
-        sLvl = range(bot_lvl, top_lvl+1)
+        try:
+            #Sigma levels to consider
+            top_lvl = self._grid.nlevel - 1
+            bot_lvl = 0
+            sLvl = range(bot_lvl, top_lvl+1)
 
-        # Compute shear
-        dz = depth[:,sLvl[1:],:] - depth[:,sLvl[:-1],:]
-        dvel = vel[:,sLvl[1:],:] - vel[:,sLvl[:-1],:]           
-        dveldz = dvel / dz
+            # Compute shear
+            dz = depth[:,sLvl[1:],:] - depth[:,sLvl[:-1],:]
+            dvel = vel[:,sLvl[1:],:] - vel[:,sLvl[:-1],:]           
+            dveldz = dvel / dz
+        except MemoryError:
+            print '---Data too large for machine memory---'
+            print 'Tip: use ax or tx during class initialisation'
+            print '---  to use partial data'
+            raise
 
         #Custom return
         self._var.verti_shear = dveldz 

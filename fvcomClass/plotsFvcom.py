@@ -17,6 +17,17 @@ class PlotsFvcom:
         self._debug = debug
         self._var = variable
         self._grid = grid
+        self._ax = grid._ax
+        if debug:
+            print "Computing bounding box..."
+        if self._ax==[]:
+            #Back pointer
+            grid._ax = self._ax
+            #Bounding box
+            self._ax = [np.min(self.Grid.lon), np.max(self.Grid.lon),
+                        np.min(self.Grid.lat), np.max(self.Grid.lat)]
+
+        
     def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
         '''
         2D xy colormap plot of any given variable and mesh.

@@ -73,7 +73,8 @@ Notes:
             text = 'Created from ' + filename
             self.QC = [text]
             # Calling sub-class
-            print "This might take some time..."
+            print "Initialisation..."
+            #print "This might take some time..."
             try:
                 self.Grid = _load_grid(self.Data,
                                        ax,
@@ -86,7 +87,8 @@ Notes:
                                            debug=self._debug)
             except MemoryError:
                 print '---Data too large for machine memory---'
-                print 'Tip: use ax or tx too use partial data'
+                print 'Tip: use ax or tx during class initialisation'
+                print '---  to use partial data'
                 raise
 
             self.Plots = PlotsFvcom(self.Variables,
@@ -111,8 +113,9 @@ Notes:
             if ax:
                 self.Grid._ax = ax
             else:
-                self.Grid._ax = [min(self.Grid.lon), max(self.Grid.lon),
-                                 min(self.Grid.lat), max(self.Grid.lat)]
+                #self.Grid._ax = [min(self.Grid.lon), max(self.Grid.lon),
+                #                 min(self.Grid.lat), max(self.Grid.lat)]
+                self.Grid._ax = []
 
     def Harmonic_analysis(self, ind, twodim=True, **kwarg):
         '''
