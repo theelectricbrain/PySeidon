@@ -17,15 +17,15 @@ class PlotsFvcom:
         self._debug = debug
         self._var = variable
         self._grid = grid
-        self._ax = grid._ax
+        #Back pointer
+        grid = self._grid
+
         if debug:
             print "Computing bounding box..."
-        if self._ax==[]:
-            #Back pointer
-            grid._ax = self._ax
+        if self.grid._ax==[]:
             #Bounding box
-            self._ax = [np.min(self.Grid.lon), np.max(self.Grid.lon),
-                        np.min(self.Grid.lat), np.max(self.Grid.lat)]
+            self.grid._ax = [np.min(self.Grid.lon), np.max(self.Grid.lon),
+                             np.min(self.Grid.lat), np.max(self.Grid.lat)]
 
         
     def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
@@ -56,12 +56,15 @@ class PlotsFvcom:
 
         # Bounding box nodes, elements and variable
         bb = self._grid._ax     
-        
-        # Mesh triangle
-        trinodes = self._grid.trinodes 
-        lon = self._grid.lon
-        lat = self._grid.lat
-        tri = Tri.Triangulation(lon, lat, triangles=trinodes)
+
+        if not hasattr(self._grid, 'triDelaunay'):        
+            # Mesh triangle
+            trinodes = self._grid.trinodes 
+            lon = self._grid.lon
+            lat = self._grid.lat
+            tri = Tri.Triangulation(lon, lat, triangles=trinodes)
+        else:
+            tri = self._grid.triDelaunay
 
         #setting limits and levels of colormap
         if cmin==[]:
