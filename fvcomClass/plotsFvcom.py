@@ -24,9 +24,9 @@ class PlotsFvcom:
 
         if debug:
             print "Computing bounding box..."
-        if self.grid._ax==[]:
+        if self._grid._ax==[]:
             #Bounding box
-            self.grid._ax = [np.min(self.Grid.lon), np.max(self.Grid.lon),
+            self._grid._ax = [np.min(self.Grid.lon), np.max(self.Grid.lon),
                              np.min(self.Grid.lat), np.max(self.Grid.lat)]
 
         
