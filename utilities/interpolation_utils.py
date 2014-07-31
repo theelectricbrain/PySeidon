@@ -24,8 +24,8 @@ def closest_point( pt_lon, pt_lat, lon, lat, debug=False):
     if debug:
         print 'Computing closest_point_indexes...'
 
-    #points = np.array([pt_lon, pt_lat]).T
-    #point_list = np.array([lon, lat]).T
+    points = np.array([pt_lon, pt_lat]).T
+    point_list = np.array([lon, lat]).T
 
     #closest_dist = (np.square((point_list[:, 0] - points[:, 0, None])) +
     #                np.square((point_list[:, 1] - points[:, 1, None])))

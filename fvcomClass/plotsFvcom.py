@@ -12,7 +12,11 @@ from interpolation_utils import *
 from miscellaneous import depth_at_FVCOM_element as depth_at_ind
 
 class PlotsFvcom:
-    """'Plots' subset of FVCOM class gathers plotting functions"""
+    """
+    Description:
+    -----------
+    'Plots' subset of FVCOM class gathers plotting functions
+    """
     def __init__(self, variable, grid, debug):
         self._debug = debug
         self._var = variable

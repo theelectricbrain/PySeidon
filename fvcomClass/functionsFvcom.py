@@ -14,7 +14,12 @@ from BP_tools import *
 import time
 
 class FunctionsFvcom:
-    """'Utils' subset of FVCOM class gathers useful functions"""
+    """
+    Description:
+    -----------
+    'Utils' subset of FVCOM class gathers
+    useful functions for 2D runs
+    """
     def __init__(self, variable, grid, plot, QC, debug):
         self._debug = debug
         self._var = variable
@@ -25,7 +30,8 @@ class FunctionsFvcom:
         variable = self._var
         grid = self._grid
         QC = self._QC
-  
+
+    #TR comment: I don't think I need this anymore  
     def _centers(self, var, debug=False):
         """
         Compute bathy and elevation at center points -> FVCOM.Grid.hc, elc
@@ -71,9 +77,16 @@ class FunctionsFvcom:
         debug = debug or self._debug
         if debug:
             print 'Computing horizontal velocity norm...'
-        u = self._var.ua[:, :]
-        v = self._var.va[:, :]
-        vel = ne.evaluate('sqrt(u**2 + v**2)')  
+
+        try:
+            u = self._var.ua[:, :]
+            v = self._var.va[:, :]
+            vel = ne.evaluate('sqrt(u**2 + v**2)')  
+        except MemoryError:
+            print '---Data too large for machine memory---'
+            print 'Tip: use ax or tx during class initialisation'
+            print '---  to use partial data'
+            raise
 
         #Custom return    
         self._var.hori_velo_norm = vel 
@@ -87,7 +100,8 @@ class FunctionsFvcom:
 
     def flow_dir(self, debug=False):
         """"
-        Compute flow directions over the whole grid -> FVCOM.Variables.flow_dir
+        Compute depth averaged flow directions over the whole grid
+        -> FVCOM.Variables.depth_av_flow_dir
 
         Notes:
         -----
@@ -98,18 +112,24 @@ class FunctionsFvcom:
         if debug or self._debug:
             print 'Computing flow directions...'
 
-        u = self._var.ua
-        v = self._var.va
-        dirFlow = np.rad2deg(np.arctan2(V,U))
-        #Adapt to Rose diagram
-        #ind = np.where(dirFlow<0)[0]
-        #dirFlow[ind] = 360.0 + dirFlow[ind]
-        #TR: not quite sure here, seems to change from location to location
-        #express principal axis in compass
-        dirFlow = np.mod(90 - dirFlow, 360.0)
+        try:
+            u = self._var.ua
+            v = self._var.va
+            dirFlow = np.rad2deg(np.arctan2(V,U))
+            #Adapt to Rose diagram
+            #ind = np.where(dirFlow<0)[0]
+            #dirFlow[ind] = 360.0 + dirFlow[ind]
+            #TR: not quite sure here, seems to change from location to location
+            #express principal axis in compass
+            dirFlow = np.mod(90 - dirFlow, 360.0)
+        except MemoryError:
+            print '---Data too large for machine memory---'
+            print 'Tip: use ax or tx during class initialisation'
+            print '---  to use partial data'
+            raise
 
         #Custom return    
-        self._var.dir_flow_hori = dirFlow 
+        self._var.depth_av_flow_dir = dirFlow 
 
         # Add metadata entry
         self._QC.append('depth averaged flow directions computed')
@@ -178,7 +198,7 @@ class FunctionsFvcom:
                                         debug=debug)       
  
         #Checking if dir_flow already computed
-        if not hasattr(self._var, 'dir_flow_hori'):
+        if not hasattr(self._var, 'depth_av_flow_dir'):
             #Compute directions
             if debug:
                 print 'Computing arctan2 and norm...'
@@ -189,12 +209,13 @@ class FunctionsFvcom:
         else:
             if not argtime==[]:
                 dir_flow = self._var.dir_flow_hori[argtime,:,:]
-                dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
-                                                            index=index, debug=debug)   
+                dirFlow = self.interpolation_at_point(self._var.depth_av_flow_dir,
+                                                      pt_lon, pt_lat,
+                                                      index=index, debug=debug)   
             else:
-                dirFlow = self._util.interpolation_at_point(self._var.dir_flow_hori,
-                                                            pt_lon, pt_lat,
-                                                            index=index, debug=debug) 
+                dirFlow = self.interpolation_at_point(self._var.depth_av_flow_dir,
+                                                      pt_lon, pt_lat,
+                                                      index=index, debug=debug) 
 
         #Compute velocity norm
         norm = ne.evaluate('sqrt(U**2 + V**2)')
@@ -249,7 +270,9 @@ class FunctionsFvcom:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                argtime = time_to_index(t_start, t_end,
+                                        self._var.matlabTime,
+                                        debug=debug)
             else:
                 argtime = arange(t_start, t_end)
 

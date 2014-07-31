@@ -16,7 +16,12 @@ import seaborn
 
 #TR comment: This all routine needs to be tested and debugged
 class FunctionsFvcomThreeD:
-    """'UtilsThreeD' subset of FVCOM class gathers useful functions for 3D runs"""
+    """
+    Description:
+    -----------
+    'UtilsThreeD' subset of FVCOM class gathers
+    useful functions for 3D runs
+    """
     def __init__(self, variable, grid, plot, util, QC, debug):
         #Inheritance
         self._debug = debug
@@ -39,6 +44,7 @@ class FunctionsFvcomThreeD:
 
         Notes:
         -----
+          - depth convention: 0 = free surface
           - Can take time over the full domain
         """
         debug = debug or self._debug
@@ -59,8 +65,7 @@ class FunctionsFvcomThreeD:
         elc = np.zeros((size1, size))
         hc = np.zeros((size))
         siglay = np.zeros((size2, size))
-        #TR comment: I am dubeous about the interpolation method here
-        #            as we assume values been in the exact center
+
         try:
             for ind, value in enumerate(self._grid.trinodes):
                 elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
@@ -69,13 +74,6 @@ class FunctionsFvcomThreeD:
 
             zeta = self._var.el[:,:] + h[None,:]
             dep = zeta[:,None,:]*siglay[None,:,:]
-            #TR comment: needed to re-think depth calculation
-            #            as to be compatible with regioning
-            #dep = np.zeros([self._grid.ntime,self._grid.nlevel,self._grid.node])
-            #for i in range(self._grid.node):
-            #    dep[:,:,i] = interpolation_at_point(z[:,:,i],
-            #                                        self._grid.lonc[i],
-            #                                        self._grid.latc[i], debug=debug)
         except MemoryError:
             print '---Data too large for machine memory---'
             print 'Tip: use ax or tx during class initialisation'
@@ -107,6 +105,7 @@ class FunctionsFvcomThreeD:
           - index = element index, interger
         Notes:
         -----
+          - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
         """
@@ -123,16 +122,14 @@ class FunctionsFvcomThreeD:
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
-            value = self._grid.trinodes[index]
-            h = np.mean(self._grid.h[value])
-            zeta = np.mean(self._var.el[:,value],1) + h
-            siglay = np.mean(self._grid.siglay[:,value],1)
+            h = self.interpolation_at_point(self._grid.h, pt_lon, pt_lat,
+                                            index=index, debug=debug)
+            el = self.interpolation_at_point(self._var.zeta, pt_lon, pt_lat,
+                                             index=index, debug=debug)
+            siglay = self.interpolation_at_point(self._grid.siglay, pt_lon, pt_lat,
+                                                 index=index, debug=debug)
+            zeta = el + h
             dep = zeta[:,None]*siglay[None,:]
-            #TR comment: needed to re-think depth calculation
-            #            as to be compatible with regioning
-            #dep = np.zeros([self._grid.ntime,self._grid.nlevel])
-            #dep = self.interpolation_at_point(z, pt_lon,
-            #                                  pt_lat, debug=debug)
         else:
             dep = self._grid.depth[:,:,index]         
         if debug:
@@ -299,11 +296,17 @@ class FunctionsFvcomThreeD:
         if debug or self._debug:
             print 'Computing velocity norm...'
 
-        #Computing velocity norm
-        u = self._var.u[:, :, :]
-        v = self._var.v[:, :, :]
-        w = self._var.w[:, :, :]
-        vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
+        try:
+            #Computing velocity norm
+            u = self._var.u[:, :, :]
+            v = self._var.v[:, :, :]
+            w = self._var.w[:, :, :]
+            vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
+        except MemoryError:
+            print '---Data too large for machine memory---'
+            print 'Tip: use ax or tx during class initialisation'
+            print '---  to use partial data'
+            raise
 
         #Custom return    
         self._var.velo_norm = vel 
@@ -359,11 +362,11 @@ class FunctionsFvcomThreeD:
                 vel = self._var.velo_norm[argtime, :, :]
         else:
             if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u[:, :, :]
-                v = self._var.v[:, :, :]
-                w = self._var.w[:, :, :]
+                u = self._var.u
+                v = self._var.v
+                w = self._var.w
             else:
-                vel = self._var.velo_norm[:, :, :]
+                vel = self._var.velo_norm
 
 
         # Finding closest point
@@ -438,7 +441,7 @@ class FunctionsFvcomThreeD:
                 argtime = arange(t_start, t_end)
         
         #Checking if dir_flow already computed
-        if not hasattr(self._var, 'dir_flow'):
+        if not hasattr(self._var, 'flow_dir'):
             #Choose the right pair of velocity components
             if not argtime==[]:
                 if self._var._3D and vertical:
@@ -471,11 +474,11 @@ class FunctionsFvcomThreeD:
 
         else:
             if not argtime==[]:
-                dir_flow = self._var.dir_flow[argtime,:,:]
+                dir_flow = self._var.flow_dir[argtime,:,:]
                 dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
                                                             index=index, debug=debug)   
             else:
-                dirFlow = self._util.interpolation_at_point(self._var.dir_flow,
+                dirFlow = self._util.interpolation_at_point(self._var.flow_dir,
                                                             pt_lon, pt_lat,
                                                             index=index, debug=debug) 
          
@@ -497,14 +500,19 @@ class FunctionsFvcomThreeD:
         if debug or self._debug:
             print 'Computing flow directions...'
 
-        u = self._var.u
-        v = self._var.v
-
-        dirFlow = np.rad2deg(np.arctan2(V,U))
-        dirFlow = np.mod(90 - dirFlow, 360.0)
+        try:
+            u = self._var.u
+            v = self._var.v
+            dirFlow = np.rad2deg(np.arctan2(V,U))
+            dirFlow = np.mod(90 - dirFlow, 360.0)
+        except MemoryError:
+            print '---Data too large for machine memory---'
+            print 'Tip: use ax or tx during class initialisation'
+            print '---  to use partial data'
+            raise
 
         #Custom return    
-        self._var.dir_flow = dirFlow 
+        self._var.flow_dir = dirFlow 
 
         # Add metadata entry
         self._QC.append('flow directions computed')
