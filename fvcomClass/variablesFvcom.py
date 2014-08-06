@@ -5,6 +5,7 @@ from __future__ import division
 from jdcal import gcal2jd
 import numpy as np
 import matplotlib.tri as Tri
+from regioner import *
 
 class _load_var:
     """
@@ -21,17 +22,16 @@ class _load_var:
     hori_velo_norm = horizontal velocity norm
     velo_norm = velocity norm
     verti_shear = vertical shear
-    ...            
+    vorticity...            
     """
     def __init__(self, data, grid, tx, QC, debug=False):
+        self._debug = debug
         #Pointer to QC
         self._QC = QC
         QC = self._QC
 
-        if debug:
-            print 'Pointing at variables...'
         #Check if time period defined
-        self.julianTime = data.variables['time']#[:]      
+        self.julianTime = data.variables['time']      
         if tx:
             #Time period           
             region_t = self._t_region(tx, debug=debug)
@@ -45,7 +45,9 @@ class _load_var:
             grid.ntime = self.julianTime.shape[0]
 
             #Check if bounding box has been defined
-            if not hasattr(grid, '_region_e'):
+            if grid._ax==[]:
+                if debug:
+                    print 'Caching variables...'
                 # elev timeseries
                 self.el = data.variables['zeta'][region_t,:]           
                 try:
@@ -56,16 +58,17 @@ class _load_var:
                     self.va = data.variables['va'][region_t,:]
                     # invisible variables
                     self._3D = True
-                    #Add time dimension to grid variables
-                    grid.nlevel = self.w.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][region_t,:]
                     self.va = data.variables['va'][region_t,:]
                     self._3D = False
-            else:       
+            else:
+                if debug:
+                    print 'Caching variables...'
+                #TR comment: very slow...gonna need optimisation down the line  
                 #Bounding box
-                region_e = grid._region_e
-                region_n = grid._region_n
+                region_e = grid._element_index
+                region_n = grid._node_index
                 #Redefine variables in bounding box & time period
                 # elev timeseries
                 self.el = data.variables['zeta'][region_t,region_n] 
@@ -77,13 +80,13 @@ class _load_var:
                     self.va = data.variables['va'][region_t,region_e]
                     # invisible variables
                     self._3D = True
-                    #Add time dimension to grid variables
-                    grid.nlevel = self.w.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][region_t,region_e]
                     self.va = data.variables['va'][region_t,region_e]
                     self._3D = False          
         else:
+            if debug:
+                print 'Linking variables...'
             #-Append message to QC field
             text = 'Full temporal domain'
             self._QC.append(text)
@@ -94,40 +97,38 @@ class _load_var:
             grid.ntime = self.julianTime.shape[0]
 
             #Check if bounding box has been defined
-            if not hasattr(grid, '_region_e'):
+            if grid._ax==[]:
                 # elev timeseries
-                self.el = data.variables['zeta']#[:]           
+                self.el = data.variables['zeta']           
                 try:
-                    self.w = data.variables['ww']#[:]
-                    self.u = data.variables['u']#[:]
-                    self.v = data.variables['v']#[:]
-                    self.ua = data.variables['ua']#[:]
-                    self.va = data.variables['va']#[:]
+                    self.w = data.variables['ww']
+                    self.u = data.variables['u']
+                    self.v = data.variables['v']
+                    self.ua = data.variables['ua']
+                    self.va = data.variables['va']
                     # invisible variables
                     self._3D = True
-                    #Add time dimension to grid variables
-                    grid.nlevel = self.w.shape[1]
                 except KeyError:
-                    self.ua = data.variables['ua']#[:]
-                    self.va = data.variables['va']#[:]
+                    self.ua = data.variables['ua']
+                    self.va = data.variables['va']
                     self._3D = False
-            else:       
+            else:
+                if debug:
+                    print 'Caching variables...'
+                #TR comment: very slow...gonna need optimisation down the line   
                 #Bounding box
-                region_e = grid._region_e
-                region_n = grid._region_n
+                region_e = grid._element_index
+                region_n = grid._node_index
                 #Redefine variables in bounding box & time period
                 # elev timeseries
                 self.el = data.variables['zeta'][:,region_n] 
                 try:
-                    self.w = data.variables['ww'][:,:,region_e]
                     self.u = data.variables['u'][:,:,region_e]
                     self.v = data.variables['v'][:,:,region_e]
                     self.ua = data.variables['ua'][:,region_e]
                     self.va = data.variables['va'][:,region_e]
                     # invisible variables
                     self._3D = True
-                    #Add time dimension to grid variables
-                    grid.nlevel = self.w.shape[1]
                 except KeyError:
                     self.ua = data.variables['ua'][:,region_e]
                     self.va = data.variables['va'][:,region_e]
@@ -136,8 +137,9 @@ class _load_var:
             print '...Passed'
 
     def _t_region(self, tx, quiet=False, debug=False):
-        '''Return time indexes included in time period, aka tx'''       
-        if debug or self._debug:
+        '''Return time indexes included in time period, aka tx'''
+        debug = debug or self._debug      
+        if debug:
             print 'Computing region_t...'
         if not tx:
             region_t = range(self.julianTime.shape[0])
@@ -150,7 +152,7 @@ class _load_var:
             #finding time period
             region_t = np.argwhere((self.julianTime >= tS) &
                                    (self.julianTime <= tE))          
-        if debug or self._debug:
+        if debug:
             print '...Passed'
 
         # Add metadata entry
@@ -170,142 +172,138 @@ class _load_grid:
     Data.varialbes['lonc']._|_dimensions = 'nele'
                             |_...
   Some others shall be generated as methods are being called, ex:
-    region_e = ???
-    region_n = ???
-    ax = bounding 
+    triangle = triangulation object for plotting purposes
     ...     
     '''
     def __init__(self, data, ax, QC, debug=False):
+        debug = debug or self._debug     
         if debug:
             print 'Caching grid...'
-        self._ax = ax
         #Pointer to QC
         self._QC = QC
         QC = self._QC
-        if not ax:
-            #Define grid variables on the entire domain:
-            self.lon = data.variables['lon']#[:]
-            self.lat = data.variables['lat']#[:]
-            self.lonc = data.variables['lonc']#[:]
-            self.latc = data.variables['latc']#[:]
-            self.x = data.variables['x']#[:]
-            self.y = data.variables['y']#[:]
-            self.xc = data.variables['xc']#[:]
-            self.yc = data.variables['yc']#[:]
-            self.h = data.variables['h']#[:]
-            self.siglay = data.variables['siglay']#[:]
-            self.siglev = data.variables['siglev']#[:]
-            #TR_comments: what the hell are the a* parameters???
-            self.a1u = data.variables['a1u']#[:]
-            self.a2u = data.variables['a2u']#[:]
-            self.aw0 = data.variables['aw0']#[:]
-            self.awx = data.variables['awx']#[:]
-            self.awy = data.variables['awy']#[:]
-            #self.nv = data.variables['nv']#[:]
-            #self.nbe = data.variables['nbe']#[:]
-            self.trinodes = data.variables['nv'][:].T - 1
-            self.triele = data.variables['nbe'][:].T - 1
-            #-Need to use len to get size of dimensions
-            self.nele = len(data.dimensions['nele'])
-            self.node = len(data.dimensions['node'])
-            #-Append message to QC field
+        #Load grid variables on the entire domain:
+        self.lon = data.variables['lon'][:]
+        self.lat = data.variables['lat'][:]
+        self.lonc = data.variables['lonc'][:]
+        self.latc = data.variables['latc'][:]
+        self.x = data.variables['x'][:]
+        self.y = data.variables['y'][:]
+        self.xc = data.variables['xc'][:]
+        self.yc = data.variables['yc'][:]
+        self.a1u = data.variables['a1u'][:]
+        self.a2u = data.variables['a2u'][:]
+        self.aw0 = data.variables['aw0'][:]
+        self.awx = data.variables['awx'][:]
+        self.awy = data.variables['awy'][:]
+        self.trinodes = data.variables['nv'][:].T - 1
+        self.triele = data.variables['nbe'][:].T
+        if ax==[]:
+            #Append message to QC field
             text = 'Full spatial domain'
             self._QC.append(text)
-        else:           
+            #Define the rest of the grid variables
+            self.h = data.variables['h'][:]
+            try:
+                self.siglay = data.variables['siglay'][:]
+                self.siglev = data.variables['siglev'][:]
+                self.nlevel = self.siglay.shape[0]
+            except KeyError:
+                pass
+            self.nele = len(data.dimensions['nele'])
+            self.node = len(data.dimensions['node'])
             #Define bounding box
-            self.lon = data.variables['lon']#[:]
-            self.lat = data.variables['lat']#[:]
-            self.lonc = data.variables['lonc']#[:]
-            self.latc = data.variables['latc']#[:]
-            #self.nv = data.variables['nv']#[:,:]
-            #self.nbe = data.variables['nbe']#[:,:]
-            region_e, region_n = self._bounding_box(ax, debug=debug)
-            #Quick reshape
-            region_e = region_e.T[0,:]
-            region_n = region_n.T[0,:]
-            self._region_e = region_e
-            self._region_n = region_n
-            #Redefine lon lat in region
-            lon = data.variables['lon'][region_n]
-            lat = data.variables['lat'][region_n]
-            lonc = data.variables['lonc'][region_e]
-            latc = data.variables['latc'][region_e]
-            #TR: add check neighbouring nodes too and append to region_n
-            if debug:
-                print "re-indexing"
-            self.trinodes = Tri.Triangulation(lon[region_n],
-                                              lat[region_n], np.array([[0,1,2]]))
-            self.triele = Tri.Triangulation(lonc[region_e],
-                                            self.latc[region_e], np.array([[0,1,2]]))
-
-            #Redefine variables in bounding box
-            self.nele = len(region_e)
-            self.node = len(region_n)
-            self.x = data.variables['x']#[region_n]
-            self.y = data.variables['y']#[region_n]
-            self.xc = data.variables['xc']#[region_e]
-            self.yc = data.variables['yc']#[region_e]
-            self.h = data.variables['h']#[region_n]
-            self.siglay = data.variables['siglay']#[:,region_n]
-            self.siglev = data.variables['siglev']#[:,region_n]
-            #TR_comments: what the hell are the a* parameters???
-            self.a1u = data.variables['a1u']#[:,region_e]
-            self.a2u = data.variables['a2u']#[:,region_e]
-            self.aw0 = data.variables['aw0']#[:,region_e]
-            self.awx = data.variables['awx']#[:,region_e]
-            self.awy = data.variables['awy']#[:,region_e]
-            #self.nv = data.variables['nv']#[:,region_e]
-            #self.nbe = data.variables['nbe']#[:,region_e]
-
-        if debug:
-            print '...Passed'
-
-    def _ele_region(self, ax, debug=False):
-        '''Return element indexes included in bounding box, aka ax'''       
-        if debug:
-            print 'Computing region_e...'
-
-        region_e = np.argwhere((self.lonc >= ax[0]) &
-                               (self.lonc <= ax[1]) &
-                               (self.latc >= ax[2]) &
-                               (self.latc <= ax[3]))          
-        if debug or self._debug:
-            print '...Passed'
-
-        return region_e
-
-    def _node_region(self, ax, debug=False):
-        '''Return node indexes included in bounding box, aka ax'''
-        if debug:
-            print 'Computing region_n...'
-
-        region_n = np.argwhere((self.lon >= ax[0]) &
-                               (self.lon <= ax[1]) &
-                               (self.lat >= ax[2]) &
-                               (self.lat <= ax[3]))
-        if debug or self._debug:
-            print '...Passed'
-
-        return region_n
-
-    def _bounding_box(self, ax, quiet=False, debug=False):
-        """
-        Define bounding box and reset the box by default.
-        Input ex:
-        -------- 
-          _bounding_box(ax=[min lon, max lon, min lat, max lat])
-        """
-        if not ax:
-            region_e = range(self.nele)
-            region_n = range(self.node)
+            self._ax = ax
         else:
-            region_e = self._ele_region(ax, debug=debug)
-            region_n = self._node_region(ax, debug=debug)
-
-        # Add metadata entry
-        if not quiet:
+            print 'Re-indexing may take some time...'   
+            Data = regioner(self, ax, debug=debug)   
+            self.lon = Data['lon'][:]
+            self.lat = Data['lat'][:]
+            self.lonc = Data['lonc'][:]
+            self.latc = Data['latc'][:]
+            self.x = Data['x'][:]
+            self.y = Data['y'][:]
+            self.xc = Data['xc'][:]
+            self.yc = Data['yc'][:]
+            self.a1u = Data['a1u'][:]
+            self.a2u = Data['a2u'][:]
+            self.aw0 = Data['aw0'][:]
+            self.awx = Data['awx'][:]
+            self.awy = Data['awy'][:]
+            self.trinodes = Data['nv'][:]
+            self.triele = Data['nbe'][:]
+            #Only load the element within the box
+            self._node_index = Data['node_index']
+            self._element_index = Data['element_index']
+            self.h = data.variables['h'][self._node_index]
+            try:
+                self.siglay = data.variables['siglay'][:,self._node_index]
+                self.siglev = data.variables['siglev'][:,self._node_index]
+                self.nlevel = self.siglay.shape[0]
+            except KeyError:
+                pass
+            self.nele = Data['element_index'].shape[0]
+            self.node = Data['node_index'].shape[0]
+            del Data
+            #Define bounding box
+            self._ax = ax
+            # Add metadata entry
             text = 'Bounding box =' + str(ax)
             self._QC.append(text)
             print '-Now working in bounding box-'
-        return region_e, region_n
+    
+        if debug:
+            print '...Passed'
+
+    #TR comment: probably not needed anymore
+    #def _ele_region(self, ax, debug=False):
+    #    '''Return element indexes included in bounding box, aka ax'''       
+    #    if debug:
+    #        print 'Computing region_e...'
+
+    #    region_e = np.argwhere((self.lonc >= ax[0]) &
+    #                           (self.lonc <= ax[1]) &
+    #                           (self.latc >= ax[2]) &
+    #                           (self.latc <= ax[3]))          
+    #    if debug or self._debug:
+    #        print '...Passed'
+
+    #    return region_e
+
+    #TR comment: probably not needed anymore
+    #def _node_region(self, ax, debug=False):
+    #    '''Return node indexes included in bounding box, aka ax'''
+    #    if debug:
+    #        print 'Computing region_n...'
+
+    #    region_n = np.argwhere((self.lon >= ax[0]) &
+    #                           (self.lon <= ax[1]) &
+    #                           (self.lat >= ax[2]) &
+    #                           (self.lat <= ax[3]))
+    #    if debug or self._debug:
+    #        print '...Passed'
+
+    #    return region_n
+
+    #TR comment: probably not needed anymore
+    #def _bounding_box(self, ax, quiet=False, debug=False):
+    #    """
+    #    Define bounding box and reset the box by default.
+    #    Input ex:
+    #    -------- 
+    #      _bounding_box(ax=[min lon, max lon, min lat, max lat])
+    #    """
+    #    if not ax:
+    #        region_e = range(self.nele)
+    #        region_n = range(self.node)
+    #    else:
+    #        region_e = self._ele_region(ax, debug=debug)
+    #        region_n = self._node_region(ax, debug=debug)
+
+    #    # Add metadata entry
+    #    if not quiet:
+    #        text = 'Bounding box =' + str(ax)
+    #        self._QC.append(text)
+    #        print '-Now working in bounding box-'
+    #    return region_e, region_n
 

@@ -32,7 +32,8 @@ Description:
                |_Variables. = fvcom variables and quantities
                |_Grid. = fvcom grid data
                |_QC = Quality Control metadata
-    testFvcom._|_Utils. = set of useful functions
+    testFvcom._|_Utils2D. = set of useful functions
+               |_Utils3D. = set of useful functions
                |_Plots. = plotting functions
                |_method_1
                | ...      = methods and analysis techniques intrinsic to fvcom runs
@@ -45,7 +46,8 @@ Inputs:
 Options:
 -------
     Can be defined for a region only, i.e. a bounding box, as such:
-        ax = [min(lon_coord), max(lon_coord), min(lat_coord), max(lat_coord)]
+        ax = [minimun longitude, maximun longitude,
+              minimun latitude, maximum latitude]
     Can be defined for a time period only, as such:
         tx = ['2012.11.07','2012.11.09'], string of year.month.date
 Notes:
@@ -91,35 +93,40 @@ Notes:
                 print '---  to use partial data'
                 raise
 
-            # Define bounding box
-            #if not ax==[]:
-            #    self.Grid._ax = ax
-            #else:
-            #    self.Grid._ax = []
-
             self.Plots = PlotsFvcom(self.Variables,
                                     self.Grid,
                                     self._debug)
-            self.Utils = FunctionsFvcom(self.Variables,
-                                        self.Grid,
-                                        self.Plots,
-                                        self.QC,
-                                        self._debug)
+            self.Util2D = FunctionsFvcom(self.Variables,
+                                         self.Grid,
+                                         self.Plots,
+                                         self.QC,
+                                         self._debug)
 
             if self.Variables._3D:
-                self.UtilsThreeD = FunctionsFvcomThreeD(self.Variables,
-                                                        self.Grid,
-                                                        self.Plots,
-                                                        self.Utils,
-                                                        self.QC,
-                                                        self._debug)
-                self.Plots.vertical_slice = self.UtilsThreeD._vertical_slice
-            #if debug:
-            #    print 'Finding bounding box...'
-            #if ax:
-            #    self.Grid._ax = ax
-            #else:
-            #    self.Grid._ax = []
+                self.Util3D = FunctionsFvcomThreeD(self.Variables,
+                                                   self.Grid,
+                                                   self.Plots,
+                                                   self.Util2D,
+                                                   self.QC,
+                                                   self._debug)
+                self.Plots.vertical_slice = self.Util3D._vertical_slice
+
+    def Save_as(self, filename, fileformat='pickle', debug=False):
+        """
+        Save the current FVCOM structure as:
+           - *.p, i.e. python file
+           - *.mat, i.e. Matlab file
+        Inputs:
+        ------
+          - filename = name of the file to be saved, string
+        Keywords:
+        --------
+          - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
+        """
+        debug = debug or self._debug
+        if debug:
+            print 'Saving file...'
+       #TR: to be developed
 
     def Harmonic_analysis(self, ind, twodim=True, **kwarg):
         '''
@@ -162,7 +169,7 @@ Notes:
 
         else:
             self.coef = ut_solv(self.Variables.matlabTime,
-                                self.Variables.ua[:, ind], [],
+                                self.Variables.el[:, ind], [],
                                 self.Variables.lat[ind], **kwarg)
             self.QC.append('ut_solv done for elevation')
 

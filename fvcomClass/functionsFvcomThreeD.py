@@ -52,13 +52,7 @@ class FunctionsFvcomThreeD:
             start = time.time()
 
         print "Computing depth..."
-        #Compute depth
-        #Different interpolation method if partial dat
-        if hasattr(self._grid, '_region_e'):
-            #h = self._grid.h[self._grid._region_e]
-            print 'This functionality has benn tested yet'
-            raise
-        
+        #Compute depth      
         size = self._grid.nele
         size1 = self._grid.ntime
         size2 = self._grid.nlevel

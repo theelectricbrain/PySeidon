@@ -59,8 +59,8 @@ class PlotsFvcom:
             #Bounding box
             if debug:
                 print "Computing bounding box..."
-            self._grid._ax = [min(lon), max(lon),
-                             min(lat), max(lat)]
+            self._grid._ax = [lon.min(), lon.max(),
+                             lat.min(), lat.max()]
         bb = self._grid._ax     
 
         if not hasattr(self._grid, 'triangle'):        
@@ -95,7 +95,9 @@ class PlotsFvcom:
         #                          shading='faceted',cmap=plt.cm.gist_earth)
 
         #Plotting functions
-        f = self._fig.tripcolor(tri, var,vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
+        if debug:
+            print "Computing colormap..."
+        f = self._fig.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
         if mesh:
             plt.triplot(tri)
 

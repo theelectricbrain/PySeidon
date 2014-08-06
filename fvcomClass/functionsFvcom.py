@@ -386,54 +386,31 @@ class FunctionsFvcom:
             # Find indexes of the closest element
             index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
         # Conversion (lon, lat) to (x, y)
-        #Different interpolation method if partial data
-        if not hasattr(self._grid, '_region_e'):
-            pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
-                                   index=index, trinodes=trinodes, debug=debug)
-            pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
-                                   index=index, trinodes=trinodes, debug=debug)
+        pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
+                               index=index, trinodes=trinodes, debug=debug)
+        pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
+                               index=index, trinodes=trinodes, debug=debug)
 
         #change in function of the data you dealing with
         if any(i == self._grid.node for i in var.shape):
-            #Different interpolation method if partial data
-            if hasattr(self._grid, '_region_e'):
-                if debug:
-                    start = time.time() 
-                varInterp = interp_at_point(var, pt_lon, pt_lat, lon, lat,
-                                            tri=trinodes , debug=debug)
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start) 
-            else:
-                if debug:
-                    start = time.time() 
-                varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
+            if debug:
+                start = time.time() 
+            varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
                                       self._grid.aw0, self._grid.awx, self._grid.awy,
                                       debug=debug)
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start) 
-
+            if debug:
+                end = time.time()
+                print "Processing time: ", (end - start) 
         else:
             triele = self._grid.triele
-            #Different interpolation method if partial data
-            if hasattr(self._grid, '_region_e'):
-                if debug:
-                    start = time.time() 
-                varInterp = interp_at_point(var, pt_lon, pt_lat, lonc, latc,
-                                            tri=triele , debug=debug)
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start) 
-            else:
-                if debug:
-                    start = time.time() 
-                varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                          trinodes, self._grid.a1u, self._grid.a2u,
-                                          debug=debug)
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start)         
+            if debug:
+                start = time.time() 
+            varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
+                                      trinodes, self._grid.a1u, self._grid.a2u,
+                                      debug=debug)
+            if debug:
+                end = time.time()
+                print "Processing time: ", (end - start)         
 
         return varInterp
 
@@ -533,17 +510,16 @@ class FunctionsFvcom:
             t = arange(self._grid.ntime)  
 
         #Surrounding elements
-        #TR comment: I am not sure this one would work with new regioning protocol
         n1 = self._grid.triele[:,0]
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
         #TR comment: not quiet sure what this step does
-        n1[np.where(n1==-1)[0]] = self._grid.trinodes.shape[1] + 1
-        n2[np.where(n2==-1)[0]] = self._grid.trinodes.shape[1] + 1
-        n3[np.where(n3==-1)[0]] = self._grid.trinodes.shape[1] + 1
+        n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
+        n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
+        n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
         if debug:
             end = time.time()
-            print "Check element=-1, computation time in (s): ", (end - start)
+            print "Check element=0, computation time in (s): ", (end - start)
             print "start np.multiply" 
 
         x0 = self._grid.xc
