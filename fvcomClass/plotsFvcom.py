@@ -65,6 +65,8 @@ class PlotsFvcom:
 
         if not hasattr(self._grid, 'triangle'):        
             # Mesh triangle
+            if debug:
+                print "Computing triangulation..."
             trinodes = self._grid.trinodes 
             lon = self._grid.lon[:]
             lat = self._grid.lat[:]
@@ -75,8 +77,12 @@ class PlotsFvcom:
 
         #setting limits and levels of colormap
         if cmin==[]:
+            if debug:
+                print "Computing cmin..."
             cmin=var[:].min()
         if cmax==[]:
+            if debug:
+                print "Computing cmax..."
             cmax=var[:].max()
         step = (cmax-cmin) / 50.0
         levels=np.arange(cmin, (cmax+step), step)   # depth contours to plot
