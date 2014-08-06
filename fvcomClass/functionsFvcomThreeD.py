@@ -612,9 +612,9 @@ class FunctionsFvcomThreeD:
             #Plot features
             #setting limits and levels of colormap
             if cmax==[]:
-                cmax = np.max(varP)
+                cmax = varP[:].max()
             if cmin==[]:
-                cmin = np.min(varP)
+                cmin = varP[:].min()
             step = (cmax-cmin) / 20.0
             levels=np.arange(cmin, (cmax+step), step)
             #plt.clf()

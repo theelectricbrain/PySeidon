@@ -49,13 +49,27 @@ class _load_var:
                 if debug:
                     print 'Caching variables...'
                 # elev timeseries
-                self.el = data.variables['zeta'][region_t,:]           
+                #TR: accelerating caching but have a memory cost
+                temp = data.variables['zeta'][:]
+                self.el = temp[region_t,:]
+                #self.el = data.variables['zeta'][region_t,:]           
                 try:
-                    self.w = data.variables['ww'][region_t,:,:]
-                    self.u = data.variables['u'][region_t,:,:]
-                    self.v = data.variables['v'][region_t,:,:]
-                    self.ua = data.variables['ua'][region_t,:]
-                    self.va = data.variables['va'][region_t,:]
+                    #TR: accelerating caching but have a memory cost
+                    temp = data.variables['ww'][:]
+                    self.w = temp[region_t,:,:]
+                    temp = data.variables['u'][:]
+                    self.u = temp[region_t,:,:]
+                    temp = data.variables['v'][:]
+                    self.v = temp[region_t,:,:]
+                    temp = data.variables['ua'][:]
+                    self.ua = temp[region_t,:]
+                    temp = data.variables['va'][:]
+                    self.va = temp[region_t,:]
+                    #self.w = data.variables['ww'][region_t,:,:]
+                    #self.u = data.variables['u'][region_t,:,:]
+                    #self.v = data.variables['v'][region_t,:,:]
+                    #self.ua = data.variables['ua'][region_t,:]
+                    #self.va = data.variables['va'][region_t,:]
                     # invisible variables
                     self._3D = True
                 except KeyError:
@@ -71,13 +85,27 @@ class _load_var:
                 region_n = grid._node_index
                 #Redefine variables in bounding box & time period
                 # elev timeseries
-                self.el = data.variables['zeta'][region_t,region_n] 
+                #TR: accelerating caching but have a memory cost
+                temp = data.variables['zeta'][:]
+                self.el = temp[region_t,region_n]
+                #self.el = data.variables['zeta'][region_t,region_n] 
                 try:
-                    self.w = data.variables['ww'][region_t,:,region_e]
-                    self.u = data.variables['u'][region_t,:,region_e]
-                    self.v = data.variables['v'][region_t,:,region_e]
-                    self.ua = data.variables['ua'][region_t,region_e]
-                    self.va = data.variables['va'][region_t,region_e]
+                    #TR: accelerating caching but have a memory cost
+                    temp = data.variables['ww'][:]
+                    self.w = temp[region_t,:,region_e]
+                    temp = data.variables['u'][:]
+                    self.u = temp[region_t,:,region_e]
+                    temp = data.variables['v'][:]
+                    self.v = temp[region_t,:,region_e]
+                    temp = data.variables['ua'][:]
+                    self.ua = temp[region_t,region_e]
+                    temp = data.variables['va'][:]
+                    self.va = temp[region_t,region_e]
+                    #self.w = data.variables['ww'][region_t,:,region_e]
+                    #self.u = data.variables['u'][region_t,:,region_e]
+                    #self.v = data.variables['v'][region_t,:,region_e]
+                    #self.ua = data.variables['ua'][region_t,region_e]
+                    #self.va = data.variables['va'][region_t,region_e]
                     # invisible variables
                     self._3D = True
                 except KeyError:
@@ -121,17 +149,36 @@ class _load_var:
                 region_n = grid._node_index
                 #Redefine variables in bounding box & time period
                 # elev timeseries
-                self.el = data.variables['zeta'][:,region_n] 
+                #TR: accelerating caching but have a memory cost
+                temp = data.variables['zeta'][:]
+                self.el = temp[:,region_n]
+                #self.el = data.variables['zeta'][:,region_n]
                 try:
-                    self.u = data.variables['u'][:,:,region_e]
-                    self.v = data.variables['v'][:,:,region_e]
-                    self.ua = data.variables['ua'][:,region_e]
-                    self.va = data.variables['va'][:,region_e]
+                    #TR: accelerating caching but have a memory cost
+                    temp = data.variables['ww'][:]
+                    self.w = temp[:,:,region_e]
+                    temp = data.variables['u'][:]
+                    self.u = temp[:,:,region_e]
+                    temp = data.variables['v'][:]
+                    self.v = temp[:,:,region_e]
+                    temp = data.variables['ua'][:]
+                    self.ua = temp[:,region_e]
+                    temp = data.variables['va'][:]
+                    self.va = temp[:,region_e]
+                    #self.w = data.variables['ww'][:,:,region_e]
+                    #self.u = data.variables['u'][:,:,region_e]
+                    #self.v = data.variables['v'][:,:,region_e]
+                    #self.ua = data.variables['ua'][:,region_e]
+                    #self.va = data.variables['va'][:,region_e]
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    self.ua = data.variables['ua'][:,region_e]
-                    self.va = data.variables['va'][:,region_e]
+                    #TR: accelerating caching but have a memory cost
+                    self.ua = temp[:,region_e]
+                    temp = data.variables['va'][:]
+                    self.va = temp[:,region_e]                    
+                    #self.ua = data.variables['ua'][:,region_e]
+                    #self.va = data.variables['va'][:,region_e]
                     self._3D = False
         if debug:
             print '...Passed'
