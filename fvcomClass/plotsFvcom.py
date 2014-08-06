@@ -53,12 +53,12 @@ class PlotsFvcom:
             return
 
         # Bounding box nodes, elements and variable
-        if debug:
-            print "Computing bounding box..."
         lon = self._grid.lon[:]
         lat = self._grid.lat[:]
         if self._grid._ax==[]:
             #Bounding box
+            if debug:
+                print "Computing bounding box..."
             self._grid._ax = [min(lon), max(lon),
                              min(lat), max(lat)]
         bb = self._grid._ax     
