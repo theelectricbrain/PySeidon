@@ -13,6 +13,7 @@ import mmap
 import cPickle as pkl
 #import pickle as pkl
 #WB_Alternative: import scipy.io as sio
+import copy
 
 #Add local path to utilities
 sys.path.append('../utilities/')
@@ -156,10 +157,10 @@ Notes:
         """
         debug = debug or self._debug
         #series of test before stacking
-        if not ((self._ax == FvcomClass._ax) and
+        if not ((self.Grid._ax == FvcomClass.Grid._ax) and
                 (self.Grid.nele == FvcomClass.Grid.nele) and
                 (self.Grid.node == FvcomClass.Grid.node) and
-                (self.Variables._3D == FvcomClass.Grid._3D)):
+                (self.Variables._3D == FvcomClass.Variables._3D)):
             print "---Data dimensions do not match---"
             sys.exit()
         else:
@@ -168,7 +169,8 @@ Notes:
                 print "---Data not consecutive in time---"
                 sys.exit()
             #Copy self to newself
-            newself = self
+            newself = copy.copy(self)
+            #TR comment: it still points toward self and mofiies it
             if debug:
                 print 'Stacking variables...'
             newself.Grid.siglay = np.vstack((newself.Grid.siglay,
@@ -179,8 +181,8 @@ Notes:
                                               FvcomClass.Variables.ua))
             newself.Variables.va = np.vstack((newself.Variables.va,
                                               FvcomClass.Variables.va))
-            newself.Variables.elev = np.vstack((newself.Variables.elev,
-                                                FvcomClass.Variables.elev))
+            newself.Variables.el = np.vstack((newself.Variables.el,
+                                                FvcomClass.Variables.el))
             if newself.Variables._3D:
                 newself.Variables.u = np.vstack((newself.Variables.u,
                                                  FvcomClass.Variables.u))
@@ -188,10 +190,10 @@ Notes:
                                                  FvcomClass.Variables.v))
                 newself.Variables.w = np.vstack((newself.Variables.w,
                                                  FvcomClass.Variables.w))
+            newself.Grid.ntime = newself.Grid.ntime + FvcomClass.Grid.ntime
             #Append to new object history
             text = 'Data from ' + FvcomClass.History[0].split('/')[-1] \
                  + ' has been stacked'
-
             newself.History.append(text)
 
         return newself  
