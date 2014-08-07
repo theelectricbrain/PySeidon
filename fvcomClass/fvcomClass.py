@@ -6,7 +6,8 @@ from __future__ import division
 import numpy as np
 import sys
 from utide import ut_solv, ut_reconstr
-import netCDF4 as nc
+#import netCDF4 as nc
+from scipy.io import netcdf
 import cPickle as pkl
 #import pickle as pkl
 #WB_Alternative: import scipy.io as sio
@@ -16,6 +17,7 @@ sys.path.append('../utilities/')
 
 #Utility import
 from shortest_element_path import shortest_element_path
+from object_from_dict import ObjectFromDict
 
 #Local import
 from variablesFvcom import _load_var, _load_grid
@@ -69,21 +71,22 @@ Notes:
             f = open(filename, "rb")
             data = pkl.load(f)
             self.QC = data['QC']
-            self.Grid = AttrDict(data['Grid'])
-            self.Variables = AttrDict(data['Variables'])
+            self.Grid = ObjectFromDict(data['Grid'])
+            self.Variables = ObjectFromDict(data['Variables'])
             try:
-                self.Data = nc.Dataset(data['Origin'], 'r')
+                #self.Data = nc.Dataset(data['Origin'], 'r')
+                self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
 
         #Loading netcdf file         
         elif filename.endswith('.nc'):
-            #TR_comments: Add input check and alternative (extract from server)
             #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
             #WB_comments: scipy has causes some errors, and even though can be
             #             faster, can be unreliable
-            self.Data = nc.Dataset(filename, 'r')
+            #self.Data = nc.Dataset(filename, 'r')
+            self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
             text = 'Created from ' + filename
             self._origin_file = filename
             #Metadata
@@ -165,8 +168,15 @@ Notes:
                     data['Variables'][key] = data['Variables'][key][:]
             #Save in pickle file
             if debug:
-                print 'Dumping in pickle file...'     
-            pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
+                print 'Dumping in pickle file...'
+            try:    
+                pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
+            except SystemError:
+                print '---Data too large for machine memory---'
+                print 'Tip: use ax or tx during class initialisation'
+                print '---  to use partial data'
+                raise
+           
             f.close()
         elif fileformat=='matlab':
             filename = filename + ".mat"
@@ -254,12 +264,6 @@ Notes:
         else:
             self.ts_recon, _ = ut_reconstr(time, self.coef)
             self.QC.append('ut_reconstr done for elevation')
-
-class AttrDict(dict):
-    """Class use to load pickle dictionnary as attribut"""
-    def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
 
 #Test section when running in shell >> python fvcomClass.py
 if __name__ == '__main__':
