@@ -144,7 +144,15 @@ Notes:
     def __add__(self, FvcomClass, debug=False):
         """
         This special method permit to stack variables
-        of 2 FVCOM object through a simple addition
+        of 2 FVCOM objects through a simple addition:
+          fvcom3 = fvcom1 + fvcom2
+
+        Notes:
+        -----
+          - fvcom1 and fvcom2 have to cover the exact
+            same spatial domain
+          - last time step of fvcom1 must be <= to the 
+            first time step of fvcom2 
         """
         debug = debug or self._debug
         #series of test before stacking
@@ -157,6 +165,7 @@ Notes:
         else:
             if not (self.Variables.julianTime[-1]<=
                     FvcomClass.Variables.julianTime[0]):
+                print "---Data not consecutive in time---"
                 sys.exit()
             #Copy self to newself
             newself = self

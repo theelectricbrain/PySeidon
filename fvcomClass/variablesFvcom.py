@@ -139,8 +139,6 @@ class _load_var:
                     self.va = data.variables['va'].data[region_t,region_e]
                     self._3D = False          
         else:
-            if debug:
-                print 'Linking variables...'
             #-Append message to History field
             text = 'Full temporal domain'
             self._History.append(text)
@@ -152,6 +150,8 @@ class _load_var:
 
             #Check if bounding box has been defined
             if grid._ax==[]:
+                if debug:
+                    print 'Linking variables...'
                 # elev timeseries
                 self.el = data.variables['zeta']           
                 try:
