@@ -5,9 +5,10 @@
 from __future__ import division
 import numpy as np
 import sys
-sys.path.append('/home/wesley/github/UTide/')
 from utide import ut_solv, ut_reconstr
 import netCDF4 as nc
+import cPickle as pkl
+#import pickle as pkl
 #WB_Alternative: import scipy.io as sio
 
 #Add local path to utilities
@@ -62,17 +63,30 @@ Notes:
         self._debug = debug
         if debug:
             print '-Debug mode on-'
-        #TR_comments: Add input check and alternative (extract from server)
-        #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
-        #WB_comments: scipy has causes some errors, and even though can be
-        #             faster, can be unreliable
-        self.Data = nc.Dataset(filename, 'r')
 
-        #Metadata
-        if hasattr(self.Data, 'QC'):
-            self.QC = self.Data.QC
-        else:
+        #Loading pickle file
+        if filename.endswith('.p'):
+            f = open(filename, "rb")
+            data = pkl.load(f)
+            self.QC = data['QC']
+            self.Grid = AttrDict(data['Grid'])
+            self.Variables = AttrDict(data['Variables'])
+            try:
+                self.Data = nc.Dataset(data['Origin'], 'r')
+            except: #TR: need to precise the type of error here
+                print "the original *.nc file has not been found"
+                pass
+
+        #Loading netcdf file         
+        elif filename.endswith('.nc'):
+            #TR_comments: Add input check and alternative (extract from server)
+            #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+            #WB_comments: scipy has causes some errors, and even though can be
+            #             faster, can be unreliable
+            self.Data = nc.Dataset(filename, 'r')
             text = 'Created from ' + filename
+            self._origin_file = filename
+            #Metadata
             self.QC = [text]
             # Calling sub-class
             print "Initialisation..."
@@ -93,23 +107,30 @@ Notes:
                 print '---  to use partial data'
                 raise
 
-            self.Plots = PlotsFvcom(self.Variables,
-                                    self.Grid,
-                                    self._debug)
-            self.Util2D = FunctionsFvcom(self.Variables,
-                                         self.Grid,
-                                         self.Plots,
-                                         self.QC,
-                                         self._debug)
+        elif filename.endswith('.mat'):
+            print "Cannot handle *.mat file yet"
 
-            if self.Variables._3D:
-                self.Util3D = FunctionsFvcomThreeD(self.Variables,
-                                                   self.Grid,
-                                                   self.Plots,
-                                                   self.Util2D,
-                                                   self.QC,
-                                                   self._debug)
-                self.Plots.vertical_slice = self.Util3D._vertical_slice
+        else:
+            print "---Wrong file format---"
+            sys.exit()
+
+        self.Plots = PlotsFvcom(self.Variables,
+                                self.Grid,
+                                self._debug)
+        self.Util2D = FunctionsFvcom(self.Variables,
+                                     self.Grid,
+                                     self.Plots,
+                                     self.QC,
+                                     self._debug)
+
+        if self.Variables._3D:
+            self.Util3D = FunctionsFvcomThreeD(self.Variables,
+                                               self.Grid,
+                                               self.Plots,
+                                               self.Util2D,
+                                               self.QC,
+                                               self._debug)
+            self.Plots.vertical_slice = self.Util3D._vertical_slice
 
     def Save_as(self, filename, fileformat='pickle', debug=False):
         """
@@ -126,7 +147,32 @@ Notes:
         debug = debug or self._debug
         if debug:
             print 'Saving file...'
-       #TR: to be developed
+        #TR: to be developed
+        if fileformat=='pickle':
+            filename = filename + ".p"
+            f = open(filename, "wb")
+            data = {}
+            data['Origin'] = self._origin_file
+            data['QC'] = self.QC
+            data['Grid'] = self.Grid.__dict__
+            data['Variables'] = self.Variables.__dict__
+            #TR: Force caching Variables otherwise error during loading
+            #    with 'netcdf4.Variable' type (see above)
+            for key in data['Variables']:
+                if type(data['Variables'][key]).__name__=='Variable':
+                    if debug:
+                        print "Force caching for " + key
+                    data['Variables'][key] = data['Variables'][key][:]
+            #Save in pickle file
+            if debug:
+                print 'Dumping in pickle file...'     
+            pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
+            f.close()
+        elif fileformat=='matlab':
+            filename = filename + ".mat"
+            print "Functionality not yet implemented"
+        else:
+            print "---Wrong file format---"
 
     def Harmonic_analysis(self, ind, twodim=True, **kwarg):
         '''
@@ -208,6 +254,12 @@ Notes:
         else:
             self.ts_recon, _ = ut_reconstr(time, self.coef)
             self.QC.append('ut_reconstr done for elevation')
+
+class AttrDict(dict):
+    """Class use to load pickle dictionnary as attribut"""
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
 #Test section when running in shell >> python fvcomClass.py
 if __name__ == '__main__':
