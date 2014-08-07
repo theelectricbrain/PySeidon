@@ -4,7 +4,6 @@ from bisect import bisect_left, bisect_right
 import matplotlib.pyplot as plt
 import matplotlib.tri as Tri
 import netCDF4 as nc
-from createNC import createNC
 
 def node_region(ax, lon, lat):
 
