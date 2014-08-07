@@ -72,7 +72,7 @@ Notes:
         if filename.endswith('.p'):
             f = open(filename, "rb")
             data = pkl.load(f)
-            self.QC = data['QC']
+            self.History = data['History']
             self.Grid = ObjectFromDict(data['Grid'])
             self.Variables = ObjectFromDict(data['Variables'])
             try:
@@ -95,19 +95,19 @@ Notes:
             text = 'Created from ' + filename
             self._origin_file = filename
             #Metadata
-            self.QC = [text]
+            self.History = [text]
             # Calling sub-class
             print "Initialisation..."
             #print "This might take some time..."
             try:
                 self.Grid = _load_grid(self.Data,
                                        ax,
-                                       self.QC,
+                                       self.History,
                                        debug=self._debug)
                 self.Variables = _load_var(self.Data,
                                            self.Grid,
                                            tx,
-                                           self.QC,
+                                           self.History,
                                            debug=self._debug)
             except MemoryError:
                 print '---Data too large for machine memory---'
@@ -128,7 +128,7 @@ Notes:
         self.Util2D = FunctionsFvcom(self.Variables,
                                      self.Grid,
                                      self.Plots,
-                                     self.QC,
+                                     self.History,
                                      self._debug)
 
         if self.Variables._3D:
@@ -136,10 +136,58 @@ Notes:
                                                self.Grid,
                                                self.Plots,
                                                self.Util2D,
-                                               self.QC,
+                                               self.History,
                                                self._debug)
             self.Plots.vertical_slice = self.Util3D._vertical_slice
 
+    #Special methods
+    def __add__(self, FvcomClass, debug=False):
+        """
+        This special method permit to stack variables
+        of 2 FVCOM object through a simple addition
+        """
+        debug = debug or self._debug
+        #series of test before stacking
+        if not ((self._ax == FvcomClass._ax) and
+                (self.Grid.nele == FvcomClass.Grid.nele) and
+                (self.Grid.node == FvcomClass.Grid.node) and
+                (self.Variables._3D == FvcomClass.Grid._3D)):
+            print "---Data dimensions do not match---"
+            sys.exit()
+        else:
+            if not (self.Variables.julianTime[-1]<=
+                    FvcomClass.Variables.julianTime[0]):
+                sys.exit()
+            #Copy self to newself
+            newself = self
+            if debug:
+                print 'Stacking variables...'
+            newself.Grid.siglay = np.vstack((newself.Grid.siglay,
+                                             FvcomClass.Grid.siglay))
+            newself.Grid.siglev = np.vstack((newself.Grid.siglev,
+                                             FvcomClass.Grid.siglev))
+            newself.Variables.ua = np.vstack((newself.Variables.ua,
+                                              FvcomClass.Variables.ua))
+            newself.Variables.va = np.vstack((newself.Variables.va,
+                                              FvcomClass.Variables.va))
+            newself.Variables.elev = np.vstack((newself.Variables.elev,
+                                                FvcomClass.Variables.elev))
+            if newself.Variables._3D:
+                newself.Variables.u = np.vstack((newself.Variables.u,
+                                                 FvcomClass.Variables.u))
+                newself.Variables.v = np.vstack((newself.Variables.v,
+                                                 FvcomClass.Variables.v))
+                newself.Variables.w = np.vstack((newself.Variables.w,
+                                                 FvcomClass.Variables.w))
+            #Append to new object history
+            text = 'Data from ' + FvcomClass.History[0].split('/')[-1] \
+                 + ' has been stacked'
+
+            newself.History.append(text)
+
+        return newself  
+   
+    #Methods
     def Save_as(self, filename, fileformat='pickle', debug=False):
         """
         Save the current FVCOM structure as:
@@ -161,7 +209,7 @@ Notes:
             f = open(filename, "wb")
             data = {}
             data['Origin'] = self._origin_file
-            data['QC'] = self.QC
+            data['History'] = self.History
             data['Grid'] = self.Grid.__dict__
             data['Variables'] = self.Variables.__dict__
             #TR: Force caching Variables otherwise error during loading
@@ -189,7 +237,7 @@ Notes:
         else:
             print "---Wrong file format---"
 
-    def Harmonic_analysis(self, ind, twodim=True, **kwarg):
+    def Harmonic_analysis(self, elevation=True, velocity=False, **kwarg):
         '''
         Description:
         ----------
@@ -199,20 +247,22 @@ Notes:
 
         Inputs:
         ------
-        - Takes an index so that ut_solv can be run on the data and twodim.
-        - twodim=True means that ut_solv will be done for velocity, and
-        - twodim=False means that ut_solv will be done for elevation.
+          - elevation=True means that ut_solv will be done for elevation.
+          - velocity=True means that ut_solv will be done for velocity.
+        Outputs:
+        -------
+          ! Outputs will be saved as new field in FVCOM.Variables.
+          - coef_velo or coef_elev = harmonic coefficients 
 
         Options:
         -------
-        - Options are the same as for ut_solv, which are shown below with
-          their default values:
+        Options are the same as for ut_solv, which are shown below with
+        their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
             nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
             rmin=1; method='cauchy'; tunrdn=1; linci=0; white=0; nrlzn=200;
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
-
         Notes:
         -----
         For more detailed information about ut_solv, please see
@@ -220,21 +270,21 @@ Notes:
 
         '''
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        if twodim:
-            self.coef = ut_solv(self.Variables.matlabTime,
-                                self.Variables.ua[:, ind],
-                                self.Variables.va[:, ind],
-                                self.Variables.lat[ind],
-                                debug=self._debug, **kwarg)
-            self.QC.append('ut_solv done for velocity')
+        
+        if velocity:
+            self.coef_velo = ut_solv(self.Variables.matlabTime,
+                                     self.Variables.ua[:, :],
+                                     self.Variables.va[:, :],
+                                     self.Grid.lat[:], **kwarg)
+            self.History.append('ut_solv done for velocity')
 
-        else:
-            self.coef = ut_solv(self.Variables.matlabTime,
-                                self.Variables.el[:, ind], [],
-                                self.Variables.lat[ind], **kwarg)
-            self.QC.append('ut_solv done for elevation')
+        if elevation:
+            self.coef_elev = ut_solv(self.Variables.matlabTime,
+                                     self.Variables.el[:, :], [],
+                                     self.Grid.lat[:], **kwarg)
+            self.History.append('ut_solv done for elevation')
 
-    def Harmonic_reconstruction(self, time):
+    def Harmonic_reconstruction(self, time, elevation=True, velocity=False):
         '''
         Description:
         ----------
@@ -246,16 +296,21 @@ Notes:
 
         Inputs:
         ------
-        Takes a time series for ut_reconstr to do the reconstruction to.
+          - Takes a time series for ut_reconstr to do the reconstruction to.
+          - elevation=True means that ut_reconstr will be done for elevation.
+          - velocity=True means that ut_reconst will be done for velocity.
+        Outputs:
+        -------
+          ! Outputs will be saved as new field in FVCOM.Variables.
+          - U_recon and V_recon or elev_recon = velocity component
+            reconstruction from harmonics
+          - elev_recon = elevation reconstruction from harmonics  
 
         Options:
         -------
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
-        cnstit = []
-        minsnr = 2
-        minpe = 0
-
+            cnstit = [], minsnr = 2, minpe = 0
         Notes:
         -----
         For more detailed information about ut_reconstr, please see
@@ -263,12 +318,20 @@ Notes:
 
         '''
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        if self.coef['aux']['opt']['twodim']:
-            self.U, self.V = ut_reconstr(time, self.coef)
-            self.QC.append('ut_reconstr done for velocity')
-        else:
-            self.ts_recon, _ = ut_reconstr(time, self.coef)
-            self.QC.append('ut_reconstr done for elevation')
+        if velocity:
+            if not hasattr(self.Variables,'coef_velo'):
+                print "---Harmonic analysis has to be performed first---"
+            else: 
+               self.Variables.U_recon, self.Variables.V_recon = ut_reconstr(time,
+                                                                self.Variables.coef_velo)
+               self.History.append('ut_reconstr done for velocity')
+        if elevation:
+            if not hasattr(self.Variables,'coef_elev'):
+                print "---Harmonic analysis has to be performed first---"
+            else:
+                self.Variables.ts_recon, _ = ut_reconstr(time, self.Variables.coef_elev)
+                self.Variables.History.append('ut_reconstr done for elevation')
+                              
 
 #Test section when running in shell >> python fvcomClass.py
 if __name__ == '__main__':

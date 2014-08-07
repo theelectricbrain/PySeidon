@@ -22,13 +22,13 @@ class FunctionsFvcomThreeD:
     'UtilsThreeD' subset of FVCOM class gathers
     useful functions for 3D runs
     """
-    def __init__(self, variable, grid, plot, util, QC, debug):
+    def __init__(self, variable, grid, plot, util, History, debug):
         #Inheritance
         self._debug = debug
         self._var = variable
         self._grid = grid
         self._plot = plot
-        self._QC = QC
+        self._History = History
         self._util = util
         self.interpolation_at_point = self._util.interpolation_at_point
         self.hori_velo_norm = self._util.hori_velo_norm
@@ -36,7 +36,7 @@ class FunctionsFvcomThreeD:
         #Create pointer to FVCOM class
         variable = self._var
         grid = self._grid
-        QC = self._QC
+        History = self._History
 
     def depth(self, debug=False):
         """
@@ -80,7 +80,7 @@ class FunctionsFvcomThreeD:
 
         # Add metadata entry
         self._grid.depth = dep
-        self._QC.append('depth computed')
+        self._History.append('depth computed')
         print '-Flow directions added to FVCOM.Variables.-'
 
     def depth_at_point(self, pt_lon, pt_lat, index=[], debug=False):
@@ -174,7 +174,7 @@ class FunctionsFvcomThreeD:
         self._var.verti_shear = dveldz 
             
         # Add metadata entry
-        self._QC.append('vertical shear computed')
+        self._History.append('vertical shear computed')
         print '-Vertical shear added to FVCOM.Variables.-'
 
         if debug:
@@ -306,7 +306,7 @@ class FunctionsFvcomThreeD:
         self._var.velo_norm = vel 
        
         # Add metadata entry
-        self._QC.append('Velocity norm computed')
+        self._History.append('Velocity norm computed')
         print '-Velocity norm added to FVCOM.Variables.-'
 
         if debug or self._debug:
@@ -509,7 +509,7 @@ class FunctionsFvcomThreeD:
         self._var.flow_dir = dirFlow 
 
         # Add metadata entry
-        self._QC.append('flow directions computed')
+        self._History.append('flow directions computed')
         print '-Flow directions added to FVCOM.Variables.-'
 
         if debug or self._debug:

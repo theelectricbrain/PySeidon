@@ -24,11 +24,11 @@ class _load_var:
     verti_shear = vertical shear
     vorticity...            
     """
-    def __init__(self, data, grid, tx, QC, debug=False):
+    def __init__(self, data, grid, tx, History, debug=False):
         self._debug = debug
-        #Pointer to QC
-        self._QC = QC
-        QC = self._QC
+        #Pointer to History
+        self._History = History
+        History = self._History
 
         #Check if time period defined
         self.julianTime = data.variables['time']      
@@ -141,9 +141,9 @@ class _load_var:
         else:
             if debug:
                 print 'Linking variables...'
-            #-Append message to QC field
+            #-Append message to History field
             text = 'Full temporal domain'
-            self._QC.append(text)
+            self._History.append(text)
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time']
             self.matlabTime = self.julianTime[:] + 678942
@@ -244,7 +244,7 @@ class _load_var:
         # Add metadata entry
         if not quiet:
             text = 'Time period =' + str(tx)
-            self._QC.append(text)
+            self._History.append(text)
             print '-Now working in time box-'
         return region_t
 
@@ -261,13 +261,13 @@ class _load_grid:
     triangle = triangulation object for plotting purposes
     ...     
     '''
-    def __init__(self, data, ax, QC, debug=False):
+    def __init__(self, data, ax, History, debug=False):
         debug = debug or self._debug     
         if debug:
             print 'Caching grid...'
-        #Pointer to QC
-        self._QC = QC
-        QC = self._QC
+        #Pointer to History
+        self._History = History
+        History = self._History
         #Load grid variables on the entire domain:
         #self.lon = data.variables['lon'][:]
         #self.lat = data.variables['lat'][:]
@@ -301,9 +301,9 @@ class _load_grid:
         self.trinodes = np.transpose(data.variables['nv'].data) - 1
         self.triele = np.transpose(data.variables['nbe'].data)
         if ax==[]:
-            #Append message to QC field
+            #Append message to History field
             text = 'Full spatial domain'
-            self._QC.append(text)
+            self._History.append(text)
             #Define the rest of the grid variables
             self.h = data.variables['h'][:]
             try:
@@ -356,7 +356,7 @@ class _load_grid:
             self._ax = ax
             # Add metadata entry
             text = 'Bounding box =' + str(ax)
-            self._QC.append(text)
+            self._History.append(text)
             print '-Now working in bounding box-'
     
         if debug:
@@ -410,7 +410,7 @@ class _load_grid:
     #    # Add metadata entry
     #    if not quiet:
     #        text = 'Bounding box =' + str(ax)
-    #        self._QC.append(text)
+    #        self._History.append(text)
     #        print '-Now working in bounding box-'
     #    return region_e, region_n
 
