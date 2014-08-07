@@ -6,8 +6,10 @@ from __future__ import division
 import numpy as np
 import sys
 from utide import ut_solv, ut_reconstr
+#TR comment: 2 alternatives
 #import netCDF4 as nc
 from scipy.io import netcdf
+import mmap
 import cPickle as pkl
 #import pickle as pkl
 #WB_Alternative: import scipy.io as sio
@@ -74,6 +76,9 @@ Notes:
             self.Grid = ObjectFromDict(data['Grid'])
             self.Variables = ObjectFromDict(data['Variables'])
             try:
+                #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+                #WB_comments: scipy has causes some errors, and even though can be
+                #             faster, can be unreliable
                 #self.Data = nc.Dataset(data['Origin'], 'r')
                 self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
             except: #TR: need to precise the type of error here

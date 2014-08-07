@@ -52,7 +52,9 @@ class _load_var:
                 #TR: accelerating caching but have a memory cost
                 #temp = data.variables['zeta'][:]
                 #self.el = temp[region_t,:]
-                self.el = data.variables['zeta'][region_t,:]           
+                #TR Comment: using scipy netcdf we can use .data
+                #self.el = data.variables['zeta'][region_t,:]
+                self.el = data.variables['zeta'].data[region_t,:]            
                 try:
                     #TR: accelerating caching but have a memory cost
                     #temp = data.variables['ww'][:]
@@ -65,11 +67,17 @@ class _load_var:
                     #self.ua = temp[region_t,:]
                     #temp = data.variables['va'][:]
                     #self.va = temp[region_t,:]
-                    self.w = data.variables['ww'][region_t,:,:]
-                    self.u = data.variables['u'][region_t,:,:]
-                    self.v = data.variables['v'][region_t,:,:]
-                    self.ua = data.variables['ua'][region_t,:]
-                    self.va = data.variables['va'][region_t,:]
+                    #TR Comment: using scipy netcdf we can use .data
+                    #self.w = data.variables['ww'][region_t,:,:]
+                    #self.u = data.variables['u'][region_t,:,:]
+                    #self.v = data.variables['v'][region_t,:,:]
+                    #self.ua = data.variables['ua'][region_t,:]
+                    #self.va = data.variables['va'][region_t,:]
+                    self.w = data.variables['ww'].data[region_t,:,:]
+                    self.u = data.variables['u'].data[region_t,:,:]
+                    self.v = data.variables['v'].data[region_t,:,:]
+                    self.ua = data.variables['ua'].data[region_t,:]
+                    self.va = data.variables['va'].data[region_t,:]
                     # invisible variables
                     self._3D = True
                 except KeyError:
@@ -77,8 +85,11 @@ class _load_var:
                     #self.ua = temp[region_t,:]
                     #temp = data.variables['va'][:]
                     #self.va = temp[region_t,:]
-                    self.ua = data.variables['ua'][region_t,:]
-                    self.va = data.variables['va'][region_t,:]
+                    #TR Comment: using scipy netcdf we can use .data
+                    #self.ua = data.variables['ua'][region_t,:]
+                    #self.va = data.variables['va'][region_t,:]
+                    self.ua = data.variables['ua'].data[region_t,:]
+                    self.va = data.variables['va'].data[region_t,:]
                     self._3D = False
             else:
                 if debug:
@@ -90,9 +101,11 @@ class _load_var:
                 #Redefine variables in bounding box & time period
                 # elev timeseries
                 #TR: accelerating caching but have a memory cost
-                temp = data.variables['zeta'][:]
-                self.el = temp[region_t,region_n]
-                #self.el = data.variables['zeta'][region_t,region_n] 
+                #temp = data.variables['zeta'][:]
+                #self.el = temp[region_t,region_n]
+                #TR Comment: using scipy netcdf we can use .data
+                #self.el = data.variables['zeta'][region_t,region_n]
+                self.el = data.variables['zeta'].data[region_t,region_n] 
                 try:
                     #TR: accelerating caching but have a memory cost
                     #temp = data.variables['ww'][:]
@@ -105,16 +118,25 @@ class _load_var:
                     #self.ua = temp[region_t,region_e]
                     #temp = data.variables['va'][:]
                     #self.va = temp[region_t,region_e]
-                    self.w = data.variables['ww'][region_t,:,region_e]
-                    self.u = data.variables['u'][region_t,:,region_e]
-                    self.v = data.variables['v'][region_t,:,region_e]
-                    self.ua = data.variables['ua'][region_t,region_e]
-                    self.va = data.variables['va'][region_t,region_e]
+                    #TR Comment: using scipy netcdf we can use .data
+                    #self.w = data.variables['ww'][region_t,:,region_e]
+                    #self.u = data.variables['u'][region_t,:,region_e]
+                    #self.v = data.variables['v'][region_t,:,region_e]
+                    #self.ua = data.variables['ua'][region_t,region_e]
+                    #self.va = data.variables['va'][region_t,region_e]
+                    self.w = data.variables['ww'].data[region_t,:,region_e]
+                    self.u = data.variables['u'].data[region_t,:,region_e]
+                    self.v = data.variables['v'].data[region_t,:,region_e]
+                    self.ua = data.variables['ua'].data[region_t,region_e]
+                    self.va = data.variables['va'].data[region_t,region_e]
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    self.ua = data.variables['ua'][region_t,region_e]
-                    self.va = data.variables['va'][region_t,region_e]
+                    #TR Comment: using scipy netcdf we can use .data
+                    #self.ua = data.variables['ua'][region_t,region_e]
+                    #self.va = data.variables['va'][region_t,region_e]
+                    self.ua = data.variables['ua'].data[region_t,region_e]
+                    self.va = data.variables['va'].data[region_t,region_e]
                     self._3D = False          
         else:
             if debug:
@@ -154,9 +176,11 @@ class _load_var:
                 #Redefine variables in bounding box & time period
                 # elev timeseries
                 #TR: accelerating caching but have a memory cost
-                temp = data.variables['zeta'][:]
-                self.el = temp[:,region_n]
+                #temp = data.variables['zeta'][:]
+                #self.el = temp[:,region_n]
+                #TR Comment: using scipy netcdf we can use .data
                 #self.el = data.variables['zeta'][:,region_n]
+                self.el = data.variables['zeta'].data[:,region_n]
                 try:
                     #TR: accelerating caching but have a memory cost
                     #temp = data.variables['ww'][:]
@@ -169,11 +193,17 @@ class _load_var:
                     #self.ua = temp[:,region_e]
                     #temp = data.variables['va'][:]
                     #self.va = temp[:,region_e]
-                    self.w = data.variables['ww'][:,:,region_e]
-                    self.u = data.variables['u'][:,:,region_e]
-                    self.v = data.variables['v'][:,:,region_e]
-                    self.ua = data.variables['ua'][:,region_e]
-                    self.va = data.variables['va'][:,region_e]
+                    #TR Comment: using scipy netcdf we can use .data
+                    #self.w = data.variables['ww'][:,:,region_e]
+                    #self.u = data.variables['u'][:,:,region_e]
+                    #self.v = data.variables['v'][:,:,region_e]
+                    #self.ua = data.variables['ua'][:,region_e]
+                    #self.va = data.variables['va'][:,region_e]
+                    self.w = data.variables['ww'].data[:,:,region_e]
+                    self.u = data.variables['u'].data[:,:,region_e]
+                    self.v = data.variables['v'].data[:,:,region_e]
+                    self.ua = data.variables['ua'].data[:,region_e]
+                    self.va = data.variables['va'].data[:,region_e]
                     # invisible variables
                     self._3D = True
                 except KeyError:
@@ -181,9 +211,13 @@ class _load_var:
                     #temp = data.variables['ua'][:]
                     #self.ua = temp[:,region_e]
                     #temp = data.variables['va'][:]
-                    #self.va = temp[:,region_e]                    
-                    self.ua = data.variables['ua'][:,region_e]
-                    self.va = data.variables['va'][:,region_e]
+                    #self.va = temp[:,region_e]  
+                    #TR Comment: using scipy netcdf we can use .data                 
+                    #self.ua = data.variables['ua'][:,region_e]
+                    #self.va = data.variables['va'][:,region_e]
+                    self.ua = data.variables['ua'].data[:,region_e]
+                    self.va = data.variables['va'].data[:,region_e]
+                    # invisible variables
                     self._3D = False
         if debug:
             print '...Passed'
@@ -235,21 +269,37 @@ class _load_grid:
         self._QC = QC
         QC = self._QC
         #Load grid variables on the entire domain:
-        self.lon = data.variables['lon'][:]
-        self.lat = data.variables['lat'][:]
-        self.lonc = data.variables['lonc'][:]
-        self.latc = data.variables['latc'][:]
-        self.x = data.variables['x'][:]
-        self.y = data.variables['y'][:]
-        self.xc = data.variables['xc'][:]
-        self.yc = data.variables['yc'][:]
-        self.a1u = data.variables['a1u'][:]
-        self.a2u = data.variables['a2u'][:]
-        self.aw0 = data.variables['aw0'][:]
-        self.awx = data.variables['awx'][:]
-        self.awy = data.variables['awy'][:]
-        self.trinodes = data.variables['nv'][:].T - 1
-        self.triele = data.variables['nbe'][:].T
+        #self.lon = data.variables['lon'][:]
+        #self.lat = data.variables['lat'][:]
+        #self.lonc = data.variables['lonc'][:]
+        #self.latc = data.variables['latc'][:]
+        #self.x = data.variables['x'][:]
+        #self.y = data.variables['y'][:]
+        #self.xc = data.variables['xc'][:]
+        #self.yc = data.variables['yc'][:]
+        #self.a1u = data.variables['a1u'][:]
+        #self.a2u = data.variables['a2u'][:]
+        #self.aw0 = data.variables['aw0'][:]
+        #self.awx = data.variables['awx'][:]
+        #self.awy = data.variables['awy'][:]
+        #self.trinodes = data.variables['nv'][:].T - 1
+        #self.triele = data.variables['nbe'][:].T
+        #TR Comment: using scipy netcdf we can use .data
+        self.lon = data.variables['lon'].data
+        self.lat = data.variables['lat'].data
+        self.lonc = data.variables['lonc'].data
+        self.latc = data.variables['latc'].data
+        self.x = data.variables['x'].data
+        self.y = data.variables['y'].data
+        self.xc = data.variables['xc'].data
+        self.yc = data.variables['yc'].data
+        self.a1u = data.variables['a1u'].data
+        self.a2u = data.variables['a2u'].data
+        self.aw0 = data.variables['aw0'].data
+        self.awx = data.variables['awx'].data
+        self.awy = data.variables['awy'].data
+        self.trinodes = np.transpose(data.variables['nv'].data) - 1
+        self.triele = np.transpose(data.variables['nbe'].data)
         if ax==[]:
             #Append message to QC field
             text = 'Full spatial domain'
@@ -262,8 +312,8 @@ class _load_grid:
                 self.nlevel = self.siglay.shape[0]
             except KeyError:
                 pass
-            self.nele = len(data.dimensions['nele'])
-            self.node = len(data.dimensions['node'])
+            self.nele = data.dimensions['nele']
+            self.node = data.dimensions['node']
             #Define bounding box
             self._ax = ax
         else:
@@ -287,10 +337,15 @@ class _load_grid:
             #Only load the element within the box
             self._node_index = Data['node_index']
             self._element_index = Data['element_index']
-            self.h = data.variables['h'][self._node_index]
+            #TR Comment: using scipy netcdf we can use .data
+            #self.h = data.variables['h'][self._node_index]
+            self.h = data.variables['h'].data[self._node_index]
             try:
-                self.siglay = data.variables['siglay'][:,self._node_index]
-                self.siglev = data.variables['siglev'][:,self._node_index]
+                #self.siglay = data.variables['siglay'][:,self._node_index]
+                #self.siglev = data.variables['siglev'][:,self._node_index]
+                #TR Comment: using scipy netcdf we can use .data
+                self.siglay = data.variables['siglay'].data[:,self._node_index]
+                self.siglev = data.variables['siglev'].data[:,self._node_index]
                 self.nlevel = self.siglay.shape[0]
             except KeyError:
                 pass
