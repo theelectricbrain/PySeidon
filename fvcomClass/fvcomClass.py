@@ -177,10 +177,10 @@ Notes:
             #            so cannot do fvcom3 = fvcom1 + fvcom2
             if debug:
                 print 'Stacking variables...'
-            #newself.Grid.siglay = np.vstack((newself.Grid.siglay,
-            #                                 FvcomClass.Grid.siglay))
-            #newself.Grid.siglev = np.vstack((newself.Grid.siglev,
-            #                                 FvcomClass.Grid.siglev))
+            newself.Variables.matlabTime = np.hstack((newself.Variables.matlabTime,
+                                             FvcomClass.Variables.matlabTime))
+            newself.Variables.julianTime = np.hstack((newself.Variables.julianTime,
+                                             FvcomClass.Variables.julianTime))
             newself.Variables.ua = np.vstack((newself.Variables.ua,
                                               FvcomClass.Variables.ua))
             newself.Variables.va = np.vstack((newself.Variables.va,
@@ -234,6 +234,8 @@ Notes:
                     if debug:
                         print "Force caching for " + key
                     data['Variables'][key] = data['Variables'][key][:]
+            #Unpickleable objects
+            data['Grid'].pop("triangle", None)
             #Save in pickle file
             if debug:
                 print 'Dumping in pickle file...'
@@ -271,6 +273,8 @@ Notes:
                 #keyG = key + '-grd'
                 #data[keyG] = Grd[key]
                 data[key] = Grd[key]
+            #Unpickleable objects
+            data.pop("triangle", None)
             #Save in mat file file
             if debug:
                 print 'Dumping in matlab file...'

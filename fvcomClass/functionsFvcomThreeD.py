@@ -515,6 +515,145 @@ class FunctionsFvcomThreeD:
         if debug or self._debug:
             print '...Passed'
 
+    def vorticity(self, debug=False):
+        """
+        Create a new variable 'depth averaged vorticity'
+        -> FVCOM.Variables.depth_av_vorticity
+     
+        Notes:
+        -----
+          - Can take time over the full domain
+        """
+        debug = (debug or self._debug)
+        if debug:
+            print 'Computing vorticity...'
+            start = time.time()
+
+        t = arange(self._grid.ntime)  
+
+        #Surrounding elements
+        n1 = self._grid.triele[:,0]
+        n2 = self._grid.triele[:,1]
+        n3 = self._grid.triele[:,2]
+        #TR comment: not quiet sure what this step does
+        n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
+        n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
+        n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+        if debug:
+            end = time.time()
+            print "Check element=0, computation time in (s): ", (end - start)
+            print "start np.multiply" 
+
+        x0 = self._grid.xc
+        y0 = self._grid.yc
+        
+        dvdx = np.zeros((self._grid.ntime,self._grid.nlevel,self._grid.nele))
+        dudy = np.zeros((self._grid.ntime,self._grid.nlevel,self._grid.nele))
+
+        j=0
+        for i in t:
+            dvdx[j,:,:] = np.multiply(self._grid.a1u[0,:], self._var.v[i,:,:]) \
+                        + np.multiply(self._grid.a1u[1,:], self._var.v[i,:,n1]) \
+                        + np.multiply(self._grid.a1u[2,:], self._var.v[i,:,n2]) \
+                        + np.multiply(self._grid.a1u[3,:], self._var.v[i,:,n3])
+            dudy[j,:,:] = np.multiply(self._grid.a2u[0,:], self._var.u[i,:,:]) \
+                        + np.multiply(self._grid.a2u[1,:], self._var.u[i,:,n1]) \
+                        + np.multiply(self._grid.a2u[2,:], self._var.u[i,:,n2]) \
+                        + np.multiply(self._grid.a2u[3,:], self._var.u[i,:,n3])
+            j+=1
+        if debug:
+            print "loop number ", i
+
+        vort = dvdx - dudy
+
+        # Add metadata entry
+        self._var.vorticity = vort
+        self._History.append('vorticity computed')
+        print '-Vorticity added to FVCOM.Variables.-'
+
+        if debug:
+            end = time.time()
+            print "Computation time in (s): ", (end - start) 
+
+    def vorticity_over_period(self, time_ind=[], t_start=[], t_end=[], debug=False):
+        """
+        Compute the depth averaged vorticity for a time period.
+     
+        Outputs:
+        -------
+          - vort = horizontal vorticity (1/s), 2D array (time, nele)
+        Keywords:
+        -------
+          - time_ind = time indexes to work in, list of integers
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
+            or time index (integer)
+        Notes:
+        -----
+          - Can take time over the full domain
+        """
+        debug = (debug or self._debug)
+        if debug:
+            print 'Computing vorticity...'
+            start = time.time()
+
+        # Find time interval to work in
+        t = []
+        if not time_ind==[]:
+            t = time_ind
+        elif not t_start==[]:
+            if type(t_start)==str:
+                t = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+            else:
+                t = arange(t_start, t_end)
+        else:
+            t = arange(self._grid.ntime)  
+
+        #Checking if vorticity already computed
+        if not hasattr(self._var, 'vorticity'): 
+            #Surrounding elements
+            n1 = self._grid.triele[:,0]
+            n2 = self._grid.triele[:,1]
+            n3 = self._grid.triele[:,2]
+            #TR comment: not quiet sure what this step does
+            n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
+            n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
+            n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+            if debug:
+                end = time.time()
+                print "Check element=0, computation time in (s): ", (end - start)
+                print "start np.multiply" 
+
+            x0 = self._grid.xc
+            y0 = self._grid.yc
+        
+            dvdx = np.zeros((t.shape[0],self._grid.nlevel,self._grid.nele))
+            dudy = np.zeros((t.shape[0],self._grid.nlevel,self._grid.nele))
+
+            j=0
+            for i in t:
+                dvdx[j,:,:] = np.multiply(self._grid.a1u[0,:], self._var.v[i,:,:]) \
+                          + np.multiply(self._grid.a1u[1,:], self._var.v[i,:,n1]) \
+                          + np.multiply(self._grid.a1u[2,:], self._var.v[i,:,n2]) \
+                          + np.multiply(self._grid.a1u[3,:], self._var.v[i,:,n3])
+                dudy[j,:,:] = np.multiply(self._grid.a2u[0,:], self._var.u[i,:,:]) \
+                          + np.multiply(self._grid.a2u[1,:], self._var.u[i,:,n1]) \
+                          + np.multiply(self._grid.a2u[2,:], self._var.u[i,:,n2]) \
+                          + np.multiply(self._grid.a2u[3,:], self._var.u[i,:,n3])
+                j+=1
+            if debug:
+                print "loop number ", i
+
+            vort = dvdx - dudy
+        else:
+            vort = self._var.vorticity[t[:],:,:]
+
+        if debug:
+            end = time.time()
+            print "Computation time in (s): ", (end - start) 
+        return vort
+
     def _vertical_slice(self, var, start_pt, end_pt,
                         time_ind=[], t_start=[], t_end=[],
                         title='Title', cmax=[], cmin=[], debug=False):
