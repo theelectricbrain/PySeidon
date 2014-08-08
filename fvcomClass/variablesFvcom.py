@@ -73,11 +73,25 @@ class _load_var:
                     #self.v = data.variables['v'][region_t,:,:]
                     #self.ua = data.variables['ua'][region_t,:]
                     #self.va = data.variables['va'][region_t,:]
-                    self.w = data.variables['ww'].data[region_t,:,:]
-                    self.u = data.variables['u'].data[region_t,:,:]
-                    self.v = data.variables['v'].data[region_t,:,:]
-                    self.ua = data.variables['ua'].data[region_t,:]
-                    self.va = data.variables['va'].data[region_t,:]
+                    #TR comment: looping on time indexes is a trick from Mitchell
+                    #            to improve loading time
+                    #TR comment: no idea why I have to transpose here but I do !!
+                    self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.ua = np.zeros((grid.ntime, grid.nele))
+                    self.va = np.zeros((grid.ntime, grid.nele))
+                    for i in region_t:
+                        self.w[i,:,:] = np.transpose(
+                                        data.variables['ww'].data[i,:,:])
+                        self.u[i,:,:] = np.transpose(
+                                        data.variables['u'].data[i,:,:])
+                        self.v[i,:,:] = np.transpose(
+                                        data.variables['v'].data[i,:,:])
+                        self.ua[i,:] = np.transpose(
+                                       data.variables['ua'].data[i,:])
+                        self.va[i,:] = np.transpose(
+                                       data.variables['va'].data[i,:])
                     # invisible variables
                     self._3D = True
                 except KeyError:
@@ -88,8 +102,20 @@ class _load_var:
                     #TR Comment: using scipy netcdf we can use .data
                     #self.ua = data.variables['ua'][region_t,:]
                     #self.va = data.variables['va'][region_t,:]
-                    self.ua = data.variables['ua'].data[region_t,:]
-                    self.va = data.variables['va'].data[region_t,:]
+                    #self.ua = data.variables['ua'].data[region_t,:]
+                    #self.va = data.variables['va'].data[region_t,:]
+                    #TR comment: looping on time indexes is a trick from Mitchell
+                    #            to improve loading time
+                    #TR comment: no idea why I have to transpose here but I do !!
+                    self.ua = np.zeros((grid.ntime, grid.nele))
+                    self.va = np.zeros((grid.ntime, grid.nele))
+                    for i in region_t:
+                        self.ua[i,:] = np.transpose(
+                                       data.variables['ua'].data[i,:])
+                        self.va[i,:] = np.transpose(
+                                       data.variables['va'].data[i,:])
+
+                    # invisible variables
                     self._3D = False
             else:
                 if debug:
@@ -124,19 +150,40 @@ class _load_var:
                     #self.v = data.variables['v'][region_t,:,region_e]
                     #self.ua = data.variables['ua'][region_t,region_e]
                     #self.va = data.variables['va'][region_t,region_e]
-                    self.w = data.variables['ww'].data[region_t,:,region_e]
-                    self.u = data.variables['u'].data[region_t,:,region_e]
-                    self.v = data.variables['v'].data[region_t,:,region_e]
-                    self.ua = data.variables['ua'].data[region_t,region_e]
-                    self.va = data.variables['va'].data[region_t,region_e]
+                    #TR comment: looping on time indexes is a trick from Mitchell
+                    #            to improve loading time
+                    #TR comment: no idea why I have to transpose here but I do !!
+                    self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.ua = np.zeros((grid.ntime, grid.nele))
+                    self.va = np.zeros((grid.ntime, grid.nele))
+                    for i in region_t:
+                        self.w[i,:,:] = np.transpose(
+                                        data.variables['ww'].data[i,:,region_e])
+                        self.u[i,:,:] = np.transpose(
+                                        data.variables['u'].data[i,:,region_e])
+                        self.v[i,:,:] = np.transpose(
+                                        data.variables['v'].data[i,:,region_e])
+                        self.ua[i,:] = np.transpose(
+                                       data.variables['ua'].data[i,region_e])
+                        self.va[i,:] = np.transpose(
+                                       data.variables['va'].data[i,region_e])
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    #TR Comment: using scipy netcdf we can use .data
-                    #self.ua = data.variables['ua'][region_t,region_e]
-                    #self.va = data.variables['va'][region_t,region_e]
-                    self.ua = data.variables['ua'].data[region_t,region_e]
-                    self.va = data.variables['va'].data[region_t,region_e]
+                    #TR comment: looping on time indexes is a trick from Mitchell
+                    #            to improve loading time
+                    #TR comment: no idea why I have to transpose here but I do !!
+                    self.ua = np.zeros((grid.ntime, grid.nele))
+                    self.va = np.zeros((grid.ntime, grid.nele))
+                    for i in region_t:
+                        #TR Comment: using scipy netcdf we can use .data
+                        #self.ua = data.variables['ua'][region_t,region_e]
+                        #self.va = data.variables['va'][region_t,region_e]
+                        self.ua[i,:] = np.transpose(data.variables['ua'].data[i,region_e])
+                        self.va[i,:] = np.transpose(data.variables['va'].data[i,region_e])
+                    # invisible variables
                     self._3D = False          
         else:
             #-Append message to History field
@@ -201,18 +248,23 @@ class _load_var:
                     #self.va = data.variables['va'][:,region_e]
                     #TR comment: looping on time indexes is a trick from Mitchell
                     #            to improve loading time
+                    #TR comment: no idea why I have to transpose here but I do !!!
                     self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
                     self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
                     self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
                     self.ua = np.zeros((grid.ntime, grid.nele))
                     self.va = np.zeros((grid.ntime, grid.nele))
                     for i in range(grid.ntime):
-                        self.w[i,:,:] = np.transpose(data.variables['ww'].data[i,:,region_e])
-                        self.u[i,:,:] = np.transpose(data.variables['u'].data[i,:,region_e])
-                        self.v[i,:,:] = np.transpose(data.variables['v'].data[i,:,region_e])
-                        self.ua[i,:] = np.transpose(data.variables['ua'].data[i,region_e])
-                        self.va[i,:] = np.transpose(data.variables['va'].data[i,region_e])
-                    #TR comment: no idea why I have to transpose here but I do !!!
+                        self.w[i,:,:] = np.transpose(
+                                        data.variables['ww'].data[i,:,region_e])
+                        self.u[i,:,:] = np.transpose(
+                                        data.variables['u'].data[i,:,region_e])
+                        self.v[i,:,:] = np.transpose(
+                                        data.variables['v'].data[i,:,region_e])
+                        self.ua[i,:] = np.transpose(
+                                       data.variables['ua'].data[i,region_e])
+                        self.va[i,:] = np.transpose(
+                                       data.variables['va'].data[i,region_e])
                     # invisible variables
                     self._3D = True
                 except KeyError:
@@ -224,8 +276,18 @@ class _load_var:
                     #TR Comment: using scipy netcdf we can use .data                 
                     #self.ua = data.variables['ua'][:,region_e]
                     #self.va = data.variables['va'][:,region_e]
-                    self.ua = data.variables['ua'].data[:,region_e]
-                    self.va = data.variables['va'].data[:,region_e]
+                    #self.ua = data.variables['ua'].data[:,region_e]
+                    #self.va = data.variables['va'].data[:,region_e]
+                    #TR comment: looping on time indexes is a trick from Mitchell
+                    #            to improve loading time
+                    #TR comment: no idea why I have to transpose here but I do !!!
+                    self.ua = np.zeros((grid.ntime, grid.nele))
+                    self.va = np.zeros((grid.ntime, grid.nele))
+                    for i in range(grid.ntime):
+                        self.ua[i,:] = np.transpose(
+                                       data.variables['ua'].data[i,region_e])
+                        self.va[i,:] = np.transpose(
+                                       data.variables['va'].data[i,region_e])
                     # invisible variables
                     self._3D = False
         if debug:
