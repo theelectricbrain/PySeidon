@@ -199,11 +199,20 @@ class _load_var:
                     #self.v = data.variables['v'][:,:,region_e]
                     #self.ua = data.variables['ua'][:,region_e]
                     #self.va = data.variables['va'][:,region_e]
-                    self.w = data.variables['ww'].data[:,:,region_e]
-                    self.u = data.variables['u'].data[:,:,region_e]
-                    self.v = data.variables['v'].data[:,:,region_e]
-                    self.ua = data.variables['ua'].data[:,region_e]
-                    self.va = data.variables['va'].data[:,region_e]
+                    #TR comment: looping on time indexes is a trick from Mitchell
+                    #            to improve loading time
+                    self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                    self.ua = np.zeros((grid.ntime, grid.nele))
+                    self.va = np.zeros((grid.ntime, grid.nele))
+                    for i in range(grid.ntime):
+                        self.w[i,:,:] = np.transpose(data.variables['ww'].data[i,:,region_e])
+                        self.u[i,:,:] = np.transpose(data.variables['u'].data[i,:,region_e])
+                        self.v[i,:,:] = np.transpose(data.variables['v'].data[i,:,region_e])
+                        self.ua[i,:] = np.transpose(data.variables['ua'].data[i,region_e])
+                        self.va[i,:] = np.transpose(data.variables['va'].data[i,region_e])
+                    #TR comment: no idea why I have to transpose here but I do !!!
                     # invisible variables
                     self._3D = True
                 except KeyError:

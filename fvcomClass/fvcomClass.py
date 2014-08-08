@@ -11,7 +11,7 @@ from utide import ut_solv, ut_reconstr
 from scipy.io import netcdf
 from scipy.io import savemat
 from scipy.io import loadmat
-import mmap
+#import mmap
 import cPickle as pkl
 #import pickle as pkl
 #WB_Alternative: import scipy.io as sio
