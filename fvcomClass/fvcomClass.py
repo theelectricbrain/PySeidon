@@ -9,6 +9,8 @@ from utide import ut_solv, ut_reconstr
 #TR comment: 2 alternatives
 #import netCDF4 as nc
 from scipy.io import netcdf
+from scipy.io import savemat
+from scipy.io import loadmat
 import mmap
 import cPickle as pkl
 #import pickle as pkl
@@ -73,6 +75,7 @@ Notes:
         if filename.endswith('.p'):
             f = open(filename, "rb")
             data = pkl.load(f)
+            self._origin_file = data['Origin']
             self.History = data['History']
             self.Grid = ObjectFromDict(data['Grid'])
             self.Variables = ObjectFromDict(data['Variables'])
@@ -117,8 +120,8 @@ Notes:
                 raise
 
         elif filename.endswith('.mat'):
-            print "Cannot handle *.mat file yet"
-
+            print "---Functionality not yet implemented---"
+            sys.exit()
         else:
             print "---Wrong file format---"
             sys.exit()
@@ -146,7 +149,7 @@ Notes:
         """
         This special method permit to stack variables
         of 2 FVCOM objects through a simple addition:
-          fvcom3 = fvcom1 + fvcom2
+          fvcom1 += fvcom2
 
         Notes:
         -----
@@ -170,7 +173,8 @@ Notes:
                 sys.exit()
             #Copy self to newself
             newself = copy.copy(self)
-            #TR comment: it still points toward self and mofiies it
+            #TR comment: it still points toward self and modifies it
+            #            so cannot do fvcom3 = fvcom1 + fvcom2
             if debug:
                 print 'Stacking variables...'
             newself.Grid.siglay = np.vstack((newself.Grid.siglay,
@@ -244,7 +248,33 @@ Notes:
             f.close()
         elif fileformat=='matlab':
             filename = filename + ".mat"
-            print "Functionality not yet implemented"
+            #TR comment: based on MitchellO'Flaherty-Sproul's code
+            dtype = float
+            data = {}
+            Grd = {}
+            Var = {}
+            data['Origin'] = self._origin_file
+            data['History'] = self.History
+            Grd = self.Grid.__dict__
+            Var = self.Variables.__dict__
+            #TR: Force caching Variables otherwise error during loading
+            #    with 'netcdf4.Variable' type (see above)
+            for key in Var:
+                if type(Var[key]).__name__=='Variable':
+                    if debug:
+                        print "Force caching for " + key
+                    Var[key] = data['Variables'][key][:]
+                #keyV = key + '-var'
+                #data[keyV] = Var[key]
+                data[key] = Var[key]
+            for key in Grd:
+                #keyG = key + '-grd'
+                #data[keyG] = Grd[key]
+                data[key] = Grd[key]
+            #Save in mat file file
+            if debug:
+                print 'Dumping in matlab file...'
+            savemat(filename, data, oned_as='column')       
         else:
             print "---Wrong file format---"
 
