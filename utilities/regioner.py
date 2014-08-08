@@ -46,21 +46,21 @@ on. Default is 2D.
 """
     if debug:
         print 'Reindexing...'
-    lon = gridVar.lon
-    lat = gridVar.lat
-    nbe = gridVar.triele
-    nv = gridVar.trinodes
-    a1u = gridVar.a1u
-    a2u = gridVar.a2u
-    aw0 = gridVar.aw0
-    awx = gridVar.awx
-    awy = gridVar.awy
-    x = gridVar.x
-    xc = gridVar.xc
-    y = gridVar.y
-    yc = gridVar.yc
-    lonc = gridVar.lonc
-    latc = gridVar.latc
+    lon = gridVar.lon[:]
+    lat = gridVar.lat[:]
+    nbe = gridVar.triele[:]
+    nv = gridVar.trinodes[:]
+    a1u = gridVar.a1u[:]
+    a2u = gridVar.a2u[:]
+    aw0 = gridVar.aw0[:]
+    awx = gridVar.awx[:]
+    awy = gridVar.awy[:]
+    x = gridVar.x[:]
+    xc = gridVar.xc[:]
+    y = gridVar.y[:]
+    yc = gridVar.yc[:]
+    lonc = gridVar.lonc[:]
+    latc = gridVar.latc[:]
 
     l = nv.shape[0]
 
@@ -140,15 +140,15 @@ on. Default is 2D.
 
     data['x'] = x[node_index]
     data['y'] = y[node_index]
-    data['xc'] = xc[node_index]
-    data['yc'] = yc[node_index]
+    data['xc'] = xc[element_index]
+    data['yc'] = yc[element_index]
 
     data['lon'] = lon[node_index]
     data['lat'] = lat[node_index]
-    data['lonc'] = lonc[node_index]
-    data['latc'] = latc[node_index]
+    data['lonc'] = lonc[element_index]
+    data['latc'] = latc[element_index]
 
-    data['trigrid'] = Tri.Triangulation(data['lon'], data['lat'], \
+    data['triangle'] = Tri.Triangulation(data['lon'], data['lat'], \
                                         data['nv'])
 
     return data

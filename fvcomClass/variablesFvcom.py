@@ -334,6 +334,7 @@ class _load_grid:
             self.awy = Data['awy'][:]
             self.trinodes = Data['nv'][:]
             self.triele = Data['nbe'][:]
+            self.triangle = Data['triangle']
             #Only load the element within the box
             self._node_index = Data['node_index']
             self._element_index = Data['element_index']
