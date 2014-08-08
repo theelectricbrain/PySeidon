@@ -177,10 +177,10 @@ Notes:
             #            so cannot do fvcom3 = fvcom1 + fvcom2
             if debug:
                 print 'Stacking variables...'
-            newself.Grid.siglay = np.vstack((newself.Grid.siglay,
-                                             FvcomClass.Grid.siglay))
-            newself.Grid.siglev = np.vstack((newself.Grid.siglev,
-                                             FvcomClass.Grid.siglev))
+            #newself.Grid.siglay = np.vstack((newself.Grid.siglay,
+            #                                 FvcomClass.Grid.siglay))
+            #newself.Grid.siglev = np.vstack((newself.Grid.siglev,
+            #                                 FvcomClass.Grid.siglev))
             newself.Variables.ua = np.vstack((newself.Variables.ua,
                                               FvcomClass.Variables.ua))
             newself.Variables.va = np.vstack((newself.Variables.va,
