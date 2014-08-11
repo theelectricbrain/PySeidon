@@ -439,7 +439,7 @@ class FunctionsFvcom:
 
         #Distinguish between 1D and 2D var
         if len(var.shape)>1:
-            if not pt_lon or pt_lat:
+            if pt_lon==[] or pt_lat==[]:
                 print 'Lon, lat coordinates are needed'
                 sys.exit()
             signal = self.interpolation_at_point(var, pt_lon, pt_lat, debug=debug)
