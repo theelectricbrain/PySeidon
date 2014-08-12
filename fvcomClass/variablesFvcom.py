@@ -36,9 +36,9 @@ class _load_var:
 
         #Check if time period defined
         self.julianTime = data.variables['time']      
-        if tx:
+        if not tx==[]:
             #Time period           
-            region_t = self._t_region(tx[0], tx[1], debug=debug)
+            region_t = self._t_region(tx, debug=debug)
             #Quick reshape
             region_t = region_t.T[0,:]
             self._region_time = region_t
@@ -399,7 +399,7 @@ class _load_var:
         #    #finding time period
         #    region_t = np.argwhere((self.julianTime >= tS) &
         #                           (self.julianTime <= tE)) 
-        region_t = time_to_index(t_start, t_end, self.julian + 678942, debug=debug)
+        region_t = time_to_index(tx[0], t[1], self.julian + 678942, debug=debug)
          
         if debug:
             print '...Passed'
