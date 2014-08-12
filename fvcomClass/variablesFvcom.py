@@ -235,7 +235,7 @@ class _load_var:
             text = 'Full temporal domain'
             self._History.append(text)
             # get time and adjust it to matlab datenum
-            self.julianTime = data.variables['time']
+            self.julianTime = data.variables['time'].data
             self.matlabTime = self.julianTime[:] + 678942
             #Add time dimension to grid variables
             grid.ntime = self.julianTime.shape[0]
