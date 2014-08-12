@@ -55,7 +55,8 @@ Options:
         ax = [minimun longitude, maximun longitude,
               minimun latitude, maximum latitude]
     Can be defined for a time period only, as such:
-        tx = ['2012.11.07','2012.11.09'], string of year.month.date
+        tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'],
+             string of 'yyyy-mm-ddThh:mm:ss'
 Notes:
 -----
     As of right now, only takes a filename as input. It will then load in the

@@ -2,13 +2,14 @@
 # encoding: utf-8
 
 from __future__ import division
-from jdcal import gcal2jd
+#from jdcal import gcal2jd
 import numpy as np
 import matplotlib.tri as Tri
 from itertools import groupby
 from operator import itemgetter
 #Local import
 from regioner import *
+from miscallaneous import time_to_index
 
 class _load_var:
     """
@@ -37,7 +38,7 @@ class _load_var:
         self.julianTime = data.variables['time']      
         if tx:
             #Time period           
-            region_t = self._t_region(tx, debug=debug)
+            region_t = self._t_region(tx[0], tx[1], debug=debug)
             #Quick reshape
             region_t = region_t.T[0,:]
             self._region_time = region_t
@@ -387,20 +388,21 @@ class _load_var:
         debug = debug or self._debug      
         if debug:
             print 'Computing region_t...'
-        if not tx:
-            region_t = range(self.julianTime.shape[0])
-        else:
-            #Conversion to julian day
-            dStart = tx[0].split('.')
-            dEnd = tx[1].split('.')
-            tS = gcal2jd(dStart[0], dStart[1],dStart[2])[1]
-            tE = gcal2jd(dEnd[0], dEnd[1],dEnd[2])[1]
-            #finding time period
-            region_t = np.argwhere((self.julianTime >= tS) &
-                                   (self.julianTime <= tE))          
+        #if not tx:
+        #    region_t = range(self.julianTime.shape[0])
+        #else:
+        #    #Conversion to julian day
+        #    dStart = tx[0].split('.')
+        #    dEnd = tx[1].split('.')
+        #    tS = gcal2jd(dStart[0], dStart[1],dStart[2])[1]
+        #    tE = gcal2jd(dEnd[0], dEnd[1],dEnd[2])[1]
+        #    #finding time period
+        #    region_t = np.argwhere((self.julianTime >= tS) &
+        #                           (self.julianTime <= tE)) 
+        region_t = time_to_index(t_start, t_end, self.julian + 678942, debug=debug)
+         
         if debug:
             print '...Passed'
-
         # Add metadata entry
         if not quiet:
             text = 'Time period =' + str(tx)
