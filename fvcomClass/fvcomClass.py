@@ -11,10 +11,8 @@ from utide import ut_solv, ut_reconstr
 from scipy.io import netcdf
 from scipy.io import savemat
 from scipy.io import loadmat
-#import mmap
+from pydap.client import open_url
 import cPickle as pkl
-#import pickle as pkl
-#WB_Alternative: import scipy.io as sio
 import copy
 
 #Add local path to utilities
@@ -77,25 +75,42 @@ Notes:
             data = pkl.load(f)
             self._origin_file = data['Origin']
             self.History = data['History']
+            if debug: print "Turn keys into attributs"
             self.Grid = ObjectFromDict(data['Grid'])
             self.Variables = ObjectFromDict(data['Variables'])
             try:
-                #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
-                #WB_comments: scipy has causes some errors, and even though can be
-                #             faster, can be unreliable
-                #self.Data = nc.Dataset(data['Origin'], 'r')
-                self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
+                if self._origin_file.startswith('http'):
+                    #Look for file through OpenDAP server
+                    print "Retrieving data through OpenDap server..."
+                    self.Data = open_url(data['Origin'])
+                    #Create fake attribut to be consistent with the rest of the code
+                    self.Data.variables = self.Data
+                else:
+                    #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+                    #WB_comments: scipy has causes some errors, and even though can be
+                    #             faster, can be unreliable
+                    #self.Data = nc.Dataset(data['Origin'], 'r')
+                    self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
 
         #Loading netcdf file         
         elif filename.endswith('.nc'):
-            #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
-            #WB_comments: scipy has causes some errors, and even though can be
-            #             faster, can be unreliable
-            #self.Data = nc.Dataset(filename, 'r')
-            self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+            if filename.startswith('http'):
+                #Look for file through OpenDAP server
+                print "Retrieving data through OpenDap server..."
+                self.Data = open_url(filename)
+                #Create fake attribut to be consistent with the rest of the code
+                self.Data.variables = self.Data
+            else:
+                #Look for file locally
+                print "Retrieving data from " + filename + " ..."
+                #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+                #WB_comments: scipy has causes some errors, and even though can be
+                #             faster, can be unreliable
+                #self.Data = nc.Dataset(filename, 'r')
+                self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
             text = 'Created from ' + filename
             self._origin_file = filename
             #Metadata
@@ -230,12 +245,21 @@ Notes:
             #TR: Force caching Variables otherwise error during loading
             #    with 'netcdf4.Variable' type (see above)
             for key in data['Variables']:
-                if type(data['Variables'][key]).__name__=='Variable':
+                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                if any([type(data['Variables'][key]).__name__==x for x in listkeys]):
                     if debug:
                         print "Force caching for " + key
                     data['Variables'][key] = data['Variables'][key][:]
             #Unpickleable objects
             data['Grid'].pop("triangle", None)
+            #TR: Force caching Variables otherwise error during loading
+            #    with 'netcdf4.Variable' type (see above)
+            for key in data['Grid']:
+                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                if any([type(data['Grid'][key]).__name__==x for x in listkeys]):
+                    if debug:
+                        print "Force caching for " + key
+                    data['Grid'][key] = data['Grid'][key][:]
             #Save in pickle file
             if debug:
                 print 'Dumping in pickle file...'
@@ -262,19 +286,26 @@ Notes:
             #TR: Force caching Variables otherwise error during loading
             #    with 'netcdf4.Variable' type (see above)
             for key in Var:
-                if type(Var[key]).__name__=='Variable':
+                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                if any([type(Var[key]).__name__==x for x in listkeys]):
                     if debug:
                         print "Force caching for " + key
-                    Var[key] = data['Variables'][key][:]
+                    Var[key] = Var[key][:]
                 #keyV = key + '-var'
                 #data[keyV] = Var[key]
                 data[key] = Var[key]
+            #Unpickleable objects
+            Grd.pop("triangle", None)
             for key in Grd:
+                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                if any([type(Grd[key]).__name__==x for x in listkeys]):
+                    if debug:
+                        print "Force caching for " + key
+                    Grd[key] = Grd[key][:]
                 #keyG = key + '-grd'
                 #data[keyG] = Grd[key]
                 data[key] = Grd[key]
-            #Unpickleable objects
-            data.pop("triangle", None)
+
             #Save in mat file file
             if debug:
                 print 'Dumping in matlab file...'

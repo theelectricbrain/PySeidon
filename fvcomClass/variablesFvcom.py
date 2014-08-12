@@ -5,6 +5,9 @@ from __future__ import division
 from jdcal import gcal2jd
 import numpy as np
 import matplotlib.tri as Tri
+from itertools import groupby
+from operator import itemgetter
+#Local import
 from regioner import *
 
 class _load_var:
@@ -38,8 +41,11 @@ class _load_var:
             #Quick reshape
             region_t = region_t.T[0,:]
             self._region_time = region_t
+            # define time bounds
+            ts = region_t[0]
+            te = region_t[-1]
             # get time and adjust it to matlab datenum
-            self.julianTime = data.variables['time'][region_t]
+            self.julianTime = data.variables['time'][ts:te]
             self.matlabTime = self.julianTime + 678942
             #Add time dimension to grid variables
             grid.ntime = self.julianTime.shape[0]
@@ -47,142 +53,181 @@ class _load_var:
             #Check if bounding box has been defined
             if grid._ax==[]:
                 if debug:
-                    print 'Caching variables...'
+                    print 'Loading variables...'
                 # elev timeseries
-                #TR: accelerating caching but have a memory cost
-                #temp = data.variables['zeta'][:]
-                #self.el = temp[region_t,:]
-                #TR Comment: using scipy netcdf we can use .data
-                #self.el = data.variables['zeta'][region_t,:]
-                self.el = data.variables['zeta'].data[region_t,:]            
+                self.el = data.variables['zeta'].data[ts:te,:]            
                 try:
-                    #TR: accelerating caching but have a memory cost
-                    #temp = data.variables['ww'][:]
-                    #self.w = temp[region_t,:,:]
-                    #temp = data.variables['u'][:]
-                    #self.u = temp[region_t,:,:]
-                    #temp = data.variables['v'][:]
-                    #self.v = temp[region_t,:,:]
-                    #temp = data.variables['ua'][:]
-                    #self.ua = temp[region_t,:]
-                    #temp = data.variables['va'][:]
-                    #self.va = temp[region_t,:]
-                    #TR Comment: using scipy netcdf we can use .data
-                    #self.w = data.variables['ww'][region_t,:,:]
-                    #self.u = data.variables['u'][region_t,:,:]
-                    #self.v = data.variables['v'][region_t,:,:]
-                    #self.ua = data.variables['ua'][region_t,:]
-                    #self.va = data.variables['va'][region_t,:]
-                    #TR comment: looping on time indexes is a trick from Mitchell
-                    #            to improve loading time
-                    #TR comment: no idea why I have to transpose here but I do !!
-                    self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.ua = np.zeros((grid.ntime, grid.nele))
-                    self.va = np.zeros((grid.ntime, grid.nele))
-                    for i in region_t:
-                        self.w[i,:,:] = np.transpose(
-                                        data.variables['ww'].data[i,:,:])
-                        self.u[i,:,:] = np.transpose(
-                                        data.variables['u'].data[i,:,:])
-                        self.v[i,:,:] = np.transpose(
-                                        data.variables['v'].data[i,:,:])
-                        self.ua[i,:] = np.transpose(
-                                       data.variables['ua'].data[i,:])
-                        self.va[i,:] = np.transpose(
-                                       data.variables['va'].data[i,:])
+                    #different loading technique if using OpenDap server
+                    if type(data.variables).__name__=='DatasetType':
+                        self.w = data.variables['ww'].data[ts:te,:,:]
+                        self.u = data.variables['u'].data[ts:te,:,:]
+                        self.v = data.variables['v'].data[ts:te,:,:]
+                        self.ua = data.variables['ua'].data[ts:te,:]
+                        self.va = data.variables['va'].data[ts:te,:]
+                    else:
+                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #            to improve loading time
+                        #TR comment: no idea why I have to transpose here but I do !!
+                        self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.ua = np.zeros((grid.ntime, grid.nele))
+                        self.va = np.zeros((grid.ntime, grid.nele))
+                        for i in region_t:
+                            self.w[i,:,:] = np.transpose(
+                                            data.variables['ww'].data[i,:,:])
+                            self.u[i,:,:] = np.transpose(
+                                            data.variables['u'].data[i,:,:])
+                            self.v[i,:,:] = np.transpose(
+                                            data.variables['v'].data[i,:,:])
+                            self.ua[i,:] = np.transpose(
+                                           data.variables['ua'].data[i,:])
+                            self.va[i,:] = np.transpose(
+                                           data.variables['va'].data[i,:])
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    #temp = data.variables['ua'][:]
-                    #self.ua = temp[region_t,:]
-                    #temp = data.variables['va'][:]
-                    #self.va = temp[region_t,:]
-                    #TR Comment: using scipy netcdf we can use .data
-                    #self.ua = data.variables['ua'][region_t,:]
-                    #self.va = data.variables['va'][region_t,:]
-                    #self.ua = data.variables['ua'].data[region_t,:]
-                    #self.va = data.variables['va'].data[region_t,:]
-                    #TR comment: looping on time indexes is a trick from Mitchell
-                    #            to improve loading time
-                    #TR comment: no idea why I have to transpose here but I do !!
-                    self.ua = np.zeros((grid.ntime, grid.nele))
-                    self.va = np.zeros((grid.ntime, grid.nele))
-                    for i in region_t:
-                        self.ua[i,:] = np.transpose(
-                                       data.variables['ua'].data[i,:])
-                        self.va[i,:] = np.transpose(
-                                       data.variables['va'].data[i,:])
+                    #different loading technique if using OpenDap server
+                    if type(data.variables).__name__=='DatasetType':
+                        self.ua = data.variables['ua'].data[ts:te,:]
+                        self.va = data.variables['va'].data[ts:te,:]
+                    else:
+                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #            to improve loading time
+                        #TR comment: no idea why I have to transpose here but I do !!
+                        self.ua = np.zeros((grid.ntime, grid.nele))
+                        self.va = np.zeros((grid.ntime, grid.nele))
+                        for i in region_t:
+                            self.ua[i,:] = np.transpose(
+                                           data.variables['ua'].data[i,:])
+                            self.va[i,:] = np.transpose(
+                                           data.variables['va'].data[i,:])
 
                     # invisible variables
                     self._3D = False
             else:
                 if debug:
-                    print 'Caching variables...'
+                    print 'Loading variables...'
                 #TR comment: very slow...gonna need optimisation down the line  
                 #Bounding box
                 region_e = grid._element_index
                 region_n = grid._node_index
                 #Redefine variables in bounding box & time period
-                # elev timeseries
-                #TR: accelerating caching but have a memory cost
-                #temp = data.variables['zeta'][:]
-                #self.el = temp[region_t,region_n]
-                #TR Comment: using scipy netcdf we can use .data
-                #self.el = data.variables['zeta'][region_t,region_n]
-                self.el = data.variables['zeta'].data[region_t,region_n] 
                 try:
-                    #TR: accelerating caching but have a memory cost
-                    #temp = data.variables['ww'][:]
-                    #self.w = temp[region_t,:,region_e]
-                    #temp = data.variables['u'][:]
-                    #self.u = temp[region_t,:,region_e]
-                    #temp = data.variables['v'][:]
-                    #self.v = temp[region_t,:,region_e]
-                    #temp = data.variables['ua'][:]
-                    #self.ua = temp[region_t,region_e]
-                    #temp = data.variables['va'][:]
-                    #self.va = temp[region_t,region_e]
-                    #TR Comment: using scipy netcdf we can use .data
-                    #self.w = data.variables['ww'][region_t,:,region_e]
-                    #self.u = data.variables['u'][region_t,:,region_e]
-                    #self.v = data.variables['v'][region_t,:,region_e]
-                    #self.ua = data.variables['ua'][region_t,region_e]
-                    #self.va = data.variables['va'][region_t,region_e]
-                    #TR comment: looping on time indexes is a trick from Mitchell
-                    #            to improve loading time
-                    #TR comment: no idea why I have to transpose here but I do !!
-                    self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.ua = np.zeros((grid.ntime, grid.nele))
-                    self.va = np.zeros((grid.ntime, grid.nele))
-                    for i in region_t:
-                        self.w[i,:,:] = np.transpose(
-                                        data.variables['ww'].data[i,:,region_e])
-                        self.u[i,:,:] = np.transpose(
-                                        data.variables['u'].data[i,:,region_e])
-                        self.v[i,:,:] = np.transpose(
-                                        data.variables['v'].data[i,:,region_e])
-                        self.ua[i,:] = np.transpose(
-                                       data.variables['ua'].data[i,region_e])
-                        self.va[i,:] = np.transpose(
-                                       data.variables['va'].data[i,region_e])
+                    #different loading technique if using OpenDap server
+                    if type(data.variables).__name__=='DatasetType':
+                        #Split into consecutive integers to optimise loading
+                        #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
+                        #            work with non consecutive indices
+                        H=0
+                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.w = data.variables['ww'].data[ts:te,:,ID[0]:(ID[-1]+1)]
+                                self.u = data.variables['u'].data[ts:te,:,ID[0]:(ID[-1]+1)]
+                                self.v = data.variables['v'].data[ts:te,:,ID[0]:(ID[-1]+1)]
+                                self.ua = data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]
+                                self.va = data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.w = np.dstack((self.w,
+                                data.variables['ww'].data[ts:te,:,ID[0]:(ID[-1]+1)]))
+                                self.u = np.dstack((self.u,
+                                data.variables['u'].data[ts:te,:,ID[0]:(ID[-1]+1)]))
+                                self.v = np.dstack((self.v,
+                                data.variables['v'].data[ts:te,:,ID[0]:(ID[-1]+1)]))
+                                self.ua = np.hstack((self.ua,
+                                data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]))
+                                self.va = np.hstack((self.va,
+                                data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]))
+                            H=1
+
+                        # elev timeseries
+                        H=0
+                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.el = data.variables['zeta']\
+                                         .data[ts:te,:,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.el = np.hstack((self.el,
+                                data.variables['zeta'].data[ts:te,ID[0]:(ID[-1]+1)]))
+                            H=1
+                    else:
+                        # elev timeseries
+                        self.el = data.variables['zeta'].data[ts:te,region_n] 
+                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #            to improve loading time
+                        #TR comment: no idea why I have to transpose here but I do !!
+                        self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.ua = np.zeros((grid.ntime, grid.nele))
+                        self.va = np.zeros((grid.ntime, grid.nele))
+                        for i in region_t:
+                            self.w[i,:,:] = np.transpose(
+                                            data.variables['ww'].data[i,:,region_e])
+                            self.u[i,:,:] = np.transpose(
+                                            data.variables['u'].data[i,:,region_e])
+                            self.v[i,:,:] = np.transpose(
+                                            data.variables['v'].data[i,:,region_e])
+                            self.ua[i,:] = np.transpose(
+                                           data.variables['ua'].data[i,region_e])
+                            self.va[i,:] = np.transpose(
+                                           data.variables['va'].data[i,region_e])
                     # invisible variables
                     self._3D = True
+
                 except KeyError:
-                    #TR comment: looping on time indexes is a trick from Mitchell
-                    #            to improve loading time
-                    #TR comment: no idea why I have to transpose here but I do !!
-                    self.ua = np.zeros((grid.ntime, grid.nele))
-                    self.va = np.zeros((grid.ntime, grid.nele))
-                    for i in region_t:
-                        #TR Comment: using scipy netcdf we can use .data
-                        #self.ua = data.variables['ua'][region_t,region_e]
-                        #self.va = data.variables['va'][region_t,region_e]
-                        self.ua[i,:] = np.transpose(data.variables['ua'].data[i,region_e])
-                        self.va[i,:] = np.transpose(data.variables['va'].data[i,region_e])
+                    #different loading technique if using OpenDap server
+                    if type(data.variables).__name__=='DatasetType':
+                        #Split into consecutive integers to optimise loading
+                        #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
+                        #            work with non consecutive indices
+                        H=0
+                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.ua = data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]
+                                self.va = data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.ua = np.hstack((self.ua,
+                                data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]))
+                                self.va = np.hstack((self.va,
+                                data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]))
+                            H=1
+
+                        # elev timeseries
+                        H=0
+                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.el = data.variables['zeta']\
+                                         .data[:,:,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.el = np.hstack((self.el,
+                                data.variables['zeta'].data[:,ID[0]:(ID[-1]+1)]))
+                            H=1
+                    else:
+                        # elev timeseries
+                        self.el = data.variables['zeta'].data[ts:te,region_n] 
+                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #            to improve loading time
+                        #TR comment: no idea why I have to transpose here but I do !!
+                        self.ua = np.zeros((grid.ntime, grid.nele))
+                        self.va = np.zeros((grid.ntime, grid.nele))
+                        for i in region_t:
+                            self.ua[i,:] = np.transpose(
+                            data.variables['ua'].data[i,region_e])
+                            self.va[i,:] = np.transpose(
+                            data.variables['va'].data[i,region_e])
                     # invisible variables
                     self._3D = False          
         else:
@@ -200,94 +245,138 @@ class _load_var:
                 if debug:
                     print 'Linking variables...'
                 # elev timeseries
-                self.el = data.variables['zeta']           
+                self.el = data.variables['zeta'].data           
                 try:
-                    self.w = data.variables['ww']
-                    self.u = data.variables['u']
-                    self.v = data.variables['v']
-                    self.ua = data.variables['ua']
-                    self.va = data.variables['va']
+                    self.w = data.variables['ww'].data
+                    self.u = data.variables['u'].data
+                    self.v = data.variables['v'].data
+                    self.ua = data.variables['ua'].data
+                    self.va = data.variables['va'].data
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    self.ua = data.variables['ua']
-                    self.va = data.variables['va']
+                    self.ua = data.variables['ua'].data
+                    self.va = data.variables['va'].data
                     self._3D = False
             else:
                 if debug:
-                    print 'Caching variables...'
+                    print 'Loading variables...'
                 #TR comment: very slow...gonna need optimisation down the line   
                 #Bounding box
                 region_e = grid._element_index
                 region_n = grid._node_index
-                #Redefine variables in bounding box & time period
-                # elev timeseries
-                #TR: accelerating caching but have a memory cost
-                #temp = data.variables['zeta'][:]
-                #self.el = temp[:,region_n]
-                #TR Comment: using scipy netcdf we can use .data
-                #self.el = data.variables['zeta'][:,region_n]
-                self.el = data.variables['zeta'].data[:,region_n]
+                #Redefine variables in bounding box
                 try:
-                    #TR: accelerating caching but have a memory cost
-                    #temp = data.variables['ww'][:]
-                    #self.w = temp[:,:,region_e]
-                    #temp = data.variables['u'][:]
-                    #self.u = temp[:,:,region_e]
-                    #temp = data.variables['v'][:]
-                    #self.v = temp[:,:,region_e]
-                    #temp = data.variables['ua'][:]
-                    #self.ua = temp[:,region_e]
-                    #temp = data.variables['va'][:]
-                    #self.va = temp[:,region_e]
-                    #TR Comment: using scipy netcdf we can use .data
-                    #self.w = data.variables['ww'][:,:,region_e]
-                    #self.u = data.variables['u'][:,:,region_e]
-                    #self.v = data.variables['v'][:,:,region_e]
-                    #self.ua = data.variables['ua'][:,region_e]
-                    #self.va = data.variables['va'][:,region_e]
-                    #TR comment: looping on time indexes is a trick from Mitchell
-                    #            to improve loading time
-                    #TR comment: no idea why I have to transpose here but I do !!!
-                    self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                    self.ua = np.zeros((grid.ntime, grid.nele))
-                    self.va = np.zeros((grid.ntime, grid.nele))
-                    for i in range(grid.ntime):
-                        self.w[i,:,:] = np.transpose(
-                                        data.variables['ww'].data[i,:,region_e])
-                        self.u[i,:,:] = np.transpose(
-                                        data.variables['u'].data[i,:,region_e])
-                        self.v[i,:,:] = np.transpose(
-                                        data.variables['v'].data[i,:,region_e])
-                        self.ua[i,:] = np.transpose(
-                                       data.variables['ua'].data[i,region_e])
-                        self.va[i,:] = np.transpose(
-                                       data.variables['va'].data[i,region_e])
+                    #different loading technique if using OpenDap server
+                    if type(data.variables).__name__=='DatasetType':
+                        #Split into consecutive integers to optimise loading
+                        #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
+                        #            work with non consecutive indices
+                        H=0
+                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.w = data.variables['ww'].data[:,:,ID[0]:(ID[-1]+1)]
+                                self.u = data.variables['u'].data[:,:,ID[0]:(ID[-1]+1)]
+                                self.v = data.variables['v'].data[:,:,ID[0]:(ID[-1]+1)]
+                                self.ua = data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]
+                                self.va = data.variables['va'].data[:,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.w = np.dstack((self.w,
+                                         data.variables['ww'].data[:,:,ID[0]:(ID[-1]+1)]))
+                                self.u = np.dstack((self.u,
+                                         data.variables['u'].data[:,:,ID[0]:(ID[-1]+1)]))
+                                self.v = np.dstack((self.v,
+                                         data.variables['v'].data[:,:,ID[0]:(ID[-1]+1)]))
+                                self.ua = np.hstack((self.ua,
+                                          data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]))
+                                self.va = np.hstack((self.va,
+                                          data.variables['va'].data[:,ID[0]:(ID[-1]+1)]))
+                            H=1
+
+                        # elev timeseries
+                        H=0
+                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.el = data.variables['zeta']\
+                                         .data[:,:,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.el = np.hstack((self.el,
+                                data.variables['zeta'].data[:,ID[0]:(ID[-1]+1)]))
+                            H=1
+                    else:
+                        # elev timeseries
+                        self.el = data.variables['zeta'].data[:,region_n]
+                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #            to improve loading time
+                        self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
+                        self.ua = np.zeros((grid.ntime, grid.nele))
+                        self.va = np.zeros((grid.ntime, grid.nele))
+                        for i in range(grid.ntime):
+                            #TR comment: no idea why I have to transpose here but I do !!!
+                            self.w[i,:,:] = np.transpose(
+                                            data.variables['ww'].data[i,:,region_e])
+                            self.u[i,:,:] = np.transpose(
+                                            data.variables['u'].data[i,:,region_e])
+                            self.v[i,:,:] = np.transpose(
+                                            data.variables['v'].data[i,:,region_e])
+                            self.ua[i,:] = np.transpose(
+                                           data.variables['ua'].data[i,region_e])
+                            self.va[i,:] = np.transpose(
+                                           data.variables['va'].data[i,region_e])
                     # invisible variables
                     self._3D = True
                 except KeyError:
-                    #TR: accelerating caching but have a memory cost
-                    #temp = data.variables['ua'][:]
-                    #self.ua = temp[:,region_e]
-                    #temp = data.variables['va'][:]
-                    #self.va = temp[:,region_e]  
-                    #TR Comment: using scipy netcdf we can use .data                 
-                    #self.ua = data.variables['ua'][:,region_e]
-                    #self.va = data.variables['va'][:,region_e]
-                    #self.ua = data.variables['ua'].data[:,region_e]
-                    #self.va = data.variables['va'].data[:,region_e]
-                    #TR comment: looping on time indexes is a trick from Mitchell
-                    #            to improve loading time
-                    #TR comment: no idea why I have to transpose here but I do !!!
-                    self.ua = np.zeros((grid.ntime, grid.nele))
-                    self.va = np.zeros((grid.ntime, grid.nele))
-                    for i in range(grid.ntime):
-                        self.ua[i,:] = np.transpose(
-                                       data.variables['ua'].data[i,region_e])
-                        self.va[i,:] = np.transpose(
-                                       data.variables['va'].data[i,region_e])
+                    #different loading technique if using OpenDap server
+                    if type(data.variables).__name__=='DatasetType':
+                        H=0
+                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.ua = data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]
+                                self.va = data.variables['va'].data[:,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.ua = np.hstack((self.ua,
+                                          data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]))
+                                self.va = np.hstack((self.va,
+                                          data.variables['va'].data[:,ID[0]:(ID[-1]+1)]))
+                            H=1
+
+                        # elev timeseries
+                        H=0
+                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
+                            ID = map(itemgetter(1), g)
+                            if debug: print 'Index bound: ' +\
+                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if H==0:
+                                self.el = data.variables['zeta']\
+                                         .data[:,:,ID[0]:(ID[-1]+1)]
+                            else:
+                                self.el = np.hstack((self.el,
+                                data.variables['zeta'].data[:,ID[0]:(ID[-1]+1)]))
+                            H=1
+                    else:
+                        # elev timeseries
+                        self.el = data.variables['zeta'].data[:,region_n]
+                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #            to improve loading time
+                        #TR comment: no idea why I have to transpose here but I do !!!
+                        self.ua = np.zeros((grid.ntime, grid.nele))
+                        self.va = np.zeros((grid.ntime, grid.nele))
+                        for i in range(grid.ntime):
+                            self.ua[i,:] = np.transpose(
+                                           data.variables['ua'].data[i,region_e])
+                            self.va[i,:] = np.transpose(
+                                           data.variables['va'].data[i,region_e])
                     # invisible variables
                     self._3D = False
         if debug:
@@ -335,27 +424,10 @@ class _load_grid:
     def __init__(self, data, ax, History, debug=False):
         debug = debug or self._debug     
         if debug:
-            print 'Caching grid...'
+            print 'Loading grid...'
         #Pointer to History
         self._History = History
         History = self._History
-        #Load grid variables on the entire domain:
-        #self.lon = data.variables['lon'][:]
-        #self.lat = data.variables['lat'][:]
-        #self.lonc = data.variables['lonc'][:]
-        #self.latc = data.variables['latc'][:]
-        #self.x = data.variables['x'][:]
-        #self.y = data.variables['y'][:]
-        #self.xc = data.variables['xc'][:]
-        #self.yc = data.variables['yc'][:]
-        #self.a1u = data.variables['a1u'][:]
-        #self.a2u = data.variables['a2u'][:]
-        #self.aw0 = data.variables['aw0'][:]
-        #self.awx = data.variables['awx'][:]
-        #self.awy = data.variables['awy'][:]
-        #self.trinodes = data.variables['nv'][:].T - 1
-        #self.triele = data.variables['nbe'][:].T
-        #TR Comment: using scipy netcdf we can use .data
         self.lon = data.variables['lon'].data
         self.lat = data.variables['lat'].data
         self.lonc = data.variables['lonc'].data
@@ -377,14 +449,16 @@ class _load_grid:
             self._History.append(text)
             #Define the rest of the grid variables
             self.h = data.variables['h'][:]
+            self.siglay = data.variables['siglay'][:]
+            self.siglev = data.variables['siglev'][:]
+            self.nlevel = self.siglay.shape[0]
             try:
-                self.siglay = data.variables['siglay'][:]
-                self.siglev = data.variables['siglev'][:]
-                self.nlevel = self.siglay.shape[0]
-            except KeyError:
-                pass
-            self.nele = data.dimensions['nele']
-            self.node = data.dimensions['node']
+                self.nele = data.dimensions['nele']
+                self.node = data.dimensions['node']
+            except AttributeError:
+                #TR: bug due to difference in Pydap's data sturcture
+                self.nele = self.lonc.shape[0]
+                self.node = data.lon.shape[0]
             #Define bounding box
             self._ax = ax
         else:
@@ -409,20 +483,38 @@ class _load_grid:
             #Only load the element within the box
             self._node_index = Data['node_index']
             self._element_index = Data['element_index']
-            #TR Comment: using scipy netcdf we can use .data
-            #self.h = data.variables['h'][self._node_index]
-            self.h = data.variables['h'].data[self._node_index]
-            try:
-                #self.siglay = data.variables['siglay'][:,self._node_index]
-                #self.siglev = data.variables['siglev'][:,self._node_index]
-                #TR Comment: using scipy netcdf we can use .data
+
+            #different loading technique if using OpenDap server
+            if type(data.variables).__name__=='DatasetType':
+                #Split into consecutive integers to optimise loading
+                #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
+                #            work with non consecutive indices
+                H=0
+                for k, g in groupby(enumerate(self._node_index), lambda (i,x):i-x):
+                    ID = map(itemgetter(1), g)
+                    if debug: print 'Index bound: ' +\
+                        str(ID[0]) + '-' + str(ID[-1]+1)
+                    if H==0:
+                        self.h = data.variables['h'].data[ID[0]:(ID[-1]+1)]
+                        self.siglay = data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]
+                        self.siglev = data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]
+                    else:
+                        self.h = np.hstack((self.h,
+                        data.variables['h'].data[ID[0]:(ID[-1]+1)]))
+                        self.siglay = np.hstack((self.siglay,
+                        data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]))
+                        self.siglev = np.hstack((self.siglev,
+                        data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]))
+                    H=1
+            else:
+                self.h = data.variables['h'].data[self._node_index]
                 self.siglay = data.variables['siglay'].data[:,self._node_index]
                 self.siglev = data.variables['siglev'].data[:,self._node_index]
-                self.nlevel = self.siglay.shape[0]
-            except KeyError:
-                pass
+            #Dimensions
+            self.nlevel = self.siglay.shape[0]
             self.nele = Data['element_index'].shape[0]
             self.node = Data['node_index'].shape[0]
+
             del Data
             #Define bounding box
             self._ax = ax
@@ -433,56 +525,3 @@ class _load_grid:
     
         if debug:
             print '...Passed'
-
-    #TR comment: probably not needed anymore
-    #def _ele_region(self, ax, debug=False):
-    #    '''Return element indexes included in bounding box, aka ax'''       
-    #    if debug:
-    #        print 'Computing region_e...'
-
-    #    region_e = np.argwhere((self.lonc >= ax[0]) &
-    #                           (self.lonc <= ax[1]) &
-    #                           (self.latc >= ax[2]) &
-    #                           (self.latc <= ax[3]))          
-    #    if debug or self._debug:
-    #        print '...Passed'
-
-    #    return region_e
-
-    #TR comment: probably not needed anymore
-    #def _node_region(self, ax, debug=False):
-    #    '''Return node indexes included in bounding box, aka ax'''
-    #    if debug:
-    #        print 'Computing region_n...'
-
-    #    region_n = np.argwhere((self.lon >= ax[0]) &
-    #                           (self.lon <= ax[1]) &
-    #                           (self.lat >= ax[2]) &
-    #                           (self.lat <= ax[3]))
-    #    if debug or self._debug:
-    #        print '...Passed'
-
-    #    return region_n
-
-    #TR comment: probably not needed anymore
-    #def _bounding_box(self, ax, quiet=False, debug=False):
-    #    """
-    #    Define bounding box and reset the box by default.
-    #    Input ex:
-    #    -------- 
-    #      _bounding_box(ax=[min lon, max lon, min lat, max lat])
-    #    """
-    #    if not ax:
-    #        region_e = range(self.nele)
-    #        region_n = range(self.node)
-    #    else:
-    #        region_e = self._ele_region(ax, debug=debug)
-    #        region_n = self._node_region(ax, debug=debug)
-
-    #    # Add metadata entry
-    #    if not quiet:
-    #        text = 'Bounding box =' + str(ax)
-    #        self._History.append(text)
-    #        print '-Now working in bounding box-'
-    #    return region_e, region_n
-
