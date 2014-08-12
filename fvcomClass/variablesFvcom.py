@@ -9,7 +9,7 @@ from itertools import groupby
 from operator import itemgetter
 #Local import
 from regioner import *
-from miscallaneous import time_to_index
+from miscellaneous import time_to_index
 
 class _load_var:
     """
