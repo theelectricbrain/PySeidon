@@ -20,16 +20,16 @@ class FunctionsFvcom:
     'Utils' subset of FVCOM class gathers
     useful functions for 2D runs
     """
-    def __init__(self, variable, grid, plot, QC, debug):
+    def __init__(self, variable, grid, plot, History, debug):
         self._debug = debug
         self._var = variable
         self._grid = grid
         self._plot = plot
-        self._QC = QC
+        self._History = History
         #Create pointer to FVCOM class
-        #variable = self._var
-        #grid = self._grid
-        #QC = self._QC
+        variable = self._var
+        grid = self._grid
+        History = self._History
 
     #TR comment: I don't think I need this anymore  
     def _centers(self, var, debug=False):
@@ -59,8 +59,8 @@ class FunctionsFvcom:
         self._var.elc = elc
           
         # Add metadata entry
-        self._QC.append('bathymetry at center points computed')
-        self._QC.append('elevation at center points computed')
+        self._History.append('bathymetry at center points computed')
+        self._History.append('elevation at center points computed')
         print '-Central bathy and elevation added to FVCOM.Grid.-'
 
         if debug:
@@ -92,7 +92,7 @@ class FunctionsFvcom:
         self._var.hori_velo_norm = vel 
           
         # Add metadata entry
-        self._QC.append('horizontal velocity norm computed')
+        self._History.append('horizontal velocity norm computed')
         print '-Horizontal velocity norm added to FVCOM.Variables.-'
 
         if debug:
@@ -132,7 +132,7 @@ class FunctionsFvcom:
         self._var.depth_av_flow_dir = dirFlow 
 
         # Add metadata entry
-        self._QC.append('depth averaged flow directions computed')
+        self._History.append('depth averaged flow directions computed')
         print '-Depth averaged flow directions added to FVCOM.Variables.-'
 
         if debug or self._debug:
@@ -617,3 +617,166 @@ class FunctionsFvcom:
             print "Computation time in (s): ", (end - start) 
         return vort
 
+    def depth(self, debug=False):
+        """
+        Compute new grid variable 'depth' -> FVCOM.Grid.depth
+
+        Notes:
+        -----
+          - depth convention: 0 = free surface
+          - Can take time over the full domain
+        """
+        debug = debug or self._debug
+        if debug:
+            start = time.time()
+
+        print "Computing depth..."
+        #Compute depth      
+        size = self._grid.nele
+        size1 = self._grid.ntime
+        size2 = self._grid.nlevel
+        elc = np.zeros((size1, size))
+        hc = np.zeros((size))
+
+        try:
+            for ind, value in enumerate(self._grid.trinodes):
+                elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
+                hc[ind] = np.mean(self._grid.h[value])
+
+            dep = self._var.el[:,:] + h[None,:]
+        except MemoryError:
+            print '---Data too large for machine memory---'
+            print 'Tip: use ax or tx during class initialisation'
+            print '---  to use partial data'
+            raise
+
+        if debug:
+            end = time.time()
+            print "Computation time in (s): ", (end - start)
+
+        # Add metadata entry
+        self._grid.depth2D = dep
+        self._History.append('depth 2D computed')
+        print '-Depth 2D added to FVCOM.Variables.-'
+
+    def depth_at_point(self, pt_lon, pt_lat, index=[], debug=False):
+        """
+        Compute depth at given point
+
+        Inputs:
+        ------
+          - pt_lon = longitude in decimal degrees East to find
+          - pt_lat = latitude in decimal degrees North to find
+        Outputs:
+        -------
+          - dep = depth, 2D array (ntime, nlevel)
+        Keywords:
+        --------
+          - index = element index, interger
+        Notes:
+        -----
+          - depth convention: 0 = free surface
+          - index is used in case one knows already at which
+            element depth is requested
+        """
+        debug = debug or self._debug
+        if debug:
+            print "Computing depth..."
+            start = time.time()
+
+        #Finding index
+        if index==[]:      
+            index = closest_point([pt_lon], [pt_lat],
+                                  self._grid.lonc,
+                                  self._grid.latc, debug=debug)[0]
+
+        if not hasattr(self._grid, 'depth2D'):
+            #Compute depth
+            h = self.interpolation_at_point(self._grid.h, pt_lon, pt_lat,
+                                            index=index, debug=debug)
+            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
+                                             index=index, debug=debug)
+
+            dep = el + h
+        else:
+            dep = self.interpolation_at_point(self._grid.depth2D, pt_lon, pt_lat,
+                                            index=index, debug=debug)
+        if debug:
+            end = time.time()
+            print "Computation time in (s): ", (end - start)
+
+        return dep
+
+    def depth_averaged_power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
+                                        a4=0.0016, a3=-0.0324, a2=0.1369,
+                                        a1=-0.1534, a0=0.8396,
+                                        b2=-0.0242, b1=0.1963, b0=-0.0049, debug=False):
+        """
+        Create a new variable 'depth averaged power density' (W/m2)
+        -> FVCOM.Variables.depth_av_power_density
+
+        This function performs tidal turbine power assessment by accounting for
+        cut-in and cut-out speed, power curve (pc):
+            pc = a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0
+        (where u is the flow speed)
+        and device controled power coefficient (dcpc):
+            dcpc =  b2*(tsr**2) + b1*tsr + b0
+        The power density (pd) is then calculated as follows:
+            pd = pc*dcpc*(1/2)*1025*(u**3)
+
+        Keywords:
+        --------
+          - cut_in = cut-in speed in m/s, float
+          - cut_out = cut-out speed in m/s, float
+          - tsr = tip speed ratio, float
+          - a4 = pc curve parameter, float
+          - a3 = pc curve parameter, float        
+          - a2 = pc curve parameter, float
+          - a1 = pc curve parameter, float
+          - a0 = pc curve parameter, float    
+          - b2 = dcpc curve parameter, float
+          - b1 = dcpc curve parameter, float
+          - b0 = dcpc curve parameter, float
+        Notes:
+        -----
+          - This may take some time to compute depending on the size
+            of the data set
+        """
+        debug = (debug or self._debug)
+        if debug: print "Computing depth averaged power density..."
+
+        if not hasattr(self._var, 'hori_velo_norm'):
+            if debug: print "Computing hori velo norm..."
+            self.hori_velo_norm(debug=debug)
+        if debug: print "Computing powers of hori velo norm..."
+        u = self._var.hori_velo_norm
+        if debug: print "Computing pc and dcpc..."
+        pc = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
+        dcpc = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
+        if debug: print "Computing pd..."
+        pd = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+
+        if debug: print "finding cut-in and out..."
+        u = cut_in
+        pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
+        dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
+        pdin = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        ind = np.where(pd<pdin)[0]
+        if not ind.shape[0]==0:
+            pd[ind] = 0.0
+
+        u = cut_out
+        pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
+        dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
+        pdout = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        ind = np.where(pd>pdout)[0]
+        if not ind.shape[0]==0:
+            pd[ind] = pdout      
+
+        # Add metadata entry
+        self._var.depth_av_power_density = pd
+        self._History.append('depth averaged power density computed')
+        print '-Depth averaged power density to FVCOM.Variables.-'        
+        
+
+                     

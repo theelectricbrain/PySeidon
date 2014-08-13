@@ -81,7 +81,7 @@ class FunctionsFvcomThreeD:
         # Add metadata entry
         self._grid.depth = dep
         self._History.append('depth computed')
-        print '-Flow directions added to FVCOM.Variables.-'
+        print '-Depth added to FVCOM.Variables.-'
 
     def depth_at_point(self, pt_lon, pt_lat, index=[], debug=False):
         """
@@ -125,7 +125,9 @@ class FunctionsFvcomThreeD:
             zeta = el + h
             dep = zeta[:,None]*siglay[None,:]
         else:
-            dep = self._grid.depth[:,:,index]         
+            dep = self.interpolation_at_point(self._grid.depth,
+                                              pt_lon, pt_lat, index=index,
+                                              debug=debug)          
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
@@ -653,6 +655,76 @@ class FunctionsFvcomThreeD:
             end = time.time()
             print "Computation time in (s): ", (end - start) 
         return vort
+    def depth_averaged_power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
+                                        a4=0.0016, a3=-0.0324, a2=0.1369,
+                                        a1=-0.1534, a0=0.8396,
+                                        b2=-0.0242, b1=0.1963, b0=-0.0049, debug=False):
+        """
+        Create a new variable 'depth averaged power density' (W/m2)
+        -> FVCOM.Variables.depth_av_power_density
+
+        This function performs tidal turbine power assessment by accounting for
+        cut-in and cut-out speed, power curve (pc):
+            pc = a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0
+        (where u is the flow speed)
+        and device controled power coefficient (dcpc):
+            dcpc =  b2*(tsr**2) + b1*tsr + b0
+        The power density (pd) is then calculated as follows:
+            pd = pc*dcpc*(1/2)*1025*(u**3)
+
+        Keywords:
+        --------
+          - cut_in = cut-in speed in m/s, float
+          - cut_out = cut-out speed in m/s, float
+          - tsr = tip speed ratio, float
+          - a4 = pc curve parameter, float
+          - a3 = pc curve parameter, float        
+          - a2 = pc curve parameter, float
+          - a1 = pc curve parameter, float
+          - a0 = pc curve parameter, float    
+          - b2 = dcpc curve parameter, float
+          - b1 = dcpc curve parameter, float
+          - b0 = dcpc curve parameter, float
+        Notes:
+        -----
+          - This may take some time to compute depending on the size
+            of the data set
+        """
+        debug = (debug or self._debug)
+        if debug: print "Computing depth averaged power density..."
+
+        if not hasattr(self._var, 'velo_norm'):
+            if debug: print "Computing hori velo norm..."
+            self.hori_velo_norm(debug=debug)
+        if debug: print "Computing powers of hori velo norm..."
+        u = self._var.hori_velo_norm
+        if debug: print "Computing pc and dcpc..."
+        pc = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
+        dcpc = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
+        if debug: print "Computing pd..."
+        pd = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+
+        if debug: print "finding cut-in and out..."
+        u = cut_in
+        pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
+        dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
+        pdin = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        ind = np.where(pd<pdin)[0]
+        if not ind.shape[0]==0:
+            pd[ind] = 0.0
+
+        u = cut_out
+        pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
+        dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
+        pdout = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        ind = np.where(pd>pdout)[0]
+        if not ind.shape[0]==0:
+            pd[ind] = pdout      
+
+        # Add metadata entry
+        self._var.power_density = pd
+        self._History.append('power density computed')
+        print '-Power density to FVCOM.Variables.-'  
 
     def _vertical_slice(self, var, start_pt, end_pt,
                         time_ind=[], t_start=[], t_end=[],

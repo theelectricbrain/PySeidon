@@ -37,7 +37,7 @@ Description:
                 _Data. = raw netcdf file data
                |_Variables. = fvcom variables and quantities
                |_Grid. = fvcom grid data
-               |_QC = Quality Control metadata
+               |_History = Quality Control metadata
     testFvcom._|_Utils2D. = set of useful functions
                |_Utils3D. = set of useful functions
                |_Plots. = plotting functions
