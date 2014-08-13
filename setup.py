@@ -7,7 +7,7 @@ def readme():
 
 setup(name='PySeidon',
       version='v0.1',
-      description='Description of the package goes here.',
+      description='Suite of tools for FVCOM model',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',
       author='Thomas Roc, Wesley Bowman, Jon Smith',
