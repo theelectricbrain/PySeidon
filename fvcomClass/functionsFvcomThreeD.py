@@ -292,9 +292,9 @@ class FunctionsFvcomThreeD:
 
         try:
             #Computing velocity norm
-            u = self._var.u[:, :, :]
-            v = self._var.v[:, :, :]
-            w = self._var.w[:, :, :]
+            u = self._var.u[:]
+            v = self._var.v[:]
+            w = self._var.w[:]
             vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
         except MemoryError:
             print '---Data too large for machine memory---'

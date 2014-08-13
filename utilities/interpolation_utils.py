@@ -127,7 +127,8 @@ def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
             print 'Varpt: ', zi
         print '...Passed'
 
-    return varPt
+    #TR comment: squeeze seems to resolve my problem with pydap
+    return varPt.squeeze()
     
 def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
                   a1u, a2u, debug=False):
@@ -156,6 +157,12 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
     if n1==0: n1 = trinodes.shape[1]
     if n2==0: n2 = trinodes.shape[1]
     if n3==0: n3 = trinodes.shape[1]
+
+    #TR quick fix: due to error with pydap.proxy.ArrayProxy
+    #              not able to cop with numpy.int
+    n1 = int(n1)
+    n2 = int(n2)
+    n3 = int(n3)
 
     x0 = pt_x - xc[index]
     y0 = pt_y - yc[index]
@@ -196,8 +203,8 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
             zi = varPt
             print 'Varpt: ', zi
         print '...Passed'
-
-    return varPt
+    #TR comment: squeeze seems to resolve my problem with pydap
+    return varPt.squeeze()
 
 def interp_at_point(var, pt_lon, pt_lat, lon, lat,
                     index=[], trinodes=[], tri=[], debug=False):
@@ -269,6 +276,7 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     if debug:
         print '...Passed'
 
-    return varInterp
+    #TR comment: squeeze seems to resolve my problem with pydap
+    return varInterp.squeeze()
 
 

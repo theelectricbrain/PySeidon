@@ -27,9 +27,9 @@ class FunctionsFvcom:
         self._plot = plot
         self._QC = QC
         #Create pointer to FVCOM class
-        variable = self._var
-        grid = self._grid
-        QC = self._QC
+        #variable = self._var
+        #grid = self._grid
+        #QC = self._QC
 
     #TR comment: I don't think I need this anymore  
     def _centers(self, var, debug=False):
@@ -79,8 +79,8 @@ class FunctionsFvcom:
             print 'Computing horizontal velocity norm...'
 
         try:
-            u = self._var.ua[:, :]
-            v = self._var.va[:, :]
+            u = self._var.ua
+            v = self._var.va
             vel = ne.evaluate('sqrt(u**2 + v**2)')  
         except MemoryError:
             print '---Data too large for machine memory---'
@@ -115,7 +115,7 @@ class FunctionsFvcom:
         try:
             u = self._var.ua
             v = self._var.va
-            dirFlow = np.rad2deg(np.arctan2(V,U))
+            dirFlow = np.rad2deg(np.arctan2(v,u))
             #Adapt to Rose diagram
             #ind = np.where(dirFlow<0)[0]
             #dirFlow[ind] = 360.0 + dirFlow[ind]
@@ -196,7 +196,6 @@ class FunctionsFvcom:
                                         debug=debug)  
         V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
                                         debug=debug)       
- 
         #Checking if dir_flow already computed
         if not hasattr(self._var, 'depth_av_flow_dir'):
             #Compute directions
@@ -208,8 +207,8 @@ class FunctionsFvcom:
             dirFlow = np.mod(90.0 - dirFlow, 360.0)
         else:
             if not argtime==[]:
-                dir_flow = self._var.dir_flow_hori[argtime,:,:]
-                dirFlow = self.interpolation_at_point(self._var.depth_av_flow_dir,
+                dir_flow = self._var.depth_av_flow_dir[argtime,:,:]
+                dirFlow = self.interpolation_at_point(dir_flow,
                                                       pt_lon, pt_lat,
                                                       index=index, debug=debug)   
             else:
@@ -374,13 +373,13 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         if debug:
             print 'Interpolaling at point...'
-        lonc = self._grid.lonc
-        latc = self._grid.latc
-        xc = self._grid.xc
-        yc = self._grid.yc
-        lon = self._grid.lon
-        lat = self._grid.lat
-        trinodes = self._grid.trinodes
+        lonc = self._grid.lonc[:]
+        latc = self._grid.latc[:]
+        xc = self._grid.xc[:]
+        yc = self._grid.yc[:]
+        lon = self._grid.lon[:]
+        lat = self._grid.lat[:]
+        trinodes = self._grid.trinodes[:]
 
         if index==[]:
             # Find indexes of the closest element
@@ -390,7 +389,6 @@ class FunctionsFvcom:
                                index=index, trinodes=trinodes, debug=debug)
         pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
                                index=index, trinodes=trinodes, debug=debug)
-
         #change in function of the data you dealing with
         if any(i == self._grid.node for i in var.shape):
             if debug:
@@ -402,7 +400,7 @@ class FunctionsFvcom:
                 end = time.time()
                 print "Processing time: ", (end - start) 
         else:
-            triele = self._grid.triele
+            triele = self._grid.triele[:]
             if debug:
                 start = time.time() 
             varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
@@ -498,13 +496,16 @@ class FunctionsFvcom:
         n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
         n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
         n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+        #TR quick fix: due to error with pydap.proxy.ArrayProxy
+        #              not able to cop with numpy.int
+        n1 = int(n1)
+        n2 = int(n2)
+        n3 = int(n3)
+
         if debug:
             end = time.time()
             print "Check element=0, computation time in (s): ", (end - start)
             print "start np.multiply" 
-
-        x0 = self._grid.xc
-        y0 = self._grid.yc
         
         dvdx = np.zeros((self._grid.ntime,self._grid.nele))
         dudy = np.zeros((self._grid.ntime,self._grid.nele))
@@ -579,13 +580,16 @@ class FunctionsFvcom:
             n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
             n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
             n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+            #TR quick fix: due to error with pydap.proxy.ArrayProxy
+            #              not able to cop with numpy.int
+            n1 = int(n1)
+            n2 = int(n2)
+            n3 = int(n3)
+
             if debug:
                 end = time.time()
                 print "Check element=0, computation time in (s): ", (end - start)
                 print "start np.multiply" 
-
-            x0 = self._grid.xc
-            y0 = self._grid.yc
         
             dvdx = np.zeros((t.shape[0],self._grid.nele))
             dudy = np.zeros((t.shape[0],self._grid.nele))
