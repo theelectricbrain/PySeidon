@@ -26,6 +26,7 @@ FVCOM-PySeidon
 Prerequisites:
   - Python 2.7: You can download Python from [here](http://www.python.org/download) 
   - IPython: You can download IPython from [here](http://ipython.org/)
+
 Installation:
   Step 1a: Download PySeidon package, save it on your machine and Unzip
   Step 1b: or clone the repository
