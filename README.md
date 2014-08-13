@@ -23,12 +23,18 @@ FVCOM-PySeidon
 * [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
 ### Installation ###
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+Prerequisites:
+  - Python 2.7: You can download Python from [here](http://www.python.org/download) 
+  - IPython: You can download IPython from [here](http://ipython.org/)
+Installation:
+  Step 1a: Download PySeidon package, save it on your machine and Unzip
+  Step 1b: or clone the repository
+  Step 2: from a shell, change directory to PySeidon-master folder
+  Step 3: from the shell, as superuser/admin, type 'python setup.py install'
+          or 'python setup.py install --user'
+Up-dating:
+  The code will evolve and improve with time. To up-date, simply go through
+  the installation procedure again.
 
 ### Contribution guidelines ###
 * Writing tests
