@@ -3,13 +3,9 @@
 
 from __future__ import division
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.tri as Tri
-import matplotlib.ticker as ticker
-import seaborn
 
-class PlotsAdcp:
-    """'Plots' subset of FVCOM class gathers plotting functions"""
+class FunctionsValidation:
+    ''''Utils' subset of Validation class gathers useful functions""" '''
     def __init__(self,cls):
         self._var = cls.Variables
         self._debug = cls._debug

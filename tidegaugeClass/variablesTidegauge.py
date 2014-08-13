@@ -2,11 +2,10 @@
 # encoding: utf-8
 
 from __future__ import division
-import numpy as np
 
-class _load_adcp:
+class _load_tidegauge:
     """
-'Variables' subset in FVCOM class contains the following numpy arrays:
+'Variables' subset in Tidegauge class contains the following numpy arrays:
     """
     def __init__(self,cls, debug=False):
         if debug:

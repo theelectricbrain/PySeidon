@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
-
+from __future__ import division
 import numpy as np
 import sys
 #TR_Alternative: import scipy.io as sio
