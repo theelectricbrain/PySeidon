@@ -100,6 +100,7 @@ def time_to_index(t_start, t_end, time, debug=False):
     # Find simulation time contains in [t_start, t_end]
     t = time.shape[0]
     l = []
+    #TR comment: this is not the accurate way to convert
     for i in range(t):
         date = datetime.fromordinal(int(time[i])) + \
                timedelta(days=time[i]%1)-timedelta(days=366)

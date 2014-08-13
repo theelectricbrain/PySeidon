@@ -40,7 +40,7 @@ class _load_var:
             #Time period           
             region_t = self._t_region(tx, debug=debug)
             #Quick reshape
-            region_t = region_t.T[0,:]
+            #region_t = region_t.T[0,:]
             self._region_time = region_t
             # define time bounds
             ts = region_t[0]
@@ -398,8 +398,10 @@ class _load_var:
         #    tE = gcal2jd(dEnd[0], dEnd[1],dEnd[2])[1]
         #    #finding time period
         #    region_t = np.argwhere((self.julianTime >= tS) &
-        #                           (self.julianTime <= tE)) 
-        region_t = time_to_index(tx[0], t[1], self.julian + 678942, debug=debug)
+        #                           (self.julianTime <= tE))
+        #TR comment: 679370.54 as to be revise, this is not the accurate way to convert
+        region_t = time_to_index(tx[0], tx[1],
+                   (self.julianTime[:] + 679370.54), debug=debug)
          
         if debug:
             print '...Passed'
