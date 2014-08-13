@@ -44,12 +44,14 @@ class _load_var:
             self._region_time = region_t
             # define time bounds
             ts = region_t[0]
-            te = region_t[-1]
+            te = region_t[-1] + 1
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time'][ts:te]
             self.matlabTime = self.julianTime + 678942
             #Add time dimension to grid variables
             grid.ntime = self.julianTime.shape[0]
+            if debug: print "ntime: ", grid.ntime
+            if debug: print "region_t shape: ", region_t.shape
 
             #Check if bounding box has been defined
             if grid._ax==[]:
@@ -74,17 +76,19 @@ class _load_var:
                         self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
                         self.ua = np.zeros((grid.ntime, grid.nele))
                         self.va = np.zeros((grid.ntime, grid.nele))
+                        H=0
                         for i in region_t:
-                            self.w[i,:,:] = np.transpose(
+                            self.w[H,:,:] = np.transpose(
                                             data.variables['ww'].data[i,:,:])
-                            self.u[i,:,:] = np.transpose(
+                            self.u[H,:,:] = np.transpose(
                                             data.variables['u'].data[i,:,:])
-                            self.v[i,:,:] = np.transpose(
+                            self.v[H,:,:] = np.transpose(
                                             data.variables['v'].data[i,:,:])
-                            self.ua[i,:] = np.transpose(
+                            self.ua[H,:] = np.transpose(
                                            data.variables['ua'].data[i,:])
-                            self.va[i,:] = np.transpose(
+                            self.va[H,:] = np.transpose(
                                            data.variables['va'].data[i,:])
+                            H += 1
                     # invisible variables
                     self._3D = True
                 except KeyError:
@@ -98,11 +102,13 @@ class _load_var:
                         #TR comment: no idea why I have to transpose here but I do !!
                         self.ua = np.zeros((grid.ntime, grid.nele))
                         self.va = np.zeros((grid.ntime, grid.nele))
+                        H = 0
                         for i in region_t:
-                            self.ua[i,:] = np.transpose(
+                            self.ua[H,:] = np.transpose(
                                            data.variables['ua'].data[i,:])
-                            self.va[i,:] = np.transpose(
+                            self.va[H,:] = np.transpose(
                                            data.variables['va'].data[i,:])
+                            H += 1
 
                     # invisible variables
                     self._3D = False
@@ -168,17 +174,19 @@ class _load_var:
                         self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
                         self.ua = np.zeros((grid.ntime, grid.nele))
                         self.va = np.zeros((grid.ntime, grid.nele))
+                        H=0
                         for i in region_t:
-                            self.w[i,:,:] = np.transpose(
+                            self.w[H,:,:] = np.transpose(
                                             data.variables['ww'].data[i,:,region_e])
-                            self.u[i,:,:] = np.transpose(
+                            self.u[H,:,:] = np.transpose(
                                             data.variables['u'].data[i,:,region_e])
-                            self.v[i,:,:] = np.transpose(
+                            self.v[H,:,:] = np.transpose(
                                             data.variables['v'].data[i,:,region_e])
-                            self.ua[i,:] = np.transpose(
+                            self.ua[H,:] = np.transpose(
                                            data.variables['ua'].data[i,region_e])
-                            self.va[i,:] = np.transpose(
+                            self.va[H,:] = np.transpose(
                                            data.variables['va'].data[i,region_e])
+                            H += 1
                     # invisible variables
                     self._3D = True
 
@@ -224,11 +232,13 @@ class _load_var:
                         #TR comment: no idea why I have to transpose here but I do !!
                         self.ua = np.zeros((grid.ntime, grid.nele))
                         self.va = np.zeros((grid.ntime, grid.nele))
+                        H=0
                         for i in region_t:
-                            self.ua[i,:] = np.transpose(
+                            self.ua[H,:] = np.transpose(
                             data.variables['ua'].data[i,region_e])
-                            self.va[i,:] = np.transpose(
+                            self.va[H,:] = np.transpose(
                             data.variables['va'].data[i,region_e])
+                            H += 1
                     # invisible variables
                     self._3D = False          
         else:
@@ -400,8 +410,10 @@ class _load_var:
         #    region_t = np.argwhere((self.julianTime >= tS) &
         #                           (self.julianTime <= tE))
         #TR comment: 679370.54 as to be revise, this is not the accurate way to convert
+        #region_t = time_to_index(tx[0], tx[1],
+        #           (self.julianTime[:] + 679370.54), debug=debug)
         region_t = time_to_index(tx[0], tx[1],
-                   (self.julianTime[:] + 679370.54), debug=debug)
+                   (self.julianTime[:] + 678942), debug=debug)
          
         if debug:
             print '...Passed'
