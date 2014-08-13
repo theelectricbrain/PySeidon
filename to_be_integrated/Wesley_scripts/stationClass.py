@@ -3,7 +3,7 @@ import numpy as np
 import netCDF4 as nc
 import os
 import fnmatch
-
+# Need to add closest point
 
 class station:
     def __init__(self, filename, elements=slice(None)):
@@ -39,7 +39,7 @@ class station:
         self.elev = self.data.variables['zeta'][:, elements]
 
     def loadMulti(self, filename, elements):
-        matches = self.findFiles(filename)
+        self.matches = self.findFiles(filename)
 
         self.x = np.array([])
         self.y = np.array([])
@@ -58,7 +58,7 @@ class station:
         self.va = np.array([])
         self.elev = np.array([])
 
-        for i, v in enumerate(matches):
+        for i, v in enumerate(self.matches):
             data = nc.Dataset(v, 'r')
             x = data.variables['x'][:]
             y = data.variables['y'][:]
@@ -83,6 +83,7 @@ class station:
             self.h = np.hstack((self.h, h))
             self.time_JD = np.hstack((self.time_JD, t_JD))
             self.time_second = np.hstack((self.time_second, t_second))
+
             if i == 0:
                 self.siglay = siglay
                 self.siglev = siglev
@@ -94,14 +95,15 @@ class station:
                 self.elev = elev
 
             else:
-                self.siglay = np.hstack((self.siglay, siglay))
-                self.siglev = np.hstack((self.siglev, siglev))
-                self.u = np.hstack((self.u, u))
-                self.v = np.hstack((self.v, v))
-                self.ww = np.hstack((self.ww, ww))
-                self.ua = np.hstack((self.ua, ua))
-                self.va = np.hstack((self.va, va))
-                self.elev = np.hstack((self.elev, elev))
+                self.siglay = np.vstack((self.siglay, siglay))
+                self.siglev = np.vstack((self.siglev, siglev))
+                self.u = np.vstack((self.u, u))
+                self.v = np.vstack((self.v, v))
+                self.ww = np.vstack((self.ww, ww))
+                self.ua = np.vstack((self.ua, ua))
+                self.va = np.vstack((self.va, va))
+                self.elev = np.vstack((self.elev, elev))
+
 
         self.time = self.time_JD + 678942 + self.time_second / (24*3600)
 
@@ -117,21 +119,22 @@ class station:
         '''
 
         name = '*station*.nc'
-        matches = []
+        self.matches = []
         for root, dirnames, filenames in os.walk(filename):
             for filename in fnmatch.filter(filenames, name):
-                matches.append(os.path.join(root, filename))
+                self.matches.append(os.path.join(root, filename))
 
-        return matches
+        return sorted(self.matches)
 
 
 if __name__ == '__main__':
     #filename = '/array2/data3/rkarsten/dncoarse_3D/output2/dn_coarse_station_timeseries.nc'
     #filename = '/array2/data3/rkarsten/dncoarse_3D/output2/dn_coarse_station_timeseries.nc'
     #filename = '/EcoII/EcoEII_server_data_tree/data/simulated/FVCOM/dngrid/june_2013_3D/'
-    multi = False
+    multi = True
     if multi:
-        filename = '/home/wesley/ncfiles/'
+        #filename = '/home/wesley/ncfiles/'
+        filename = '/EcoII/EcoEII_server_data_tree/workspace/simulated/FVCOM/dngrid/june_2013_3D/output/'
     else:
         filename = '/home/wesley/ncfiles/dn_coarse_station_timeseries.nc'
 
