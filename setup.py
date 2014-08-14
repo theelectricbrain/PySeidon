@@ -14,5 +14,5 @@ setup(name='PySeidon',
       author_email='thomas.roc@acadiau.ca,wesley.bowman23@gmail.com,lavieenroux20@gmail.com',
       maintainer='Thomas Roc',
       license='GNU Affero GPL v3.0',
-      packages=['pyseidon'],
+      packages=['PySeidon'],
       zip_safe=False)
