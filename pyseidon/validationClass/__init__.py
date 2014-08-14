@@ -1,9 +1,6 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 
-import sys
-
-sys.path.append('./PySeidon/pyseidon/')
 
 __version__ = '0.0'
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']
