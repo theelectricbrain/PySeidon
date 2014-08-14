@@ -31,29 +31,26 @@ Installation:
 * Step 1a: Download PySeidon package, save it on your machine and Unzip
 * Step 1b: or clone the repository
 * Step 2: from a shell, change directory to PySeidon-master folder
-* Step 3: from the shell, as superuser/admin, type 'python setup.py install'
-          or 'python setup.py install --user'
+* Step 3: from the shell, as superuser/admin, type `python setup.py install`
+  or `python setup.py install --user`
 Up-dating:
 * The code will evolve and improve with time. To up-date, simply go through
   the installation procedure again.
 
 ### Contribution guidelines ###
-* Writing tests
-* Code review
-* Other guidelines
+* Writing tests - To be developed
+* Guidelines - To be developed
 
 ### Contacts ###
-* Repo owner or admin: Thomas Roc: thomas.roc@itpower.co.uk
-* Other community or team contacts:
-  - Vincent Neary: vsneary@sandia.gov
-  - Chris Chartrand: ccchart@sandia.gov
-  - Budi Gunawan: bgunawa@sandia.gov
-  - Jesse Roberts: jdrober@sandia.gov
-  - Jean-Francois Filipot: jean.francois.filipot@france-energies-
-    marines.org
+* Repository admin: [Thomas Roc](thomas.roc@acadiau.ca)
+* Developers: [Wesley Bowman](https://github.com/wesleybowman),
+  [Jonathan Smith](https://github.com/LaVieEnRoux), [Thomas Roc](thomas.roc@acadiau.ca)
 
 ### Acknowledgment ###
+Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/kthyng), [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, 
+Justine McMillan, Richard Cheel,...
 
-### DTOcean Project ###
-DTOcean - "Optimal Design Tools for Ocean Energy Arrays" is funded by the European Commission’s 7th Framework Programme. 
-Grant agreement number: 608597
+### Legal Information ###
+Authorship attributed to Thomas Roc, Wesley Bowman and Jonathan Smith
+Copyright (c) 2014 EcoEnergyII
+Licensed under an Affero GPL style license v3.0 (i.e. License_PySeidon.txt)
