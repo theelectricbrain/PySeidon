@@ -20,7 +20,6 @@ FVCOM-PySeidon
   if we forgot one of them   
 * The present package is currently in Beta testing, so the more feedback,
   the better
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
 ### Installation ###
 Prerequisites:
@@ -52,6 +51,6 @@ Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/k
 Justine McMillan, Richard Cheel,...
 
 ### Legal Information ###
-Authorship attributed to Thomas Roc, Wesley Bowman and Jonathan Smith
-Copyright (c) 2014 EcoEnergyII
-Licensed under an Affero GPL style license v3.0 (i.e. License_PySeidon.txt)
+* Authorship attributed to Wesley Bowman, Thomas Roc and Jonathan Smith
+* Copyright (c) 2014 EcoEnergyII
+* Licensed under an Affero GPL style license v3.0 (see License_PySeidon.txt)
