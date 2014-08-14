@@ -116,4 +116,12 @@ def time_to_index(t_start, t_end, time, debug=False):
         print 'Argtime: ', argtime
     return argtime
 
+def mattime_to_datetime(mattime, debug=False):
+    """Convert matlab time to datetime64[us] """
+    l = []
+    date = datetime.fromordinal(int(mattime)) + \
+               timedelta(days=mattime%1)-timedelta(days=366)
+    l.append(date)
+    time = np.array(l,dtype='datetime64[us]')
 
+    return time

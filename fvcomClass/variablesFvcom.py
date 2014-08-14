@@ -10,6 +10,7 @@ from operator import itemgetter
 #Local import
 from regioner import *
 from miscellaneous import time_to_index
+from miscellaneous import mattime_to_datetime
 
 class _load_var:
     """
@@ -254,12 +255,15 @@ Some others shall be generated as methods are being called, ex:
                     # invisible variables
                     self._3D = False          
         else:
-            #-Append message to History field
-            text = 'Full temporal domain'
-            self._History.append(text)
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time'].data
             self.matlabTime = self.julianTime[:] + 678942
+            #-Append message to History field
+            start = mattime_to_datetime(self.matlabTime[0])
+            end = mattime_to_datetime(self.matlabTime[-1])
+            text = 'Full temporal domain from ' + str(start) +\
+                   ' to ' + str(start)
+            self._History.append(text)
             #Add time dimension to grid variables
             grid.ntime = self.julianTime.shape[0]
 
@@ -405,7 +409,7 @@ Some others shall be generated as methods are being called, ex:
         if debug:
             print '...Passed'
 
-    def _t_region(self, tx, quiet=False, debug=False):
+    def _t_region(self, tx, debug=False):
         '''Return time indices included in time period, aka tx'''
         debug = debug or self._debug      
         if debug:
@@ -430,10 +434,10 @@ Some others shall be generated as methods are being called, ex:
         if debug:
             print '...Passed'
         # Add metadata entry
-        if not quiet:
-            text = 'Time period =' + str(tx)
-            self._History.append(text)
-            print '-Now working in time box-'
+        text = 'Time period =' + str(tx)
+        self._History.append(text)
+        print '-Now working in time box-'
+
         return region_t
 
 class _load_grid:
