@@ -121,6 +121,10 @@ class PlotsFvcom:
     def rose_diagram(self, direction, norm):
 
         """Plot rose diagram. direction and norm = 1D arrays"""
+        #Convertion
+        #TR: not quite sure here, seems to change from location to location
+        #    express principal axis in compass
+        direction = np.mod(90.0 - direction, 360.0)
 
         #Create new figure
         fig = plt.figure(figsize=(18,10))
@@ -131,7 +135,7 @@ class PlotsFvcom:
         #Rose
         ax.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
         #adjust legend
-        l = ax.legend(shadow=True)
+        l = ax.legend(shadow=True, bbox_to_anchor=[-0.1, 0], loc='lower left')
         plt.setp(l.get_texts(), fontsize=10)
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         plt.show() 

@@ -38,30 +38,39 @@ Description:
                |_Variables. = fvcom variables and quantities
                |_Grid. = fvcom grid data
                |_History = Quality Control metadata
-    testFvcom._|_Utils2D. = set of useful functions
-               |_Utils3D. = set of useful functions
+    testFvcom._|_Utils2D. = set of useful functions for 2D and 3D runs
+               |_Utils3D. = set of useful functions for 3D runs
                |_Plots. = plotting functions
-               |_method_1
-               | ...      = methods and analysis techniques intrinsic to fvcom runs
-               |_method_n
+               |_Harmonic_analysis = harmonic analysis based UTide package
+               |_Harmonic_reconstruction = harmonic reconstruction based UTide package
 
 Inputs:
 ------
-  Takes a file name as input, ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename')
+  - filename = path to file, string, 
+               ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename').
+               Note that the file can be a pickle file (i.e. *.p)
+               or a netcdf file (i.e. *.nc).
+               Additionally, either a file path or a OpenDap url could be used. 
 
 Options:
 -------
-    Can be defined for a region only, i.e. a bounding box, as such:
-        ax = [minimun longitude, maximun longitude,
+  - ax = defines for a specific spatial region to work with, as such:
+         ax = [minimun longitude, maximun longitude,
               minimun latitude, maximum latitude]
-    Can be defined for a time period only, as such:
-        tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'],
-             string of 'yyyy-mm-ddThh:mm:ss'
+         Note that this option permits to extract partial data from the overall file
+         and therefore reduce memory and cpu use.
+  - tx = defines for a specific temporal period to work with, as such:
+         tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'],
+         string of 'yyyy-mm-ddThh:mm:ss'.
+         Note that this option permits to extract partial data from the overall file
+         and therefore reduce memory and cpu use.
 Notes:
 -----
-    As of right now, only takes a filename as input. It will then load in the
-    data (except for timeseries, since loading in the whole time series can be
-    too large)
+  Throughout the package, the following conventions aplly:
+  - Date = string of 'yyyy-mm-ddThh:mm:ss'
+  - Coordinates = decimal degrees East and North
+  - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
+                 +/-180=West, -90=South
     '''
 
     def __init__(self, filename, ax=[], tx=[], debug=False):

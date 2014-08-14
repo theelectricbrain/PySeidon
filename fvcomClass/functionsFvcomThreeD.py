@@ -413,8 +413,8 @@ class FunctionsFvcomThreeD:
           - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
-          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
-            180=West, 270=South
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
+            +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -466,7 +466,6 @@ class FunctionsFvcomThreeD:
             if debug:
                 print 'Computing arctan2 and norm...'
             dirFlow = np.rad2deg(np.arctan2(V,U))
-            dirFlow = np.mod(90.0 - dirFlow, 360.0)
 
         else:
             if not argtime==[]:
@@ -489,8 +488,8 @@ class FunctionsFvcomThreeD:
 
         Notes:
         -----
-          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
-            180=West, 270=South
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
+            +/-180=West, -90=South
           - Can take time over the full domain
         """
         if debug or self._debug:
@@ -500,7 +499,6 @@ class FunctionsFvcomThreeD:
             u = self._var.u
             v = self._var.v
             dirFlow = np.rad2deg(np.arctan2(V,U))
-            dirFlow = np.mod(90 - dirFlow, 360.0)
         except MemoryError:
             print '---Data too large for machine memory---'
             print 'Tip: use ax or tx during class initialisation'

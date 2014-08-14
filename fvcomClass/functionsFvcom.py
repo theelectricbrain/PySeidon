@@ -105,8 +105,8 @@ class FunctionsFvcom:
 
         Notes:
         -----
-          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
-            180=West, 270=South
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
+            +/-180=West, -90=South
           - Can take time over the full domain
         """
         if debug or self._debug:
@@ -116,12 +116,7 @@ class FunctionsFvcom:
             u = self._var.ua
             v = self._var.va
             dirFlow = np.rad2deg(np.arctan2(v,u))
-            #Adapt to Rose diagram
-            #ind = np.where(dirFlow<0)[0]
-            #dirFlow[ind] = 360.0 + dirFlow[ind]
-            #TR: not quite sure here, seems to change from location to location
-            #express principal axis in compass
-            dirFlow = np.mod(90 - dirFlow, 360.0)
+
         except MemoryError:
             print '---Data too large for machine memory---'
             print 'Tip: use ax or tx during class initialisation'
@@ -160,8 +155,8 @@ class FunctionsFvcom:
           - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
-          -directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
-           180=West, 270=South 
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
+            +/-180=West, -90=South
         """
         debug = debug or self._debug
         if debug:
@@ -202,9 +197,7 @@ class FunctionsFvcom:
             if debug:
                 print 'Computing arctan2 and norm...'
             dirFlow = np.rad2deg(np.arctan2(V,U))#
-            #Adapt to Rose diagram
-            #TR: not quite sure here, seems to change from location to location
-            dirFlow = np.mod(90.0 - dirFlow, 360.0)
+
         else:
             if not argtime==[]:
                 dir_flow = self._var.depth_av_flow_dir[argtime,:,:]
@@ -253,8 +246,8 @@ class FunctionsFvcom:
         Notes:
         -----
           - may take time to compute if time period too long
-          - directions between 0 and 360 deg., i.e. 0/360=East, 90=North,
-            180=West, 270=South
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
+            +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
           - assume that flood is aligned with principal direction
         """
@@ -341,9 +334,9 @@ class FunctionsFvcom:
         ebbIndex = np.where(test == False)[0]
 
         #TR fit with Rose diagram angle convention
-        pr_axis = pr_axis - 90.0
-        if pr_axis<0.0:
-            pr_axis[ind] = pr_axis[ind] + 360   
+        #pr_axis = pr_axis - 90.0
+        #if pr_axis<0.0:
+        #    pr_axis[ind] = pr_axis[ind] + 360   
 
         if debug:
             end = time.time()
