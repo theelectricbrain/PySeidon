@@ -60,7 +60,7 @@ Some others shall be generated as methods are being called, ex:
             te = region_t[-1] + 1
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time'][ts:te]
-            self.matlabTime = self.julianTime + 678942
+            self.matlabTime = self.julianTime + 678942.0
             #Add time dimension to grid variables
             grid.ntime = self.julianTime.shape[0]
             if debug: print "ntime: ", grid.ntime
@@ -257,7 +257,7 @@ Some others shall be generated as methods are being called, ex:
         else:
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time'].data
-            self.matlabTime = self.julianTime[:] + 678942
+            self.matlabTime = self.julianTime[:] + 678942.0
             #-Append message to History field
             start = mattime_to_datetime(self.matlabTime[0])
             end = mattime_to_datetime(self.matlabTime[-1])
@@ -414,23 +414,8 @@ Some others shall be generated as methods are being called, ex:
         debug = debug or self._debug      
         if debug:
             print 'Computing region_t...'
-        #if not tx:
-        #    region_t = range(self.julianTime.shape[0])
-        #else:
-        #    #Conversion to julian day
-        #    dStart = tx[0].split('.')
-        #    dEnd = tx[1].split('.')
-        #    tS = gcal2jd(dStart[0], dStart[1],dStart[2])[1]
-        #    tE = gcal2jd(dEnd[0], dEnd[1],dEnd[2])[1]
-        #    #finding time period
-        #    region_t = np.argwhere((self.julianTime >= tS) &
-        #                           (self.julianTime <= tE))
-        #TR comment: 679370.54 as to be revise, this is not the accurate way to convert
-        #region_t = time_to_index(tx[0], tx[1],
-        #           (self.julianTime[:] + 679370.54), debug=debug)
         region_t = time_to_index(tx[0], tx[1],
-                   (self.julianTime[:] + 678942), debug=debug)
-         
+                   (self.julianTime[:] + 678942.0), debug=debug)       
         if debug:
             print '...Passed'
         # Add metadata entry
