@@ -31,7 +31,7 @@ class PlotsFvcom:
 
         Input:
         -----
-          - var = gridded variable, 1 dimensional numpy array
+          - var = gridded variable, 1 D numpy array (nele or nnode)
 
         Keywords:
         --------
@@ -43,16 +43,16 @@ class PlotsFvcom:
         debug = debug or self._debug
         if debug:
             print 'Plotting grid...'
-        # Figure if var had nele or node dimensions
+        # Figure if var had nele or nnode dimensions
         if var.shape[0] == self._grid.nele:
             dim = self._grid.nele
-        elif var.shape[0] == self._grid.node:
-            dim = self._grid.node
+        elif var.shape[0] == self._grid.nnode:
+            dim = self._grid.nnode
         else:
-            print "Var has the wrong dimension, var.shape[0]= Grid.nele or node"
+            print "Var has the wrong dimension, var.shape[0]= Grid.nele or nnode"
             return
 
-        # Bounding box nodes, elements and variable
+        # Bounding box nnodes, elements and variable
         lon = self._grid.lon[:]
         lat = self._grid.lat[:]
         if self._grid._ax==[]:
@@ -120,7 +120,14 @@ class PlotsFvcom:
 
     def rose_diagram(self, direction, norm):
 
-        """Plot rose diagram. direction and norm = 1D arrays"""
+        """
+        Plot rose diagram
+
+        Inputs:
+        ------
+          - direction = 1D array
+          - norm = 1D array
+        """
         #Convertion
         #TR: not quite sure here, seems to change from location to location
         #    express principal axis in compass
@@ -141,7 +148,14 @@ class PlotsFvcom:
         plt.show() 
 
     def plot_xy(self, x, y, title=' ', xLabel=' ', yLabel=' '):
-        """Simple Y vs X plot"""
+        """
+        Simple X vs Y plot
+
+        Inputs:
+        ------
+          - x = 1D array
+          - y = 1D array
+        """
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')
         self._fig = plt.plot(x, y, label=title)
@@ -155,6 +169,11 @@ class PlotsFvcom:
         """
         Add scattered points (x,y) on current figure,
         where x and y are 1D arrays of the same lengths.
+
+        Inputs:
+        ------
+          - x = float number
+          - y = float numbe
 
         Keywords:
         --------

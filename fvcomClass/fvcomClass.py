@@ -71,6 +71,7 @@ Notes:
   - Coordinates = decimal degrees East and North
   - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
                  +/-180=West, -90=South
+  - Depth = 0m is the free surface and depth is negative
     '''
 
     def __init__(self, filename, ax=[], tx=[], debug=False):
@@ -187,7 +188,7 @@ Notes:
         #series of test before stacking
         if not ((self.Grid._ax == FvcomClass.Grid._ax) and
                 (self.Grid.nele == FvcomClass.Grid.nele) and
-                (self.Grid.node == FvcomClass.Grid.node) and
+                (self.Grid.nnode == FvcomClass.Grid.nnode) and
                 (self.Variables._3D == FvcomClass.Variables._3D)):
             print "---Data dimensions do not match---"
             sys.exit()
@@ -233,9 +234,11 @@ Notes:
         Save the current FVCOM structure as:
            - *.p, i.e. python file
            - *.mat, i.e. Matlab file
+
         Inputs:
         ------
-          - filename = name of the file to be saved, string
+          - filename = path + name of the file to be saved, string
+
         Keywords:
         --------
           - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
@@ -325,6 +328,9 @@ Notes:
 
     def Harmonic_analysis(self, elevation=True, velocity=False, **kwarg):
         '''
+        Create new variables 'harmonic coefficients'
+        -> FVCOM.Variables.coef_elev or FVCOM.Variables.coef_velo
+
         Description:
         ----------
         Harmonic_analysis calls ut_solv. Depending on whether the user wants velocity
@@ -335,10 +341,6 @@ Notes:
         ------
           - elevation=True means that ut_solv will be done for elevation.
           - velocity=True means that ut_solv will be done for velocity.
-        Outputs:
-        -------
-          ! Outputs will be saved as new field in FVCOM.Variables.
-          - coef_velo or coef_elev = harmonic coefficients 
 
         Options:
         -------
@@ -372,11 +374,16 @@ Notes:
 
     def Harmonic_reconstruction(self, time, elevation=True, velocity=False):
         '''
+        Create new variables 'harmonic reconstructed signals'
+        -> FVCOM.Variables.U_recon and V_recon or FVCOM.Variables.elev_recon
+
         Description:
         ----------
-        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics (ut_solv)
-        has already been executed. If it has not, it will inform the user of
-        the error and ask them to run harmonics. It asks the user to run it
+        This function reconstructs the velocity components or the surface elevation
+        from harmonic coefficients.
+        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
+        (ut_solv) has already been executed. If it has not, it will inform the user
+        of the error and ask them to run harmonics. It asks the user to run it
         since it needs an index at which to run, and there isn't a default
         index.
 
@@ -385,18 +392,13 @@ Notes:
           - Takes a time series for ut_reconstr to do the reconstruction to.
           - elevation=True means that ut_reconstr will be done for elevation.
           - velocity=True means that ut_reconst will be done for velocity.
-        Outputs:
-        -------
-          ! Outputs will be saved as new field in FVCOM.Variables.
-          - U_recon and V_recon or elev_recon = velocity component
-            reconstruction from harmonics
-          - elev_recon = elevation reconstruction from harmonics  
 
         Options:
         -------
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
+
         Notes:
         -----
         For more detailed information about ut_reconstr, please see
@@ -415,26 +417,15 @@ Notes:
             if not hasattr(self.Variables,'coef_elev'):
                 print "---Harmonic analysis has to be performed first---"
             else:
-                self.Variables.ts_recon, _ = ut_reconstr(time, self.Variables.coef_elev)
+                self.Variables.elev_recon, _ = ut_reconstr(time, self.Variables.coef_elev)
                 self.Variables.History.append('ut_reconstr done for elevation')
                               
 
 #Test section when running in shell >> python fvcomClass.py
-if __name__ == '__main__':
+#if __name__ == '__main__':
 
-    filename = './test_file/dn_coarse_0001.nc'
-    #filename = '/home/wesley/ncfiles/smallcape_force_0001.nc'
-    test = FVCOM(filename)
-    test.harmonics(0, cnstit='auto', notrend=True, nodiagn=True)
+    #filename = './test_file/dn_coarse_0001.nc'
+    #test = FVCOM(filename)
+    #test.harmonics(0, cnstit='auto', notrend=True, nodiagn=True)
     #WB_COMMENTS: fixed matlabttime to matlabtime
-    test.reconstr(test.Variables.matlabTime)
-    t = shortest_element_path(test.Grid.latc, test.Grid.lonc,
-                              test.Grid.lat, test.Grid.lon,
-                              test.Grid.trinodes, test.Grid.h)
-
-    elements, _ = t.getTargets([[41420, 39763], [48484, 53441],
-                                [27241, 24226], [21706, 17458]])
-
-
-
-    t.graphGrid()
+    #test.reconstr(test.Variables.matlabTime)

@@ -15,18 +15,30 @@ class _load_var:
     """
 'Variables' subset in FVCOM class contains the numpy arrays:
 -----------------------------------------------------------
-  Some variables are directly passed on from FVCOM output
-  (i.e. el, julianTime, w, u, v, ua, va) and possess in-build
-  set of descriptors, ex:
-         _long_name = 'Vertically Averaged x-velocity'
-        |_units = 'meters s-1'
-    ua._|_grid = 'fvcom_grid'
-        |_...
-  Some others shall be generated as methods are being called, ex:
-    hori_velo_norm = horizontal velocity norm
-    velo_norm = velocity norm
-    verti_shear = vertical shear
-    vorticity...            
+Some variables are directly passed on from FVCOM output:
+                   _el = elevation (m), 2D array (ntime, nnode)
+                  |_julianTime = julian date, 1D array (ntime)
+                  |_matlabTime = matlab time, 1D array (ntime)
+                  |_ua = depth averaged u velocity component (m/s),
+                  |      2D array (ntime, nele)
+                  |_va = depth averaged v velocity component (m/s),
+ FVCOM.Variables._|      2D array (ntime, nele)
+                  |_u = u velocity component (m/s),
+                  |     3D array (ntime, nlevel, nele)
+                  |_v = v velocity component (m/s),
+                  |     3D array (ntime, nlevel, nele)
+                  |_w = w velocity component (m/s),
+                        3D array (ntime, nlevel, nele)
+
+Some others shall be generated as methods are being called, ex:
+                  ...
+                  |_hori_velo_norm = horizontal velocity norm (m/s),
+                  |                  2D array (ntime, nele)
+                  |_velo_norm = velocity norm (m/s),
+                  |             3D array (ntime, nlevel, nele)
+                  |_verti_shear = vertical shear (1/s),
+                  |               3D array (ntime, nlevel, nele)
+                  |_vorticity...            
     """
     def __init__(self, data, grid, tx, History, debug=False):
         self._debug = debug
@@ -68,7 +80,7 @@ class _load_var:
                         self.ua = data.variables['ua'].data[ts:te,:]
                         self.va = data.variables['va'].data[ts:te,:]
                     else:
-                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #TR comment: looping on time indices is a trick from Mitchell
                         #            to improve loading time
                         #TR comment: no idea why I have to transpose here but I do !!
                         self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
@@ -97,7 +109,7 @@ class _load_var:
                         self.ua = data.variables['ua'].data[ts:te,:]
                         self.va = data.variables['va'].data[ts:te,:]
                     else:
-                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #TR comment: looping on time indices is a trick from Mitchell
                         #            to improve loading time
                         #TR comment: no idea why I have to transpose here but I do !!
                         self.ua = np.zeros((grid.ntime, grid.nele))
@@ -166,7 +178,7 @@ class _load_var:
                     else:
                         # elev timeseries
                         self.el = data.variables['zeta'].data[ts:te,region_n] 
-                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #TR comment: looping on time indices is a trick from Mitchell
                         #            to improve loading time
                         #TR comment: no idea why I have to transpose here but I do !!
                         self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
@@ -227,7 +239,7 @@ class _load_var:
                     else:
                         # elev timeseries
                         self.el = data.variables['zeta'].data[ts:te,region_n] 
-                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #TR comment: looping on time indices is a trick from Mitchell
                         #            to improve loading time
                         #TR comment: no idea why I have to transpose here but I do !!
                         self.ua = np.zeros((grid.ntime, grid.nele))
@@ -323,7 +335,7 @@ class _load_var:
                     else:
                         # elev timeseries
                         self.el = data.variables['zeta'].data[:,region_n]
-                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #TR comment: looping on time indices is a trick from Mitchell
                         #            to improve loading time
                         self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
                         self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
@@ -378,7 +390,7 @@ class _load_var:
                     else:
                         # elev timeseries
                         self.el = data.variables['zeta'].data[:,region_n]
-                        #TR comment: looping on time indexes is a trick from Mitchell
+                        #TR comment: looping on time indices is a trick from Mitchell
                         #            to improve loading time
                         #TR comment: no idea why I have to transpose here but I do !!!
                         self.ua = np.zeros((grid.ntime, grid.nele))
@@ -394,7 +406,7 @@ class _load_var:
             print '...Passed'
 
     def _t_region(self, tx, quiet=False, debug=False):
-        '''Return time indexes included in time period, aka tx'''
+        '''Return time indices included in time period, aka tx'''
         debug = debug or self._debug      
         if debug:
             print 'Computing region_t...'
@@ -428,14 +440,31 @@ class _load_grid:
     '''
 'Grid' subset in FVCOM class contains grid related quantities:
 -------------------------------------------------------------
-  Each variable possesses in-build set of descriptors in Data, ex:
-                             _long_name = 'zonal longitude'
-                            |_units = 'degrees_east'
-    Data.varialbes['lonc']._|_dimensions = 'nele'
-                            |_...
-  Some others shall be generated as methods are being called, ex:
-    triangle = triangulation object for plotting purposes
-    ...     
+Some grid data are directly passed on from FVCOM output:
+              _lon = longitudes at nodes (deg.), 2D array (ntime, node)
+             |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
+             |_lat = latitudes at nodes (deg.), 2D array (ntime, node)
+             |_latc = latitudes at elements (deg.), 2D array (ntime, nele)   
+ FVCOM.Grid._|_x = x coordinates at nodes (m), 2D array (ntime, nnode)
+             |_xc = x coordinates at elements (m), 2D array (ntime, nele)
+             |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
+             |_yc = y coordinates at nodes (m), 2D array (ntime, nele)
+             |_h = bathymetry (m), 2D array (ntime, nnode)
+             |_nele = element dimension, integer
+             |_nnode = node dimension, integer
+             |_nlevel = vertical level dimension, integer
+             |_ntime = time dimension, integer
+             |_trinodes = surrounding node indices, 2D array (3, nele)
+             |_trinodes = surrounding element indices, 2D array (3, nele)
+             |_siglay = sigma layers, 2D array (nlevel, nnode)
+             |_siglay = sigma levels, 2D array (nlevel+1, nnode)
+             |_and a all bunch of grid parameters...
+             | i.e. a1u, a2u, aw0, awx, awy
+
+
+Some others shall be generated as methods are being called, ex:
+             ...
+             |_triangle = triangulation object for plotting purposes    
     '''
     def __init__(self, data, ax, History, debug=False):
         debug = debug or self._debug     
@@ -470,11 +499,11 @@ class _load_grid:
             self.nlevel = self.siglay.shape[0]
             try:
                 self.nele = data.dimensions['nele']
-                self.node = data.dimensions['node']
+                self.nnode = data.dimensions['node']
             except AttributeError:
                 #TR: bug due to difference in Pydap's data sturcture
                 self.nele = self.lonc.shape[0]
-                self.node = data.lon.shape[0]
+                self.nnode = data.lon.shape[0]
             #Define bounding box
             self._ax = ax
         else:
@@ -529,7 +558,7 @@ class _load_grid:
             #Dimensions
             self.nlevel = self.siglay.shape[0]
             self.nele = Data['element_index'].shape[0]
-            self.node = Data['node_index'].shape[0]
+            self.nnode = Data['node_index'].shape[0]
 
             del Data
             #Define bounding box

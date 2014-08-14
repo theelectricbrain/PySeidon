@@ -17,8 +17,8 @@ class FunctionsFvcom:
     """
     Description:
     -----------
-    'Utils' subset of FVCOM class gathers
-    useful functions for 2D runs
+    'Util2D' subset of FVCOM class gathers
+    useful functions for 2D and 3D runs
     """
     def __init__(self, variable, grid, plot, History, debug):
         self._debug = debug
@@ -34,7 +34,8 @@ class FunctionsFvcom:
     #TR comment: I don't think I need this anymore  
     def _centers(self, var, debug=False):
         """
-        Compute bathy and elevation at center points -> FVCOM.Grid.hc, elc
+        Create new variable 'bathy and elevation at center points' (m)
+        -> FVCOM.Grid.hc, elc
 
         Notes:
         -----
@@ -68,7 +69,8 @@ class FunctionsFvcom:
 
     def hori_velo_norm(self, debug=False):
         """
-        Compute new variable 'horizontal velocity norm' -> FVCOM.Variables.hori_velo_norm
+        Compute new variable 'horizontal velocity norm' (m/s)
+        -> FVCOM.Variables.hori_velo_norm
 
         Notes:
         -----
@@ -100,7 +102,7 @@ class FunctionsFvcom:
 
     def flow_dir(self, debug=False):
         """"
-        Compute depth averaged flow directions over the whole grid
+        Create new variable 'depth averaged flow directions' (deg.)
         -> FVCOM.Variables.depth_av_flow_dir
 
         Notes:
@@ -140,19 +142,24 @@ class FunctionsFvcom:
 
         Inputs:
         ------
-          - pt_lon = longitude in decimal degrees East to find
-          - pt_lat = latitude in decimal degrees North to find
+          - pt_lon = longitude in decimal degrees East to find, float number 
+          - pt_lat = latitude in decimal degrees North to find, float number 
+
         Outputs:
         -------
-           - flowDir = flowDir at (pt_lon, pt_lat)
-           - norm = velocity norm at (pt_lon, pt_lat)
+           - flowDir = flowDir at (pt_lon, pt_lat), 1D array
+           - norm = velocity norm at (pt_lon, pt_lat), 1D array
+
         Keywords:
         --------
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
-          - time_ind = time indexes to work in, list of integers
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+          - time_ind = time indices to work in, list of integers
           - excedance = True, compute associated exceedance curve
           - vertical = True, compute flowDir for each vertical level
+
         Notes:
         -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
@@ -223,26 +230,29 @@ class FunctionsFvcom:
     def ebb_flood_split_at_point(self, pt_lon, pt_lat,
                                  t_start=[], t_end=[], time_ind=[], debug=False):
         """
-        Compute time indexes for ebb and flood but also the 
+        Compute time indices for ebb and flood but also the 
         principal flow directions and associated variances for (lon, lat) point
 
         Inputs:
         ------
-          - pt_lon = longitude in decimal degrees East to find
-          - pt_lat = latitude in decimal degrees North to find
+          - pt_lon = longitude in decimal degrees East to find, float number 
+          - pt_lat = latitude in decimal degrees North to find,float number 
+
         Outputs:
         -------
           - floodIndex = flood time index, 1D array of integers
           - ebbIndex = ebb time index, 1D array of integers
-          - pr_axis = principal flow ax1s, number in degrees
-          - pr_ax_var = associated variance
+          - pr_axis = principal flow ax1s, float number in degrees
+          - pr_ax_var = associated variance, float number
+
         Keywords:
         --------
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index(integer)
-          - time_ind = time indexes to work in, 1D array of integers         
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+          - time_ind = time indices to work in, 1D array of integers 
+        
         Notes:
         -----
           - may take time to compute if time period too long
@@ -350,15 +360,19 @@ class FunctionsFvcom:
 
         Inputs:
         ------
-          - var = variable, numpy array, dim=(time, nele or node)
-          - pt_lon = longitude in decimal degrees East to find
-          - pt_lat = latitude in decimal degrees North to find
+          - var = any FVCOM grid data or variable, numpy array
+          - pt_lon = longitude in decimal degrees East to find, float number
+          - pt_lat = latitude in decimal degrees North to find, float number
+
         Outputs:
         -------
-           - varInterp = var interpolate at (pt_lon, pt_lat)
+           - varInterp = var interpolated at (pt_lon, pt_lat)
+
         Keywords:
         --------
-          - index = element index, integer
+          - index = element index, integer. Use only if closest element index
+                    is already known
+
         Notes:
         -----
           - use index if closest element already known
@@ -375,7 +389,7 @@ class FunctionsFvcom:
         trinodes = self._grid.trinodes[:]
 
         if index==[]:
-            # Find indexes of the closest element
+            # Find indices of the closest element
             index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
         # Conversion (lon, lat) to (x, y)
         pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
@@ -412,14 +426,18 @@ class FunctionsFvcom:
         Inputs:
         ------
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
-          - pt_lon, pt_lat = coordinates, necessary if var = 2D
-        Outputs:
-        -------
-          - Exceedance = list of % of occurences
-          - Ranges = list of signal amplitude bins
+
         Keywords:
         --------
+          - pt_lon, pt_lat = coordinates, float numbers.
+                             Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
+
+        Outputs:
+        -------
+          - Exceedance = list of % of occurences, 1D array
+          - Ranges = list of signal amplitude bins, 1D array
+
         Notes:
         -----
           - This method is not suitable for SSE
@@ -467,7 +485,7 @@ class FunctionsFvcom:
 
     def vorticity(self, debug=False):
         """
-        Create a new variable 'depth averaged vorticity'
+        Create a new variable 'depth averaged vorticity (1/s)'
         -> FVCOM.Variables.depth_av_vorticity
      
         Notes:
@@ -535,13 +553,14 @@ class FunctionsFvcom:
         Outputs:
         -------
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
+
         Keywords:
         -------
-          - time_ind = time indexes to work in, list of integers
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
+          - time_ind = time indices to work in, list of integers
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                     or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
         Notes:
         -----
           - Can take time over the full domain
@@ -561,7 +580,8 @@ class FunctionsFvcom:
             else:
                 t = arange(t_start, t_end)
         else:
-            t = arange(self._grid.ntime)  
+            t = arange(self._grid.ntime)
+            self.vorticity() 
 
         #Checking if vorticity already computed
         if not hasattr(self._var, 'depth_av_vorticity'): 
@@ -612,7 +632,8 @@ class FunctionsFvcom:
 
     def depth(self, debug=False):
         """
-        Compute new grid variable 'depth' -> FVCOM.Grid.depth
+        Create new grid variable 'depth' (m)
+        -> FVCOM.Grid.depth
 
         Notes:
         -----
@@ -658,14 +679,17 @@ class FunctionsFvcom:
 
         Inputs:
         ------
-          - pt_lon = longitude in decimal degrees East to find
-          - pt_lat = latitude in decimal degrees North to find
+          - pt_lon = longitude in decimal degrees East, float number
+          - pt_lat = latitude in decimal degrees North, float number
+
         Outputs:
         -------
           - dep = depth, 2D array (ntime, nlevel)
+
         Keywords:
         --------
           - index = element index, interger
+
         Notes:
         -----
           - depth convention: 0 = free surface
@@ -708,28 +732,33 @@ class FunctionsFvcom:
         Create a new variable 'depth averaged power density' (W/m2)
         -> FVCOM.Variables.depth_av_power_density
 
+        Description:
+        -----------
         This function performs tidal turbine power assessment by accounting for
         cut-in and cut-out speed, power curve (pc):
             pc = a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0
-        (where u is the flow speed)
+           (where u is the flow speed)
+
         and device controled power coefficient (dcpc):
             dcpc =  b2*(tsr**2) + b1*tsr + b0
+
         The power density (pd) is then calculated as follows:
             pd = pc*dcpc*(1/2)*1025*(u**3)
 
         Keywords:
         --------
-          - cut_in = cut-in speed in m/s, float
-          - cut_out = cut-out speed in m/s, float
-          - tsr = tip speed ratio, float
-          - a4 = pc curve parameter, float
-          - a3 = pc curve parameter, float        
-          - a2 = pc curve parameter, float
-          - a1 = pc curve parameter, float
-          - a0 = pc curve parameter, float    
-          - b2 = dcpc curve parameter, float
-          - b1 = dcpc curve parameter, float
-          - b0 = dcpc curve parameter, float
+          - cut_in = cut-in speed in m/s, float number
+          - cut_out = cut-out speed in m/s, float number
+          - tsr = tip speed ratio, float number
+          - a4 = pc curve parameter, float number
+          - a3 = pc curve parameter, float number       
+          - a2 = pc curve parameter, float number
+          - a1 = pc curve parameter, float number
+          - a0 = pc curve parameter, float number    
+          - b2 = dcpc curve parameter, float number
+          - b1 = dcpc curve parameter, float number
+          - b0 = dcpc curve parameter, float number
+
         Notes:
         -----
           - This may take some time to compute depending on the size

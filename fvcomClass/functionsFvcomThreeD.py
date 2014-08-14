@@ -40,7 +40,8 @@ class FunctionsFvcomThreeD:
 
     def depth(self, debug=False):
         """
-        Compute new grid variable 'depth' -> FVCOM.Grid.depth
+        Compute new grid variable 'depth' (m)
+        -> FVCOM.Grid.depth
 
         Notes:
         -----
@@ -89,14 +90,18 @@ class FunctionsFvcomThreeD:
 
         Inputs:
         ------
-          - pt_lon = longitude in decimal degrees East to find
-          - pt_lat = latitude in decimal degrees North to find
+          - pt_lon = longitude in decimal degrees East, float number
+          - pt_lat = latitude in decimal degrees North, float number
+
         Outputs:
         -------
           - dep = depth, 2D array (ntime, nlevel)
+
         Keywords:
         --------
-          - index = element index, interger
+          - index = element index, interger. Use only if closest element
+                    index is already known
+
         Notes:
         -----
           - depth convention: 0 = free surface
@@ -136,7 +141,8 @@ class FunctionsFvcomThreeD:
 
     def verti_shear(self, debug=False):
         """
-        Compute new variable 'vertical shear' -> FVCOM.Variables.verti_shear
+        Compute new variable 'vertical shear' (1/s)
+        -> FVCOM.Variables.verti_shear
 
         Notes:
         -----
@@ -189,19 +195,24 @@ class FunctionsFvcomThreeD:
 
         Inputs:
         ------
-          - pt_lon = longitude in decimal degrees East to find
-          - pt_lat = latitude in decimal degrees North to find
+          - pt_lon = longitude in decimal degrees East, float number
+          - pt_lat = latitude in decimal degrees North, float number
+
         Outputs:
         -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
+
         Keywords:
         --------
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
-          - time_ind = time indexes to work in, list of integers
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+          - time_ind = time indices to work in, list of integers
           - bot_lvl = index of the bottom level to consider, integer
           - top_lvl = index of the top level to consider, integer
-          - graph = plot graph if True
+          - graph = plots graph if True
+
         Notes:
         -----
           - use time_ind or t_start and t_end, not both
@@ -283,7 +294,8 @@ class FunctionsFvcomThreeD:
 
     def velo_norm(self, debug=False):
         """
-        Compute new variable 'velocity norm' -> FVCOM.Variables.velo_norm
+        Compute new variable 'velocity norm' (m/s)
+        -> FVCOM.Variables.velo_norm
 
         Notes:
         -----
@@ -321,16 +333,21 @@ class FunctionsFvcomThreeD:
 
         Inputs:
         ------
-          - pt_lon = longitude in decimal degrees East to find
-          - pt_lat = latitude in decimal degrees North to find
+          - pt_lon = longitude in decimal degrees East, float number
+          - pt_lat = latitude in decimal degrees North, float number
+
         Outputs:
         -------
           - velo_norm = velocity norm, 2D array (time, level)
+
         Keywords:
         --------
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'), or time index (integer)
-          - time_ind = time indexes to work in, list of integers
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+          - time_ind = time indices to work in, list of integers
+
         Notes:
         -----
           - use time_ind or t_start and t_end, not both
@@ -390,7 +407,7 @@ class FunctionsFvcomThreeD:
         return velo_norm 
 
 
-    def flow_dir_at_point(self, pt_lon, pt_lat, time_ind=[], t_start=[], t_end=[],
+    def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[], 
                           vertical=True, debug=False):
         """
         Compute flow directions and associated norm at any given location.
@@ -399,17 +416,19 @@ class FunctionsFvcomThreeD:
         ------
           - pt_lon = longitude in decimal degrees East to find
           - pt_lat = latitude in decimal degrees North to find
+
         Outputs:
         -------
-          - flowDir = flowDir at (pt_lon, pt_lat)
-          - norm = velocity norm at (pt_lon, pt_lat)
+          - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
+          - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
+
         Keywords:
         -------
-          - time_ind = time indexes to work in, list of integers
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+          - time_ind = time indices to work in, list of integers
           - vertical = True, compute flowDir for each vertical level
         Notes:
         -----
@@ -484,7 +503,8 @@ class FunctionsFvcomThreeD:
 
     def flow_dir(self, debug=False):
         """"
-        Compute new variable 'flow directions' -> FVCOM.Variables.flow_dir
+        Compute new variable 'flow directions' (deg.)
+        -> FVCOM.Variables.flow_dir
 
         Notes:
         -----
@@ -517,8 +537,8 @@ class FunctionsFvcomThreeD:
 
     def vorticity(self, debug=False):
         """
-        Create a new variable 'depth averaged vorticity'
-        -> FVCOM.Variables.depth_av_vorticity
+        Create a new variable 'depth averaged vorticity' (1/s)
+        -> FVCOM.Variables.vorticity
      
         Notes:
         -----
@@ -577,18 +597,19 @@ class FunctionsFvcomThreeD:
 
     def vorticity_over_period(self, time_ind=[], t_start=[], t_end=[], debug=False):
         """
-        Compute the depth averaged vorticity for a time period.
+        Compute the vorticity for a time period.
      
         Outputs:
         -------
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
+
         Keywords:
         -------
-          - time_ind = time indexes to work in, list of integers
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
+          - time_ind = time indices to work in, list of integers
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
         Notes:
         -----
           - Can take time over the full domain
@@ -653,13 +674,14 @@ class FunctionsFvcomThreeD:
             end = time.time()
             print "Computation time in (s): ", (end - start) 
         return vort
-    def depth_averaged_power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
+
+    def power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
                                         a4=0.0016, a3=-0.0324, a2=0.1369,
                                         a1=-0.1534, a0=0.8396,
                                         b2=-0.0242, b1=0.1963, b0=-0.0049, debug=False):
         """
         Create a new variable 'depth averaged power density' (W/m2)
-        -> FVCOM.Variables.depth_av_power_density
+        -> FVCOM.Variables.power_density
 
         This function performs tidal turbine power assessment by accounting for
         cut-in and cut-out speed, power curve (pc):
@@ -736,13 +758,15 @@ class FunctionsFvcomThreeD:
           - var = 2D dimensional (sigma level, element) variable, array
           - start_pt = starting point, [longitude, latitude]
           - end_pt = ending point, [longitude, latitude]
+
         Keywords:
         --------
-          - time_ind = reference time indexes for surface elevation, list of integer
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
-          - t_end = end time, as string ('yyyy-mm-ddThh:mm:ss'),
-            or time index (integer)
+          - time_ind = reference time indices for surface elevation, list of integer
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+
         Keywords for plot:
         -----------------
           - title = plot title, string
