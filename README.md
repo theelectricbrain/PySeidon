@@ -1,15 +1,15 @@
-FVCOM-PySeidon
+PySeidon
 ================
 
 ### Project description ###
 * This project aims to meet multiple objectives of the EcoEII consortium
   through the setting of a dedicated server and the development of Python
   based packages. This project can be seen as two folded. On the one 
-  hand, it aims to enhanced data accessibility for all the partners of 
+  hand, it aims to enhance data accessibility for all the partners of 
   the EcoEII consortium thanks to simple client protocols. On the other 
   hand, it aims to develop standardised numerical toolbox gathering 
-  specific analysis functions for measured and simulated data to the
-  EcoEII partners.
+  specific analysis functions for measured and simulated data (FVCOM model)
+  to the EcoEII partners.
 * Additionally, this project was the ideal opportunity to transport various
   scripts and packages accumulated over the year into Python. These scripts
   and packages have been extensively used by the tidal energy community for
@@ -17,7 +17,7 @@ FVCOM-PySeidon
   mere attempt to acknowledge the work of those who participated more or
   less indirectly to the development of this tool box. We are consciously
   standing on the shoulders of a multitude giants...so please forgive us
-  if we forgot one of them   
+  if we forgot one of them.  
 * The present package is currently in Beta testing, so the more feedback,
   the better
 
