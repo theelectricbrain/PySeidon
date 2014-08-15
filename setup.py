@@ -6,7 +6,7 @@ def readme():
         return f.read()
 
 setup(name='PySeidon',
-      version='v0.3',
+      version='v0.2',
       description='Suite of tools for FVCOM model',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',
