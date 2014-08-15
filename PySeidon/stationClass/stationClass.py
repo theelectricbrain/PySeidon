@@ -8,7 +8,7 @@ import os
 import fnmatch
 # Need to add closest point
 
-class station:
+class Station:
     def __init__(self, filename, elements=slice(None)):
 
         self.isMulti(filename, elements)
