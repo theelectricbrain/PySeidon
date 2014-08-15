@@ -1,11 +1,12 @@
 from setuptools import setup
+from numpy.distutils.misc_util import Configuration
 
 def readme():
     with open('README.md') as f:
         return f.read()
 
 setup(name='PySeidon',
-      version='v0.1',
+      version='v0.3',
       description='Suite of tools for FVCOM model',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',
@@ -13,6 +14,7 @@ setup(name='PySeidon',
       author_email='thomas.roc@acadiau.ca,wesley.bowman23@gmail.com,lavieenroux20@gmail.com',
       maintainer='Thomas Roc',
       license='GNU Affero GPL v3.0',
-      packages=['pyseidon'],
-      package_dir={'pyseidon': ['PySeidon/fvcomClass','PySeidon/adcpClass', 'PySeidon/drifterClass','PySeidon/stationClass', 'PySeidon/tidegaugeClass','PySeidon/validationClass','PySeidon/utilities']},
-      zip_safe=False)
+      packages=['PySeidon'],
+      package_dir={'PySeidon' :'PySeidon'},      
+      zip_safe=False),
+
