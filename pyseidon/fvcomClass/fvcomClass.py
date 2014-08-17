@@ -55,15 +55,19 @@ Inputs:
 Options:
 -------
   - ax = defines for a specific spatial region to work with, as such:
-         ax = [minimun longitude, maximun longitude,
-              minimun latitude, maximum latitude]
+           ax = [minimun longitude, maximun longitude,
+                 minimun latitude, maximum latitude]
+         or use one of the following pre-defined region:
+           ax = 'GP', 'PP', 'DG' or 'MP'
          Note that this option permits to extract partial data from the overall file
          and therefore reduce memory and cpu use.
+
   - tx = defines for a specific temporal period to work with, as such:
          tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'],
          string of 'yyyy-mm-ddThh:mm:ss'.
          Note that this option permits to extract partial data from the overall file
          and therefore reduce memory and cpu use.
+
 Notes:
 -----
   Throughout the package, the following conventions aplly:
@@ -186,10 +190,12 @@ Notes:
         """
         debug = debug or self._debug
         #series of test before stacking
-        if not ((self.Grid._ax == FvcomClass.Grid._ax) and
-                (self.Grid.nele == FvcomClass.Grid.nele) and
-                (self.Grid.nnode == FvcomClass.Grid.nnode) and
-                (self.Variables._3D == FvcomClass.Variables._3D)):
+        if not (self.Grid._ax == FvcomClass.Grid._ax):
+            print "---Spatial regions do not match---"
+            sys.exit()
+        elif not ((self.Grid.nele == FvcomClass.Grid.nele) and
+                  (self.Grid.nnode == FvcomClass.Grid.nnode) and
+                  (self.Variables._3D == FvcomClass.Variables._3D)):
             print "---Data dimensions do not match---"
             sys.exit()
         else:

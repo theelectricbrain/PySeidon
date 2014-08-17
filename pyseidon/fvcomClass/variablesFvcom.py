@@ -494,8 +494,23 @@ Some others shall be generated as methods are being called, ex:
                 self.nele = self.lonc.shape[0]
                 self.nnode = data.lon.shape[0]
             #Define bounding box
-            self._ax = ax
+            if debug:
+                print "Computing bounding box..."
+            lon = self.lon[:]
+            lat = self.lat[:]
+            self._ax = [lon.min(), lon.max(),
+                             lat.min(), lat.max()]
         else:
+            #Checking for pre-defined regions
+            if ax=='GP':
+                ax=[-66.36, -66.31, 44.24, 44.3]
+            elif ax=='PP':
+                ax=[-66.23, -66.19, 44.37, 44.41]
+            elif ax=='DG':
+                ax=[-65.84, -65.73, 44.64, 44.72]
+            #elif ax=='MP':
+            #    ax=[
+           
             print 'Re-indexing may take some time...'   
             Data = regioner(self, ax, debug=debug)   
             self.lon = Data['lon'][:]

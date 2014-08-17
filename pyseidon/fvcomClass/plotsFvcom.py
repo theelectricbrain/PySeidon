@@ -53,14 +53,6 @@ class PlotsFvcom:
             return
 
         # Bounding box nnodes, elements and variable
-        lon = self._grid.lon[:]
-        lat = self._grid.lat[:]
-        if self._grid._ax==[]:
-            #Bounding box
-            if debug:
-                print "Computing bounding box..."
-            self._grid._ax = [lon.min(), lon.max(),
-                             lat.min(), lat.max()]
         bb = self._grid._ax     
 
         if not hasattr(self._grid, 'triangle'):        
