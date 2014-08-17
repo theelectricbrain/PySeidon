@@ -11,7 +11,7 @@ PySeidon
   specific analysis functions for measured and simulated data (FVCOM model)
   to the EcoEII partners.
 * Additionally, this project was the ideal opportunity to transport various
-  scripts and packages accumulated over the year into Python. These scripts
+  scripts and packages accumulated over the years into Python. These scripts
   and packages have been extensively used by the tidal energy community for
   more than a decade. The 'Contributors' section of this document is a 
   mere attempt to acknowledge the work of those who participated more or
@@ -25,6 +25,7 @@ PySeidon
 Prerequisites:
 * Python 2.7: You can download Python from [here](http://www.python.org/download) 
 * IPython: You can download IPython from [here](http://ipython.org/)
+* Anaconda: You can download Anaconda from [here](http://continuum.io/downloads#all)
 * UTide: You can download UTide from [here](https://github.com/wesleybowman/UTide)
 
 Installation:
@@ -46,7 +47,7 @@ Up-dating:
 * Developers: [Wesley Bowman](https://github.com/wesleybowman),
   [Jonathan Smith](https://github.com/LaVieEnRoux), [Thomas Roc](thomas.roc@acadiau.ca)
 
-### Acknowledgment ###
+### Contributors ###
 Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/kthyng), [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, 
 Justine McMillan, Richard Cheel,...
 
