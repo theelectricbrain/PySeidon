@@ -499,7 +499,7 @@ Some others shall be generated as methods are being called, ex:
             lon = self.lon[:]
             lat = self.lat[:]
             self._ax = [lon.min(), lon.max(),
-                             lat.min(), lat.max()]
+                        lat.min(), lat.max()]
         else:
             #Checking for pre-defined regions
             if ax=='GP':
