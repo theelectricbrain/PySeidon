@@ -493,13 +493,7 @@ Some others shall be generated as methods are being called, ex:
                 #TR: bug due to difference in Pydap's data sturcture
                 self.nele = self.lonc.shape[0]
                 self.nnode = data.lon.shape[0]
-            #Define bounding box
-            if debug:
-                print "Computing bounding box..."
-            lon = self.lon[:]
-            lat = self.lat[:]
-            self._ax = [lon.min(), lon.max(),
-                        lat.min(), lat.max()]
+
         else:
             #Checking for pre-defined regions
             if ax=='GP':

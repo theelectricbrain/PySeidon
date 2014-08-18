@@ -189,6 +189,14 @@ Notes:
             first time step of fvcom2 
         """
         debug = debug or self._debug
+        #Define bounding box
+        if debug:
+            print "Computing bounding box..."
+        if self.Grid._ax == []:
+            lon = self.Grid.lon[:]
+            lat = self.Grid.lat[:]
+            self.Grid._ax = [lon.min(), lon.max(),
+                             lat.min(), lat.max()]
         #series of test before stacking
         if not (self.Grid._ax == FvcomClass.Grid._ax):
             print "---Spatial regions do not match---"
@@ -252,7 +260,15 @@ Notes:
         debug = debug or self._debug
         if debug:
             print 'Saving file...'
-        #TR: to be developed
+        #Define bounding box
+        if debug:
+            print "Computing bounding box..."
+        if self.Grid._ax == []:
+            lon = self.Grid.lon[:]
+            lat = self.Grid.lat[:]
+            self.Grid._ax = [lon.min(), lon.max(),
+                             lat.min(), lat.max()]
+        #Save as different formats
         if fileformat=='pickle':
             filename = filename + ".p"
             f = open(filename, "wb")
