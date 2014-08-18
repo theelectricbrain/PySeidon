@@ -52,16 +52,21 @@ class PlotsFvcom:
             print "Var has the wrong dimension, var.shape[0]= Grid.nele or nnode"
             return
 
-        # Bounding box nnodes, elements and variable
-        bb = self._grid._ax     
+        # Bounding box nodes, elements and variable 
+        lon = self._grid.lon[:]
+        lat = self._grid.lat[:]
+        if debug:
+            print "Computing bounding box..."
+        if self._grid._ax == []:
+            self._grid._ax = [lon.min(), lon.max(),
+                             lat.min(), lat.max()]
+        bb = self._grid._ax  
 
         if not hasattr(self._grid, 'triangle'):        
             # Mesh triangle
             if debug:
                 print "Computing triangulation..."
             trinodes = self._grid.trinodes 
-            lon = self._grid.lon[:]
-            lat = self._grid.lat[:]
             tri = Tri.Triangulation(lon, lat, triangles=trinodes)
             self._grid.triangle = tri
         else:
