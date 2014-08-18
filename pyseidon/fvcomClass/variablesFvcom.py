@@ -478,6 +478,8 @@ Some others shall be generated as methods are being called, ex:
         self.trinodes = np.transpose(data.variables['nv'].data) - 1
         self.triele = np.transpose(data.variables['nbe'].data)
         if ax==[]:
+            #Define bounding box
+            self._ax = []
             #Append message to History field
             text = 'Full spatial domain'
             self._History.append(text)
@@ -493,8 +495,6 @@ Some others shall be generated as methods are being called, ex:
                 #TR: bug due to difference in Pydap's data sturcture
                 self.nele = self.lonc.shape[0]
                 self.nnode = data.lon.shape[0]
-            #Define bounding box
-            self._ax = []
         else:
             #Checking for pre-defined regions
             if ax=='GP':
