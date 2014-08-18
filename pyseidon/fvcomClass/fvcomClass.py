@@ -105,7 +105,7 @@ Notes:
                     #WB_comments: scipy has causes some errors, and even though can be
                     #             faster, can be unreliable
                     #self.Data = nc.Dataset(data['Origin'], 'r')
-                    self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
+                    self.Data = netcdf.netcdf_file(data['Origin'], 'r')#,mmap=True)
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
@@ -125,7 +125,7 @@ Notes:
                 #WB_comments: scipy has causes some errors, and even though can be
                 #             faster, can be unreliable
                 #self.Data = nc.Dataset(filename, 'r')
-                self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                self.Data = netcdf.netcdf_file(filename, 'r')#,mmap=True)
             text = 'Created from ' + filename
             self._origin_file = filename
             #Metadata
