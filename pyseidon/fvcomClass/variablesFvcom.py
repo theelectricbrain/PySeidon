@@ -493,7 +493,8 @@ Some others shall be generated as methods are being called, ex:
                 #TR: bug due to difference in Pydap's data sturcture
                 self.nele = self.lonc.shape[0]
                 self.nnode = data.lon.shape[0]
-
+            #Define bounding box
+            self._ax = []
         else:
             #Checking for pre-defined regions
             if ax=='GP':
