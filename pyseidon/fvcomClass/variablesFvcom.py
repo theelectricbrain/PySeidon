@@ -422,7 +422,7 @@ Some others shall be generated as methods are being called, ex:
                                     np.transpose(data.variables[key].data[i,region_n]))
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
-                                for i in grid.ntime:
+                                for i in range(grid.ntime):
                                     #TR comment: looping on time indices is a trick from
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
@@ -443,7 +443,7 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             setattr(self, aliaS,
                             np.zeros((grid.ntime,grid.nlevel, grid.nele)))
-                            for i in grid.ntime:
+                            for i in range(grid.ntime):
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
