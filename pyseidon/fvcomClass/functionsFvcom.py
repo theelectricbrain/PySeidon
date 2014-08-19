@@ -397,7 +397,7 @@ class FunctionsFvcom:
         pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
                                index=index, trinodes=trinodes, debug=debug)
         #change in function of the data you dealing with
-        if any(i == self._grid.node for i in var.shape):
+        if any(i == self._grid.nnode for i in var.shape):
             if debug:
                 start = time.time() 
             varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,

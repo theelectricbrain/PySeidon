@@ -47,6 +47,13 @@ Some others shall be generated as methods are being called, ex:
         self._History = History
         History = self._History
 
+        #List of keywords
+        kwl2D = ['ua', 'va', 'zeta']
+        kwl3D = ['ww', 'u', 'v', 'gls', 'tke']
+        #List of aliaSes
+        al2D = ['ua', 'va', 'el']
+        al3D = ['u', 'u', 'v', 'gls', 'tke'] 
+
         #Check if time period defined
         self.julianTime = data.variables['time']      
         if not tx==[]:
@@ -70,61 +77,83 @@ Some others shall be generated as methods are being called, ex:
             if grid._ax==[]:
                 if debug:
                     print 'Loading variables...'
-                # elev timeseries
-                self.el = data.variables['zeta'].data[ts:te,:]            
-                try:
-                    #different loading technique if using OpenDap server
-                    if type(data.variables).__name__=='DatasetType':
-                        self.w = data.variables['ww'].data[ts:te,:,:]
-                        self.u = data.variables['u'].data[ts:te,:,:]
-                        self.v = data.variables['v'].data[ts:te,:,:]
-                        self.ua = data.variables['ua'].data[ts:te,:]
-                        self.va = data.variables['va'].data[ts:te,:]
+                #Check if OpenDap variables or not
+                if type(data.variables).__name__=='DatasetType':
+                    #loading hori data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl2D, al2D):
+                        try:
+                            setattr(self, aliaS, data.variables[key].data[ts:te,:])
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Horizontal variables are missing---"
+                    self._3D = False 
+                    
+                    #loading verti data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl3D, al3D):
+                        try:
+                            setattr(self, aliaS, data.variables[key].data[ts:te,:,:])
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Vertical variables are missing---"
                     else:
-                        #TR comment: looping on time indices is a trick from Mitchell
-                        #            to improve loading time
-                        #TR comment: no idea why I have to transpose here but I do !!
-                        self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.ua = np.zeros((grid.ntime, grid.nele))
-                        self.va = np.zeros((grid.ntime, grid.nele))
-                        H=0
-                        for i in region_t:
-                            self.w[H,:,:] = np.transpose(
-                                            data.variables['ww'].data[i,:,:])
-                            self.u[H,:,:] = np.transpose(
-                                            data.variables['u'].data[i,:,:])
-                            self.v[H,:,:] = np.transpose(
-                                            data.variables['v'].data[i,:,:])
-                            self.ua[H,:] = np.transpose(
-                                           data.variables['ua'].data[i,:])
-                            self.va[H,:] = np.transpose(
-                                           data.variables['va'].data[i,:])
-                            H += 1
-                    # invisible variables
-                    self._3D = True
-                except KeyError:
-                    #different loading technique if using OpenDap server
-                    if type(data.variables).__name__=='DatasetType':
-                        self.ua = data.variables['ua'].data[ts:te,:]
-                        self.va = data.variables['va'].data[ts:te,:]
-                    else:
-                        #TR comment: looping on time indices is a trick from Mitchell
-                        #            to improve loading time
-                        #TR comment: no idea why I have to transpose here but I do !!
-                        self.ua = np.zeros((grid.ntime, grid.nele))
-                        self.va = np.zeros((grid.ntime, grid.nele))
-                        H = 0
-                        for i in region_t:
-                            self.ua[H,:] = np.transpose(
-                                           data.variables['ua'].data[i,:])
-                            self.va[H,:] = np.transpose(
-                                           data.variables['va'].data[i,:])
-                            H += 1
+                        self._3D = True
 
-                    # invisible variables
-                    self._3D = False
+                #Not OpenDap
+                else:
+                    #loading hori data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl2D, al2D):
+                        try:
+                            if key=='zeta':
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.node)))
+                            else:
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
+                            for i in region_t:
+                                #TR comment: looping on time indices is a trick from
+                                #            Mitchell to improve loading time
+                                #TR comment: no idea why I have to transpose here but
+                                #            I do !!
+                                setattr(self, aliaS, 
+                                        np.transpose(data.variables[key].data[i,:]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Horizontal variables are missing---"
+                    self._3D = False 
+                    
+                    #loading verti data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl3D, al3D):
+                        try:
+                            setattr(self, aliaS,
+                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            for i in region_t:
+                                #TR comment: looping on time indices is a trick from
+                                #            Mitchell to improve loading time
+                                #TR comment: no idea why I have to transpose here but
+                                #            I do !!
+                                setattr(self, aliaS,
+                                        np.transpose(data.variables[key].data[i,:,:]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Vertical variables are missing---"
+                    else:
+                        self._3D = True 
+
+            #Time period defined and region defined           
             else:
                 if debug:
                     print 'Loading variables...'
@@ -133,127 +162,127 @@ Some others shall be generated as methods are being called, ex:
                 region_e = grid._element_index
                 region_n = grid._node_index
                 #Redefine variables in bounding box & time period
-                try:
-                    #different loading technique if using OpenDap server
-                    if type(data.variables).__name__=='DatasetType':
-                        #Split into consecutive integers to optimise loading
-                        #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
-                        #            work with non consecutive indices
-                        H=0
-                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.w = data.variables['ww'].data[ts:te,:,ID[0]:(ID[-1]+1)]
-                                self.u = data.variables['u'].data[ts:te,:,ID[0]:(ID[-1]+1)]
-                                self.v = data.variables['v'].data[ts:te,:,ID[0]:(ID[-1]+1)]
-                                self.ua = data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]
-                                self.va = data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]
-                            else:
-                                self.w = np.dstack((self.w,
-                                data.variables['ww'].data[ts:te,:,ID[0]:(ID[-1]+1)]))
-                                self.u = np.dstack((self.u,
-                                data.variables['u'].data[ts:te,:,ID[0]:(ID[-1]+1)]))
-                                self.v = np.dstack((self.v,
-                                data.variables['v'].data[ts:te,:,ID[0]:(ID[-1]+1)]))
-                                self.ua = np.hstack((self.ua,
-                                data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]))
-                                self.va = np.hstack((self.va,
-                                data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]))
+                #Check if OpenDap variables or not
+                if type(data.variables).__name__=='DatasetType':
+                    #Special loading for zeta
+                    H = 0 #local counter
+                    key = kwl2D.pop(2)
+                    aliaS = al2D.pop(2)
+                    for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
+                        ID = map(itemgetter(1), g)
+                        if debug: print 'Index bound: ' +\
+                            str(ID[0]) + '-' + str(ID[-1]+1)
+                        if H==0:
+                            setattr(self, aliaS,
+                                    data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
                             H=1
-
-                        # elev timeseries
-                        H=0
-                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.el = data.variables['zeta']\
-                                         .data[ts:te,:,ID[0]:(ID[-1]+1)]
-                            else:
-                                self.el = np.hstack((self.el,
-                                data.variables['zeta'].data[ts:te,ID[0]:(ID[-1]+1)]))
-                            H=1
+                        else:
+                            np.hstack((getattr(self, aliaS),
+                            data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)]))
+                    #loading hori data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl2D, al2D):
+                        try:
+                            H = 0 #local counter
+                            for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                                ID = map(itemgetter(1), g)
+                                if debug: print 'Index bound: ' +\
+                                          str(ID[0]) + '-' + str(ID[-1]+1)
+                                if H==0:
+                                    setattr(self, aliaS,
+                                    data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
+                                    H=1
+                                else:
+                                    np.hstack((getattr(self, aliaS),
+                                    data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Horizontal variables are missing---"
+                    self._3D = False 
+                    
+                    #loading verti data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl3D, al3D):
+                        try:
+                            H = 0 #local counter
+                            for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                                ID = map(itemgetter(1), g)
+                                if debug: print 'Index bound: ' +\
+                                          str(ID[0]) + '-' + str(ID[-1]+1)
+                                if H==0:
+                                    setattr(self, aliaS, data.variables[key].data\
+                                                       [ts:te,:,ID[0]:(ID[-1]+1)])
+                                    H=1
+                                else:
+                                    np.dstack((getattr(self, aliaS),
+                                    data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Vertical variables are missing---"
                     else:
-                        # elev timeseries
-                        self.el = data.variables['zeta'].data[ts:te,region_n] 
-                        #TR comment: looping on time indices is a trick from Mitchell
-                        #            to improve loading time
-                        #TR comment: no idea why I have to transpose here but I do !!
-                        self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.ua = np.zeros((grid.ntime, grid.nele))
-                        self.va = np.zeros((grid.ntime, grid.nele))
-                        H=0
-                        for i in region_t:
-                            self.w[H,:,:] = np.transpose(
-                                            data.variables['ww'].data[i,:,region_e])
-                            self.u[H,:,:] = np.transpose(
-                                            data.variables['u'].data[i,:,region_e])
-                            self.v[H,:,:] = np.transpose(
-                                            data.variables['v'].data[i,:,region_e])
-                            self.ua[H,:] = np.transpose(
-                                           data.variables['ua'].data[i,region_e])
-                            self.va[H,:] = np.transpose(
-                                           data.variables['va'].data[i,region_e])
-                            H += 1
-                    # invisible variables
-                    self._3D = True
+                         self._3D = True
 
-                except KeyError:
-                    #different loading technique if using OpenDap server
-                    if type(data.variables).__name__=='DatasetType':
-                        #Split into consecutive integers to optimise loading
-                        #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
-                        #            work with non consecutive indices
-                        H=0
-                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.ua = data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]
-                                self.va = data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]
+                #Not OpenDap
+                else:
+                    #loading hori data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl2D, al2D):
+                        try:
+                            if key=='zeta':
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.node)))
+                                for i in region_t:
+                                    #TR comment: looping on time indices is a trick from
+                                    #            Mitchell to improve loading time
+                                    #TR comment: no idea why I have to transpose here but
+                                    #            I do !!
+                                    setattr(self, aliaS,
+                                    np.transpose(data.variables[key].data[i,region_n]))
                             else:
-                                self.ua = np.hstack((self.ua,
-                                data.variables['ua'].data[ts:te,ID[0]:(ID[-1]+1)]))
-                                self.va = np.hstack((self.va,
-                                data.variables['va'].data[ts:te,ID[0]:(ID[-1]+1)]))
-                            H=1
-
-                        # elev timeseries
-                        H=0
-                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.el = data.variables['zeta']\
-                                         .data[:,:,ID[0]:(ID[-1]+1)]
-                            else:
-                                self.el = np.hstack((self.el,
-                                data.variables['zeta'].data[:,ID[0]:(ID[-1]+1)]))
-                            H=1
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
+                                for i in region_t:
+                                    #TR comment: looping on time indices is a trick from
+                                    #            Mitchell to improve loading time
+                                    #TR comment: no idea why I have to transpose here but
+                                    #            I do !!
+                                    setattr(self, aliaS,
+                                    np.transpose(data.variables[key].data[i,region_e]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Horizontal variables are missing---"
+                    self._3D = False 
+                    
+                    #loading verti data
+                    keyCount = 0
+                    for key in zip(kwl3D, al3D):
+                        try:
+                            setattr(self, alias,
+                            np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            for i in region_t:
+                                #TR comment: looping on time indices is a trick from
+                                #            Mitchell to improve loading time
+                                #TR comment: no idea why I have to transpose here but
+                                #            I do !!
+                                setattr(self, alias,
+                                np.transpose(data.variables[key].data[i,:,region_e]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Vertical variables are missing---"
                     else:
-                        # elev timeseries
-                        self.el = data.variables['zeta'].data[ts:te,region_n] 
-                        #TR comment: looping on time indices is a trick from Mitchell
-                        #            to improve loading time
-                        #TR comment: no idea why I have to transpose here but I do !!
-                        self.ua = np.zeros((grid.ntime, grid.nele))
-                        self.va = np.zeros((grid.ntime, grid.nele))
-                        H=0
-                        for i in region_t:
-                            self.ua[H,:] = np.transpose(
-                            data.variables['ua'].data[i,region_e])
-                            self.va[H,:] = np.transpose(
-                            data.variables['va'].data[i,region_e])
-                            H += 1
-                    # invisible variables
-                    self._3D = False          
+                        self._3D = True 
+  
+        #No time period define    
         else:
             # get time and adjust it to matlab datenum
             self.julianTime = data.variables['time'].data
@@ -271,20 +300,35 @@ Some others shall be generated as methods are being called, ex:
             if grid._ax==[]:
                 if debug:
                     print 'Linking variables...'
-                # elev timeseries
-                self.el = data.variables['zeta'].data           
-                try:
-                    self.w = data.variables['ww'].data
-                    self.u = data.variables['u'].data
-                    self.v = data.variables['v'].data
-                    self.ua = data.variables['ua'].data
-                    self.va = data.variables['va'].data
-                    # invisible variables
+
+                #loading hori data
+                keyCount = 0
+                for key, aliaS in zip(kwl2D, al2D):
+                    try:
+                        setattr(self, aliaS, data.variables[key].data)
+                        keyCount +=1
+                    except KeyError:
+                        print key, " is missing !"
+                        continue
+                if keyCount==0:
+                    print "---Horizontal variables are missing---"
+                self._3D = False 
+                    
+                #loading verti data
+                keyCount = 0
+                for key, aliaS in zip(kwl3D, al3D):
+                    try:
+                        setattr(self, aliaS, data.variables[key].data)
+                        keyCount +=1
+                    except KeyError:
+                        print key, " is missing !"
+                        continue
+                if keyCount==0:
+                    print "---Vertical variables are missing---"
+                else:
                     self._3D = True
-                except KeyError:
-                    self.ua = data.variables['ua'].data
-                    self.va = data.variables['va'].data
-                    self._3D = False
+
+            #No time period defined but region defined
             else:
                 if debug:
                     print 'Loading variables...'
@@ -292,120 +336,128 @@ Some others shall be generated as methods are being called, ex:
                 #Bounding box
                 region_e = grid._element_index
                 region_n = grid._node_index
+                if debug:
+                    print 'Loading variables...'
                 #Redefine variables in bounding box
-                try:
-                    #different loading technique if using OpenDap server
-                    if type(data.variables).__name__=='DatasetType':
-                        #Split into consecutive integers to optimise loading
-                        #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
-                        #            work with non consecutive indices
-                        H=0
-                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.w = data.variables['ww'].data[:,:,ID[0]:(ID[-1]+1)]
-                                self.u = data.variables['u'].data[:,:,ID[0]:(ID[-1]+1)]
-                                self.v = data.variables['v'].data[:,:,ID[0]:(ID[-1]+1)]
-                                self.ua = data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]
-                                self.va = data.variables['va'].data[:,ID[0]:(ID[-1]+1)]
-                            else:
-                                self.w = np.dstack((self.w,
-                                         data.variables['ww'].data[:,:,ID[0]:(ID[-1]+1)]))
-                                self.u = np.dstack((self.u,
-                                         data.variables['u'].data[:,:,ID[0]:(ID[-1]+1)]))
-                                self.v = np.dstack((self.v,
-                                         data.variables['v'].data[:,:,ID[0]:(ID[-1]+1)]))
-                                self.ua = np.hstack((self.ua,
-                                          data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]))
-                                self.va = np.hstack((self.va,
-                                          data.variables['va'].data[:,ID[0]:(ID[-1]+1)]))
-                            H=1
-
-                        # elev timeseries
-                        H=0
-                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.el = data.variables['zeta']\
-                                         .data[:,:,ID[0]:(ID[-1]+1)]
-                            else:
-                                self.el = np.hstack((self.el,
-                                data.variables['zeta'].data[:,ID[0]:(ID[-1]+1)]))
-                            H=1
+                #Check if OpenDap variables or not
+                if type(data.variables).__name__=='DatasetType':
+                    #loading hori data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl2D, al2D):
+                        #Special loading for zeta
+                        H = 0 #local counter
+                        if key == 'zeta':
+                            for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
+                                ID = map(itemgetter(1), g)
+                                if debug: print 'Index bound: ' +\
+                                    str(ID[0]) + '-' + str(ID[-1]+1)
+                                if H==0:
+                                    setattr(self, aliaS,
+                                    data.variables[key].data[:,ID[0]:(ID[-1]+1)])
+                                    H=1
+                                else:
+                                    np.hstack((getattr(self, aliaS),
+                                    data.variables[key].data[:,ID[0]:(ID[-1]+1)]))
+                        else:
+                            try:                        
+                                for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                                    ID = map(itemgetter(1), g)
+                                    if debug: print 'Index bound: ' +\
+                                              str(ID[0]) + '-' + str(ID[-1]+1)
+                                    if H==0:
+                                        setattr(self, aliaS,
+                                                data.variables[key].\
+                                                data[:,ID[0]:(ID[-1]+1)])
+                                        H=1
+                                    else:
+                                        np.hstack((getattr(self, aliaS),
+                                        data.variables[key].data[:,ID[0]:(ID[-1]+1)]))
+                                    keyCount +=1
+                            except KeyError:
+                                print key, " is missing !"
+                                continue
+                    if keyCount==0:
+                        print "---Horizontal variables are missing---"
+                    self._3D = False 
+                    
+                    #loading verti data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl3D, al3D):
+                        try:
+                            H = 0 #local counter
+                            for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
+                                ID = map(itemgetter(1), g)
+                                if debug: print 'Index bound: ' +\
+                                          str(ID[0]) + '-' + str(ID[-1]+1)
+                                if H==0:
+                                    setattr(self, aliaS,
+                                    data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])
+                                    H=1
+                                else:
+                                    np.dstack((getattr(self, aliaS),
+                                    data.variables[key].data[:,:,ID[0]:(ID[-1]+1)]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Vertical variables are missing---"
                     else:
-                        # elev timeseries
-                        self.el = data.variables['zeta'].data[:,region_n]
-                        #TR comment: looping on time indices is a trick from Mitchell
-                        #            to improve loading time
-                        self.w = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.u = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.v = np.zeros((grid.ntime, grid.nlevel, grid.nele))
-                        self.ua = np.zeros((grid.ntime, grid.nele))
-                        self.va = np.zeros((grid.ntime, grid.nele))
-                        for i in range(grid.ntime):
-                            #TR comment: no idea why I have to transpose here but I do !!!
-                            self.w[i,:,:] = np.transpose(
-                                            data.variables['ww'].data[i,:,region_e])
-                            self.u[i,:,:] = np.transpose(
-                                            data.variables['u'].data[i,:,region_e])
-                            self.v[i,:,:] = np.transpose(
-                                            data.variables['v'].data[i,:,region_e])
-                            self.ua[i,:] = np.transpose(
-                                           data.variables['ua'].data[i,region_e])
-                            self.va[i,:] = np.transpose(
-                                           data.variables['va'].data[i,region_e])
-                    # invisible variables
-                    self._3D = True
-                except KeyError:
-                    #different loading technique if using OpenDap server
-                    if type(data.variables).__name__=='DatasetType':
-                        H=0
-                        for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.ua = data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]
-                                self.va = data.variables['va'].data[:,ID[0]:(ID[-1]+1)]
-                            else:
-                                self.ua = np.hstack((self.ua,
-                                          data.variables['ua'].data[:,ID[0]:(ID[-1]+1)]))
-                                self.va = np.hstack((self.va,
-                                          data.variables['va'].data[:,ID[0]:(ID[-1]+1)]))
-                            H=1
+                        self._3D = True
 
-                        # elev timeseries
-                        H=0
-                        for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
-                            ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
-                            if H==0:
-                                self.el = data.variables['zeta']\
-                                         .data[:,:,ID[0]:(ID[-1]+1)]
+                #Not OpenDap
+                else:
+                    #loading hori data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl2D, al2D):
+                        try:
+                            if key=='zeta':
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.node)))
+                                for i in region_t:
+                                    #TR comment: looping on time indices is a trick from
+                                    #            Mitchell to improve loading time
+                                    #TR comment: no idea why I have to transpose here but
+                                    #            I do !!
+                                    setattr(self, aliaS,
+                                    np.transpose(data.variables[key].data[i,region_n]))
                             else:
-                                self.el = np.hstack((self.el,
-                                data.variables['zeta'].data[:,ID[0]:(ID[-1]+1)]))
-                            H=1
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
+                                for i in grid.ntime:
+                                    #TR comment: looping on time indices is a trick from
+                                    #            Mitchell to improve loading time
+                                    #TR comment: no idea why I have to transpose here but
+                                    #            I do !!
+                                    setattr(self, aliaS,
+                                    np.transpose(data.variables[key].data[i,region_e]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Horizontal variables are missing---"
+                    self._3D = False 
+                    
+                    #loading verti data
+                    keyCount = 0
+                    for key, aliaS in zip(kwl3D, al3D):
+                        try:
+                            setattr(self, aliaS,
+                            np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            for i in grid.ntime:
+                                #TR comment: looping on time indices is a trick from
+                                #            Mitchell to improve loading time
+                                #TR comment: no idea why I have to transpose here but
+                                #            I do !!
+                                setattr(self, aliaS,
+                                np.transpose(data.variables[key].data[i,:,region_e]))
+                            keyCount +=1
+                        except KeyError:
+                            print key, " is missing !"
+                            continue
+                    if keyCount==0:
+                        print "---Vertical variables are missing---"
                     else:
-                        # elev timeseries
-                        self.el = data.variables['zeta'].data[:,region_n]
-                        #TR comment: looping on time indices is a trick from Mitchell
-                        #            to improve loading time
-                        #TR comment: no idea why I have to transpose here but I do !!!
-                        self.ua = np.zeros((grid.ntime, grid.nele))
-                        self.va = np.zeros((grid.ntime, grid.nele))
-                        for i in range(grid.ntime):
-                            self.ua[i,:] = np.transpose(
-                                           data.variables['ua'].data[i,region_e])
-                            self.va[i,:] = np.transpose(
-                                           data.variables['va'].data[i,region_e])
-                    # invisible variables
-                    self._3D = False
+                        self._3D = True 
         if debug:
             print '...Passed'
 

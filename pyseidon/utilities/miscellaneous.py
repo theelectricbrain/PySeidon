@@ -5,6 +5,7 @@ from __future__ import division
 import numpy as np
 from datetime import datetime
 from datetime import timedelta
+import sys
 
 def date2py(matlab_datenum):
     python_datetime = datetime.fromordinal(int(matlab_datenum)) + \
@@ -114,6 +115,9 @@ def time_to_index(t_start, t_end, time, debug=False):
                               (time<=t_slice[-1])).flatten()
     if debug:
         print 'Argtime: ', argtime
+    if argtime == []:
+        print "Wrong time input"
+        sys.exit()
     return argtime
 
 def mattime_to_datetime(mattime, debug=False):

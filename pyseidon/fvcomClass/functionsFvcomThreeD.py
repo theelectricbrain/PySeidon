@@ -724,7 +724,7 @@ class FunctionsFvcomThreeD:
         if debug: print "Computing pd..."
         pd = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
 
-        if debug: print "finding cut-in and out..."
+        if debug: print "finding cut-in..."
         u = cut_in
         pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
         dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
@@ -733,6 +733,7 @@ class FunctionsFvcomThreeD:
         if not ind.shape[0]==0:
             pd[ind] = 0.0
 
+        if debug: print "finding cut-out..."
         u = cut_out
         pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
         dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
