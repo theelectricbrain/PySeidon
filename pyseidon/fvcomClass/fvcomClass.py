@@ -197,6 +197,11 @@ Notes:
             lat = self.Grid.lat[:]
             self.Grid._ax = [lon.min(), lon.max(),
                              lat.min(), lat.max()]
+        if FvcomClass.Grid._ax == []:
+            lon = FvcomClass.Grid.lon[:]
+            lat = FvcomClass.Grid.lat[:]
+            FvcomClass.Grid._ax = [lon.min(), lon.max(),
+                                   lat.min(), lat.max()]
         #series of test before stacking
         if not (self.Grid._ax == FvcomClass.Grid._ax):
             print "---Spatial regions do not match---"
