@@ -227,14 +227,14 @@ Notes:
 
             #keyword list for vstack
             kwl=['u', 'v', 'w', 'ua', 'va', 'tke', 'gls']
-            try:
-                for key in kwl:
+            for key in kwl:
+                try:
                     tmpN = getattr(newself.Variables, key)
                     tmpO = getattr(FvcomClass.Variables, key)
                     setattr(newself.Variables, key,
                     np.vstack((tmpN[:], tmpO[:])))          
-            except KeyError:
-                continue
+                except KeyError:
+                    continue
             #New time dimension
             newself.Grid.ntime = newself.Grid.ntime + FvcomClass.Grid.ntime
             #Append to new object history
