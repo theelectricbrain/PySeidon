@@ -217,23 +217,25 @@ Notes:
             #            so cannot do fvcom3 = fvcom1 + fvcom2
             if debug:
                 print 'Stacking variables...'
-            newself.Variables.matlabTime = np.hstack((newself.Variables.matlabTime[:],
-                                             FvcomClass.Variables.matlabTime[:]))
-            newself.Variables.julianTime = np.hstack((newself.Variables.julianTime[:],
-                                             FvcomClass.Variables.julianTime[:]))
-            newself.Variables.ua = np.vstack((newself.Variables.ua[:],
-                                              FvcomClass.Variables.ua[:]))
-            newself.Variables.va = np.vstack((newself.Variables.va[:],
-                                              FvcomClass.Variables.va[:]))
-            newself.Variables.el = np.vstack((newself.Variables.el[:],
-                                                FvcomClass.Variables.el[:]))
-            if newself.Variables._3D:
-                newself.Variables.u = np.vstack((newself.Variables.u[:],
-                                                 FvcomClass.Variables.u[:]))
-                newself.Variables.v = np.vstack((newself.Variables.v[:],
-                                                 FvcomClass.Variables.v[:]))
-                newself.Variables.w = np.vstack((newself.Variables.w[:],
-                                                 FvcomClass.Variables.w[:]))
+            #keyword list for hstack
+            kwl=['matlabTime', 'julianTime']
+            for key in kwl:
+                tmpN = getattr(newself.Variables, key)
+                tmpO = getattr(FvcomClass.Variables, key)
+                setattr(newself.Variables, key,
+                np.hstack((tmpN[:], tmpO[:])))
+
+            #keyword list for vstack
+            kwl=['u', 'v', 'w', 'ua', 'va', 'tke', 'gls']
+            try:
+                for key in kwl:
+                    tmpN = getattr(newself.Variables, key)
+                    tmpO = getattr(FvcomClass.Variables, key)
+                    setattr(newself.Variables, key,
+                    np.vstack((tmpN[:], tmpO[:])))          
+            except KeyError:
+                continue
+            #New time dimension
             newself.Grid.ntime = newself.Grid.ntime + FvcomClass.Grid.ntime
             #Append to new object history
             text = 'Data from ' + FvcomClass.History[0].split('/')[-1] \
