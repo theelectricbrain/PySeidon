@@ -413,7 +413,7 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             if key=='zeta':
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
-                                for i in region_t:
+                                for i in range(grid.ntime):
                                     #TR comment: looping on time indices is a trick from
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
