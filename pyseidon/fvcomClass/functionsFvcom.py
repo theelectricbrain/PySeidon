@@ -782,18 +782,28 @@ class FunctionsFvcom:
         u = cut_in
         pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
         dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdin = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
-        ind = np.where(pd<pdin)[0]
-        if not ind.shape[0]==0:
-            pd[ind] = 0.0
+        pdin = ne.evaluate('pcin*dcpcin*0.5*1025.0*(u**3)')
+        #TR comment huge bottleneck here
+        #ind = np.where(pd<pdin)[0]
+        #if not ind.shape[0]==0:
+        #    pd[ind] = 0.0
+        for i in range(pd.shape[0]):
+            for j in range(pd.shape[1]):
+                if pd[i,j] < pdin:
+                   pd[i,j] = 0.0 
 
         u = cut_out
         pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
         dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdout = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
-        ind = np.where(pd>pdout)[0]
-        if not ind.shape[0]==0:
-            pd[ind] = pdout      
+        pdout = ne.evaluate('pcout*dcpcout*0.5*1025.0*(u**3)')
+        #TR comment huge bottleneck here
+        #ind = np.where(pd>pdout)[0]
+        #if not ind.shape[0]==0:
+        #    pd[ind] = pdout
+        for i in range(pd.shape[0]):
+            for j in range(pd.shape[1]):
+                if pd[i,j] > pdout:
+                   pd[i,j] = pdout     
 
         # Add metadata entry
         self._var.depth_av_power_density = pd
