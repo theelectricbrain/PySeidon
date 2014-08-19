@@ -233,7 +233,7 @@ Notes:
                     tmpO = getattr(FvcomClass.Variables, key)
                     setattr(newself.Variables, key,
                     np.vstack((tmpN[:], tmpO[:])))          
-                except KeyError:
+                except AttributeError:
                     continue
             #New time dimension
             newself.Grid.ntime = newself.Grid.ntime + FvcomClass.Grid.ntime
