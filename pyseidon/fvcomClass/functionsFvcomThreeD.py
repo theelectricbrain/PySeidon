@@ -303,18 +303,30 @@ class FunctionsFvcomThreeD:
         """
         if debug or self._debug:
             print 'Computing velocity norm...'
-
+        #Check if w if there
         try:
-            #Computing velocity norm
-            u = self._var.u[:]
-            v = self._var.v[:]
-            w = self._var.w[:]
-            vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
-        except MemoryError:
-            print '---Data too large for machine memory---'
-            print 'Tip: use ax or tx during class initialisation'
-            print '---  to use partial data'
-            raise
+            try:
+                #Computing velocity norm
+                u = self._var.u[:]
+                v = self._var.v[:]
+                w = self._var.w[:]
+                vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
+            except MemoryError:
+                print '---Data too large for machine memory---'
+                print 'Tip: use ax or tx during class initialisation'
+                print '---  to use partial data'
+                raise
+        except AttributeError:
+            try:
+                #Computing velocity norm
+                u = self._var.u[:]
+                v = self._var.v[:]
+                vel = ne.evaluate('sqrt(u**2 + v**2)')
+            except MemoryError:
+                print '---Data too large for machine memory---'
+                print 'Tip: use ax or tx during class initialisation'
+                print '---  to use partial data'
+                raise
 
         #Custom return    
         self._var.velo_norm = vel 
