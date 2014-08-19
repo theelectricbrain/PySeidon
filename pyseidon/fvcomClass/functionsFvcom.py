@@ -756,9 +756,9 @@ class FunctionsFvcom:
         print '-Depth averaged power density to FVCOM.Variables.-' 
 
     def depth_averaged_power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
-                                        a4=0.0016, a3=-0.0324, a2=0.1369,
-                                        a1=-0.1534, a0=0.8396,
-                                        b2=-0.0242, b1=0.1963, b0=-0.0049, debug=False):
+                                        a4=0.002, a3=-0.03, a2=0.1,
+                                        a1=-0.1, a0=0.8,
+                                        b2=-0.02, b1=0.2, b0=-0.005, debug=False):
         """
         Create a new variable 'depth averaged power assessment' (W/m2)
         -> FVCOM.Variables.depth_av_power_assessment
