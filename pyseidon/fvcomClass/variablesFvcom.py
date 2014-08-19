@@ -515,7 +515,7 @@ Some others shall be generated as methods are being called, ex:
              |_triangle = triangulation object for plotting purposes    
     '''
     def __init__(self, data, ax, History, debug=False):
-        debug = debug or self._debug     
+        self._debug = debug   
         if debug:
             print 'Loading grid...'
         #Pointer to History
