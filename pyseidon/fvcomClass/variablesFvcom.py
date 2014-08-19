@@ -345,8 +345,6 @@ Some others shall be generated as methods are being called, ex:
                 #Bounding box
                 region_e = grid._element_index
                 region_n = grid._node_index
-                if debug:
-                    print 'Loading variables...'
                 #Redefine variables in bounding box
                 #Check if OpenDap variables or not
                 if type(data.variables).__name__=='DatasetType':
