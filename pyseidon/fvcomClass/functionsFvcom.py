@@ -724,13 +724,44 @@ class FunctionsFvcom:
 
         return dep
 
+    def depth_averaged_power_assessment(self, debug=False):
+        """
+        Create a new variable 'depth averaged power density' (W/m2)
+        -> FVCOM.Variables.depth_av_power_density
+
+        Description:
+        -----------
+        The power density (pd) is then calculated as follows:
+            pd = 0.5*1025*(u**3)
+
+        Notes:
+        -----
+          - This may take some time to compute depending on the size
+            of the data set
+        """
+        debug = (debug or self._debug)
+        if debug: print "Computing depth averaged power density..."
+
+        if not hasattr(self._var, 'hori_velo_norm'):
+            if debug: print "Computing hori velo norm..."
+            self.hori_velo_norm(debug=debug)
+        if debug: print "Computing powers of hori velo norm..."
+        u = self._var.hori_velo_norm
+        if debug: print "Computing pd..."
+        pd = ne.evaluate('0.5*1025.0*(u**3)')
+
+        # Add metadata entry
+        self._var.depth_av_power_density = pd
+        self._History.append('depth averaged power density computed')
+        print '-Depth averaged power density to FVCOM.Variables.-' 
+
     def depth_averaged_power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
                                         a4=0.0016, a3=-0.0324, a2=0.1369,
                                         a1=-0.1534, a0=0.8396,
                                         b2=-0.0242, b1=0.1963, b0=-0.0049, debug=False):
         """
-        Create a new variable 'depth averaged power density' (W/m2)
-        -> FVCOM.Variables.depth_av_power_density
+        Create a new variable 'depth averaged power assessment' (W/m2)
+        -> FVCOM.Variables.depth_av_power_assessment
 
         Description:
         -----------
@@ -806,9 +837,9 @@ class FunctionsFvcom:
                    pd[i,j] = pdout     
 
         # Add metadata entry
-        self._var.depth_av_power_density = pd
-        self._History.append('depth averaged power density computed')
-        print '-Depth averaged power density to FVCOM.Variables.-'        
+        self._var.depth_av_power_assessment = pd
+        self._History.append('depth averaged power assessment computed')
+        print '-Depth averaged power assessment to FVCOM.Variables.-'        
         
 
                      

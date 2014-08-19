@@ -687,13 +687,42 @@ class FunctionsFvcomThreeD:
             print "Computation time in (s): ", (end - start) 
         return vort
 
+    def power_density(self, debug=False):
+        """
+        Create a new variable 'power density' (W/m2)
+        -> FVCOM.Variables.power_density
+
+        The power density (pd) is then calculated as follows:
+            pd = 0.5*1025*(u**3)
+
+        Notes:
+        -----
+          - This may take some time to compute depending on the size
+            of the data set
+        """
+        debug = (debug or self._debug)
+        if debug: print "Computing power assessment..."
+
+        if not hasattr(self._var, 'velo_norm'):
+            if debug: print "Computing velo norm..."
+            self.velo_norm(debug=debug)
+        if debug: print "Computing powers of velo norm..."
+        u = self._var.velo_norm
+        if debug: print "Computing pd..."
+        pd = ne.evaluate('0.5*1025.0*(u**3)')  
+
+        # Add metadata entry
+        self._var.power_density = pd
+        self._History.append('power density computed')
+        print '-Power density to FVCOM.Variables.-' 
+
     def power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
                                         a4=0.0016, a3=-0.0324, a2=0.1369,
                                         a1=-0.1534, a0=0.8396,
                                         b2=-0.0242, b1=0.1963, b0=-0.0049, debug=False):
         """
-        Create a new variable 'depth averaged power density' (W/m2)
-        -> FVCOM.Variables.power_density
+        Create a new variable 'power assessment' (W/m2)
+        -> FVCOM.Variables.power_assessment
 
         This function performs tidal turbine power assessment by accounting for
         cut-in and cut-out speed, power curve (pc):
@@ -723,7 +752,7 @@ class FunctionsFvcomThreeD:
             of the data set
         """
         debug = (debug or self._debug)
-        if debug: print "Computing depth averaged power density..."
+        if debug: print "Computing power assessment..."
 
         if not hasattr(self._var, 'velo_norm'):
             if debug: print "Computing velo norm..."
@@ -767,9 +796,9 @@ class FunctionsFvcomThreeD:
                        pd[i,j,k] = pdout       
 
         # Add metadata entry
-        self._var.power_density = pd
-        self._History.append('power density computed')
-        print '-Power density to FVCOM.Variables.-'  
+        self._var.power_assessment = pd
+        self._History.append('power assessment computed')
+        print '-Power assessment to FVCOM.Variables.-'  
 
     def _vertical_slice(self, var, start_pt, end_pt,
                         time_ind=[], t_start=[], t_end=[],
