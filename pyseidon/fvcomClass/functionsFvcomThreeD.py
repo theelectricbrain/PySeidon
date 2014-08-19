@@ -714,10 +714,10 @@ class FunctionsFvcomThreeD:
         if debug: print "Computing depth averaged power density..."
 
         if not hasattr(self._var, 'velo_norm'):
-            if debug: print "Computing hori velo norm..."
-            self.hori_velo_norm(debug=debug)
-        if debug: print "Computing powers of hori velo norm..."
-        u = self._var.hori_velo_norm
+            if debug: print "Computing velo norm..."
+            self.velo_norm(debug=debug)
+        if debug: print "Computing powers of velo norm..."
+        u = self._var.velo_norm
         if debug: print "Computing pc and dcpc..."
         pc = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
         dcpc = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
