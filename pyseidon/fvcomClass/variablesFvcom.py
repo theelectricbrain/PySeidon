@@ -113,7 +113,7 @@ Some others shall be generated as methods are being called, ex:
                     for key, aliaS in zip(kwl2D, al2D):
                         try:
                             if key=='zeta':
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.node)))
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                             for i in region_t:
@@ -235,7 +235,7 @@ Some others shall be generated as methods are being called, ex:
                     for key, aliaS in zip(kwl2D, al2D):
                         try:
                             if key=='zeta':
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.node)))
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
                                 for i in region_t:
                                     #TR comment: looping on time indices is a trick from
                                     #            Mitchell to improve loading time
@@ -412,7 +412,7 @@ Some others shall be generated as methods are being called, ex:
                     for key, aliaS in zip(kwl2D, al2D):
                         try:
                             if key=='zeta':
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.node)))
+                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
                                 for i in region_t:
                                     #TR comment: looping on time indices is a trick from
                                     #            Mitchell to improve loading time
@@ -482,9 +482,9 @@ class _load_grid:
 'Grid' subset in FVCOM class contains grid related quantities:
 -------------------------------------------------------------
 Some grid data are directly passed on from FVCOM output:
-              _lon = longitudes at nodes (deg.), 2D array (ntime, node)
+              _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
              |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
-             |_lat = latitudes at nodes (deg.), 2D array (ntime, node)
+             |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
              |_latc = latitudes at elements (deg.), 2D array (ntime, nele)   
  FVCOM.Grid._|_x = x coordinates at nodes (m), 2D array (ntime, nnode)
              |_xc = x coordinates at elements (m), 2D array (ntime, nele)
