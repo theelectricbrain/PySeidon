@@ -116,13 +116,15 @@ Some others shall be generated as methods are being called, ex:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
+                            I = 0
                             for i in region_t:
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                setattr(self, aliaS, 
-                                        np.transpose(data.variables[key].data[i,:]))
+                                getattr(self, aliaS)[I,:] =\
+                                        np.transpose(data.variables[key].data[i,:])
+                                I += 1
                             keyCount +=1
                         except KeyError:
                             print key, " is missing !"
@@ -137,13 +139,15 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             setattr(self, aliaS,
                                     np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            I = 0
                             for i in region_t:
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                setattr(self, aliaS,
-                                        np.transpose(data.variables[key].data[i,:,:]))
+                                getattr(self, aliaS)[I,:,:] =\
+                                        np.transpose(data.variables[key].data[i,:,:])
+                                I += 1
                             keyCount +=1
                         except KeyError:
                             print key, " is missing !"
@@ -236,13 +240,15 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             if key=='zeta':
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
+                                I = 0
                                 for i in region_t:
                                     #TR comment: looping on time indices is a trick from
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    setattr(self, aliaS,
-                                    np.transpose(data.variables[key].data[i,region_n]))
+                                    getattr(self, aliaS)[I,:] =\
+                                    np.transpose(data.variables[key].data[i,region_n])
+                                    I += 1
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                                 for i in region_t:
@@ -250,8 +256,9 @@ Some others shall be generated as methods are being called, ex:
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    setattr(self, aliaS,
-                                    np.transpose(data.variables[key].data[i,region_e]))
+                                    getattr(self, aliaS)[I,:] =\
+                                    np.transpose(data.variables[key].data[i,region_e])
+                                    I += 1
                             keyCount +=1
                         except KeyError:
                             print key, " is missing !"
@@ -266,13 +273,15 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             setattr(self, alias,
                             np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            I=0
                             for i in region_t:
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                setattr(self, alias,
-                                np.transpose(data.variables[key].data[i,:,region_e]))
+                                getattr(self, aliaS)[I,:,:] =\
+                                np.transpose(data.variables[key].data[i,:,region_e])
+                                I += 1
                             keyCount +=1
                         except KeyError:
                             print key, " is missing !"
@@ -418,8 +427,8 @@ Some others shall be generated as methods are being called, ex:
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    setattr(self, aliaS,
-                                    np.transpose(data.variables[key].data[i,region_n]))
+                                    getattr(self, aliaS)[i,:] =\
+                                    np.transpose(data.variables[key].data[i,region_n])
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                                 for i in range(grid.ntime):
@@ -427,8 +436,8 @@ Some others shall be generated as methods are being called, ex:
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    setattr(self, aliaS,
-                                    np.transpose(data.variables[key].data[i,region_e]))
+                                    getattr(self, aliaS)[i,:] =\
+                                    np.transpose(data.variables[key].data[i,region_e])
                             keyCount +=1
                         except KeyError:
                             print key, " is missing !"
@@ -448,8 +457,8 @@ Some others shall be generated as methods are being called, ex:
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                setattr(self, aliaS,
-                                np.transpose(data.variables[key].data[i,:,region_e]))
+                                getattr(self, aliaS)[i,:,:] =\
+                                np.transpose(data.variables[key].data[i,:,region_e])
                             keyCount +=1
                         except KeyError:
                             print key, " is missing !"
