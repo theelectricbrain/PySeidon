@@ -728,7 +728,7 @@ class FunctionsFvcomThreeD:
         u = cut_in
         pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
         dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdin = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        pdin = ne.evaluate('pcin*dcpcin*0.5*1025.0*(u**3)')
         #TR comment huge bottleneck here
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
@@ -743,7 +743,7 @@ class FunctionsFvcomThreeD:
         u = cut_out
         pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
         dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdout = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        pdout = ne.evaluate('pcout*dcpcout*0.5*1025.0*(u**3)')
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]
         #if not ind.shape[0]==0:
