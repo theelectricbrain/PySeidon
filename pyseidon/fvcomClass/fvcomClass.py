@@ -231,7 +231,7 @@ Notes:
                 np.hstack((tmpN[:], tmpO[:])))
 
             #keyword list for vstack
-            kwl=['u', 'v', 'w', 'ua', 'va', 'tke', 'gls']
+            kwl=['u', 'v', 'w', 'ua', 'va', 'el', 'tke', 'gls']
             for key in kwl:
                 try:
                     tmpN = getattr(newself.Variables, key)
