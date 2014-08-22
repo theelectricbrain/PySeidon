@@ -5,7 +5,11 @@ from __future__ import division
 import numpy as np
 from datetime import datetime
 from datetime import timedelta
+import fnmatch
+import os
 import sys
+from scipy.io import netcdf
+from pydap.client import open_url
 
 def date2py(matlab_datenum):
     python_datetime = datetime.fromordinal(int(matlab_datenum)) + \
@@ -129,3 +133,40 @@ def mattime_to_datetime(mattime, debug=False):
     time = np.array(l,dtype='datetime64[us]')
 
     return time
+
+def findFiles(filename, name):
+    '''
+    Wesley comment[elements] the name needs to be a linux expression to find files
+    you want. For multiple station files, this would work
+    name = '*station*.nc'
+
+    For just dngrid_0001 and no restart files:
+    name = 'dngrid_0*.nc'
+    will work
+    '''
+
+    name = '*' + name + '*.nc'
+    matches = []
+    for root, dirnames, filenames in os.walk(filename):
+        for filename in fnmatch.filter(filenames, name):
+            matches.append(os.path.join(root, filename))
+
+    return sorted(matches)
+
+def _load_nc(filename):
+    """Loads data from *.nc returns Data"""
+    if filename.startswith('http'):
+        #Look for file through OpenDAP server
+        print "Retrieving data through OpenDap server..."
+        Data = open_url(filename)
+        #Create fake attribut to be consistent with the rest of the code
+        Data.variables = Data
+    else:
+        #Look for file locally
+        print "Retrieving data from " + filename + " ..."
+        #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+        #WB_comments: scipy has causes some errors, and even though can be
+        #             faster, can be unreliable
+        #self.Data = nc.Dataset(filename, 'r')
+        Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+    return Data

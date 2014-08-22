@@ -86,7 +86,7 @@ Some others shall be generated as methods are being called, ex:
                             setattr(self, aliaS, data.variables[key].data[ts:te,:])
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Horizontal variables are missing---"
@@ -99,7 +99,7 @@ Some others shall be generated as methods are being called, ex:
                             setattr(self, aliaS, data.variables[key].data[ts:te,:,:])
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Vertical variables are missing---"
@@ -127,7 +127,7 @@ Some others shall be generated as methods are being called, ex:
                                 I += 1
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Horizontal variables are missing---"
@@ -150,7 +150,7 @@ Some others shall be generated as methods are being called, ex:
                                 I += 1
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Vertical variables are missing---"
@@ -201,7 +201,7 @@ Some others shall be generated as methods are being called, ex:
                                     data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)]))
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Horizontal variables are missing---"
@@ -225,7 +225,7 @@ Some others shall be generated as methods are being called, ex:
                                     data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)]))
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Vertical variables are missing---"
@@ -261,7 +261,7 @@ Some others shall be generated as methods are being called, ex:
                                     I += 1
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Horizontal variables are missing---"
@@ -284,7 +284,7 @@ Some others shall be generated as methods are being called, ex:
                                 I += 1
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Vertical variables are missing---"
@@ -317,7 +317,7 @@ Some others shall be generated as methods are being called, ex:
                         setattr(self, aliaS, data.variables[key].data)
                         keyCount +=1
                     except KeyError:
-                        print key, " is missing !"
+                        if debug: print key, " is missing !"
                         continue
                 if keyCount==0:
                     print "---Horizontal variables are missing---"
@@ -330,7 +330,7 @@ Some others shall be generated as methods are being called, ex:
                         setattr(self, aliaS, data.variables[key].data)
                         keyCount +=1
                     except KeyError:
-                        print key, " is missing !"
+                        if debug: print key, " is missing !"
                         continue
                 if keyCount==0:
                     print "---Vertical variables are missing---"
@@ -381,7 +381,7 @@ Some others shall be generated as methods are being called, ex:
                                         data.variables[key].data[:,ID[0]:(ID[-1]+1)]))
                                     keyCount +=1
                             except KeyError:
-                                print key, " is missing !"
+                                if debug: print key, " is missing !"
                                 continue
                     if keyCount==0:
                         print "---Horizontal variables are missing---"
@@ -405,7 +405,7 @@ Some others shall be generated as methods are being called, ex:
                                     data.variables[key].data[:,:,ID[0]:(ID[-1]+1)]))
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Vertical variables are missing---"
@@ -438,7 +438,7 @@ Some others shall be generated as methods are being called, ex:
                                     np.transpose(data.variables[key].data[i,region_e])
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Horizontal variables are missing---"
@@ -459,7 +459,7 @@ Some others shall be generated as methods are being called, ex:
                                 np.transpose(data.variables[key].data[i,:,region_e])
                             keyCount +=1
                         except KeyError:
-                            print key, " is missing !"
+                            if debug: print key, " is missing !"
                             continue
                     if keyCount==0:
                         print "---Vertical variables are missing---"
