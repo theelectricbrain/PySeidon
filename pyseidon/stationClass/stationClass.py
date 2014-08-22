@@ -209,29 +209,20 @@ Notes:
         debug = debug or self._debug
         if debug: print "Find matching elements..."
         #Find matching elements
-        lon = self.Grid.lon[:]
-        lat = self.Grid.lat[:]
-        lonS = StationClass.Grid.lon[:]
-        latS = StationClass.Grid.lat[:]
-        matchEle = []
-        for i in range(lon.shape[0]):
-            if ((lon[i]==lonS[i]) and (lat[i]==latS[i])):
-                matchEle.append(i)
-        print len(matchEle), " points will be stacked..."
+        origNele = self.Grid.nele
+        origEle = []
+        origName = self.Grid.name
+        newNele = StationClass.Grid.nele
+        newEle = []
+        newName = StationClass.Grid.name
+        for i in range(origNele):
+            for j in range(newNele):
+                if (all(origName[i,:]==newName[j,:])):
+                    origEle.append(i)
+                    newEle.append(j)
+        print len(origEle), " points will be stacked..."
 
-        #Define bounding box
-        #if self.Grid._ax == []:
-        #    self.Grid._ax = [lon.min(), lon.max(),
-        #                     lat.min(), lat.max()]
-        #if StationClass.Grid._ax == []:
-        #    StationClass.Grid._ax = [lonS.min(), lonS.max(),
-        #                             latS.min(), latS.max()]
-
-        #series of test before stacking
-        #if not (self.Grid._ax == StationClass.Grid._ax):
-        #    print "---Spatial regions do not match---"
-        #    sys.exit()
-        if len(matchEle)==0:
+        if len(origEle)==0:
             print "---No matching element found---"
             sys.exit()
         elif not (self.Variables._3D == StationClass.Variables._3D):
@@ -263,17 +254,17 @@ Notes:
                 try:
                     if key in kwl2D:
                         tmpN = getattr(newself.Variables, key)\
-                               [:,matchEle[:]]
+                               [:,newEle[:]]
                         tmpO = getattr(StationClass.Variables, key)\
-                               [:,matchEle[:]]                   
+                               [:,origEle[:]]                   
                         setattr(newself.Variables, key,
                         np.vstack((tmpN[:], tmpO[:])))
                         if debug: print "Stacking " + key + "..."
                     else:
                         tmpN = getattr(newself.Variables, key)\
-                               [:,:,matchEle[:]]
+                               [:,:,newEle[:]]
                         tmpO = getattr(StationClass.Variables, key)\
-                               [:,:,matchEle[:]]                   
+                               [:,:,origEle[:]]                   
                         setattr(newself.Variables, key,
                         np.vstack((tmpN[:], tmpO[:])))  
                         if debug: print "Stacking " + key + "..."    

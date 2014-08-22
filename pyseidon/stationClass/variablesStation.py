@@ -14,25 +14,18 @@ class _load_grid:
 'Grid' subset in Station class contains grid related quantities:
 -------------------------------------------------------------
 Some grid data are directly passed on from Station output:
-              _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
-             |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
-             |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
-             |_latc = latitudes at elements (deg.), 2D array (ntime, nele)   
+                _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
+               |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
  Station.Grid._|_x = x coordinates at nodes (m), 2D array (ntime, nnode)
-             |_xc = x coordinates at elements (m), 2D array (ntime, nele)
-             |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
-             |_yc = y coordinates at nodes (m), 2D array (ntime, nele)
-             |_h = bathymetry (m), 2D array (ntime, nnode)
-             |_nele = element dimension, integer
-             |_nnode = node dimension, integer
-             |_nlevel = vertical level dimension, integer
-             |_ntime = time dimension, integer
-             |_trinodes = surrounding node indices, 2D array (3, nele)
-             |_trinodes = surrounding element indices, 2D array (3, nele)
-             |_siglay = sigma layers, 2D array (nlevel, nnode)
-             |_siglay = sigma levels, 2D array (nlevel+1, nnode)
-             |_and a all bunch of grid parameters...
-             | i.e. a1u, a2u, aw0, awx, awy
+               |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
+               |_h = bathymetry (m), 2D array (ntime, nnode)
+               |_nele = element dimension, integer
+               |_nnode = node dimension, integer
+               |_nlevel = vertical level dimension, integer
+               |_ntime = time dimension, integer
+               |_siglay = sigma layers, 2D array (nlevel, nnode)
+               |_siglay = sigma levels, 2D array (nlevel+1, nnode)
+               |_name = name of the stations, (nnode, 20)
 
 
 Some others shall be generated as methods are being called, ex:
@@ -53,6 +46,7 @@ Some others shall be generated as methods are being called, ex:
         self.siglay = data.variables['siglay'][:,elements]
         self.siglev = data.variables['siglev'][:,elements]
         self.h = data.variables['h'][elements]
+        self.name = data.variables['name_station'][elements,:]
         self.nlevel = self.siglay.shape[0]
         self.nele = self.x.shape[0]
         self.nnode = self.x.shape[0]
