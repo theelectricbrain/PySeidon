@@ -160,7 +160,7 @@ class PlotsFvcom:
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
-        plt.legend()
+        #plt.legend()
         plt.show()      
 
     def add_points(self, x, y, label=' ', color='black'):

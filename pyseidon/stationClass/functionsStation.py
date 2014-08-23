@@ -32,10 +32,10 @@ class FunctionsStation:
         History = self._History
 
     def search_index(self, station):
-        #Search for the station
+        """Search for the station index"""
         if type(station)==int:
             index = station
-        elif type(station) in [str, numpy.ndarray]:
+        elif type(station).__name__ in ['str', 'ndarray']:
             station = "".join(station).strip().upper()
             for i in range(self._grid.nele):
                 if station=="".join(self._grid.name[1,:]).strip().upper():
@@ -92,7 +92,7 @@ class FunctionsStation:
                 argtime = arange(t_start, t_end)
 
         #Search for the station
-        index = search_index(self, station)
+        index = self.search_index(station)
 
         #Choose the right pair of velocity components
         if not argtime==[]:
@@ -169,7 +169,7 @@ class FunctionsStation:
                 argtime = arange(t_start, t_end)
 
         #Search for the station
-        index = search_index(self, station)
+        index = self.search_index(station)
 
         #Choose the right pair of velocity components
         if not argtime==[]:
@@ -268,7 +268,7 @@ class FunctionsStation:
                 print 'Lon, lat coordinates are needed'
                 sys.exit()
             #Search for the station
-            index = search_index(self, station)
+            index = self.search_index(station)
             signal = var[:,index] 
         else:
             signal=var
@@ -278,6 +278,8 @@ class FunctionsStation:
         Ranges = np.arange(0,(Max + dy), dy)
         Exceedance = np.zeros(Ranges.shape[0])
         dt = self._var.julianTime[1] - self._var.julianTime[0]
+        if dt==0:
+            dt = self._var.secondTime[1] - self._var.secondTime[0]
         Period = var.shape[0] * dt
         time = np.arange(0.0, Period, dt)
 
@@ -301,7 +303,7 @@ class FunctionsStation:
 
         return Exceedance, Ranges
 
-    def depth_at_point(self, station, debug=False):
+    def depth(self, station, debug=False):
         """
         Compute depth at given point
 
@@ -323,7 +325,7 @@ class FunctionsStation:
             start = time.time()
 
         #Search for the station
-        index = search_index(self, station)
+        index = self.search_index(station)
 
         #Compute depth
         h = self._grid.h[index]

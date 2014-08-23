@@ -76,12 +76,44 @@ Notes:
         self._isMulti(filename)
         if not self._multi:
             self._load(filename, elements)
+            self.Plots = PlotsStation(self.Variables,
+                                      self.Grid,
+                                      self._debug)
+            self.Util2D = FunctionsStation(self.Variables,
+                                           self.Grid,
+                                           self.Plots,
+                                           self.History,
+                                           self._debug)
+            #if self.Variables._3D:
+            #    self.Util3D = FunctionsStationThreeD(
+            #                           self.Variables,
+            #                           self.Grid,
+            #                           self.Plots,
+            #                           self.Util2D,
+            #                           self.History,
+            #                           self._debug) 
         else:
             print "---Finding matching files---"
-            self.matches = findFiles(filename, 'STATION')
-            filename = self.matches.pop(0)
+            self._matches = findFiles(filename, 'STATION')
+            filename = self._matches.pop(0)
             self._load(filename, elements, debug=debug )
-            for entry in self.matches:
+            self.Plots = PlotsStation(self.Variables,
+                                      self.Grid,
+                                      self._debug)
+            self.Util2D = FunctionsStation(self.Variables,
+                                           self.Grid,
+                                           self.Plots,
+                                           self.History,
+                                           self._debug)
+            #if self.Variables._3D:
+            #    self.Util3D = FunctionsStationThreeD(
+            #                           self.Variables,
+            #                           self.Grid,
+            #                           self.Plots,
+            #                           self.Util2D,
+            #                           self.History,
+            #                           self._debug) 
+            for entry in self._matches:
                 #Define new 
                 text = 'Created from ' + entry
                 tmp = {}
@@ -92,23 +124,6 @@ Notes:
                                              debug=self._debug)
                 tmp = ObjectFromDict(tmp)
                 self = self.__add__(tmp)
-
-        self.Plots = PlotsStation(self.Variables,
-                                self.Grid,
-                                self._debug)
-        self.Util2D = FunctionsStation(self.Variables,
-                                     self.Grid,
-                                     self.Plots,
-                                     self.History,
-                                     self._debug)
-
-        #if self.Variables._3D:
-        #    self.Util3D = FunctionsStationThreeD(self.Variables,
-        #                                       self.Grid,
-        #                                       self.Plots,
-        #                                       self.Util2D,
-        #                                       self.History,
-        #                                       self._debug) 
 
     def _isMulti(self, filename):
         """Tells if filename point to a file or a folder"""
