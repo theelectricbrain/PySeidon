@@ -136,7 +136,7 @@ class FunctionsFvcom:
             print '...Passed'
 
     def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
-                          exceedance=False, vertical=False, debug=False):
+                          exceedance=False, debug=False):
         """
         Flow directions and associated norm at any give location.
 
@@ -158,7 +158,6 @@ class FunctionsFvcom:
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - excedance = True, compute associated exceedance curve
-          - vertical = True, compute flowDir for each vertical level
 
         Notes:
         -----

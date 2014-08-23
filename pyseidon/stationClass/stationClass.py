@@ -93,14 +93,14 @@ Notes:
                 tmp = ObjectFromDict(tmp)
                 self = self.__add__(tmp)
 
-        #self.Plots = PlotsStation(self.Variables,
-        #                        self.Grid,
-        #                        self._debug)
-        #self.Util2D = FunctionsStation(self.Variables,
-        #                             self.Grid,
-        #                             self.Plots,
-        #                             self.History,
-        #                             self._debug)
+        self.Plots = PlotsStation(self.Variables,
+                                self.Grid,
+                                self._debug)
+        self.Util2D = FunctionsStation(self.Variables,
+                                     self.Grid,
+                                     self.Plots,
+                                     self.History,
+                                     self._debug)
 
         #if self.Variables._3D:
         #    self.Util3D = FunctionsStationThreeD(self.Variables,
