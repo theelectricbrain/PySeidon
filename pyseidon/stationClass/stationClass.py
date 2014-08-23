@@ -211,15 +211,25 @@ Notes:
         #Find matching elements
         origNele = self.Grid.nele
         origEle = []
-        origName = self.Grid.name
+        #origName = self.Grid.name
+        origX = self.Grid.x[:]
+        origY = self.Grid.y[:]
         newNele = StationClass.Grid.nele
         newEle = []
-        newName = StationClass.Grid.name
+        #newName = StationClass.Grid.name
+        newX = StationClass.Grid.x[:]
+        newY = StationClass.Grid.y[:]
         for i in range(origNele):
             for j in range(newNele):
-                if (all(origName[i,:]==newName[j,:])):
+                #Match based on names
+                #if (all(origName[i,:]==newName[j,:])):
+                #    origEle.append(i)
+                #    newEle.append(j)
+                #Match based on coordinates
+                if ((origX[i]==newX[j]) and (origY[i]==newY[j])):
                     origEle.append(i)
                     newEle.append(j)
+                
         print len(origEle), " points will be stacked..."
 
         if len(origEle)==0:
@@ -272,6 +282,8 @@ Notes:
                     continue
             #New time dimension
             newself.Grid.ntime = newself.Grid.ntime + StationClass.Grid.ntime
+            #Keep only matching names
+            newself.Grid.name = self.Grid.name[origEle[:],:]
             #Append to new object history
             text = 'Data from ' + StationClass.History[0].split('/')[-1] \
                  + ' has been stacked'
