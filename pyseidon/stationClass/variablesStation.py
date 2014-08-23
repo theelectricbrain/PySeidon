@@ -218,6 +218,8 @@ Some others shall be generated as methods are being called, ex:
             keyCount = 0
             for key, aliaS in zip(kwl3D, al3D):
                 try:
+                    testKey = data.variables[key]
+                    del testKey
                     setattr(self, aliaS,
                     np.zeros((grid.ntime,grid.nlevel, grid.nele)))
                     for i in range(grid.ntime):

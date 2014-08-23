@@ -84,14 +84,13 @@ Notes:
                                            self.Plots,
                                            self.History,
                                            self._debug)
-            #if self.Variables._3D:
-            #    self.Util3D = FunctionsStationThreeD(
-            #                           self.Variables,
-            #                           self.Grid,
-            #                           self.Plots,
-            #                           self.Util2D,
-            #                           self.History,
-            #                           self._debug) 
+            if self.Variables._3D:
+                self.Util3D = FunctionsStationThreeD(
+                                       self.Variables,
+                                       self.Grid,
+                                       self.Plots,
+                                       self.History,
+                                       self._debug) 
         else:
             print "---Finding matching files---"
             self._matches = findFiles(filename, 'STATION')
@@ -105,14 +104,13 @@ Notes:
                                            self.Plots,
                                            self.History,
                                            self._debug)
-            #if self.Variables._3D:
-            #    self.Util3D = FunctionsStationThreeD(
-            #                           self.Variables,
-            #                           self.Grid,
-            #                           self.Plots,
-            #                           self.Util2D,
-            #                           self.History,
-            #                           self._debug) 
+            if self.Variables._3D:
+                self.Util3D = FunctionsStationThreeD(
+                                       self.Variables,
+                                       self.Grid,
+                                       self.Plots,
+                                       self.History,
+                                       self._debug) 
             for entry in self._matches:
                 #Define new 
                 text = 'Created from ' + entry

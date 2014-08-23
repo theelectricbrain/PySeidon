@@ -19,7 +19,7 @@ class FunctionsFvcomThreeD:
     """
     Description:
     -----------
-    'UtilsThreeD' subset of FVCOM class gathers
+    'Utils3D' subset of FVCOM class gathers
     useful functions for 3D runs
     """
     def __init__(self, variable, grid, plot, util, History, debug):
@@ -378,20 +378,34 @@ class FunctionsFvcomThreeD:
             else:
                 argtime = arange(t_start, t_end)
 
-        if not argtime==[]:
-            if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u[argtime, :, :]
-                v = self._var.v[argtime, :, :]
-                w = self._var.w[argtime, :, :]
+        try:
+            if not argtime==[]:
+                if not hasattr(self._var, 'velo_norm'):             
+                    u = self._var.u[argtime, :, :]
+                    v = self._var.v[argtime, :, :]
+                    w = self._var.w[argtime, :, :]
+                else:
+                    vel = self._var.velo_norm[argtime, :, :]
             else:
-                vel = self._var.velo_norm[argtime, :, :]
-        else:
-            if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u
-                v = self._var.v
-                w = self._var.w
+                if not hasattr(self._var, 'velo_norm'):             
+                    u = self._var.u
+                    v = self._var.v
+                    w = self._var.w
+                else:
+                    vel = self._var.velo_norm
+        except AttributeError:
+            if not argtime==[]:
+                if not hasattr(self._var, 'velo_norm'):             
+                    u = self._var.u[argtime, :, :]
+                    v = self._var.v[argtime, :, :]
+                else:
+                    vel = self._var.velo_norm[argtime, :, :]
             else:
-                vel = self._var.velo_norm
+                if not hasattr(self._var, 'velo_norm'):             
+                    u = self._var.u
+                    v = self._var.v
+                else:
+                    vel = self._var.velo_norm
 
 
         # Finding closest point
@@ -407,9 +421,12 @@ class FunctionsFvcomThreeD:
                                             index=index, debug=debug)  
             V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                             index=index, debug=debug)
-            W = self.interpolation_at_point(w, pt_lon, pt_lat,
-                                            index=index, debug=debug)
-            velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+            if 'w' in locals():
+                W = self.interpolation_at_point(w, pt_lon, pt_lat,
+                                                index=index, debug=debug)
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+            else:
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
         else:
             velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
                                                     index=index, debug=debug)
@@ -508,8 +525,7 @@ class FunctionsFvcomThreeD:
                                                             pt_lon, pt_lat,
                                                             index=index, debug=debug) 
          
-        if debug:
-                print '...Passed'
+        if debug: print '...Passed'
 
         return dirFlow, norm
 
