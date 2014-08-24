@@ -43,6 +43,7 @@ Up-dating:
 * Guidelines - To be developed
 
 ### Contacts ###
+* Project Leader: [Richard Karsten](richard.karsten@acadiau.ca)
 * Repository admin: [Thomas Roc](thomas.roc@acadiau.ca)
 * Developers: [Wesley Bowman](https://github.com/wesleybowman),
   [Jonathan Smith](https://github.com/LaVieEnRoux), [Thomas Roc](thomas.roc@acadiau.ca)
