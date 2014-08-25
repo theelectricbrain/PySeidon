@@ -51,7 +51,7 @@ Up-dating:
 
 ### Contributors ###
 Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/kthyng), [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, 
-Justine McMillan, Richard Cheel,...
+Justine McMillan,...
 
 ### Legal Information ###
 * Authorship attributed to Wesley Bowman, Thomas Roc and Jonathan Smith
