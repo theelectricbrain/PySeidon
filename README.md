@@ -27,6 +27,7 @@ Prerequisites:
 * IPython: You can download IPython from [here](http://ipython.org/)
 * Anaconda: You can download Anaconda from [here](http://continuum.io/downloads#all)
 * UTide: You can download UTide from [here](https://github.com/wesleybowman/UTide)
+* Pydap: You can download Pydap from [here] (http://www.pydap.org/)
 
 Installation:
 * Step 1a: Download PySeidon package, save it on your machine and Unzip
