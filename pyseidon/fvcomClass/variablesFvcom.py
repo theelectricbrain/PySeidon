@@ -253,6 +253,7 @@ Some others shall be generated as methods are being called, ex:
                                     I += 1
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
+                                I = 0
                                 for i in region_t:
                                     #TR comment: looping on time indices is a trick from
                                     #            Mitchell to improve loading time
