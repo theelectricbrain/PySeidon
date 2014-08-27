@@ -580,10 +580,6 @@ Some others shall be generated as methods are being called, ex:
            
             print 'Re-indexing may take some time...'   
             Data = regioner(self, ax, debug=debug)
-            #TR: quick fix
-            del self.lon, self.lat, self.lonc, self.latc,  self.x
-            del self.y, self.xc, self.yc, self.a1u, self.a2u
-            del self.aw0, self.awx, self.awy, self.trinodes, self.triele 
             self.lon = Data['lon'][:]
             self.lat = Data['lat'][:]
             self.lonc = Data['lonc'][:]
