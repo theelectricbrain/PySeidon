@@ -854,13 +854,13 @@ class FunctionsFvcomThreeD:
             ind = closest_point(lons, lats, self._grid.lonc, self._grid.latc, debug)
 
             #Finding the shortest path between start and end points
-            print "Computing shortest path..."
+            if debug : print "Computing shortest path..."
             short_path = shortest_element_path(self._grid.lonc[:],
                                                self._grid.latc[:],
                                                self._grid.lon[:],
                                                self._grid.lat[:],
                                                self._grid.trinodes[:],
-                                               self._grid.h[:])
+                                               self._grid.h[:], debug=debug)
             el, _ = short_path.getTargets([ind])           
             # Plot shortest path
             short_path.graphGrid(plot=True)
@@ -880,7 +880,7 @@ class FunctionsFvcomThreeD:
             ele=np.asarray(el[:])[0,:]
             varP = var[:,ele]
             # Depth along line
-            print "Computing depth..."
+            if debug : print "Computing depth..."
             depth = np.zeros((self._grid.ntime, self._grid.nlevel, ele.shape[0]))
             I=0
             for ind in ele:

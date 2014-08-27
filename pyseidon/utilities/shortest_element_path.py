@@ -9,7 +9,7 @@ import matplotlib.ticker as ticker
 import seaborn
 
 class shortest_element_path:
-    def __init__(self, lonc, latc, lon, lat, trinodes, h):
+    def __init__(self, lonc, latc, lon, lat, trinodes, h, debug=False):
 
         #self.data = nc.Dataset(filename,'r')
 
@@ -28,11 +28,11 @@ class shortest_element_path:
 
         self.points = map(tuple,z)
 
-        print 'File Loaded'
+        if debug : print 'File Loaded'
 
         # make a Delaunay triangulation of the point data
         self.delTri = scipy.spatial.Delaunay(self.points)
-        print 'Delaunay Triangulation Done'
+        if debug : print 'Delaunay Triangulation Done'
 
         # create a set for edges that are indexes of the points
         self.edges = []
@@ -63,13 +63,13 @@ class shortest_element_path:
             self.weight = (np.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2))
             self.edges.append((self.edge[0], self.edge[1],{'weight':self.weight}))
 
-        print 'Edges and Weighting Done'
+        if debug : print 'Edges and Weighting Done'
 
         # make a graph based on the Delaunay triangulation edges
         self.graph = nx.Graph(self.edges)
         #print(graph.edges())
 
-        print 'Graph Constructed'
+        if debug : print 'Graph Constructed'
 
         self.pointIDXY = dict(zip(range(len(self.points)), self.points))
 
