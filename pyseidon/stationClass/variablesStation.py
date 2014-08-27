@@ -134,8 +134,9 @@ Some others shall be generated as methods are being called, ex:
                             data.variables[key].data[:,ID[0]:(ID[-1]+1)])
                             H=1
                         else:
+                            setattr(self, aliaS,                            
                             np.hstack((getattr(self, aliaS),
-                            data.variables[key].data[:,ID[0]:(ID[-1]+1)]))
+                            data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
                 else:
                     try:                        
                         for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
@@ -148,8 +149,9 @@ Some others shall be generated as methods are being called, ex:
                                         data[:,ID[0]:(ID[-1]+1)])
                                 H=1
                             else:
+                                setattr(self, aliaS,
                                 np.hstack((getattr(self, aliaS),
-                                data.variables[key].data[:,ID[0]:(ID[-1]+1)]))
+                                data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
                             keyCount +=1
                     except KeyError:
                         if debug: print key, " is missing !"
@@ -172,8 +174,9 @@ Some others shall be generated as methods are being called, ex:
                             data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])
                             H=1
                         else:
+                            setattr(self, aliaS,
                             np.dstack((getattr(self, aliaS),
-                            data.variables[key].data[:,:,ID[0]:(ID[-1]+1)]))
+                            data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])))
                     keyCount +=1
                 except KeyError:
                     if debug: print key, " is missing !"
