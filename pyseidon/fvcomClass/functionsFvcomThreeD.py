@@ -236,11 +236,7 @@ class FunctionsFvcomThreeD:
                               self._grid.lonc,
                               self._grid.latc, debug=debug)[0]
         #Compute depth
-        dep = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)
-        if not argtime==[]:
-            depth = dep[argtime,:]
-        else:
-            depth = dep
+        depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)
 
         #Sigma levels to consider
         if top_lvl==[]:
@@ -252,14 +248,8 @@ class FunctionsFvcomThreeD:
 
         # Checking if vertical shear already exists
         if not hasattr(self._var, 'verti_shear'): 
-             
-            #Extracting velocity at point
-            if not argtime==[]:
-                u = self._var.u[argtime,:,:]
-                v = self._var.v[argtime,:,:]
-            else:
-                u = self._var.u
-                v = self._var.v
+            u = self._var.u
+            v = self._var.v
 
             #Extraction at point
             if debug:
@@ -281,6 +271,10 @@ class FunctionsFvcomThreeD:
 
         if debug:
             print '...Passed'
+        #use time indices of interest
+        if not argtime==[]:
+            dveldz = dveldz[argtime,:]
+            depth = depth[argtime,:]
 
         #Plot mean values
         if graph:
@@ -379,33 +373,18 @@ class FunctionsFvcomThreeD:
                 argtime = arange(t_start, t_end)
 
         try:
-            if not argtime==[]:
-                if not hasattr(self._var, 'velo_norm'):             
-                    u = self._var.u[argtime, :, :]
-                    v = self._var.v[argtime, :, :]
-                    w = self._var.w[argtime, :, :]
-                else:
-                    vel = self._var.velo_norm[argtime, :, :]
+            if not hasattr(self._var, 'velo_norm'):             
+                u = self._var.u
+                v = self._var.v
+                w = self._var.w
             else:
-                if not hasattr(self._var, 'velo_norm'):             
-                    u = self._var.u
-                    v = self._var.v
-                    w = self._var.w
-                else:
-                    vel = self._var.velo_norm
+                vel = self._var.velo_norm
         except AttributeError:
-            if not argtime==[]:
-                if not hasattr(self._var, 'velo_norm'):             
-                    u = self._var.u[argtime, :, :]
-                    v = self._var.v[argtime, :, :]
-                else:
-                    vel = self._var.velo_norm[argtime, :, :]
+            if not hasattr(self._var, 'velo_norm'):             
+                u = self._var.u
+                v = self._var.v
             else:
-                if not hasattr(self._var, 'velo_norm'):             
-                    u = self._var.u
-                    v = self._var.v
-                else:
-                    vel = self._var.velo_norm
+                vel = self._var.velo_norm
 
 
         # Finding closest point
@@ -432,6 +411,10 @@ class FunctionsFvcomThreeD:
                                                     index=index, debug=debug)
         if debug:
             print '...passed'
+
+        #use only the time indices of interest
+        if not argtime==[]:
+            velo_norm = velo_norm[argtime[:],:]  
 
         return velo_norm 
 
@@ -487,20 +470,12 @@ class FunctionsFvcomThreeD:
         #Checking if dir_flow already computed
         if not hasattr(self._var, 'flow_dir'):
             #Choose the right pair of velocity components
-            if not argtime==[]:
-                if self._var._3D and vertical:
-                    u = self._var.u[argtime,:,:]
-                    v = self._var.v[argtime,:,:]
-                else:
-                    u = self._var.ua[argtime,:]
-                    v = self._var.va[argtime,:]
+            if self._var._3D and vertical:
+                u = self._var.u
+                v = self._var.v
             else:
-                if self._var._3D and vertical:
-                    u = self._var.u
-                    v = self._var.v
-                else:
-                    u = self._var.ua
-                    v = self._var.va
+                u = self._var.ua
+                v = self._var.va
 
             #Extraction at point
             if debug:
@@ -516,16 +491,15 @@ class FunctionsFvcomThreeD:
             dirFlow = np.rad2deg(np.arctan2(V,U))
 
         else:
-            if not argtime==[]:
-                dir_flow = self._var.flow_dir[argtime,:,:]
-                dirFlow = self._util.interpolation_at_point(dir_flow, pt_lon, pt_lat,
-                                                            index=index, debug=debug)   
-            else:
-                dirFlow = self._util.interpolation_at_point(self._var.flow_dir,
+            dirFlow = self._util.interpolation_at_point(self._var.flow_dir,
                                                             pt_lon, pt_lat,
                                                             index=index, debug=debug) 
          
         if debug: print '...Passed'
+        #use only the time indices of interest
+        if not argtime==[]:
+            dirFlow = dirFlow[argtime[:],:]
+            norm = norm[argtime[:],:] 
 
         return dirFlow, norm
 

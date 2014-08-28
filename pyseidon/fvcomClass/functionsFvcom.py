@@ -179,12 +179,8 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        if not argtime==[]:
-            u = self._var.ua[argtime,:]
-            v = self._var.va[argtime,:]
-        else:
-            u = self._var.ua
-            v = self._var.va
+        u = self._var.ua
+        v = self._var.va
 
         #Extraction at point
         # Finding closest point
@@ -205,18 +201,18 @@ class FunctionsFvcom:
             dirFlow = np.rad2deg(np.arctan2(V,U))#
 
         else:
-            if not argtime==[]:
-                dir_flow = self._var.depth_av_flow_dir[argtime,:,:]
-                dirFlow = self.interpolation_at_point(dir_flow,
-                                                      pt_lon, pt_lat,
-                                                      index=index, debug=debug)   
-            else:
-                dirFlow = self.interpolation_at_point(self._var.depth_av_flow_dir,
-                                                      pt_lon, pt_lat,
-                                                      index=index, debug=debug) 
+            dirFlow = self.interpolation_at_point(self._var.depth_av_flow_dir,
+                                                  pt_lon, pt_lat,
+                                                  index=index, debug=debug) 
 
         #Compute velocity norm
         norm = ne.evaluate('sqrt(U**2 + V**2)')
+
+        #use only the time indices of interest
+        if not argtime==[]:
+            dirFlow = dirFlow[argtime[:]]
+            norm = norm[argtime[:]] 
+
         if debug:
             print '...Passed'
         #Rose diagram
@@ -278,12 +274,8 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        if not argtime==[]:
-            u = self._var.ua[argtime,:]
-            v = self._var.va[argtime,:]
-        else:
-            u = self._var.ua
-            v = self._var.va
+        u = self._var.ua
+        v = self._var.va
 
         #Extraction at point
         # Finding closest point
@@ -295,7 +287,12 @@ class FunctionsFvcom:
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
                                         debug=debug)  
         V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
-                                        debug=debug)  
+                                        debug=debug) 
+
+        #use only the time indices of interest
+        if not argtime==[]:
+            U = U[argtime[:]]
+            V = V[argtime[:]] 
 
         #WB version of BP's principal axis
         if debug:
