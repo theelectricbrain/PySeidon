@@ -355,7 +355,7 @@ Notes:
         else:
             print "---Wrong file format---"
 
-    def Harmonic_analysis(self, elevation=True, velocity=False, **kwarg):
+    def Harmonic_analysis(self, ind=slice(None), elevation=True, velocity=False, **kwarg):
         '''
         Create new variables 'harmonic coefficients'
         -> FVCOM.Variables.coef_elev or FVCOM.Variables.coef_velo
@@ -366,8 +366,9 @@ Notes:
         or elevation, it will call the correct version of ut_solv based on the
         twodim option.
 
-        Inputs:
-        ------
+        Keywords:
+        --------
+          - ind = elements indices, list of integers
           - elevation=True means that ut_solv will be done for elevation.
           - velocity=True means that ut_solv will be done for velocity.
 
@@ -389,19 +390,21 @@ Notes:
         #TR_comments: Add debug flag in Utide: debug=self._debug
         
         if velocity:
-            self.coef_velo = ut_solv(self.Variables.matlabTime,
-                                     self.Variables.ua[:, :],
-                                     self.Variables.va[:, :],
-                                     self.Grid.lat[:], **kwarg)
+            time = self.Variables.matlabTime[:]
+            u = self.Variables.ua[:, ind]
+            v = self.Variables.va[:, ind]
+            lat = self.Grid.lat[ind]
+            self.coef_velo = ut_solv(time, u, v, lat, **kwarg)
             self.History.append('ut_solv done for velocity')
 
         if elevation:
-            self.coef_elev = ut_solv(self.Variables.matlabTime,
-                                     self.Variables.el[:, :], [],
-                                     self.Grid.lat[:], **kwarg)
+            time = self.Variables.matlabTime[:]
+            el = self.Variables.el[:, ind]
+            lat = self.Grid.lat[ind]
+            self.coef_elev = ut_solv(time, el, [], lat, **kwarg)
             self.History.append('ut_solv done for elevation')
 
-    def Harmonic_reconstruction(self, time, elevation=True, velocity=False):
+    def Harmonic_reconstruction(self, time_ind=slice(None), elevation=True, velocity=False):
         '''
         Create new variables 'harmonic reconstructed signals'
         -> FVCOM.Variables.U_recon and V_recon or FVCOM.Variables.elev_recon
@@ -434,19 +437,21 @@ Notes:
         https://github.com/wesleybowman/UTide
 
         '''
+        time = self.Variables.matlabTime[ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug
         if velocity:
             if not hasattr(self.Variables,'coef_velo'):
                 print "---Harmonic analysis has to be performed first---"
             else: 
                self.Variables.U_recon, self.Variables.V_recon = ut_reconstr(time,
-                                                                self.Variables.coef_velo)
+                                                                self.Variables.coef_velo[:])
                self.History.append('ut_reconstr done for velocity')
         if elevation:
             if not hasattr(self.Variables,'coef_elev'):
                 print "---Harmonic analysis has to be performed first---"
             else:
-                self.Variables.elev_recon, _ = ut_reconstr(time, self.Variables.coef_elev)
+                self.Variables.elev_recon, _ = ut_reconstr(time,
+                                               self.Variables.coef_elev[:])
                 self.Variables.History.append('ut_reconstr done for elevation')
                               
 

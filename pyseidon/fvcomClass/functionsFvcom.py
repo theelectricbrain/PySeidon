@@ -11,6 +11,7 @@ from datetime import timedelta
 from interpolation_utils import *
 from miscellaneous import *
 from BP_tools import *
+from utide import ut_solv, ut_reconstr
 import time
 
 class FunctionsFvcom:
@@ -836,6 +837,3 @@ class FunctionsFvcom:
         self._var.depth_av_power_assessment = pd
         self._History.append('depth averaged power assessment computed')
         print '-Depth averaged power assessment to FVCOM.Variables.-'        
-        
-
-                     
