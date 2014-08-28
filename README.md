@@ -40,8 +40,7 @@ Up-dating:
   the installation procedure again.
 
 ### Contribution guidelines ###
-* Writing tests - To be developed
-* Guidelines - To be developed
+* [Tutorial 1](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon%20Tutorial.ipynb)
 
 ### Contacts ###
 * Project Leader: [Richard Karsten](richard.karsten@acadiau.ca)
