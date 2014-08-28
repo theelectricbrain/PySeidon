@@ -83,9 +83,9 @@ def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
     if debug:
         print 'Interpolating at node...'
 
-    n1 = trinodes[index,0]
-    n2 = trinodes[index,1]
-    n3 = trinodes[index,2]
+    n1 = int(trinodes[index,0])
+    n2 = int(trinodes[index,1])
+    n3 = int(trinodes[index,2])
     x0 = pt_x - xc[index]
     y0 = pt_y - yc[index]
 
@@ -150,9 +150,9 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
     if debug:
         print 'Interpolating at element...'
 
-    n1 = triele[index,0]
-    n2 = triele[index,1]
-    n3 = triele[index,2]
+    n1 = int(triele[index,0])
+    n2 = int(triele[index,1])
+    n3 = int(triele[index,2])
     #TR comment: not quiet sure what this step does
     if n1==0: n1 = trinodes.shape[1]
     if n2==0: n2 = trinodes.shape[1]
