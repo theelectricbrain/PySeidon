@@ -26,6 +26,7 @@ Prerequisites:
 * Python 2.7: You can download Python from [here](http://www.python.org/download) 
 * IPython: You can download IPython from [here](http://ipython.org/)
 * Anaconda: You can download Anaconda from [here](http://continuum.io/downloads#all)
+* Numexpr: You can download Anaconda from [here](https://github.com/pydata/numexpr)
 * UTide: You can download UTide from [here](https://github.com/wesleybowman/UTide)
 * Pydap: You can download Pydap from [here] (http://www.pydap.org/)
 
@@ -38,6 +39,7 @@ Installation:
 Up-dating:
 * The code will evolve and improve with time. To up-date, simply go through
   the installation procedure again.
+* To test the installation, type *'from pyseidon import *'* in Ipython shell.
 
 ### Contribution guidelines ###
 * [Tutorial 1](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon%20Tutorial.ipynb)
@@ -45,8 +47,7 @@ Up-dating:
 ### Contacts ###
 * Project Leader: [Richard Karsten](richard.karsten@acadiau.ca)
 * Repository admin: [Thomas Roc](thomas.roc@acadiau.ca)
-* Developers: [Wesley Bowman](https://github.com/wesleybowman),
-  [Jonathan Smith](https://github.com/LaVieEnRoux), [Thomas Roc](thomas.roc@acadiau.ca)
+* Developers: [Wesley Bowman](https://github.com/wesleybowman), [Thomas Roc](thomas.roc@acadiau.ca), [Jonathan Smith](https://github.com/LaVieEnRoux)
 
 ### Contributors ###
 Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/kthyng), [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, 

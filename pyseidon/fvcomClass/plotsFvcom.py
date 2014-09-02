@@ -170,8 +170,8 @@ class PlotsFvcom:
 
         Inputs:
         ------
-          - x = float number
-          - y = float numbe
+          - x = float number or list of float numbers
+          - y = float number or list of float numbers
 
         Keywords:
         --------

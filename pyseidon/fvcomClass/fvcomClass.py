@@ -34,15 +34,16 @@ Description:
 ----------
   A class/structure for FVCOM data.
   Functionality structured as follows:
-                _Data. = raw netcdf file data
-               |_Variables. = fvcom variables and quantities
-               |_Grid. = fvcom grid data
-               |_History = Quality Control metadata
-    testFvcom._|_Utils2D. = set of useful functions for 2D and 3D runs
-               |_Utils3D. = set of useful functions for 3D runs
-               |_Plots. = plotting functions
-               |_Harmonic_analysis = harmonic analysis based UTide package
-               |_Harmonic_reconstruction = harmonic reconstruction based UTide package
+            _Data. = raw netcdf file data
+           |_Variables. = fvcom variables and quantities
+           |_Grid. = fvcom grid data
+           |_History = Quality Control metadata
+    FVCOM._|_Utils2D. = set of useful functions and methods for 2D and 3D runs
+           |_Utils3D. = set of useful functions and methods for 3D runs
+           |_Plots. = plotting functions
+           |_Harmonic_analysis = harmonic analysis based UTide package
+           |_Harmonic_reconstruction = harmonic reconstruction based UTide package
+           |_Save_as = "save as" methods
 
 Inputs:
 ------
@@ -55,22 +56,22 @@ Inputs:
 Options:
 -------
   - ax = defines for a specific spatial region to work with, as such:
-           ax = [minimun longitude, maximun longitude,
+             ax = [minimun longitude, maximun longitude,
                  minimun latitude, maximum latitude]
          or use one of the following pre-defined region:
-           ax = 'GP', 'PP', 'DG' or 'MP'
+             ax = 'GP', 'PP', 'DG' or 'MP'
          Note that this option permits to extract partial data from the overall file
          and therefore reduce memory and cpu use.
 
   - tx = defines for a specific temporal period to work with, as such:
-         tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'],
+             tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'],
          string of 'yyyy-mm-ddThh:mm:ss'.
          Note that this option permits to extract partial data from the overall file
          and therefore reduce memory and cpu use.
 
 Notes:
 -----
-  Throughout the package, the following conventions aplly:
+  Throughout the package, the following conventions apply:
   - Date = string of 'yyyy-mm-ddThh:mm:ss'
   - Coordinates = decimal degrees East and North
   - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
@@ -177,7 +178,7 @@ Notes:
     #Special methods
     def __add__(self, FvcomClass, debug=False):
         """
-        This special method permit to stack variables
+        This special method permits to stack variables
         of 2 FVCOM objects through a simple addition:
           fvcom1 += fvcom2
 
@@ -252,7 +253,7 @@ Notes:
     #Methods
     def Save_as(self, filename, fileformat='pickle', debug=False):
         """
-        Save the current FVCOM structure as:
+        This method saves the current FVCOM structure as:
            - *.p, i.e. python file
            - *.mat, i.e. Matlab file
 
@@ -357,14 +358,13 @@ Notes:
 
     def Harmonic_analysis(self, ind=slice(None), elevation=True, velocity=False, **kwarg):
         '''
-        Create new variables 'harmonic coefficients'
+        This method creates new variables: 'harmonic coefficients'
         -> FVCOM.Variables.coef_elev or FVCOM.Variables.coef_velo
 
         Description:
-        ----------
-        Harmonic_analysis calls ut_solv. Depending on whether the user wants velocity
-        or elevation, it will call the correct version of ut_solv based on the
-        twodim option.
+        -----------
+        This method performs a harmonic analysis on the sea surface elevation
+        time series or the velocity components timeseries.
 
         Keywords:
         --------
@@ -381,6 +381,7 @@ Notes:
             rmin=1; method='cauchy'; tunrdn=1; linci=0; white=0; nrlzn=200;
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
+
         Notes:
         -----
         For more detailed information about ut_solv, please see
@@ -395,23 +396,27 @@ Notes:
             v = self.Variables.va[:, ind]
             lat = self.Grid.lat[ind]
             self.coef_velo = ut_solv(time, u, v, lat, **kwarg)
-            self.History.append('ut_solv done for velocity')
+            #Write meta-data only if computed over all the elements 
+            if ind==slice(None):
+                self.History.append('ut_solv done for velocity')
 
         if elevation:
             time = self.Variables.matlabTime[:]
             el = self.Variables.el[:, ind]
             lat = self.Grid.lat[ind]
             self.coef_elev = ut_solv(time, el, [], lat, **kwarg)
-            self.History.append('ut_solv done for elevation')
+            #Write meta-data only if computed over all the elements
+            if ind==slice(None):
+                self.History.append('ut_solv done for elevation')
 
     def Harmonic_reconstruction(self, time_ind=slice(None), elevation=True, velocity=False):
         '''
-        Create new variables 'harmonic reconstructed signals'
+        This method creates new variables: 'harmonic reconstructed signals'
         -> FVCOM.Variables.U_recon and V_recon or FVCOM.Variables.elev_recon
 
         Description:
         ----------
-        This function reconstructs the velocity components or the surface elevation
+        This method reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
         (ut_solv) has already been executed. If it has not, it will inform the user
@@ -437,7 +442,7 @@ Notes:
         https://github.com/wesleybowman/UTide
 
         '''
-        time = self.Variables.matlabTime[ind]
+        time = self.Variables.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug
         if velocity:
             if not hasattr(self.Variables,'coef_velo'):

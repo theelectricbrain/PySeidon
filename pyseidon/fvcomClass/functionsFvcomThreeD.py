@@ -20,7 +20,7 @@ class FunctionsFvcomThreeD:
     Description:
     -----------
     'Utils3D' subset of FVCOM class gathers
-    useful functions for 3D runs
+    useful methods and functions for 3D runs
     """
     def __init__(self, variable, grid, plot, util, History, debug):
         #Inheritance
@@ -40,7 +40,7 @@ class FunctionsFvcomThreeD:
 
     def depth(self, debug=False):
         """
-        Compute new grid variable 'depth' (m)
+        This method computes new grid variable: 'depth' (m)
         -> FVCOM.Grid.depth
 
         Notes:
@@ -86,7 +86,7 @@ class FunctionsFvcomThreeD:
 
     def depth_at_point(self, pt_lon, pt_lat, index=[], debug=False):
         """
-        Compute depth at given point
+        This function computes depth at any given point.
 
         Inputs:
         ------
@@ -141,7 +141,7 @@ class FunctionsFvcomThreeD:
 
     def verti_shear(self, debug=False):
         """
-        Compute new variable 'vertical shear' (1/s)
+        This method computes a new variable: 'vertical shear' (1/s)
         -> FVCOM.Variables.verti_shear
 
         Notes:
@@ -191,7 +191,7 @@ class FunctionsFvcomThreeD:
     def verti_shear_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[],  time_ind=[],
                              bot_lvl=[], top_lvl=[], graph=True, debug=False):
         """
-        Compute vertical shear at any given location
+        This function computes vertical shear at any given point.
 
         Inputs:
         ------
@@ -288,7 +288,7 @@ class FunctionsFvcomThreeD:
 
     def velo_norm(self, debug=False):
         """
-        Compute new variable 'velocity norm' (m/s)
+        This method computes a new variable: 'velocity norm' (m/s)
         -> FVCOM.Variables.velo_norm
 
         Notes:
@@ -335,7 +335,7 @@ class FunctionsFvcomThreeD:
     def velo_norm_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
                            debug=False):
         """
-        Compute the velocity norm at any given location
+        This function computes the velocity norm at any given point.
 
         Inputs:
         ------
@@ -422,7 +422,8 @@ class FunctionsFvcomThreeD:
     def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[], 
                           vertical=True, debug=False):
         """
-        Compute flow directions and associated norm at any given location.
+        This function computes flow directions and associated norm
+        at any given location.
 
         Inputs:
         ------
@@ -505,7 +506,7 @@ class FunctionsFvcomThreeD:
 
     def flow_dir(self, debug=False):
         """"
-        Compute new variable 'flow directions' (deg.)
+        This method computes a new variable: 'flow directions' (deg.)
         -> FVCOM.Variables.flow_dir
 
         Notes:
@@ -539,7 +540,7 @@ class FunctionsFvcomThreeD:
 
     def vorticity(self, debug=False):
         """
-        Create a new variable 'depth averaged vorticity' (1/s)
+        This method creates a new variable: 'depth averaged vorticity' (1/s)
         -> FVCOM.Variables.vorticity
      
         Notes:
@@ -599,7 +600,7 @@ class FunctionsFvcomThreeD:
 
     def vorticity_over_period(self, time_ind=[], t_start=[], t_end=[], debug=False):
         """
-        Compute the vorticity for a time period.
+        This function computes the vorticity for a time period.
      
         Outputs:
         -------
@@ -679,7 +680,7 @@ class FunctionsFvcomThreeD:
 
     def power_density(self, debug=False):
         """
-        Create a new variable 'power density' (W/m2)
+        This method creates a new variable: 'power density' (W/m2)
         -> FVCOM.Variables.power_density
 
         The power density (pd) is then calculated as follows:
@@ -711,7 +712,7 @@ class FunctionsFvcomThreeD:
                                         a1=-0.1, a0=0.8,
                                         b2=-0.02, b1=0.2, b0=-0.005, debug=False):
         """
-        Create a new variable 'power assessment' (W/m2)
+        This method creates a new variable: 'power assessment' (W/m2)
         -> FVCOM.Variables.power_assessment
 
         This function performs tidal turbine power assessment by accounting for

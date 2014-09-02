@@ -19,7 +19,7 @@ class FunctionsFvcom:
     Description:
     -----------
     'Util2D' subset of FVCOM class gathers
-    useful functions for 2D and 3D runs
+    useful functions and methods for 2D and 3D runs
     """
     def __init__(self, variable, grid, plot, History, debug):
         self._debug = debug
@@ -70,7 +70,7 @@ class FunctionsFvcom:
 
     def hori_velo_norm(self, debug=False):
         """
-        Compute new variable 'horizontal velocity norm' (m/s)
+        This method computes  a new variable: 'horizontal velocity norm' (m/s)
         -> FVCOM.Variables.hori_velo_norm
 
         Notes:
@@ -103,7 +103,7 @@ class FunctionsFvcom:
 
     def flow_dir(self, debug=False):
         """"
-        Create new variable 'depth averaged flow directions' (deg.)
+        This method create new variable 'depth averaged flow directions' (deg.)
         -> FVCOM.Variables.depth_av_flow_dir
 
         Notes:
@@ -139,7 +139,8 @@ class FunctionsFvcom:
     def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
                           exceedance=False, debug=False):
         """
-        Flow directions and associated norm at any give location.
+        This function computes flow directions and associated norm
+        at any give location.
 
         Inputs:
         ------
@@ -226,8 +227,9 @@ class FunctionsFvcom:
     def ebb_flood_split_at_point(self, pt_lon, pt_lat,
                                  t_start=[], t_end=[], time_ind=[], debug=False):
         """
-        Compute time indices for ebb and flood but also the 
-        principal flow directions and associated variances for (lon, lat) point
+        This functions computes time indices for ebb and flood but also the 
+        principal flow directions and associated variances
+        at any given point.
 
         Inputs:
         ------
@@ -353,7 +355,7 @@ class FunctionsFvcom:
 
     def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], debug=False):
         """
-        Interpol any given variables at any give location.
+        This function interpolates any given variables at any give location.
 
         Inputs:
         ------
@@ -418,7 +420,8 @@ class FunctionsFvcom:
 
     def exceedance(self, var, pt_lon=[], pt_lat=[], debug=False):
         """
-        This function calculate the excedence curve of a var(time).
+        This function calculates the excedence curve of a var(time)
+        at any given point.
 
         Inputs:
         ------
@@ -482,7 +485,7 @@ class FunctionsFvcom:
 
     def vorticity(self, debug=False):
         """
-        Create a new variable 'depth averaged vorticity (1/s)'
+        This method creates a new variable: 'depth averaged vorticity (1/s)'
         -> FVCOM.Variables.depth_av_vorticity
      
         Notes:
@@ -545,7 +548,7 @@ class FunctionsFvcom:
 
     def vorticity_over_period(self, time_ind=[], t_start=[], t_end=[], debug=False):
         """
-        Compute the depth averaged vorticity for a time period.
+        This function computes the depth averaged vorticity for a time period.
      
         Outputs:
         -------
@@ -629,8 +632,8 @@ class FunctionsFvcom:
 
     def depth(self, debug=False):
         """
-        Create new grid variable 'depth' (m)
-        -> FVCOM.Grid.depth
+        This method creates a new grid variable: 'depth2D' (m)
+        -> FVCOM.Grid.depth2D
 
         Notes:
         -----
@@ -672,7 +675,7 @@ class FunctionsFvcom:
 
     def depth_at_point(self, pt_lon, pt_lat, index=[], debug=False):
         """
-        Compute depth at given point
+        This function computes the depth at any given point.
 
         Inputs:
         ------
@@ -723,7 +726,7 @@ class FunctionsFvcom:
 
     def depth_averaged_power_assessment(self, debug=False):
         """
-        Create a new variable 'depth averaged power density' (W/m2)
+        This method creates a new variable: 'depth averaged power density' (W/m2)
         -> FVCOM.Variables.depth_av_power_density
 
         Description:
@@ -757,7 +760,7 @@ class FunctionsFvcom:
                                         a1=-0.1, a0=0.8,
                                         b2=-0.02, b1=0.2, b0=-0.005, debug=False):
         """
-        Create a new variable 'depth averaged power assessment' (W/m2)
+        This method creates a new variable: 'depth averaged power assessment' (W/m2)
         -> FVCOM.Variables.depth_av_power_assessment
 
         Description:
