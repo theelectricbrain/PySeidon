@@ -26,7 +26,6 @@ Prerequisites:
 * Python 2.7: You can download Python from [here](http://www.python.org/download) 
 * IPython: You can download IPython from [here](http://ipython.org/)
 * Anaconda: You can download Anaconda from [here](http://continuum.io/downloads#all)
-* Numexpr: You can download Anaconda from [here](https://github.com/pydata/numexpr)
 * UTide: You can download UTide from [here](https://github.com/wesleybowman/UTide)
 * Pydap: You can download Pydap from [here] (http://www.pydap.org/)
 
