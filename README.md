@@ -35,6 +35,7 @@ Installation:
 * Step 2: from a shell, change directory to PySeidon-master folder
 * Step 3: from the shell, as superuser/admin, type `python setup.py install`
   or `python setup.py install --user`
+
 Up-dating:
 * The code will evolve and improve with time. To up-date, simply go through
   the installation procedure again.
