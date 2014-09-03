@@ -3,7 +3,7 @@
 
 from __future__ import division
 import numpy as np
-import netCDF4 as nc
+#import netCDF4 as nc
 import sys
 import os
 from utide import ut_solv, ut_reconstr

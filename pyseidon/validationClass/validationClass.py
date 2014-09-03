@@ -4,7 +4,11 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
-import netCDF4 as nc
+
+#import netCDF4 as nc
+#Quick fix
+import scipy.io.netcdf as nc
+
 from datetime import datetime, timedelta
 import cPickle as pickle
 import sys
