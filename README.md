@@ -26,8 +26,13 @@ Prerequisites:
 * Python 2.7: You can download Python from [here](http://www.python.org/download) 
 * IPython: You can download IPython from [here](http://ipython.org/)
 * Anaconda: You can download Anaconda from [here](http://continuum.io/downloads#all)
+* setuptools: You can download setuptools from [here](https://pypi.python.org/pypi/setuptools#installation-instructions)
 * UTide: You can download UTide from [here](https://github.com/wesleybowman/UTide)
-* Pydap: You can download Pydap from [here] (http://www.pydap.org/)
+* Pydap: You can download Pydap from [here](http://www.pydap.org/)
+* NetworkX: You can download NetworkX from [here](http://networkx.github.io/documentation/latest/install.html)
+* Pandas: You can download Pandas from [here](http://pandas.pydata.org/pandas-docs/stable/install.html)
+* Seaborn: You can download Seaborn from [here](http://web.stanford.edu/~mwaskom/software/seaborn/installing.html)
+
 
 Installation:
 * Step 1a: Download PySeidon package, save it on your machine and Unzip
@@ -50,8 +55,7 @@ Up-dating:
 * Developers: [Wesley Bowman](https://github.com/wesleybowman), [Thomas Roc](thomas.roc@acadiau.ca), [Jonathan Smith](https://github.com/LaVieEnRoux)
 
 ### Contributors ###
-Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/kthyng), [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, 
-Justine McMillan,...
+Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/kthyng), [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, Robie Hennigar, Justine McMillan,...
 
 ### Legal Information ###
 * Authorship attributed to Wesley Bowman, Thomas Roc and Jonathan Smith
