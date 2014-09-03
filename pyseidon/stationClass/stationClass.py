@@ -504,15 +504,15 @@ Notes:
                 self.Variables.elev_recon, _ = ut_reconstr(time, self.Variables.coef_elev)
                 self.Variables.History.append('ut_reconstr done for elevation')       
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     #filename = '/array2/data3/rkarsten/dncoarse_3D/output2/dn_coarse_station_timeseries.nc'
     #filename = '/array2/data3/rkarsten/dncoarse_3D/output2/dn_coarse_station_timeseries.nc'
     #filename = '/EcoII/EcoEII_server_data_tree/data/simulated/FVCOM/dngrid/june_2013_3D/'
-    multi = True
-    if multi:
+    #multi = True
+    #if multi:
         #filename = '/home/wesley/ncfiles/'
-        filename = '/EcoII/EcoEII_server_data_tree/workspace/simulated/FVCOM/dngrid/june_2013_3D/output/'
-    else:
-        filename = '/home/wesley/ncfiles/dn_coarse_station_timeseries.nc'
+    #    filename = '/EcoII/EcoEII_server_data_tree/workspace/simulated/FVCOM/dngrid/june_2013_3D/output/'
+    #else:
+    #    filename = '/home/wesley/ncfiles/dn_coarse_station_timeseries.nc'
 
-    data = station(filename)
+    #data = station(filename)
