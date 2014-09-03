@@ -16,5 +16,5 @@ setup(name='PySeidon',
       license='GNU Affero GPL v3.0',
       packages=find_packages(),
       package_dir={'PySeidon' :'pyseidon'},   
-      zip_safe=False),
+      zip_safe=False)
 
