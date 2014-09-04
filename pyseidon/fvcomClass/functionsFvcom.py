@@ -839,4 +839,140 @@ class FunctionsFvcom:
         # Add metadata entry
         self._var.depth_av_power_assessment = pd
         self._History.append('depth averaged power assessment computed')
-        print '-Depth averaged power assessment to FVCOM.Variables.-'        
+        print '-Depth averaged power assessment to FVCOM.Variables.-'   
+
+    def Harmonic_analysis_at_point(self, pt_lon, pt_lat,
+                                   time_ind=[], t_start=[], t_end=[],
+                                   elevation=True, velocity=False,
+                                   debug=False, **kwarg):
+        '''
+        Description:
+        -----------
+        This function performs a harmonic analysis on the sea surface elevation
+        time series or the velocity components timeseries.
+
+        Inputs:
+        ------
+          - pt_lon = longitude in decimal degrees East, float number
+          - pt_lat = latitude in decimal degrees North, float number
+
+        Outputs:
+        -------
+          - harmo = harmonic coefficients, dictionary
+
+        Keywords:
+        --------
+          - time_ind = time indices to work in, list of integers
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                     or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+          - elevation=True means that ut_solv will be done for elevation.
+          - velocity=True means that ut_solv will be done for velocity.
+
+        Options:
+        -------
+        Options are the same as for ut_solv, which are shown below with
+        their default values:
+            conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
+            nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
+            rmin=1; method='cauchy'; tunrdn=1; linci=0; white=0; nrlzn=200;
+            lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
+            ordercnstit=[]; runtimedisp='yyy'
+
+        Notes:
+        -----
+        For more detailed information about ut_solv, please see
+        https://github.com/wesleybowman/UTide
+
+        '''
+        debug = (debug or self._debug)
+        #TR_comments: Add debug flag in Utide: debug=self._debug
+        index = closest_point([pt_lon], [pt_lat],
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)[0]
+        argtime = []
+        if not time_ind==[]:
+            argtime = time_ind
+        elif not t_start==[]:
+            if type(t_start)==str:
+                argtime = time_to_index(t_start, t_end,
+                                        self._var.matlabTime,
+                                        debug=debug)
+            else:
+                argtime = arange(t_start, t_end)
+        
+        if velocity:
+            time = self._var.matlabTime[:]
+            u = self.interpolation_at_point(self._var.ua, pt_lon, pt_lat,
+                                            index=index, debug=debug)  
+            v = self.interpolation_at_point(self._var.va, pt_lon, pt_lat,
+                                            index=index, debug=debug) 
+            if not argtime==[]:
+                time = time[argtime[:]]
+                u = u[argtime[:]]
+                v = v[argtime[:]]
+
+            lat = self._grid.lat[index]
+            harmo = ut_solv(time, u, v, lat, **kwarg)
+
+        if elevation:
+            time = self._var.matlabTime[:]
+            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
+                                             index=index, debug=debug)
+
+            if not argtime==[]:
+                time = time[argtime[:]]
+                el = el[argtime[:]]
+
+            lat = self._grid.lat[index]
+            harmo = ut_solv(time, el, [], lat, **kwarg)
+            #Write meta-data only if computed over all the elements
+
+            return harmo
+
+    def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
+                                time_ind=slice(None), debug=False, **kwarg):
+        '''
+        Description:
+        ----------
+        This function reconstructs the velocity components or the surface elevation
+        from harmonic coefficients.
+        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
+        (ut_solv) has already been executed.
+
+        Inputs:
+        ------
+          - Harmo = harmonic coefficient from harmo_analysis
+          - elevation =True means that ut_reconstr will be done for elevation.
+          - velocity =True means that ut_reconst will be done for velocity.
+          - time_ind = time indices to process, list of integers
+        
+        Output:
+        ------         
+          - Reconstruct = reconstructed signal, dictionary
+
+        Options:
+        -------
+        Options are the same as for ut_reconstr, which are shown below with
+        their default values:
+            cnstit = [], minsnr = 2, minpe = 0
+
+        Notes:
+        -----
+        For more detailed information about ut_reconstr, please see
+        https://github.com/wesleybowman/UTide
+
+        '''
+        debug = (debug or self._debug)
+        time = self._var.matlabTime[time_ind]
+        #TR_comments: Add debug flag in Utide: debug=self._debug
+        Reconstruct = {}
+        if velocity:
+            U_recon, V_recon = ut_reconstr(time,harmo)
+            Reconstruct['U'] = U_recon
+            Reconstruct['V'] = V_recon
+        if elevation:
+            elev_recon, _ = ut_reconstr(time,harmo)
+            Reconstruct['el'] = elev_recon
+        return Reconstruct  

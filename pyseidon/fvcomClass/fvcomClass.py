@@ -97,7 +97,7 @@ Notes:
             try:
                 if self._origin_file.startswith('http'):
                     #Look for file through OpenDAP server
-                    print "Retrieving data through OpenDap server..."
+                    #print "Retrieving data through OpenDap server..."
                     self.Data = open_url(data['Origin'])
                     #Create fake attribut to be consistent with the rest of the code
                     self.Data.variables = self.Data
@@ -354,111 +354,7 @@ Notes:
                 print 'Dumping in matlab file...'
             savemat(filename, data, oned_as='column')       
         else:
-            print "---Wrong file format---"
-
-    def Harmonic_analysis(self, ind=slice(None), elevation=True, velocity=False, **kwarg):
-        '''
-        This method creates new variables: 'harmonic coefficients'
-        -> FVCOM.Variables.coef_elev or FVCOM.Variables.coef_velo
-
-        Description:
-        -----------
-        This method performs a harmonic analysis on the sea surface elevation
-        time series or the velocity components timeseries.
-
-        Keywords:
-        --------
-          - ind = elements indices, list of integers
-          - elevation=True means that ut_solv will be done for elevation.
-          - velocity=True means that ut_solv will be done for velocity.
-
-        Options:
-        -------
-        Options are the same as for ut_solv, which are shown below with
-        their default values:
-            conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
-            nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
-            rmin=1; method='cauchy'; tunrdn=1; linci=0; white=0; nrlzn=200;
-            lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
-            ordercnstit=[]; runtimedisp='yyy'
-
-        Notes:
-        -----
-        For more detailed information about ut_solv, please see
-        https://github.com/wesleybowman/UTide
-
-        '''
-        #TR_comments: Add debug flag in Utide: debug=self._debug
-        
-        if velocity:
-            time = self.Variables.matlabTime[:]
-            u = self.Variables.ua[:, ind]
-            v = self.Variables.va[:, ind]
-            lat = self.Grid.lat[ind]
-            self.coef_velo = ut_solv(time, u, v, lat, **kwarg)
-            #Write meta-data only if computed over all the elements 
-            if ind==slice(None):
-                self.History.append('ut_solv done for velocity')
-
-        if elevation:
-            time = self.Variables.matlabTime[:]
-            el = self.Variables.el[:, ind]
-            lat = self.Grid.lat[ind]
-            self.coef_elev = ut_solv(time, el, [], lat, **kwarg)
-            #Write meta-data only if computed over all the elements
-            if ind==slice(None):
-                self.History.append('ut_solv done for elevation')
-
-    def Harmonic_reconstruction(self, time_ind=slice(None), elevation=True, velocity=False):
-        '''
-        This method creates new variables: 'harmonic reconstructed signals'
-        -> FVCOM.Variables.U_recon and V_recon or FVCOM.Variables.elev_recon
-
-        Description:
-        ----------
-        This method reconstructs the velocity components or the surface elevation
-        from harmonic coefficients.
-        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
-        (ut_solv) has already been executed. If it has not, it will inform the user
-        of the error and ask them to run harmonics. It asks the user to run it
-        since it needs an index at which to run, and there isn't a default
-        index.
-
-        Inputs:
-        ------
-          - Takes a time series for ut_reconstr to do the reconstruction to.
-          - elevation=True means that ut_reconstr will be done for elevation.
-          - velocity=True means that ut_reconst will be done for velocity.
-
-        Options:
-        -------
-        Options are the same as for ut_reconstr, which are shown below with
-        their default values:
-            cnstit = [], minsnr = 2, minpe = 0
-
-        Notes:
-        -----
-        For more detailed information about ut_reconstr, please see
-        https://github.com/wesleybowman/UTide
-
-        '''
-        time = self.Variables.matlabTime[time_ind]
-        #TR_comments: Add debug flag in Utide: debug=self._debug
-        if velocity:
-            if not hasattr(self.Variables,'coef_velo'):
-                print "---Harmonic analysis has to be performed first---"
-            else: 
-               self.Variables.U_recon, self.Variables.V_recon = ut_reconstr(time,
-                                                                self.Variables.coef_velo[:])
-               self.History.append('ut_reconstr done for velocity')
-        if elevation:
-            if not hasattr(self.Variables,'coef_elev'):
-                print "---Harmonic analysis has to be performed first---"
-            else:
-                self.Variables.elev_recon, _ = ut_reconstr(time,
-                                               self.Variables.coef_elev[:])
-                self.Variables.History.append('ut_reconstr done for elevation')
-                              
+            print "---Wrong file format---"                            
 
 #Test section when running in shell >> python fvcomClass.py
 #if __name__ == '__main__':
