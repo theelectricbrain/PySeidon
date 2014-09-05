@@ -95,7 +95,7 @@ Notes:
             try:
                 if self._origin_file.startswith('http'):
                     #Look for file through OpenDAP server
-                    #print "Retrieving data through OpenDap server..."
+                    print "Retrieving data through OpenDap server..."
                     self.Data = open_url(data['Origin'])
                     #Create fake attribut to be consistent with the rest of the code
                     self.Data.variables = self.Data

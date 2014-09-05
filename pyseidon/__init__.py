@@ -24,8 +24,9 @@ from stationClass import *
 from utilities import *
 
 #Permission info for OpenDap server
-print "OpenDap server connexion info:"
+#print "OpenDap server connexion info:"
 
+__version__ = '0.6'
 __all__ = ["FVCOM", "ADCP", "Drifter", "Tidegauge",\
            "Validation", "Station", "utilities" ]
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']
