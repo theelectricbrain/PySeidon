@@ -41,8 +41,6 @@ Description:
     FVCOM._|_Utils2D. = set of useful functions and methods for 2D and 3D runs
            |_Utils3D. = set of useful functions and methods for 3D runs
            |_Plots. = plotting functions
-           |_Harmonic_analysis = harmonic analysis based UTide package
-           |_Harmonic_reconstruction = harmonic reconstruction based UTide package
            |_Save_as = "save as" methods
 
 Inputs:
