@@ -30,7 +30,9 @@ class _load_adcp:
         #Find the depth average of a variable based on percent_of_depth
         #choosen by the user. Currently only working for east_vel (u) and
         #north_vel (v)
-        ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,None])
+        #TR: alaternative with percent of the depth
+        #ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,None])
+        ind = np.argwhere(self.bins < self.surf[:,None])
         index = ind[np.r_[ind[1:,0] != ind[:-1,0], True]]
         data_ma_u = np.ma.array(self.east_vel, mask=np.arange(self.east_vel.shape[1]) > index[:, 1, None])
         data_ma_v = np.ma.array(self.north_vel, mask=np.arange(self.north_vel.shape[1]) > index[:, 1, None])
