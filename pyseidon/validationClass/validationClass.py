@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 import cPickle as pickle
 import sys
 import os
-sys.path.append('/home/wesley/github/UTide/')
 from utide import ut_solv
 import scipy.io as sio
 from stationClass import Station
@@ -22,8 +21,9 @@ from fvcomClass import FVCOM
 from tidegaugeClass import Tidegauge
 
 class Validation:
-    def __init__(self, filename):
-        self.load(filename)
+    """ """
+    def __init__(self, observered, simulated):
+        
 
 
 def mjd2num(x):
