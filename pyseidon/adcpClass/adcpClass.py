@@ -23,7 +23,7 @@ Description:
   Functionality structured as follows:
                _Data. = raw matlab file data
               |_Variables. = useable adcp variables and quantities
-              |_QC = Quality Control metadata
+              |_History = Quality Control metadata
     testAdcp._|_Utils. = set of useful functions
               |_Plots. = plotting functions
               |_method_1
@@ -46,7 +46,7 @@ Notes:
         if debug:
             print '-Debug mode on-' 
         #TR_comments: find a way to dissociate raw and processed data
-        self.QC = ['Raw data']
+        self.History = ['Raw data']
         #TR_comments: *_Raw and *_10minavg open with h5py whereas *_davgBS
         self.Data = h5py.File(filename)
         #TR_Alternative: self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
