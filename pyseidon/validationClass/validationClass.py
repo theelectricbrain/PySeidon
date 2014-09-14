@@ -20,9 +20,9 @@ from adcpClass import ADCP
 from fvcomClass import FVCOM
 from tidegaugeClass import Tidegauge
 
-class Validation:
-    """ """
-    def __init__(self, observered, simulated):
+#class Validation:
+#    """ """
+    #def __init__(self, observered, simulated):
         
 
 
