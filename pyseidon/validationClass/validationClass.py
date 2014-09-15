@@ -17,7 +17,7 @@ from utide import ut_solv
 import scipy.io as sio
 
 #Local import
-from utilities import *
+from interpolation_utils import *
 from stationClass import Station
 from adcpClass import ADCP
 from fvcomClass import FVCOM
