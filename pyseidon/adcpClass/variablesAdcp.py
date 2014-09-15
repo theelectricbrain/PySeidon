@@ -33,12 +33,15 @@ class _load_adcp:
         self.vert_vel = cls.Data['data'].vert_vel[:].T
         self.dir_vel = cls.Data['data'].dir_vel[:].T
         self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:].T
-        self.ucross = cls.Data['data'].ucross[:].T
-        self.ualong = cls.Data['data'].ualong[:].T
         self.pressure = cls.Data['pres']
         self.surf = self.pressure.surf[:].flatten()
         self.time = cls.Data['time']
         self.mtime = self.time.mtime[:].flatten()
+        try:
+            self.ucross = cls.Data['data'].ucross[:].T
+            self.ualong = cls.Data['data'].ualong[:].T
+        except AttributeError:
+            pass
 
         #Find the depth average of a variable based on percent_of_depth
         #choosen by the user. Currently only working for east_vel (u) and
