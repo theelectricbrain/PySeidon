@@ -46,9 +46,9 @@ class _load_adcp:
             self.time = cls.Data['time']
             self.mtime = self.time['mtime'][:].flatten()
             try:
-                self.ucross = cls.Data['data']['ucross'][:].T
-                self.ualong = cls.Data['data']['ualong'][:].T
-            except AttributeError:
+                self.ucross = cls.Data['data']['Ucross'][:].T
+                self.ualong = cls.Data['data']['Ualong'][:].T
+            except KeyError:
                 pass
 
         #Find the depth average of a variable based on percent_of_depth
