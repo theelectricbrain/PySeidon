@@ -107,13 +107,13 @@ class Validation:
             print "-This type of simulations is not supported yet-"
             sys.exit()
 
-       #Store in dict structure for compatibility purposes
-       obs_mod={'ua':self.obs.ua,
-                'va':self.obs.va,
-                'elev':self.obs.surf,
-                'u':self.obs.east_vel,
-                'v':self.obs.north_vel,
-                'bins':self.obs.bins}
+        #Store in dict structure for compatibility purposes
+        obs_mod={'ua':self.obs.ua,
+                 'va':self.obs.va,
+                 'elev':self.obs.surf,
+                 'u':self.obs.east_vel,
+                 'v':self.obs.north_vel,
+                 'bins':self.obs.bins}
 
         if not self.sim._3D:
             sim_obs={'ua':self.sim.ua[:],
