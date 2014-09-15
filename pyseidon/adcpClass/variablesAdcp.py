@@ -35,19 +35,19 @@ class _load_adcp:
         else:
             self.lat = cls.Data['lat']
             self.lon = cls.Data['lon']
-            self.bins = cls.Data['data'].bins[:].flatten()
-            self.north_vel = cls.Data['data'].north_vel[:].T
-            self.east_vel = cls.Data['data'].east_vel[:].T
-            self.vert_vel = cls.Data['data'].vert_vel[:].T
-            self.dir_vel = cls.Data['data'].dir_vel[:].T
-            self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:].T
+            self.bins = cls.Data['data']['bins'][:].flatten()
+            self.north_vel = cls.Data['data']['north_vel'][:].T
+            self.east_vel = cls.Data['data']['east_vel'][:].T
+            self.vert_vel = cls.Data['data']['vert_vel'][:].T
+            self.dir_vel = cls.Data['data']['dir_vel'][:].T
+            self.mag_signed_vel = cls.Data['data']['mag_signed_vel'][:].T
             self.pressure = cls.Data['pres']
-            self.surf = self.pressure.surf[:].flatten()
+            self.surf = self.pressure['surf'][:].flatten()
             self.time = cls.Data['time']
-            self.mtime = self.time.mtime[:].flatten()
+            self.mtime = self.time['mtime'][:].flatten()
             try:
-                self.ucross = cls.Data['data'].ucross[:].T
-                self.ualong = cls.Data['data'].ualong[:].T
+                self.ucross = cls.Data['data']['ucross'][:].T
+                self.ualong = cls.Data['data']['ualong'][:].T
             except AttributeError:
                 pass
 
