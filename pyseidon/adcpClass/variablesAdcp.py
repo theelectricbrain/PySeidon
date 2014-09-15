@@ -11,37 +11,44 @@ class _load_adcp:
     def __init__(self,cls, debug=False):
         if debug:
             print 'Loading variables...'
+        #Test if load with h5py or scipy
+        if not type(Data)==h5py._hl.files.File:
+            self.lat = cls.Data['lat']
+            self.lon = cls.Data['lon']
+            self.bins = cls.Data['data'].bins[:].flatten()
+            self.north_vel = cls.Data['data'].north_vel[:]
+            self.east_vel = cls.Data['data'].east_vel[:]
+            self.vert_vel = cls.Data['data'].vert_vel[:]
+            self.dir_vel = cls.Data['data'].dir_vel[:]
+            self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:]
+            self.pressure = cls.Data['pres']
+            self.surf = self.pressure.surf[:].flatten()
+            self.time = cls.Data['time']
+            self.mtime = self.time.mtime[:].flatten()
+            try:
+                self.ucross = cls.Data['data'].ucross[:]
+                self.ualong = cls.Data['data'].ualong[:]
+            except AttributeError:
+                pass
 
-        self.lat = cls.Data['lat']
-        self.lon = cls.Data['lon']
-        #self.bins = cls.Data['data']['bins'][:].flatten()
-        #self.north_vel = cls.Data['data']['north_vel'][:].T
-        #self.east_vel = cls.Data['data']['east_vel'][:].T
-        #self.vert_vel = cls.Data['data']['vert_vel'][:].T
-        #self.dir_vel = cls.Data['data']['dir_vel'][:].T
-        #self.mag_signed_vel = cls.Data['data']['mag_signed_vel'][:].T
-        #self.ucross = cls.Data['data']['Ucross'][:].T
-        #self.ualong = cls.Data['data']['Ualong'][:].T
-        #self.pressure = cls.Data['pres']
-        #self.surf = self.pressure['surf'][:].flatten()
-        #self.time = cls.Data['time']
-        #self.mtime = self.time['mtime'][:].flatten()
-
-        self.bins = cls.Data['data'].bins[:].flatten()
-        self.north_vel = cls.Data['data'].north_vel[:].T
-        self.east_vel = cls.Data['data'].east_vel[:].T
-        self.vert_vel = cls.Data['data'].vert_vel[:].T
-        self.dir_vel = cls.Data['data'].dir_vel[:].T
-        self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:].T
-        self.pressure = cls.Data['pres']
-        self.surf = self.pressure.surf[:].flatten()
-        self.time = cls.Data['time']
-        self.mtime = self.time.mtime[:].flatten()
-        try:
-            self.ucross = cls.Data['data'].ucross[:].T
-            self.ualong = cls.Data['data'].ualong[:].T
-        except AttributeError:
-            pass
+        else:
+            self.lat = cls.Data['lat']
+            self.lon = cls.Data['lon']
+            self.bins = cls.Data['data'].bins[:].flatten()
+            self.north_vel = cls.Data['data'].north_vel[:].T
+            self.east_vel = cls.Data['data'].east_vel[:].T
+            self.vert_vel = cls.Data['data'].vert_vel[:].T
+            self.dir_vel = cls.Data['data'].dir_vel[:].T
+            self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:].T
+            self.pressure = cls.Data['pres']
+            self.surf = self.pressure.surf[:].flatten()
+            self.time = cls.Data['time']
+            self.mtime = self.time.mtime[:].flatten()
+            try:
+                self.ucross = cls.Data['data'].ucross[:].T
+                self.ualong = cls.Data['data'].ualong[:].T
+            except AttributeError:
+                pass
 
         #Find the depth average of a variable based on percent_of_depth
         #choosen by the user. Currently only working for east_vel (u) and

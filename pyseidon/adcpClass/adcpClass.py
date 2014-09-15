@@ -2,10 +2,9 @@
 # encoding: utf-8
 from __future__ import division
 import numpy as np
-import sys
-#TR_Alternative: 
+import sys 
 import scipy.io as sio
-#import h5py
+import h5py
 
 #Add local path to utilities
 sys.path.append('../utilities/')
@@ -49,9 +48,10 @@ Notes:
         #TR_comments: find a way to dissociate raw and processed data
         self.History = ['Raw data']
         #TR_comments: *_Raw and *_10minavg open with h5py whereas *_davgBS
-        #self.Data = h5py.File(filename)
-        #TR_Alternative:
-        self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
+        try:
+            self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
+        except NotImplementedError:
+            self.Data = h5py.File(filename)
         self.Variables = _load_adcp(self, debug=self._debug)
         self.Utils = FunctionsAdcp(self)
         self.Plots = PlotsAdcp(self)   
