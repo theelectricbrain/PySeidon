@@ -33,8 +33,8 @@ class _load_adcp:
                 pass
 
         else:
-            self.lat = cls.Data['lat']
-            self.lon = cls.Data['lon']
+            self.lat = cls.Data['lat'][:]
+            self.lon = cls.Data['lon'][:]
             self.bins = cls.Data['data']['bins'][:].flatten()
             self.north_vel = cls.Data['data']['north_vel'][:].T
             self.east_vel = cls.Data['data']['east_vel'][:].T
