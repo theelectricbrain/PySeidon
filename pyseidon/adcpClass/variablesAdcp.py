@@ -12,7 +12,7 @@ class _load_adcp:
         if debug:
             print 'Loading variables...'
         #Test if load with h5py or scipy
-        if not type(Data)==h5py._hl.files.File:
+        if not type(cls.Data)==h5py._hl.files.File:
             self.lat = cls.Data['lat']
             self.lon = cls.Data['lon']
             self.bins = cls.Data['data'].bins[:].flatten()
