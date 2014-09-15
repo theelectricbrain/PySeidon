@@ -3,6 +3,7 @@
 
 from __future__ import division
 import numpy as np
+import h5py
 
 class _load_adcp:
     """
