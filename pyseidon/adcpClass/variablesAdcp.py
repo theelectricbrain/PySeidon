@@ -30,9 +30,9 @@ class _load_adcp:
         self.bins = cls.Data['data'].bins[:].flatten()
         self.north_vel = cls.Data['data'].north_vel[:].T
         self.east_vel = cls.Data['data'].east_vel[:].T
-        self.vert_vel = cls.Data['data'].vert_vel.[:].T
-        self.dir_vel = cls.Data['data'].dir_vel.[:].T
-        self.mag_signed_vel = cls.Data['data'].mag_signed_vel.[:].T
+        self.vert_vel = cls.Data['data'].vert_vel[:].T
+        self.dir_vel = cls.Data['data'].dir_vel[:].T
+        self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:].T
         self.ucross = cls.Data['data'].ucross[:].T
         self.ualong = cls.Data['data'].ualong[:].T
         self.pressure = cls.Data['pres']
