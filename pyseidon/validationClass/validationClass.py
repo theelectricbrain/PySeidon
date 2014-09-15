@@ -25,40 +25,20 @@ from tidegaugeClass import Tidegauge
 
 class Validation:
     """ """
-    def __init__(self, observed, simulated):
+    def __init__(self, observed, simulated, debug=False):
+        self._debug = debug
         self.obs = observed.Variables
         self.sim = simulated.Variables
         self.struct = np.array([])
-        #Check what kind of observed data it is
-        if observed.__module__=='pyseidon.adcpClass.adcpClass':
-            obstype='ADCP'
-            #Harmonic analysis
-            self.obs.velCoef = ut_solv(self.obs.mtime, self.obs.ua,
-                               self.obs.va, self.obs.lat,
-                               cnstit='auto', rmin=0.95, notrend=True,
-                               method='ols', nodiagn=True, linci=True, coef_int=True)
-            
-
-            self.obs.elCoef = ut_solv(self.obs.mtime, self.obs.surf,
-                              [], self.obs.lat,
-                              cnstit='auto', rmin=0.95, notrend=True,
-                              method='ols', nodiagn=True, linci=True, coef_int=True)
-            #Location of the measurement, needed further down
-            lonlat = np.array([self.obs.lon, self.obs.lat]).T
-
-        #Alternative measurement type
-        #elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
-        #    obstype='tidegauge'
-
-        else:
-            print "-This type of measurements is not supported yet-"
-            sys.exit()
 
         #Check what kind of simulated data it is
         if simulated.__module__=='pyseidon.stationClass.stationClass':
             #Find closest point to ADCP
-            ind = closest_point(lonlat, simulated.Grid.lon[:], simulated.Grid.lat[:])
-            print "Station site: " + ''.join(simulated.Grid.name[ind,:])
+            ind = closest_point([self.obs.lon], [self.obs.lat],
+                                simulated.Grid.lon[:],
+                                simulated.Grid.lat[:])
+            nameSite = ''.join(simulated.Grid.name[ind,:][0,:])
+            print "Station site: " + nameSite
             self.sim.el = self.sim.el[:, ind].flatten()
             self.sim.ua = self.sim.ua[:, ind].flatten()
             self.sim.va=self.sim.va[:, ind].flatten()           
@@ -79,27 +59,27 @@ class Validation:
         elif simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
             #Interpolation at measurement location
             self.sim.el=simulated.Util2D.interpolation_at_point(self.sim.el,
-                                                       lonlat[0], lonlat[1])
+                                                       self.obs.lon, self.obs.lat)
             self.sim.ua=simulated.Util2D.interpolation_at_point(self.sim.ua,
-                                                       lonlat[0], lonlat[1])
+                                                       self.obs.lon, self.obs.lat)
             self.sim.va=simulated.Util2D.interpolation_at_point(self.sim.va,
-                                                       lonlat[0], lonlat[1])
+                                                       self.obs.lon, self.obs.lat)
             if self.sim._3D:
                self.sim.u=simulated.Util3D.interpolation_at_point(self.sim.u,
-                                                           lonlat[0], lonlat[1])
+                                                           self.obs.lon, self.obs.lat)
                self.sim.v=simulated.Util3D.interpolation_at_point(self.sim.v,
-                                                           lonlat[0], lonlat[1])
+                                                           self.obs.lon, self.obs.lat)
             #Harmonic analysis
             self.sim.velCoef = ut_solv(self.sim.matlabTime[:],
                                        ua[:],
                                        va[:],
-                                       lonlat[1],
+                                       self.obs.lat,
                                cnstit='auto', rmin=0.95, notrend=True,
                                method='ols', nodiagn=True, linci=True, conf_int=True)
 
             self.sim.elCoef = ut_solv(self.sim.matlabTime[:],
                                       el[:], [],
-                                      lonlat[1],
+                                      self.obs.lat,
                               cnstit='auto', rmin=0.95, notrend=True,
                               method='ols', nodiagn=True, linci=True, conf_int=True)
 
@@ -108,27 +88,53 @@ class Validation:
             sys.exit()
 
         #Store in dict structure for compatibility purposes
-        obs_mod={'ua':self.obs.ua,
-                 'va':self.obs.va,
-                 'elev':self.obs.surf,
-                 'u':self.obs.east_vel,
-                 'v':self.obs.north_vel,
-                 'bins':self.obs.bins}
-
         if not self.sim._3D:
-            sim_obs={'ua':self.sim.ua[:],
+            sim_mod={'ua':self.sim.ua[:],
                      'va':self.sim.va[:],
                      'elev':self.sim.el[:]}
         else:
-            sim_obs={'ua':self.sim.ua[:],
+            sim_mod={'ua':self.sim.ua[:],
                      'va':self.sim.va[:],
                      'elev':self.sim.el[:],
                      'u':self.sim.u[:],
                      'v':self.sim.v[:]}
+             
+
+        #Check what kind of observed data it is
+        if observed.__module__=='pyseidon.adcpClass.adcpClass':
+            obstype='ADCP'
+            #Harmonic analysis
+            self.obs.velCoef = ut_solv(self.obs.mtime, self.obs.ua,
+                               self.obs.va, self.obs.lat,
+                               cnstit='auto', rmin=0.95, notrend=True,
+                               method='ols', nodiagn=True, linci=True, coef_int=True)
+            
+
+            self.obs.elCoef = ut_solv(self.obs.mtime, self.obs.surf,
+                              [], self.obs.lat,
+                              cnstit='auto', rmin=0.95, notrend=True,
+                              method='ols', nodiagn=True, linci=True, coef_int=True)
+            #Store in dict structure for compatibility purposes
+            obs_mod={'ua':self.obs.ua,
+                     'va':self.obs.va,
+                     'elev':self.obs.surf,
+                     'u':self.obs.east_vel,
+                     'v':self.obs.north_vel,
+                     'bins':self.obs.bins}
+
+        #Alternative measurement type
+        #elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
+        #    obstype='tidegauge'
+        #    obs_mod = {'data':tideData.data, 'elev':tideData.elev}
+
+        else:
+            print "-This type of measurements is not supported yet-"
+            sys.exit()
+
         self.struct = {'name': observed.History[0].split(' ')[-1],
                         'type':obstype,
-                        'lat':self.obs.lat[0],
-                        'lon':self.obs.lon[0],
+                        'lat':self.obs.lat,
+                        'lon':self.obs.lon,
                         'obs_timeseries':obs_mod,
                         'mod_timeseries':sim_mod,
                         'obs_time':self.obs.mtime,
@@ -136,6 +142,5 @@ class Validation:
                         'vel_obs_harmonics':self.obs.velCoef,
                         'elev_obs_harmonics':self.obs.elCoef,
                         'vel_mod_harmonics':self.sim.velCoef,
-                        'elev_mod_harmonics':self.sim.elCoef}                 
-
-
+                        'elev_mod_harmonics':self.sim.elCoef}    
+    #def compare
