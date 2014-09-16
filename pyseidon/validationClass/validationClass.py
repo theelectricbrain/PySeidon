@@ -200,7 +200,7 @@ class Validation:
         csv_con = open(csvName, 'r')
         csv_cont = list(csv.reader(csv_con, delimiter=','))
         print(50*'-')
-        for row in csv_content:
-           row = [str(e) for e in row]
+        for row in csv_cont:
+           row = [str(e) for e in row[:][1:]]
            print('\t'.join(row))
         print(50*'-')             
