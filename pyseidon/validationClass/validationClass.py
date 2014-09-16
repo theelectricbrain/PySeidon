@@ -197,6 +197,7 @@ class Validation:
         valTable(self.struct, filename,  vars)
         #Display csv
         csvName = filename + '_val.csv'
+        csv_con = open(csv_file, 'r')
         csv_cont = list(csv.reader(csv_con, delimiter=','))
         print(50*'-')
         for row in csv_content:
