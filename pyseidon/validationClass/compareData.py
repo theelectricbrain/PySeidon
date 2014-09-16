@@ -15,7 +15,7 @@ def dn2dt(datenum):
     return datetime.fromordinal(int(datenum)) + timedelta(days=datenum%1) - \
            timedelta(days=366)
 
-def compareUV(data):
+def compareUV(data, threeDim, depth=5, plot=False):
     '''
     Does a comprehensive validation process between modeled and observed
     data on the following:
@@ -29,25 +29,32 @@ def compareUV(data):
     # take data from input dictionary
     mod_time = data['mod_time']
     obs_time = data['obs_time']
-    mod_u_all = data['mod_timeseries']['u']
-    mod_v_all = data['mod_timeseries']['v']
     mod_el = data['mod_timeseries']['elev']
-    obs_u_all = data['obs_timeseries']['u']
-    obs_v_all = data['obs_timeseries']['v']
     obs_el = data['obs_timeseries']['elev']
     v_mod_harm = data['vel_mod_harmonics']
     v_obs_harm = data['vel_obs_harmonics']
     el_mod_harm = data['elev_mod_harmonics']
     el_obs_harm = data['elev_mod_harmonics']
-    bins = data['obs_timeseries']['bins']
-    siglay = data['mod_timeseries']['siglay']
 
-    # use depth interpolation to get a single timeseries
-    mod_depth = mod_el + np.mean(obs_el)
-    (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
-				   obs_u_all, obs_el, bins)
-    (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
-                                   obs_v_all, obs_el, bins)
+    #Check if 3D simulation
+    if threeDim:
+        obs_u_all = data['obs_timeseries']['u']
+        obs_v_all = data['obs_timeseries']['v']
+        mod_u_all = data['mod_timeseries']['u']
+        mod_v_all = data['mod_timeseries']['v']
+        bins = data['obs_timeseries']['bins']
+        siglay = data['mod_timeseries']['siglay']
+        # use depth interpolation to get a single timeseries
+        mod_depth = mod_el + np.mean(obs_el)
+        (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
+				       obs_u_all, obs_el, bins, depth=depth)
+        (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
+                                       obs_v_all, obs_el, bins, depth=depth)
+    else:
+        obs_u = data['obs_timeseries']['ua']
+        obs_v = data['obs_timeseries']['va']
+        mod_u = data['mod_timeseries']['ua']
+        mod_v = data['mod_timeseries']['va']        
 
 
     # convert times to datetime
@@ -136,17 +143,17 @@ def compareUV(data):
 
     # get stats for each tidal variable
     elev_suite = tidalSuite(mod_el_int, obs_el_int, step_int, start_int,
-			    type='elevation', plot=True)
+			    type='elevation', plot=plot)
     speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_int, start_int,
-			    type='speed', plot=True)
+			    type='speed', plot=plot)
     dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_int, start_int,
-			    type='direction', plot=True)
+			    type='direction', plot=plot)
     u_suite = tidalSuite(mod_u_int, obs_u_int, step_int, start_int,
-			    type='u velocity', plot=True)
+			    type='u velocity', plot=plot)
     v_suite = tidalSuite(mod_v_int, obs_v_int, step_int, start_int,
-			    type='v velocity', plot=True)
+			    type='v velocity', plot=plot)
     vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_int, start_int,
-			    type='velocity', plot=True)
+			    type='velocity', plot=plot)
     #ebb_suite = tidalSuite(mod_ebb, obs_ebb, step_int, start_int,
 	#		    type='ebb', plot=True)
     #flo_suite = tidalSuite(mod_flo, obs_flo, step_int, start_int,

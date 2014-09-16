@@ -42,8 +42,8 @@ def smooth(data_1, dt_1, data_2, dt_2):
 	data_buf_2 = data_2[buf_2]
 
 	# communicate progress
-	if (i % 1000 == 0):
-	    print 'Currently smoothing at step {} / {}'.format(i, steps)
+	#if (i % 1000 == 0):
+	#    print 'Currently smoothing at step {} / {}'.format(i, steps)
 
         # calculate mean of data subsets (in the buffers)
 	if (len(data_buf_1) != 0):

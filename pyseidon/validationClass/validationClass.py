@@ -27,7 +27,19 @@ from fvcomClass import FVCOM
 from tidegaugeClass import Tidegauge
 
 class Validation:
-    """ """
+    """
+    Validation class/structure.
+    Functionality structured as follows:
+                 _obs. = measurement/observational variables
+    Validation._|_sim. = simulated variables
+                |_struct = dictionnary structure for validation purposes
+                |_validate. = validation method/function
+
+    Inputs:
+    ------
+      - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
+      - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
+    """
     def __init__(self, observed, simulated, debug=False):
         self._debug = debug
         self.obs = observed.Variables
@@ -162,45 +174,79 @@ class Validation:
                         'vel_mod_harmonics':velCoef,
                         'elev_mod_harmonics':elCoef}
  
-    def validate(self):
-        """ """
+    def validate(self, filename=[], depth=[], plot=False):
+        """
+        This method computes series of standard validation benchmarks.
 
+        Options:
+        ------
+          - filename: file name of the .csv file to be saved, string.
+          - depth: depth at which the validation will be performed, float.
+                   Only applicable for 3D simulations.
+          - plot: plot series of valiudation graphs, boolean.
+
+        References:
+        ----------
+        - NOAA. NOS standards for evaluating operational nowcast and
+          forecast hydrodynamic model systems, 2003.
+
+        - K. Gunn, C. Stock-Williams. On validating numerical hydrodynamic
+          models of complex tidal flow, International Journal of Marine Energy, 2013
+
+        - N. Georgas, A. Blumberg. Establishing Confidence in Marine Forecast
+          Systems: The design and skill assessment of the New York Harbor Observation
+          and Prediction System, version 3 (NYHOPS v3), 2009
+
+        - Liu, Y., P. MacCready, B. M. Hickey, E. P. Dever, P. M. Kosro, and
+          N. S. Banas (2009), Evaluation of a coastal ocean circulation model for
+          the Columbia River plume in summer 2004, J. Geophys. Res., 114
+        """
+        #User input
+        if filename==[]:
+            filename = input('Enter filename (string) for csv file: ')
+            filename = str(filename)
+        if (depth==[] and self.sim._3D):
+            depth = input('Depth from surface at which the validation will be performed: ')
+            depth = float(depth)
+            if depth < 0.0: depth = -1.0 * depth
+        if depth==[]: depth=5.0
+
+        #initialisation
         vars = []
 
         if self.struct['type'] == 'ADCP':
     	    (elev_suite, speed_suite, dir_suite, u_suite, v_suite, 
-             vel_suite) = compareUV(self.struct)
+             vel_suite) = compareUV(self.struct, self.sim._3D, plot=plot, depth=depth)
             self.struct['elev_val'] = elev_suite
     	    self.struct['speed_val'] = speed_suite
     	    self.struct['dir_val'] = dir_suite
             self.struct['u_val'] = u_suite
 	    self.struct['v_val'] = v_suite
 	    self.struct['vel_val'] = vel_suite
-
             #Variable to processed
             vars.append('elev')
             vars.append('speed')
             vars.append('dir')
+
         elif self.struct['type'] == 'TideGauge':
      	    elev_suite_dg = compareTG(self.struct)
     	    self.struct['tg_val'] = elev_suite_dg 
-
             #Variable to processed
             vars.append('tg')
+
         else:
             print "-This type of measurements is not supported yet-"
             sys.exit()
-        #User input
-        filename = input('Enter filename for csv file: ')
-        filename = str(filename)
+
         #Make csv file
         valTable(self.struct, filename,  vars)
         #Display csv
         csvName = filename + '_val.csv'
         csv_con = open(csvName, 'r')
         csv_cont = list(csv.reader(csv_con, delimiter=','))
-        print(50*'-')
+        print "---Validation benchmarks---"
+        print(70*'-')
         for row in csv_cont:
            row = [str(e) for e in row[:][1:]]
            print('\t'.join(row))
-        print(50*'-')             
+        print(70*'-')             
