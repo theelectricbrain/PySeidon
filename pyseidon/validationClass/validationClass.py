@@ -18,6 +18,7 @@ import scipy.io as sio
 
 #Local import
 from compareData import *
+from valTable import valTable
 from interpolation_utils import *
 from stationClass import Station
 from adcpClass import ADCP
@@ -39,8 +40,8 @@ class Validation:
         simMin = self.sim.matlabTime.min()
         absMin = max(obsMin, simMin)
         absMax = min(obsMax, simMax)
-        A = np.where(self.sim.matlabTime[:] >= absMin).tolist() 
-        B = np.where(self.sim.matlabTime[:] <= absMax).tolist()
+        A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist()) 
+        B = set(np.where(self.sim.matlabTime[:] <= absMax)[0].tolist())
         test = A.intersection(B) 
         if len(test) == 0:
            print "---Time between simulation and measurement does not match up---"
@@ -162,6 +163,9 @@ class Validation:
  
     def validate(self):
         """ """
+
+        vars = []
+
         if self.struct['type'] == 'ADCP':
     	    (elev_suite, speed_suite, dir_suite, u_suite, v_suite, 
              vel_suite) = compareUV(self.struct)
@@ -171,10 +175,22 @@ class Validation:
             self.struct['u_val'] = u_suite
 	    self.struct['v_val'] = v_suite
 	    self.struct['vel_val'] = vel_suite
+
+            #Variable to processed
+            vars.append('elev')
+            vars.append('speed')
+            vars.append('dir')
         elif self.struct['type'] == 'TideGauge':
      	    elev_suite_dg = compareTG(self.struct)
     	    self.struct['tg_val'] = elev_suite_dg 
+
+            #Variable to processed
+            vars.append('tg')
         else:
             print "-This type of measurements is not supported yet-"
             sys.exit()
-            
+        #User input
+        filename = input('Enter filename for csv file: ')
+        filename = str(filename)
+        #Make csv file
+        valTable(self.struct, filename,  vars)               
