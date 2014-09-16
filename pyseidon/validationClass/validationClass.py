@@ -4,6 +4,7 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
+import csv
 
 #import netCDF4 as nc
 #Quick fix
@@ -193,4 +194,12 @@ class Validation:
         filename = input('Enter filename for csv file: ')
         filename = str(filename)
         #Make csv file
-        valTable(self.struct, filename,  vars)               
+        valTable(self.struct, filename,  vars)
+        #Display csv
+        csvName = filename + '_val.csv'
+        csv_cont = list(csv.reader(csv_con, delimiter=','))
+        print(50*'-')
+        for row in csv_content:
+           row = [str(e) for e in row]
+           print('\t'.join(row))
+        print(50*'-')             
