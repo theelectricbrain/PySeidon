@@ -12,6 +12,9 @@ class _load_adcp:
     def __init__(self,cls, debug=False):
         if debug:
             print 'Loading variables...'
+        self.percent_of_depth=0.95
+        #TR: fudge factor, squeeze out the 5 top % of the water column        
+
         #Test if load with h5py or scipy
         if not type(cls.Data)==h5py._hl.files.File:
             self.lat = cls.Data['lat']
@@ -55,8 +58,8 @@ class _load_adcp:
         #choosen by the user. Currently only working for east_vel (u) and
         #north_vel (v)
         #TR: alaternative with percent of the depth
-        #ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,None])
-        ind = np.argwhere(self.bins < self.surf[:,None])
+        ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,None])
+        #ind = np.argwhere(self.bins < self.surf[:,None])
         index = ind[np.r_[ind[1:,0] != ind[:-1,0], True]]
         data_ma_u = np.ma.array(self.east_vel, mask=np.arange(self.east_vel.shape[1]) > index[:, 1, None])
         data_ma_v = np.ma.array(self.north_vel, mask=np.arange(self.north_vel.shape[1]) > index[:, 1, None])

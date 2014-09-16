@@ -17,6 +17,7 @@ from utide import ut_solv
 import scipy.io as sio
 
 #Local import
+from compareData import *
 from interpolation_utils import *
 from stationClass import Station
 from adcpClass import ADCP
@@ -39,49 +40,49 @@ class Validation:
                                 simulated.Grid.lat[:])
             nameSite = ''.join(simulated.Grid.name[ind,:][0,:])
             print "Station site: " + nameSite
-            self.sim.el = self.sim.el[:, ind].flatten()
-            self.sim.ua = self.sim.ua[:, ind].flatten()
-            self.sim.va=self.sim.va[:, ind].flatten()           
+            el = self.sim.el[:, ind].flatten()
+            ua = self.sim.ua[:, ind].flatten()
+            va = self.sim.va[:, ind].flatten()
+            if self.sim._3D:
+                u = np.squeeze(self.sim.u[:, :,ind])
+                v = np.squeeze(self.sim.v[:, :,ind])
+     
             #Harmonic analysis
-            self.sim.velCoef = ut_solv(self.sim.matlabTime[:],
-                                       self.sim.ua[:],
-                                       self.sim.va[:],
-                                       simulated.Grid.lat[ind],
-                               cnstit='auto', rmin=0.95, notrend=True,
-                               method='ols', nodiagn=True, linci=True, conf_int=True)
-
-            self.sim.elCoef = ut_solv(self.sim.matlabTime[:],
-                                      self.sim.el, [],
-                                      simulated.Grid.lat[ind],
+            velCoef = ut_solv(self.sim.matlabTime[:],
+                              ua[:], va[:],
+                              simulated.Grid.lat[ind],
                               cnstit='auto', rmin=0.95, notrend=True,
                               method='ols', nodiagn=True, linci=True, conf_int=True)
+
+            elCoef = ut_solv(self.sim.matlabTime[:],
+                             el, [],
+                             simulated.Grid.lat[ind],
+                             cnstit='auto', rmin=0.95, notrend=True,
+                             method='ols', nodiagn=True, linci=True, conf_int=True)
         #Alternative simulation type
         elif simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
             #Interpolation at measurement location
-            self.sim.el=simulated.Util2D.interpolation_at_point(self.sim.el,
+            el=simulated.Util2D.interpolation_at_point(self.sim.el,
                                                        self.obs.lon, self.obs.lat)
-            self.sim.ua=simulated.Util2D.interpolation_at_point(self.sim.ua,
+            ua=simulated.Util2D.interpolation_at_point(self.sim.ua,
                                                        self.obs.lon, self.obs.lat)
-            self.sim.va=simulated.Util2D.interpolation_at_point(self.sim.va,
+            va=simulated.Util2D.interpolation_at_point(self.sim.va,
                                                        self.obs.lon, self.obs.lat)
             if self.sim._3D:
-               self.sim.u=simulated.Util3D.interpolation_at_point(self.sim.u,
-                                                           self.obs.lon, self.obs.lat)
-               self.sim.v=simulated.Util3D.interpolation_at_point(self.sim.v,
-                                                           self.obs.lon, self.obs.lat)
+               u=simulated.Util3D.interpolation_at_point(self.sim.u,
+                                                         self.obs.lon, self.obs.lat)
+               v=simulated.Util3D.interpolation_at_point(self.sim.v,
+                                                         self.obs.lon, self.obs.lat)
             #Harmonic analysis
-            self.sim.velCoef = ut_solv(self.sim.matlabTime[:],
-                                       ua[:],
-                                       va[:],
-                                       self.obs.lat,
-                               cnstit='auto', rmin=0.95, notrend=True,
-                               method='ols', nodiagn=True, linci=True, conf_int=True)
-
-            self.sim.elCoef = ut_solv(self.sim.matlabTime[:],
-                                      el[:], [],
-                                      self.obs.lat,
+            velCoef = ut_solv(self.sim.matlabTime[:],
+                              ua[:], va[:], self.obs.lat,
                               cnstit='auto', rmin=0.95, notrend=True,
                               method='ols', nodiagn=True, linci=True, conf_int=True)
+
+            elCoef = ut_solv(self.sim.matlabTime[:],
+                             el[:], [], self.obs.lat,
+                             cnstit='auto', rmin=0.95, notrend=True,
+                             method='ols', nodiagn=True, linci=True, conf_int=True)
 
         else:
             print "-This type of simulations is not supported yet-"
@@ -89,15 +90,16 @@ class Validation:
 
         #Store in dict structure for compatibility purposes
         if not self.sim._3D:
-            sim_mod={'ua':self.sim.ua[:],
-                     'va':self.sim.va[:],
-                     'elev':self.sim.el[:]}
+            sim_mod={'ua':ua[:],
+                     'va':va[:],
+                     'elev':el[:]}
         else:
-            sim_mod={'ua':self.sim.ua[:],
-                     'va':self.sim.va[:],
-                     'elev':self.sim.el[:],
-                     'u':self.sim.u[:],
-                     'v':self.sim.v[:]}
+            sim_mod={'ua':ua[:],
+                     'va':va[:],
+                     'elev':el[:],
+                     'u':u[:],
+                     'v':v[:],
+                     'siglay':np.squeeze(simulated.Grid.siglay[:, ind])}
              
 
         #Check what kind of observed data it is
@@ -124,7 +126,7 @@ class Validation:
 
         #Alternative measurement type
         #elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
-        #    obstype='tidegauge'
+        #    obstype='TideGauge'
         #    obs_mod = {'data':tideData.data, 'elev':tideData.elev}
 
         else:
@@ -141,6 +143,24 @@ class Validation:
                         'mod_time':self.sim.matlabTime,
                         'vel_obs_harmonics':self.obs.velCoef,
                         'elev_obs_harmonics':self.obs.elCoef,
-                        'vel_mod_harmonics':self.sim.velCoef,
-                        'elev_mod_harmonics':self.sim.elCoef}    
-    #def compare
+                        'vel_mod_harmonics':velCoef,
+                        'elev_mod_harmonics':elCoef}
+ 
+    def validate(self):
+        """ """
+        if self.struct['type'] == 'ADCP':
+    	    (elev_suite, speed_suite, dir_suite, u_suite, v_suite, 
+             vel_suite) = compareUV(self.struct)
+            self.struct['elev_val'] = elev_suite
+    	    self.struct['speed_val'] = speed_suite
+    	    self.struct['dir_val'] = dir_suite
+            self.struct['u_val'] = u_suite
+	    self.struct['v_val'] = v_suite
+	    self.struct['vel_val'] = vel_suite
+        elif self.struct['type'] == 'TideGauge':
+     	    elev_suite_dg = compareTG(self.struct)
+    	    self.struct['tg_val'] = elev_suite_dg 
+        else:
+            print "-This type of measurements is not supported yet-"
+            sys.exit()
+            
