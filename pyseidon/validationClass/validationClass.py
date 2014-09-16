@@ -32,6 +32,20 @@ class Validation:
         self.sim = simulated.Variables
         self.struct = np.array([])
 
+        #Check if times coincide
+        obsMax = self.obs.mtime.max()
+        obsMin = self.obs.mtime.min()
+        simMax = self.sim.matlabTime.max()
+        simMin = self.sim.matlabTime.min()
+        absMin = max(obsMin, simMin)
+        absMax = min(obsMax, simMax)
+        A = np.where(self.sim.matlabTime[:] >= absMin).tolist() 
+        B = np.where(self.sim.matlabTime[:] <= absMax).tolist()
+        test = A.intersection(B) 
+        if len(test) == 0:
+           print "---Time between simulation and measurement does not match up---"
+           sys.exit()
+
         #Check what kind of simulated data it is
         if simulated.__module__=='pyseidon.stationClass.stationClass':
             #Find closest point to ADCP
