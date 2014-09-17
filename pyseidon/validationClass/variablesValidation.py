@@ -142,9 +142,6 @@ class _load_validation:
                      'u':self.obs.east_vel,
                      'v':self.obs.north_vel,
                      'bins':self.obs.bins}
-            #Special block for 'struct'
-            self.struct = {'vel_obs_harmonics':self.obs.velCoef,
-                           'vel_mod_harmonics':velCoef}
 
         #Alternative measurement type
         elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
@@ -162,6 +159,7 @@ class _load_validation:
             print "-This type of measurements is not supported yet-"
             sys.exit()
 
+        #Store in dict structure for compatibility purposes
         #Common block for 'struct'
         self.struct = {'name': observed.History[0].split(' ')[-1],
                        'type':obstype,
@@ -173,5 +171,9 @@ class _load_validation:
                        'mod_time':self.sim.matlabTime,
                        'elev_obs_harmonics':self.obs.elCoef,
                        'elev_mod_harmonics':elCoef}
+        #Special blocks for 'struct'
+        if self.struct['type']=='ADCP':
+            self.struct['vel_obs_harmonics'] = self.obs.velCoef
+            self.struct['vel_mod_harmonics'] = velCoef
 
         if debug: print "..done"
