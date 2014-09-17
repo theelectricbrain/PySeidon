@@ -27,7 +27,7 @@ from utilities import *
 #print "OpenDap server connexion info:"
 
 __version__ = '0.6'
-__all__ = ["FVCOM", "ADCP", "Drifter", "Tidegauge",\
+__all__ = ["FVCOM", "ADCP", "Drifter", "TideGauge",\
            "Validation", "Station", "utilities" ]
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']
 __licence__ = 'GNU Affero GPL v3.0'

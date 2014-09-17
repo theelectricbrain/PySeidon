@@ -2,28 +2,27 @@
 # encoding: utf-8
 
 from __future__ import division
+import numpy as np
 
 class _load_tidegauge:
     """
-'Variables' subset in Tidegauge class contains the following numpy arrays:
+'Variables' subset in TideGauge class contains the following numpy arrays:
+-----------------------------------------------------------
+
+                       _lat = latitude, float, decimal degrees
+                      |_lon = lontitude, float, decimal degrees
+ TideGauge.Variables._|_RBR = Raw recording and sampling features 
+                      |_matlabTime = matlab time, 1D array
+                      |_el = sea surface elevation (m) timeserie, 1D array 
     """
-    def __init__(self,cls, debug=False):
-        if debug:
-            print 'Loading variables...'
+    def __init__(self, cls, debug=False):
+        if debug: print 'Loading variables...'
+        self.RBR = cls['RBR']
+        data = self.RBR.data
+        self.matlabTime = self.RBR.date_num_Z
+        self.lat = self.RBR.lat
+        self.lon = self.RBR.lon
+        self.el = data - np.mean(data)
 
-        self.lat = cls.Data['lat']
-        self.lon = cls.Data['lon']
-        self.north_vel = cls.Data['data']['north_vel']
-        self.east_vel = cls.Data['data']['east_vel']
-        self.vert_vel = cls.Data['data']['vert_vel']
-        self.dir_vel = cls.Data['data']['dir_vel']
-        self.mag_signed_vel = cls.Data['data']['mag_signed_vel']
-        self.ucross = cls.Data['data']['Ucross']
-        self.ualong = cls.Data['data']['Ualong']
-        self.pressure = cls.Data['pres']
-        self.surf = self.pressure['surf']
-        self.time = cls.Data['time']
-        self.mtime = self.time['mtime']
+        if debug: print '...Done'
 
-        if debug:
-            print '...Passed'

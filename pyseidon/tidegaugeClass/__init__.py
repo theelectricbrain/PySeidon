@@ -6,7 +6,7 @@ import os
 import sys
 
 #Local import
-from tidegaugeClass import Tidegauge
+from tidegaugeClass import TideGauge
 
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']
 __licence__ = 'GNU Affero GPL v3.0'

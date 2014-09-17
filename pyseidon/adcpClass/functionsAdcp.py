@@ -6,9 +6,13 @@ import numpy as np
 
 class FunctionsAdcp:
     ''''Utils' subset of FVCOM class gathers useful functions""" '''
-    def __init__(self,cls):
-        self._var = cls.Variables
-        self._debug = cls._debug
+    def __init__(self, variable, plot, History, debug=False):
+        self._var = variable
+        self._plot = plot
+        self._History = History
+        #Create pointer to FVCOM class
+        variable = self._var
+        History = self._History
 
 #TR_comments: templates
 #    def whatever(self, debug=False):

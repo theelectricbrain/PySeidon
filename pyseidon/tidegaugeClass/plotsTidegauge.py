@@ -10,9 +10,27 @@ import seaborn
 
 class PlotsTidegauge:
     """'Plots' subset of Tidegauge class gathers plotting functions"""
-    def __init__(self,cls):
-        self._var = cls.Variables
-        self._debug = cls._debug
+    def __init__(self, variable, debug=False):
+        self._var = variable
+
+    def plot_xy(self, x, y, title=' ', xLabel=' ', yLabel=' '):
+        """
+        Simple X vs Y plot
+
+        Inputs:
+        ------
+          - x = 1D array
+          - y = 1D array
+        """
+        fig = plt.figure(figsize=(18,10))
+        plt.rc('font',size='22')
+        self._fig = plt.plot(x, y, label=title)
+        scale = 1
+        ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
+        plt.ylabel(yLabel)
+        plt.xlabel(xLabel)
+        #plt.legend()
+        plt.show()      
 
 #TR_comments: templates
 #    def whatever(self, debug=False):

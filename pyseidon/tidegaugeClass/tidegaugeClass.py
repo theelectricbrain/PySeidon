@@ -5,46 +5,58 @@ from __future__ import division
 import numpy as np
 import scipy.io as sio
 import sys
-sys.path.append('/home/wesley/github/UTide/')
 from utide import ut_solv, ut_reconstr
 
+#Add local path to utilities
+sys.path.append('../utilities/')
 
-class Tidegauge:
-    def __init__(self, filename):
-        self.load(filename)
+#Local import
+from variablesTidegauge import _load_tidegauge
+from functionsTidegauge import *
+from plotsTidegauge import *
 
-    def load(self, filename):
-        print 'Loading...'
+class TideGauge:
+    ''' 
+Description:
+-----------
+  A class/structure for tide gauge data.
+  Functionality structured as follows:
+                _Data. = raw matlab file data
+               |_Variables. = useable adcp variables and quantities
+    TideGauge._|_History = Quality Control metadata
+               |_Utils. = set of useful functions
+               |_Plots. = plotting functions
 
-        self.mat = sio.loadmat(filename,
+Inputs:
+------
+  Only takes a file name as input, ex: testTG=TideGauge('./path_to_matlab_file/filename')
+
+Notes:
+-----
+  - Only handle fully processed tide gauge matlab data at the mo.
+  Throughout the package, the following conventions apply:
+  - Coordinates = decimal degrees East and North
+  - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
+                 +/-180=West, -90=South
+  - Depth = 0m is the free surface and depth is negative
+    '''
+    def __init__(self, filename, debug=False):
+        self._debug = debug
+        if debug: print '-Debug mode on-'
+        if debug: print 'Loading...'
+        #Metadata
+        self._origin_file = filename
+        self.History = ['Created from ' + filename]
+
+        self.Data = sio.loadmat(filename,
                                struct_as_record=False, squeeze_me=True)
+        self.Variables = _load_tidegauge(self.Data, debug=self._debug)
 
-        self.RBR = self.mat['RBR']
-        self.data = self.RBR.data
-        self.time = self.RBR.date_num_Z
-        self.lat = self.RBR.lat
-        self.lon = self.RBR.lon
+        self.Plots = PlotsTidegauge(self.Variables, debug=self._debug)
 
-        self.elev = self.data - np.mean(self.data)
-
-        print 'Done'
-
-    def harmonics(self, **kwarg):
-
-        self.coef = ut_solv(self.time,
-                            (self.data-np.mean(self.data)), [],
-                            self.lat, **kwarg)
-
-    def reconstr(self, time):
-        self.ts_recon, _ = ut_reconstr(time, self.coef)
+        self.Utils = FunctionsTidegauge(self.Variables,
+                                        self.Plots,
+                                        self.History,
+                                        debug=self._debug)
 
 
-if __name__ == '__main__':
-    filename = 'Westport_015892_20140325_1212_Z.mat'
-    tide = Tidegauge(filename)
-
-    ut_constits = ['M2','S2','N2','K2','K1','O1','P1','Q1']
-    tide.harmonics(method='ols', cnstit=ut_constits, ordercnstit='frq',
-                   nodiagn=True)
-
-    tide.reconstr(tide.time)

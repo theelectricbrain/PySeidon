@@ -37,12 +37,17 @@ Inputs:
 Notes:
 -----
    Only handle fully processed ADCP matlab data at the mo.
+  Throughout the package, the following conventions apply:
+  - Coordinates = decimal degrees East and North
+  - Directions = in degrees, ???
+  - Depth = 0m is the free surface and depth is negative
     '''
 
     def __init__(self, filename, debug=False):
         ''' Initialize ADCP class.
             Notes: only handle processed ADCP matlab data at the mo.'''    
         self._debug = debug
+        self._origin_file = filename
         if debug:
             print '-Debug mode on-' 
         #TR_comments: find a way to dissociate raw and processed data
@@ -53,10 +58,9 @@ Notes:
         except NotImplementedError:
             self.Data = h5py.File(filename)
         self.Variables = _load_adcp(self, debug=self._debug)
-        self.Utils = FunctionsAdcp(self)
-        self.Plots = PlotsAdcp(self)   
+        self.Plots = PlotsAdcp(self.Variables, debug=self._debug)
+        self.Utils = FunctionsAdcp(self.Variables,
+                                   self.Plots,
+                                   self.History,
+                                   debug=self._debug) 
 
-
-if __name__ == '__main__':
-    filename = '../test_files/adcp/Flow_GP-130620-BPa_avg5.mat'
-    data = ADCP(filename, debug=True)
