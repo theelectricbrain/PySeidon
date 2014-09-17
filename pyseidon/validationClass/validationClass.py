@@ -31,9 +31,8 @@ class Validation:
     """
     Validation class/structure.
     Functionality structured as follows:
-                 _obs. = measurement/observational variables
-    Validation._|_sim. = simulated variables
-                |_struct = dictionnary structure for validation purposes
+                 _History = Quality Control metadata
+    Validation._|_Variables. = observed and simulated variables and quantities
                 |_validate. = validation method/function
 
     Inputs:
@@ -81,7 +80,7 @@ class Validation:
         if filename==[]:
             filename = input('Enter filename (string) for csv file: ')
             filename = str(filename)
-        if (depth==[] and self.sim._3D):
+        if (depth==[] and self.Variables.sim._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
             depth = float(depth)
             if depth < 0.0: depth = -1.0 * depth
@@ -92,7 +91,7 @@ class Validation:
 
         if self.Variables.struct['type'] == 'ADCP':
     	    (elev_suite, speed_suite, dir_suite, u_suite, v_suite, 
-             vel_suite) = compareUV(self.Variables.struct, self.sim._3D,
+             vel_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
                                     plot=plot, depth=depth)
             self.Variables.struct['elev_val'] = elev_suite
     	    self.Variables.struct['speed_val'] = speed_suite
