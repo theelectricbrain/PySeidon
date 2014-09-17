@@ -22,7 +22,7 @@ Description:
   A class/structure for tide gauge data.
   Functionality structured as follows:
                 _Data. = raw matlab file data
-               |_Variables. = useable adcp variables and quantities
+               |_Variables. = useable tide gauge variables and quantities
     TideGauge._|_History = Quality Control metadata
                |_Utils. = set of useful functions
                |_Plots. = plotting functions
