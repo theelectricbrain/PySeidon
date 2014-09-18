@@ -147,7 +147,8 @@ class _load_validation:
         elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
             obstype='TideGauge'
             ut_constits = ['M2','S2','N2','K2','K1','O1','P1','Q1']
-            self.obs.elCoef = ut_solv(self.obs.matlabTime, self.obs.el, [],
+            self.obs.elCoef = ut_solv(self.obs.matlabTime[:], self.obs.el[:],
+                                      [], self.obs.lat,
                                       cnstit=ut_constits, notrend=True,
                                       rmin=0.95, method='ols', nodiagn=True,
                                       linci=True, ordercnstit='frq')
