@@ -154,9 +154,9 @@ class _load_validation:
             self.obs.elCoef = ut_solv(self.obs.matlabTime[c], self.obs.el[c],
                                       [], self.obs.lat,
                                       cnstit=ut_constits, notrend=True,
-                                      rmin=ut_constits, method='ols', nodiagn=True,
-                                      linci=True, ordercnstit='frq')
-                                      #linci=True, coef_int=True)
+                                      rmin=0.95, method='ols', nodiagn=True,
+                                      #linci=True, ordercnstit='frq')
+                                      linci=True, coef_int=True)
 
             #Store in dict structure for compatibility purposes
             obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el}
