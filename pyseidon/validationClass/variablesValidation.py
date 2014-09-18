@@ -69,6 +69,7 @@ class _load_validation:
             if self.sim._3D:
                 u = np.squeeze(self.sim.u[:, :,ind])
                 v = np.squeeze(self.sim.v[:, :,ind])
+                sig = np.squeeze(simulated.Grid.siglay[:, ind])
      
             #Harmonic analysis over matching time
             velCoef = ut_solv(self.sim.matlabTime[C],
@@ -96,6 +97,8 @@ class _load_validation:
                                                          self.obs.lon, self.obs.lat)
                v=simulated.Util3D.interpolation_at_point(self.sim.v,
                                                          self.obs.lon, self.obs.lat)
+               sig=simulated.Util3D.interpolation_at_point(simulated.Grid.siglay,
+                                                           self.obs.lon, self.obs.lat)
             #Harmonic analysis
             velCoef = ut_solv(self.sim.matlabTime[C],
                               ua[C], va[C], self.obs.lat,
@@ -122,7 +125,7 @@ class _load_validation:
                      'elev':el[:],
                      'u':u[:],
                      'v':v[:],
-                     'siglay':np.squeeze(simulated.Grid.siglay[:, ind])}
+                     'siglay':sig[:]}
              
 
         #Check what kind of observed data it is
