@@ -146,11 +146,12 @@ def findFiles(filename, name):
     '''
 
     name = '*' + name + '*.nc'
-    name = name.lower()
     matches = []
     for root, dirnames, filenames in os.walk(filename):
-        filenames=[x.lower() for x in filenames]
         for filename in fnmatch.filter(filenames, name):
+            matches.append(os.path.join(root, filename))
+            filenames.remove(filename)
+        for filename in fnmatch.filter(filenames, name.lower()):
             matches.append(os.path.join(root, filename))
 
     return sorted(matches)
