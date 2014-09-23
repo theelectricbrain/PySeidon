@@ -14,7 +14,7 @@ The top ADCP value of any column is no greater than 95% of the total depth
 
 ADCP_TOP_SURF = 0.95
 
-def depthToSigma(obs_data, obs_depth, siglay, bins):
+def depthToSigma(obs_data, obs_depth, siglay, bins, debug=False, debug_plot=False):
     '''
     Performs linear interpolation on 3D ADCP data to change it into a sigma
     layer format, similar to an FVCOM run.
@@ -22,9 +22,10 @@ def depthToSigma(obs_data, obs_depth, siglay, bins):
     Outputs a 2D numpy array representing the ADCP data in sigma layer
     format.
     '''
-
+    if debug: print "depthToSigma..."
     sig_obs = np.zeros(obs_data.shape[0], siglay.size)
 
+    if debug: print "...map old depths to between 0 and 1, then interpol..."
     # loop through columns/steps
     for i, column in enumerate(obs_data):
 
@@ -37,19 +38,22 @@ def depthToSigma(obs_data, obs_depth, siglay, bins):
 	# perform interpolation
 	sig_obs[i] = f_obs(siglay)
 
+    if debug: print "...depthToSigma done."
+
     return sig_obs
 
-def sigmaToDepth(mod_data, mod_depth, siglay, bins):
+def sigmaToDepth(mod_data, mod_depth, siglay, bins, debug=False, debug_plot=False):
     '''
     Performs linear interpolation on 3D FVCOM output to change it into the
     same format as ADCP output (i.e. constant depths, NaNs above surface)
 
     Outputs a 2D numpy array representing the FVCOM matrix in ADCP format.
     '''
-
+    if debug: print "sigmaToDepth..."
     bin_mod = np.zeros(mod_data.shape[0], bins.size)
     bin_width = bins[1] - bins[0]
 
+    if debug: print "...loop through columns/steps and interpol..."
     # loop through columns/steps
     for i, column in enumerate(mod_data):
 	
@@ -67,10 +71,13 @@ def sigmaToDepth(mod_data, mod_depth, siglay, bins):
 	    else:
 		bin_mod[i][j] = np.nan
 
+    if debug: print "...sigmaToDepth done."
+
     return bin_mod
 
 def depthFromSurf(mod_data, mod_depth, siglay, 
-		  obs_data, obs_depth, bins, depth=5):
+		  obs_data, obs_depth, bins, depth=5,
+                  debug=False, debug_plot=False):
     '''
     Performs linear interpolation on 3D ocean data to obtain data at a
     specific distance from the surface.
@@ -88,10 +95,11 @@ def depthFromSurf(mod_data, mod_depth, siglay,
     Outputs two timeseries representing model and observed data at 'depth'
     metres from the surface.
     '''
-
+    if debug: print "depthFromSurf..."
     new_mod = np.zeros(mod_data.shape[0])
     new_obs = np.zeros(obs_data.shape[0])
 
+    if debug: print "...loop through simulation columns and interpol at specified depth..."
     # loop over mod_data columns
     for i, step in enumerate(mod_data):      
         # create interpolation function
@@ -103,6 +111,7 @@ def depthFromSurf(mod_data, mod_depth, siglay,
 	sig_loc = float(location) / float(mod_depth[i])
 	new_mod[i] = f_mod(sig_loc)
 
+    if debug: print "...loop through measurement columns and interpol at specified depth..."
     # loop over obs_data columns
     for ii, column in enumerate(obs_data):
 
@@ -114,5 +123,7 @@ def depthFromSurf(mod_data, mod_depth, siglay,
 	# find location of specified depth and perform interpolation
 	location = obs_depth[ii] - depth
 	new_obs[ii] = f_obs(location)
+
+    if debug: print "...depthFromSurf done."
 
     return (new_mod, new_obs)

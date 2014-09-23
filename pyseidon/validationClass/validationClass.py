@@ -40,8 +40,9 @@ class Validation:
       - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
     """
-    def __init__(self, observed, simulated, debug=False):
+    def __init__(self, observed, simulated, debug=False, debug_plot=False):
         self._debug = debug
+        self._debug_plot = debug_plot
         if debug: print '-Debug mode on-'
         if debug: print 'Loading...'
         #Metadata
@@ -49,7 +50,7 @@ class Validation:
                         ' and ' + simulated._origin_file]
         self.Variables = _load_validation(observed, simulated, debug=self._debug)
  
-    def validate(self, filename=[], depth=[], plot=False):
+    def validate(self, filename=[], depth=[], plot=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -76,6 +77,8 @@ class Validation:
           N. S. Banas (2009), Evaluation of a coastal ocean circulation model for
           the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
+        debug = debug or self._debug
+        debug_plot = debug_plot or self._debug_plot    
         #User input
         if filename==[]:
             filename = input('Enter filename (string) for csv file: ')
@@ -92,7 +95,8 @@ class Validation:
         if self.Variables.struct['type'] == 'ADCP':
     	    (elev_suite, speed_suite, dir_suite, u_suite, v_suite, 
              vel_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
-                                    plot=plot, depth=depth)
+                                    plot=plot, depth=depth,
+                                    debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
     	    self.Variables.struct['speed_val'] = speed_suite
     	    self.Variables.struct['dir_val'] = dir_suite
@@ -105,7 +109,8 @@ class Validation:
             vars.append('dir')
 
         elif self.Variables.struct['type'] == 'TideGauge':
-     	    elev_suite_dg = compareTG(self.Variables.struct)
+     	    elev_suite_dg = compareTG(self.Variables.struct,
+                                      debug=debug, debug_plot=debug_plot)
     	    self.Variables.struct['tg_val'] = elev_suite_dg 
             #Variable to processed
             vars.append('tg')
@@ -115,7 +120,8 @@ class Validation:
             sys.exit()
 
         #Make csv file
-        valTable(self.Variables.struct, filename,  vars)
+        valTable(self.Variables.struct, filename,  vars,
+                 debug=debug, debug_plot=debug_plot)
         #Display csv
         csvName = filename + '_val.csv'
         csv_con = open(csvName, 'r')

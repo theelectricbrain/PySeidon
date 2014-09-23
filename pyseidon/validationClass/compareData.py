@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from utide import ut_reconstr
 import matplotlib.pyplot as plt
 from depthInterp import depthFromSurf
-from save_FlowFile_BPFormat import sign_speed, get_DirFromN
+#from save_FlowFile_BPFormat import sign_speed, get_DirFromN
 
 def dn2dt(datenum):
     '''
@@ -15,7 +15,7 @@ def dn2dt(datenum):
     return datetime.fromordinal(int(datenum)) + timedelta(days=datenum%1) - \
            timedelta(days=366)
 
-def compareUV(data, threeDim, depth=5, plot=False):
+def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False):
     '''
     Does a comprehensive validation process between modeled and observed
     data on the following:
@@ -26,6 +26,7 @@ def compareUV(data, threeDim, depth=5, plot=False):
     Outputs a list of important statistics for each variable, calculated
     using the TidalStats class
     '''
+    if debug: print "CompareUV..."
     # take data from input dictionary
     mod_time = data['mod_time']
     obs_time = data['obs_time']
@@ -47,9 +48,11 @@ def compareUV(data, threeDim, depth=5, plot=False):
         # use depth interpolation to get a single timeseries
         mod_depth = mod_el + np.mean(obs_el)
         (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
-				       obs_u_all, obs_el, bins, depth=depth)
+				       obs_u_all, obs_el, bins, depth=depth,
+                                       debug=debug, debug_plot=debug_plot)
         (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
-                                       obs_v_all, obs_el, bins, depth=depth)
+                                       obs_v_all, obs_el, bins, depth=depth,
+                                       debug=debug, debug_plot=debug_plot)
     else:
         obs_u = data['obs_timeseries']['ua']
         obs_v = data['obs_timeseries']['va']
@@ -57,29 +60,29 @@ def compareUV(data, threeDim, depth=5, plot=False):
         mod_v = data['mod_timeseries']['va']        
 
 
-    # convert times to datetime
+    if debug: print "...convert times to datetime..."
     mod_dt, obs_dt = [], []
     for i in mod_time:
 	mod_dt.append(dn2dt(i))
     for j in obs_time:
 	obs_dt.append(dn2dt(j))
 
-    # put data into a useful format
+    if debug: print "...put data into a useful format..."
     mod_spd = np.sqrt(mod_u**2 + mod_v**2)
     obs_spd = np.sqrt(obs_u**2 + obs_v**2)
     mod_dir = np.arctan2(mod_v, mod_u) * 180 / np.pi
     obs_dir = np.arctan2(obs_v, obs_u) * 180 / np.pi
     obs_el = obs_el - np.mean(obs_el)
 
-    # check if the modeled data lines up with the observed data
+    if debug: print "...check if the modeled data lines up with the observed data..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
-
+        if debug: print "...harmonic reconstruction..."
 	pred_uv = ut_reconstr(obs_time, v_mod_harm)
 	pred_uv = np.asarray(pred_uv)
 	pred_h = ut_reconstr(obs_time, el_mod_harm)
 	pred_h = np.asarray(pred_h)
 
-	# redo speed and direction and set interpolated variables
+	if debug: print "...redo speed and direction and set interpolated variables..."
 	mod_sp_int = np.sqrt(pred_uv[0]**2 + pred_uv[1]**2)
 	mod_ve_int = mod_sp_int * np.sign(pred_uv[1])
 	mod_dr_int = np.arctan2(pred_uv[1], pred_uv[0]) * 180 / np.pi
@@ -96,31 +99,39 @@ def compareUV(data, threeDim, depth=5, plot=False):
 	start_int = obs_dt[0]
 
     else:
-        # interpolate the data onto a common time step for each data type
+        if debug: print "...interpolate the data onto a common time step for each data type..."
 	# elevation
         (mod_el_int, obs_el_int, step_int, start_int) = \
-	    smooth(mod_el, mod_dt, obs_el, obs_dt)
+	    smooth(mod_el, mod_dt, obs_el, obs_dt,
+                   debug=debug, debug_plot=debug_plot)
 
 	# speed
         (mod_sp_int, obs_sp_int, step_int, start_int) = \
-            smooth(mod_spd, mod_dt, obs_spd, obs_dt)
+            smooth(mod_spd, mod_dt, obs_spd, obs_dt,
+                   debug=debug, debug_plot=debug_plot)
 
 	# direction
         (mod_dr_int, obs_dr_int, step_int, start_int) = \
-            smooth(mod_dir, mod_dt, obs_dir, obs_dt)
+            smooth(mod_dir, mod_dt, obs_dir, obs_dt,
+                   debug=debug, debug_plot=debug_plot)
 
 	# u velocity
 	(mod_u_int, obs_u_int, step_int, start_int) = \
-	    smooth(mod_u, mod_dt, obs_u, obs_dt)
+	    smooth(mod_u, mod_dt, obs_u, obs_dt,
+                   debug=debug, debug_plot=debug_plot)
 
 	# v velocity
 	(mod_v_int, obs_v_int, step_int, start_int) = \
-	    smooth(mod_v, mod_dt, obs_v, obs_dt)
+	    smooth(mod_v, mod_dt, obs_v, obs_dt,
+                   debug=debug, debug_plot=debug_plot)
 
 	# velocity i.e. signed speed
 	(mod_ve_int, obs_ve_int, step_int, start_int) = \
 	    smooth(mod_spd * np.sign(mod_v), mod_dt, 
-		   obs_spd * np.sign(obs_v), obs_dt)
+		   obs_spd * np.sign(obs_v), obs_dt,
+                   debug=debug, debug_plot=debug_plot)
+
+    if debug: print "...separate into ebb and flow..."
     '''
     # separate into ebb and flow
     mod_dir_n = get_DirFromN(mod_u_int, mod_v_int)
@@ -133,7 +144,7 @@ def compareUV(data, threeDim, depth=5, plot=False):
     print obs_signed_s[:20], obs_PA[:20]
     '''
 
-    # remove directions where velocities are small
+    if debug: print "...remove directions where velocities are small..."
     MIN_VEL = 0.5
     for i in np.arange(obs_sp_int.size):
  	if (obs_sp_int[i] < MIN_VEL):
@@ -141,28 +152,39 @@ def compareUV(data, threeDim, depth=5, plot=False):
 	if (mod_sp_int[i] < MIN_VEL):
 	    mod_dr_int[i] = np.nan
 
-    # get stats for each tidal variable
+    if debug: print "...get stats for each tidal variable..."
     elev_suite = tidalSuite(mod_el_int, obs_el_int, step_int, start_int,
-			    type='elevation', plot=plot)
+			    type='elevation', plot=plot,
+                            debug=debug, debug_plot=debug_plot)
     speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_int, start_int,
-			    type='speed', plot=plot)
+			    type='speed', plot=plot,
+                            debug=debug, debug_plot=debug_plot)
     dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_int, start_int,
-			    type='direction', plot=plot)
+			   type='direction', plot=plot,
+                           debug=debug, debug_plot=debug_plot)
     u_suite = tidalSuite(mod_u_int, obs_u_int, step_int, start_int,
-			    type='u velocity', plot=plot)
+			 type='u velocity', plot=plot,
+                         debug=debug, debug_plot=debug_plot)
     v_suite = tidalSuite(mod_v_int, obs_v_int, step_int, start_int,
-			    type='v velocity', plot=plot)
+			 type='v velocity', plot=plot,
+                         debug=debug, debug_plot=debug_plot)
     vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_int, start_int,
-			    type='velocity', plot=plot)
+			   type='velocity', plot=plot,
+                           debug=debug, debug_plot=debug_plot)
     #ebb_suite = tidalSuite(mod_ebb, obs_ebb, step_int, start_int,
-	#		    type='ebb', plot=True)
+    #     		    type='ebb', plot=True,
+    #                       debug=debug, debug_plot=debug_plot)
     #flo_suite = tidalSuite(mod_flo, obs_flo, step_int, start_int,
-	#		    type='flow', plot=True)
+    #	         	    type='flow', plot=True,
+    #                        debug=debug, debug_plot=debug_plot)
     # output statistics in useful format
+
+    if debug: print "...CompareUV done."
+
     return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite)
 
-def tidalSuite(model, observed, step, start, type, 
-		  plot=False):
+def tidalSuite(model, observed, step, start, type, plot=False,
+              debug=False, debug_plot=False):
     '''
     Create stats classes for a given tidal variable.
 
@@ -172,18 +194,22 @@ def tidalSuite(model, observed, step, start, type,
     
     Returns a dictionary containing all the stats.
     '''
-    stats = TidalStats(model, observed, step, start, type=type)
+    if debug: print "tidalSuite..."
+    stats = TidalStats(model, observed, step, start, type=type,
+                       debug=debug, debug_plot=debug_plot)
     stats_suite = stats.getStats()
     stats_suite['r_squared'] = stats.linReg()['r_2']
     stats_suite['phase'] = stats.getPhase()
 
-    if plot:
+    if plot or debug_plot:
 	stats.plotData()
 	stats.plotRegression(stats.linReg())
 
+    if debug: print "...tidalSuite done."
+
     return stats_suite
 
-def compareTG(data):
+def compareTG(data, debug=False, debug_plot=False):
     '''
     Does a comprehensive comparison between tide gauge height data and
     modeled data, much like the above function.
@@ -191,6 +217,7 @@ def compareTG(data):
     Input is a dictionary containing all necessary tide gauge and model data.
     Outputs a dictionary of useful statistics.
     '''
+    if debug: print "CompareTG..."
     # load data
     mod_elev = data['mod_timeseries']['elev']
     obs_elev = data['obs_timeseries']['elev']
@@ -205,10 +232,10 @@ def compareTG(data):
     for j, w in enumerate(mod_datenums):
 	mod_time.append(dn2dt(w))
 
-    # check if they line up in the time domain
+    if debug: print "...check if they line up in the time domain..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
 
-	# use ut_reconstr to create a new timeseries
+	if debug: print "...use ut_reconstr to create a new timeseries..."
 	mod_elev_int = ut_reconstr(obs_datenums, mod_harm)[0]
 	obs_elev_int = obs_elev
 	step_int = obs_time[1] - obs_time[0]
@@ -216,15 +243,18 @@ def compareTG(data):
 
     else:
 
-        # interpolate timeseries onto a common timestep
+        if debug: print "...interpolate timeseries onto a common timestep..."
         (obs_elev_int, mod_elev_int, step_int, start_int) = \
-            smooth(mod_elev, mod_time, obs_elev, obs_time)
+            smooth(mod_elev, mod_time, obs_elev, obs_time,
+                   debug=debug, debug_plot=debug_plot)
 
-    # get validation statistics
-    stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int,
-		       debug=True, type='height')
+    if debug: print "...get validation statistics..."
+    stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='height',
+                       debug=debug, debug_plot=debug_plot)
     elev_suite = stats.getStats()
     elev_suite['r_squared'] = stats.linReg()['r_2']
     elev_suite['phase'] = stats.getPhase(debug=False)
+
+    if debug: print "...CompareTG done."
 
     return elev_suite

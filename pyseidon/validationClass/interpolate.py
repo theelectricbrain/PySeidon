@@ -4,7 +4,8 @@ from datetime import timedelta
 import time
 
 
-def interpol(data_1, data_2, time_step=timedelta(minutes=5)):
+def interpol(data_1, data_2, time_step=timedelta(minutes=5),
+             debug=False, debug_plot=False):
     '''
     Interpolates between two datasets so their points line up in the time
     domain.
@@ -17,6 +18,9 @@ def interpol(data_1, data_2, time_step=timedelta(minutes=5)):
     Third optional argument sets the time between data points in the output
     data. Is a timedelta object, defaults to 10 minutes.
     '''
+    if debug: print "interpol..."
+    if debug: print "...line up points in the time, step=5min..."
+    domain
     dt_1 = data_1['time']
     dt_2 = data_2['time']
 
@@ -47,5 +51,7 @@ def interpol(data_1, data_2, time_step=timedelta(minutes=5)):
     series_2 = f2(output_times)
 
     dt_start = max(dt_1[0], dt_2[0])
+
+    if debug: print "...interpol done."
 
     return (series_1, series_2, time_step, dt_start)

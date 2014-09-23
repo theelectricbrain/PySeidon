@@ -30,13 +30,13 @@ class _load_validation:
     Validation.Variables._|_sim. = simulated variables
                           |_struct. = dictionnary structure for validation purposes 
     """
-    def __init__(self, observed, simulated, debug=False):
+    def __init__(self, observed, simulated, debug=False, debug_plot=False):
         if debug: print "..variables.."
         self.obs = observed.Variables
         self.sim = simulated.Variables
         self.struct = np.array([])
         #harmonic constituents to be evaluated
-        ut_constits = ['M2','S2','N2','K2','K1','O1','P1','Q1']
+        #ut_constits = ['M2','S2','N2','K2','K1','O1','P1','Q1']
 
         #Check if times coincide
         obsMax = self.obs.matlabTime.max()
@@ -75,13 +75,15 @@ class _load_validation:
             velCoef = ut_solv(self.sim.matlabTime[C],
                               ua[C], va[C],
                               simulated.Grid.lat[ind],
-                              cnstit=ut_constits, rmin=0.95, notrend=True,
+                              #cnstit=ut_constits, rmin=0.95, notrend=True,
+                              cnstit='auto', rmin=0.95, notrend=True,
                               method='ols', nodiagn=True, linci=True, conf_int=True)
 
             elCoef = ut_solv(self.sim.matlabTime[C],
                              el[C], [],
                              simulated.Grid.lat[ind],
-                             cnstit=ut_constits, rmin=0.95, notrend=True,
+                             #cnstit=ut_constits, rmin=0.95, notrend=True,
+                             cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
         #Alternative simulation type
         elif simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
@@ -102,12 +104,14 @@ class _load_validation:
             #Harmonic analysis
             velCoef = ut_solv(self.sim.matlabTime[C],
                               ua[C], va[C], self.obs.lat,
-                              cnstit=ut_constits, rmin=0.95, notrend=True,
+                              #cnstit=ut_constits, rmin=0.95, notrend=True,
+                              cnstit='auto', rmin=0.95, notrend=True,
                               method='ols', nodiagn=True, linci=True, conf_int=True)
 
             elCoef = ut_solv(self.sim.matlabTime[C],
                              el[C], [], self.obs.lat,
-                             cnstit=ut_constits, rmin=0.95, notrend=True,
+                             #cnstit=ut_constits, rmin=0.95, notrend=True,
+                             cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
 
         else:
@@ -116,15 +120,24 @@ class _load_validation:
 
         #Store in dict structure for compatibility purposes
         if not self.sim._3D:
-            sim_mod={'ua':ua[:],
-                     'va':va[:],
-                     'elev':el[:]}
+            #sim_mod={'ua':ua[:],
+            #         'va':va[:],
+            #         'elev':el[:]}
+            sim_mod={'ua':ua[C],
+                     'va':va[C],
+                     'elev':el[C]}
         else:
-            sim_mod={'ua':ua[:],
-                     'va':va[:],
-                     'elev':el[:],
-                     'u':u[:],
-                     'v':v[:],
+            #sim_mod={'ua':ua[:],
+            #         'va':va[:],
+            #         'elev':el[:],
+            #         'u':u[:],
+            #         'v':v[:],
+            #         'siglay':sig[:]}
+            sim_mod={'ua':ua[C],
+                     'va':va[C],
+                     'elev':el[C],
+                     'u':u[C,:],
+                     'v':v[C,:],
                      'siglay':sig[:]}
              
 
@@ -134,29 +147,38 @@ class _load_validation:
             #Harmonic analysis
             self.obs.velCoef = ut_solv(self.obs.matlabTime[c], self.obs.ua[c],
                                self.obs.va[c], self.obs.lat,
-                               cnstit=ut_constits, rmin=0.95, notrend=True,
+                               #cnstit=ut_constits, rmin=0.95, notrend=True,
+                               cnstit='auto', rmin=0.95, notrend=True,
                                method='ols', nodiagn=True, linci=True, coef_int=True)
             
 
             self.obs.elCoef = ut_solv(self.obs.matlabTime[c], self.obs.surf[c],
                               [], self.obs.lat,
-                              cnstit=ut_constits, rmin=0.95, notrend=True,
+                              #cnstit=ut_constits, rmin=0.95, notrend=True,
+                              cnstit='auto', rmin=0.95, notrend=True,
                               method='ols', nodiagn=True, linci=True, coef_int=True)
 
             #Store in dict structure for compatibility purposes
-            obs_mod={'ua':self.obs.ua,
-                     'va':self.obs.va,
-                     'elev':self.obs.surf,
-                     'u':self.obs.east_vel,
-                     'v':self.obs.north_vel,
-                     'bins':self.obs.bins}
+            #obs_mod={'ua':self.obs.ua,
+            #         'va':self.obs.va,
+            #         'elev':self.obs.surf,
+            #         'u':self.obs.east_vel,
+            #         'v':self.obs.north_vel,
+            #         'bins':self.obs.bins}
+            obs_mod={'ua':self.obs.ua[c],
+                     'va':self.obs.va[c],
+                     'elev':self.obs.surf[c],
+                     'u':self.obs.east_vel[c,:],
+                     'v':self.obs.north_vel[c,:],
+                     'bins':self.obs.bins[:]}
 
         #Alternative measurement type
         elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
             obstype='TideGauge'
             self.obs.elCoef = ut_solv(self.obs.matlabTime[c], self.obs.el[c],
                                       [], self.obs.lat,
-                                      cnstit=ut_constits, notrend=True,
+                                      #cnstit=ut_constits, notrend=True,
+                                      cnstit='auto', notrend=True,
                                       rmin=0.95, method='ols', nodiagn=True,
                                       #linci=True, ordercnstit='frq')
                                       linci=True, coef_int=True)
@@ -176,8 +198,10 @@ class _load_validation:
                        'lon':self.obs.lon,
                        'obs_timeseries':obs_mod,
                        'mod_timeseries':sim_mod,
-                       'obs_time':self.obs.matlabTime,
-                       'mod_time':self.sim.matlabTime,
+                       #'obs_time':self.obs.matlabTime,
+                       #'mod_time':self.sim.matlabTime,
+                       'obs_time':self.obs.matlabTime[c],
+                       'mod_time':self.sim.matlabTime[C],
                        'elev_obs_harmonics':self.obs.elCoef,
                        'elev_mod_harmonics':elCoef}
         #Special blocks for 'struct'

@@ -2,7 +2,7 @@ from datetime import timedelta
 import numpy as np
 import time
 
-def smooth(data_1, dt_1, data_2, dt_2):
+def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
     '''
     Smooths a dataset by taking the average of all datapoints within
     a certain timestep to reduce noise. Lines up two datasets in the
@@ -11,6 +11,8 @@ def smooth(data_1, dt_1, data_2, dt_2):
     Accepts four variables representing the data. data_1 and data_2 are the
     data points, dt_1 and dt_2 are the datetimes corresponding to the points.
     '''
+    if debug: print "smooth..."
+
     time_step = timedelta(minutes=10)
 
     # create POSIX timestamp array corresponding to each dataset
@@ -56,5 +58,5 @@ def smooth(data_1, dt_1, data_2, dt_2):
 	    series_2[i] = np.nan
 
 	dt_start = max(dt_1[0], dt_2[0])
-
+    if debug: print "...smooth done."
     return (series_1, series_2, time_step, dt_start)

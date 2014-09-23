@@ -22,15 +22,17 @@ class TidalStats:
     Functions are used to calculate statistics and to output
     visualizations and tables.
     '''
-    def __init__(self, model_data, observed_data, time_step, start_time,
-		 debug=False, type=''):
-
+    def __init__(self, model_data, observed_data, time_step, start_time,type='',
+                 debug=False, debug_plot=False):
+        if debug: print "TidalStats initialisation..."
+        self._debug = debug
+        self._debug_plot = debug_plot
         self.model = np.asarray(model_data)
         self.model = self.model.astype(np.float64)
         self.observed = np.asarray(observed_data)
         self.observed = self.observed.astype(np.float64)
 
-	# trim nans at start and end of data
+	if debug: print "...trim nans at start and end of data.."
 	start_index, end_index = 0, -1
 	while np.isnan(self.observed[start_index]):
 	    start_index += 1
@@ -39,7 +41,7 @@ class TidalStats:
 	self.model = self.model[start_index:end_index]
 	self.observed = self.observed[start_index:end_index]
 
-	# trim nans in model data too, just in case
+	if debug: print "...trim nans in model data too, just in case..."
 	start_index, end_index = 0, -1
 	while np.isnan(self.model[start_index]):
 	    start_index += 1
@@ -55,7 +57,7 @@ class TidalStats:
         for j, jj in enumerate(self.times):
             timestamps[j] = time.mktime(jj.timetuple())
 
-	# uses linear interpolation to eliminate any NaNs in the data
+	if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
 	if (True in np.isnan(self.observed)):
 	    obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
 	    time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
@@ -71,7 +73,7 @@ class TidalStats:
 	self.length = self.error.size
 	self.type = type
 
-        # establish limits as defined by NOAA standard
+        if debug: print "...establish limits as defined by NOAA standard..."
         if (type == 'speed' or type == 'velocity'):
             self.ERROR_BOUND = 0.26
         elif (type == 'elevation'):
@@ -83,49 +85,53 @@ class TidalStats:
         else:
     	    self.ERROR_BOUND = 0.5
 
-    def getRMSE(self):
+        if debug: print "...TidalStats initialisation done."
+
+    def getRMSE(self, debug=False):
         '''
         Returns the root mean squared error of the data.
         '''
+        if debug or self._debug: print "...getRMSE..."
         return np.sqrt(np.mean(self.error**2))
 
-    def getSD(self):
+    def getSD(self, debug=False):
         '''
         Returns the standard deviation of the error.
         '''
+        if debug or self._debug: print "...getSD..."
         return np.sqrt(np.mean(abs(self.error - np.mean(self.error)**2)))
 
-    def getCF(self):
+    def getCF(self, debug=False):
         '''
         Returns the central frequency of the data, i.e. the fraction of
         errors that lie within the defined limit.
         '''
         central_err = [i for i in self.error if abs(i) < self.ERROR_BOUND]
         central_num = len(central_err)
-
+        if debug or self._debug: print "...getCF..."
         return (float(central_num) / float(self.length)) * 100
 
-    def getPOF(self):
+    def getPOF(self, debug=False):
         '''
         Returns the positive outlier frequency of the data, i.e. the
         fraction of errors that lie above the defined limit.
         '''
         upper_err = [i for i in self.error if i > 2 * self.ERROR_BOUND]
         upper_num = len(upper_err)
-
+        if debug or self._debug: print "...getPOF..."
         return (float(upper_num) / float(self.length)) * 100
 
-    def getNOF(self):
+    def getNOF(self, debug=False):
         '''
         Returns the negative outlier frequency of the data, i.e. the
         fraction of errors that lie below the defined limit.
         '''
         lower_err = [i for i in self.error if i < -2 * self.ERROR_BOUND]
         lower_num = len(lower_err)
-
+        if debug or self._debug: print "...getNOF..."
         return (float(lower_num) / float(self.length)) * 100
 
-    def getMDPO(self):
+    def getMDPO(self, debug=False):
         '''
         Returns the maximum duration of positive outliers, i.e. the
         longest amount of time across the data where the model data
@@ -145,10 +151,10 @@ class TidalStats:
                 if (current_duration > max_duration):
                     max_duration = current_duration
                 current_duration = 0
-
+        if debug or self._debug: print "...getMDPO..."
         return max(max_duration, current_duration)
 
-    def getMDNO(self):
+    def getMDNO(self, debug=False):
         '''
         Returns the maximum duration of negative outliers, i.e. the
         longest amount of time across the data where the observed
@@ -168,10 +174,10 @@ class TidalStats:
                 if (current_duration > max_duration):
                     max_duration = current_duration
                 current_duration = 0
-
+        if debug or self._debug: print "...getMDNO..."
         return max(max_duration, current_duration)
 
-    def getWillmott(self):
+    def getWillmott(self, debug=False):
         '''
         Returns the Willmott skill statistic.
         '''
@@ -183,7 +189,7 @@ class TidalStats:
         obs_mean = np.mean(self.observed)
         skill = 1 - MSE / np.mean((abs(self.model - obs_mean) +
                                    abs(self.observed - obs_mean))**2)
-
+        if debug or self._debug: print "...getWillmott..."
         return skill
 
     def getPhase(self, max_phase=timedelta(hours=3), debug=False):
@@ -198,12 +204,13 @@ class TidalStats:
 	will be tested. If debug is set to True, a plot of the RMSE for each
 	phase shift will be shown.
 	'''
+        if debug or self._debug: print "getPhase..."
 	# grab the length of the timesteps in seconds
 	max_phase_sec = max_phase.seconds
 	step_sec = self.step.seconds
 	num_steps = max_phase_sec / step_sec
 
-	# iterate through the phase shifts and check RMSE for each
+	if debug or self._debug: print "...iterate through the phase shifts and check RMSE..."
 	errors = []
 	phases = np.arange(-num_steps, num_steps)
 	for i in phases:
@@ -230,18 +237,18 @@ class TidalStats:
 	    rms_error = stats.getRMSE()
 	    errors.append(rms_error)
 	    
-	# find the minimum rmse, and thus the minimum phase
+	if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
 	min_index = errors.index(min(errors))
 	best_phase = phases[min_index]
 	phase_minutes = best_phase * step_sec / 60
 
 	# plot RMSE vs. the phase shift to ensure we're getting the right one
-	if debug:
-	    #plt.plot(phases, errors, label='Phase Shift vs. RMSE')
-	    #plt.vlines(best_phase, min(errors), max(errors))
-	    #plt.xlabel('Timesteps of Shift')
-	    #plt.ylabel('Root Mean Squared Error')
-	    #plt.show()
+	if self._debug_plot:
+	    plt.plot(phases, errors, label='Phase Shift vs. RMSE')
+	    plt.vlines(best_phase, min(errors), max(errors))
+	    plt.xlabel('Timesteps of Shift')
+	    plt.ylabel('Root Mean Squared Error')
+	    plt.show()
 
 	    # plot data on top of shifted data
 	    if (best_phase < 0):
@@ -256,14 +263,15 @@ class TidalStats:
 		plt.ylabel('Values')
 		plt.title('Shifted Data vs. Original Data')
 		plt.show()
-
+        if debug or self._debug: print "...getPhase done."
 	return phase_minutes
 
-    def altPhase(self):
+    def altPhase(self, debug=False):
 	'''
 	Alternate version of lag detection using scipy's cross correlation
 	function.
 	'''
+        if debug or self._debug: print "altPhase..."
 	# normalize arrays
 	mod = self.model
 	mod -= self.model.mean()
@@ -272,7 +280,7 @@ class TidalStats:
 	obs -= self.observed.mean()
 	obs /= obs.std()
 
-	# get cross correlation and find number of timesteps of shift
+	if debug or self._debug: print "...get cross correlation and find number of timesteps of shift..."
 	xcorr = correlate(mod, obs)
 	samples = np.arange(1 - self.length, self.length)
 	time_shift = samples[xcorr.argmax()]
@@ -280,6 +288,9 @@ class TidalStats:
 	# find number of minutes in time shift
 	step_sec = self.step.seconds
 	lag = time_shift * step_sec / 60
+
+        if debug or self._debug: print "...altPhase done."
+
 	return lag
 
     def getStats(self, debug=False):
@@ -298,14 +309,17 @@ class TidalStats:
         stats['skill'] = self.getWillmott()
 	stats['phase'] = self.getPhase(debug=debug)
 
+        if debug or self._debug: print "...getStats..."
+
         return stats
 
-    def linReg(self, alpha=0.05):
+    def linReg(self, alpha=0.05, debug=False):
         '''
         Does linear regression on the model data vs. recorded data.
 
         Gives a 100(1-alpha)% confidence interval for the slope
         '''
+        if debug or self._debug: print "linReg..."
 	# set stuff up to make the code cleaner
 	obs = self.observed
 	mod = self.model
@@ -354,22 +368,25 @@ class TidalStats:
         data['pred_CI_width'] = y_CI_width
         data['conf_level'] = 100 * (1 - alpha)
 
+        if debug or self._debug: print "...linReg done."
+
         return data
 
-    def crossVal(self, alpha=0.05):
+    def crossVal(self, alpha=0.05, debug=False):
         '''
         Performs leave-one-out cross validation on the linear regression.
 
         i.e. removes one datum from the set, redoes linreg on the training
         set, and uses the results to attempt to predict the missing datum.
         '''
+        if debug or self._debug: print "crossVal..."
         cross_error = np.zeroes(self.model.size)
         cross_pred = np.zeroes(self.model.size)
         model_orig = self.model
         obs_orig = self.observed
         time_orig = self.time
 
-        # loop through each element, remove it
+        if debug or self._debug: print "...loop through each element, remove it..."
         for i in np.arange(self.model.size):
             train_mod = np.delete(model_orig, i)
             train_obs = np.delete(obs_orig, i)
@@ -387,7 +404,7 @@ class TidalStats:
             cross_error[i] = abs(pred_obs - obs_orig[i])
 
         # calculate PRESS and PRRMSE statistics for predicted data
-        # (predicted residual sum of squares and predicted RMSE)
+        if debug or self._debug: print "...predicted residual sum of squares and predicted RMSE..."
         PRESS = np.sum(cross_error**2)
         PRRMSE = np.sqrt(PRESS) / self.model.size
 
@@ -397,9 +414,11 @@ class TidalStats:
         data['PRRMSE'] = PRRMSE
         data['cross_pred'] = cross_pred
 
+        if debug or self._debug: print "...crossVal done."
+
         return data
 
-    def plotRegression(self, lr, save=False, out_f=''):
+    def plotRegression(self, lr, save=False, out_f='', debug=False):
         '''
         Plots a visualization of the output from linear regression,
         including confidence intervals for predictands and slope.
@@ -450,7 +469,7 @@ class TidalStats:
 	else:
 	    plt.show()
 
-    def plotData(self, graph='time', save=False, out_f=''):
+    def plotData(self, graph='time', save=False, out_f='', debug=False):
         '''
         Provides a visualization of the data.
 

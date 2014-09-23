@@ -5,7 +5,7 @@ import sys
 
 # ALTERNATE VERSION FOR ANDY
 
-def valTable(struct, filename, vars):
+def valTable(struct, filename, vars, debug=False, debug_plot=False):
     '''
     Takes validation data from the struct and saves it into a .csv file .
 
@@ -21,7 +21,7 @@ def valTable(struct, filename, vars):
     for var in vars:
         (type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
         = siteStats(struct, var, type, name, RMSE, CF, SD, POF,
-                    NOF, MDPO, MDNO, skill, r2, phase)
+                    NOF, MDPO, MDNO, skill, r2, phase, debug=False, debug_plot=False)
 
     # put stats into dict and create dataframe
     val_dict = {'Type':type, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
@@ -36,12 +36,12 @@ def valTable(struct, filename, vars):
     table.to_csv(out_file)
 
 def siteStats(site, variable, type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, 
-	      skill, r2, phase):
+	      skill, r2, phase, debug=False, debug_plot=False):
     '''
     Takes in the run (an array of dictionaries) and the type of the run (a
     string). Also takes in the list representing each statistic.
     '''
- 
+    if debug: print "siteStats..."
     # check if it's a tidegauge site
     if ((site['type'] != 'TideGauge') and (variable != 'tg')):
         stats = site['{}_val'.format(variable)]
@@ -69,5 +69,7 @@ def siteStats(site, variable, type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO,
     skill.append(round(stats['skill'], 2))
     r2.append(round(stats['r_squared'], 2))
     phase.append(stats['phase'])
+
+    if debug: print "...siteStats done."
 
     return (type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase)

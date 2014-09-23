@@ -21,8 +21,8 @@ def py2date(dt):
    frac_microseconds = dt.microsecond / (24.0 * 60.0 * 60.0 * 1000000.0)
    return mdn.toordinal() + frac_seconds + frac_microseconds
 
-def calc_ensemble(x, ens, ens_dim):
-
+def calc_ensemble(x, ens, ens_dim, debug=False, debug_plot=False):
+    if debug: "calc_ensemble..."
     #initialize input
     ens = int(ens)
     #x = x[:, None]
@@ -47,18 +47,23 @@ def calc_ensemble(x, ens, ens_dim):
 
     #x_ens = np.nanmean(x_ens, axis=2)
     x_ens = np.nanmean(x_ens, axis=1)
+
+    if debug: "...calc_ensemble done."
+
     return x_ens
 
 
-def rotate_coords(x, y, theta):
+def rotate_coords(x, y, theta, debug=False, debug_plot=False ):
     '''
     Similar to "rotate_to_channelcoords.m" code,
     theta is now the angle
     between the old axis and the new x-axis (CCw is positive)
     '''
-
+    if debug: "rotate_coords..."
     xnew = x * np.cos(theta) + y * np.sin(theta)
     ynew = -x * np.sin(theta) + y * np.cos(theta)
+
+    if debug: "...rotate_coords done."
 
     return xnew, ynew
 
