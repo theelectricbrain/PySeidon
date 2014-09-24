@@ -5,6 +5,7 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import csv
+import cPickle as pkl
 
 #import netCDF4 as nc
 #Quick fix
@@ -120,8 +121,8 @@ class Validation:
             sys.exit()
 
         #Make csv file
-        valTable(self.Variables.struct, filename,  vars,
-                 debug=debug, debug_plot=debug_plot)
+        self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
+                                   debug=debug, debug_plot=debug_plot)
         #Display csv
         csvName = filename + '_val.csv'
         csv_con = open(csvName, 'r')
@@ -131,4 +132,80 @@ class Validation:
         for row in csv_cont:
            row = [str(e) for e in row[:][1:]]
            print('\t'.join(row))
-        print(70*'-')             
+        print(70*'-')  
+
+    def Save_as(self, filename, fileformat='pickle', debug=False):
+        """
+        This method saves the current FVCOM structure as:
+           - *.p, i.e. python file
+           - *.mat, i.e. Matlab file
+
+        Inputs:
+        ------
+          - filename = path + name of the file to be saved, string
+
+        Keywords:
+        --------
+          - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
+        """
+        debug = debug or self._debug
+        if debug: print 'Saving file...'
+
+        #Save as different formats
+        if fileformat=='pickle':
+            filename = filename + ".p"
+            f = open(filename, "wb")
+            data = {}
+            data['History'] = self.History
+            data['Benchmarks'] = self.Benchmarks
+            data['Variables'] = self.Variables.__dict__
+            #TR: Force caching Variables otherwise error during loading
+            #    with 'netcdf4.Variable' type (see above)
+            for key in data['Variables']:
+                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                if any([type(data['Variables'][key]).__name__==x for x in listkeys]):
+                    if debug:
+                        print "Force caching for " + key
+                    data['Variables'][key] = data['Variables'][key][:]
+            #Save in pickle file
+            if debug:
+                print 'Dumping in pickle file...'
+            try:    
+                pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
+            except SystemError:
+                print '---Data too large for machine memory---'
+                raise
+           
+            f.close()
+        elif fileformat=='matlab':
+            filename = filename + ".mat"
+            #TR comment: based on MitchellO'Flaherty-Sproul's code
+            dtype = float
+            data = {}
+            Grd = {}
+            Var = {}
+            Bch = {}
+
+            data['History'] = self.History
+            Bch = self.Benchmarks
+            for key in Bch:
+                data[key] = Bch[key]   
+            Var = self.Variables.__dict__
+            #TR: Force caching Variables otherwise error during loading
+            #    with 'netcdf4.Variable' type (see above)
+            for key in Var:
+                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                if any([type(Var[key]).__name__==x for x in listkeys]):
+                    if debug:
+                        print "Force caching for " + key
+                    Var[key] = Var[key][:]
+                #keyV = key + '-var'
+                #data[keyV] = Var[key]
+                data[key] = Var[key]
+          
+            #Save in mat file file
+            if debug:
+                print 'Dumping in matlab file...'
+            savemat(filename, data, oned_as='column')       
+        else:
+            print "---Wrong file format---"              
