@@ -101,32 +101,32 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
     else:
         if debug: print "...interpolate the data onto a common time step for each data type..."
 	# elevation
-        (mod_el_int, obs_el_int, step_int, start_int) = \
+        (mod_el_int, obs_el_int, step_el_int, start_el_int) = \
 	    smooth(mod_el, mod_dt, obs_el, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
 	# speed
-        (mod_sp_int, obs_sp_int, step_int, start_int) = \
+        (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = \
             smooth(mod_spd, mod_dt, obs_spd, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
 	# direction
-        (mod_dr_int, obs_dr_int, step_int, start_int) = \
+        (mod_dr_int, obs_dr_int, step_dr_int, start_dr_int) = \
             smooth(mod_dir, mod_dt, obs_dir, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
 	# u velocity
-	(mod_u_int, obs_u_int, step_int, start_int) = \
+	(mod_u_int, obs_u_int, step_u_int, start_u_int) = \
 	    smooth(mod_u, mod_dt, obs_u, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
 	# v velocity
-	(mod_v_int, obs_v_int, step_int, start_int) = \
+	(mod_v_int, obs_v_int, step_v_int, start_v_int) = \
 	    smooth(mod_v, mod_dt, obs_v, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
 	# velocity i.e. signed speed
-	(mod_ve_int, obs_ve_int, step_int, start_int) = \
+	(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = \
 	    smooth(mod_spd * np.sign(mod_v), mod_dt, 
 		   obs_spd * np.sign(obs_v), obs_dt,
                    debug=debug, debug_plot=debug_plot)
@@ -153,28 +153,28 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
 	    mod_dr_int[i] = np.nan
 
     if debug: print "...get stats for each tidal variable..."
-    elev_suite = tidalSuite(mod_el_int, obs_el_int, step_int, start_int,
+    elev_suite = tidalSuite(mod_el_int, obs_el_int, step_el_int, start_el_int,
 			    type='elevation', plot=plot,
                             debug=debug, debug_plot=debug_plot)
-    speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_int, start_int,
+    speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
 			    type='speed', plot=plot,
                             debug=debug, debug_plot=debug_plot)
-    dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_int, start_int,
+    dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
 			   type='direction', plot=plot,
                            debug=debug, debug_plot=debug_plot)
-    u_suite = tidalSuite(mod_u_int, obs_u_int, step_int, start_int,
+    u_suite = tidalSuite(mod_u_int, obs_u_int, step_u_int, start_u_int,
 			 type='u velocity', plot=plot,
                          debug=debug, debug_plot=debug_plot)
-    v_suite = tidalSuite(mod_v_int, obs_v_int, step_int, start_int,
+    v_suite = tidalSuite(mod_v_int, obs_v_int, step_v_int, start_v_int,
 			 type='v velocity', plot=plot,
                          debug=debug, debug_plot=debug_plot)
-    vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_int, start_int,
+    vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
 			   type='velocity', plot=plot,
                            debug=debug, debug_plot=debug_plot)
-    #ebb_suite = tidalSuite(mod_ebb, obs_ebb, step_int, start_int,
+    #ebb_suite = tidalSuite(mod_ebb, obs_ebb, step_ebb_int, start_ebb_int,
     #     		    type='ebb', plot=True,
     #                       debug=debug, debug_plot=debug_plot)
-    #flo_suite = tidalSuite(mod_flo, obs_flo, step_int, start_int,
+    #flo_suite = tidalSuite(mod_flo, obs_flo, step_flo_int, start_flo_int,
     #	         	    type='flow', plot=True,
     #                        debug=debug, debug_plot=debug_plot)
     # output statistics in useful format
