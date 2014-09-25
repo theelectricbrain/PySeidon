@@ -37,7 +37,7 @@ class TidalStats:
         while (np.isnan(self.observed[start_index]) or\
                np.isnan(self.observed[end_index]) or\
                np.isnan(self.model[start_index]) or\
-               np.isnan(self.model[end_index]))
+               np.isnan(self.model[end_index])):
 
 	    if debug: print "...trim nans at start and end of data.."
 	    start_index, end_index = 0, -1
