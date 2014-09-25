@@ -81,14 +81,14 @@ class _load_adcp:
             data_ma_u = np.ma.array(self.east_vel,
                         mask=np.arange(self.east_vel.shape[1]) > index[:, 1, None])
             data_ma_u=np.ma.masked_array(data_ma_u,np.isnan(data_ma_u))
-        except MaskError:
+        except:  #MaskError:
             data_ma_u=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
 
         try:
             data_ma_v = np.ma.array(self.north_vel,
                         mask=np.arange(self.north_vel.shape[1]) > index[:, 1, None])
             data_ma_v=np.ma.masked_array(data_ma_v,np.isnan(data_ma_v))
-        except MaskError:
+        except:  #MaskError:
             data_ma_v=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))
         
         self.ua = np.array(data_ma_u.mean(axis=1))
