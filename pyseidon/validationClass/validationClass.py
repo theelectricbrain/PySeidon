@@ -10,6 +10,8 @@ import cPickle as pkl
 #import netCDF4 as nc
 #Quick fix
 import scipy.io.netcdf as nc
+from scipy.io import savemat
+from scipy.io import loadmat
 
 from datetime import datetime, timedelta
 import cPickle as pickle
