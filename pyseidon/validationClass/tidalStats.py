@@ -32,23 +32,30 @@ class TidalStats:
         self.observed = np.asarray(observed_data)
         self.observed = self.observed.astype(np.float64)
 
-	if debug: print "...trim nans at start and end of data.."
-	start_index, end_index = 0, -1
-	while np.isnan(self.observed[start_index]):
-	    start_index += 1
-	while np.isnan(self.observed[end_index]):
-	    end_index -= 1
-	self.model = self.model[start_index:end_index]
-	self.observed = self.observed[start_index:end_index]
+        #TR: fix for interpolation pb when 0 index or -1 index array values = nan
+        start_index, end_index = 0, -1
+        while (np.isnan(self.observed[start_index]) or\
+               np.isnan(self.observed[end_index]) or\
+               np.isnan(self.model[start_index]) or\
+               np.isnan(self.model[end_index]))
 
-	if debug: print "...trim nans in model data too, just in case..."
-	start_index, end_index = 0, -1
-	while np.isnan(self.model[start_index]):
-	    start_index += 1
-	while np.isnan(self.model[end_index]):
-	    end_index -= 1
-	self.model = self.model[start_index:end_index]
-	self.observed = self.observed[start_index:end_index]
+	    if debug: print "...trim nans at start and end of data.."
+	    start_index, end_index = 0, -1
+	    while np.isnan(self.observed[start_index]):
+	        start_index += 1
+	    while np.isnan(self.observed[end_index]):
+	        end_index -= 1
+	    self.model = self.model[start_index:end_index]
+	    self.observed = self.observed[start_index:end_index]
+
+	    if debug: print "...trim nans in model data too, just in case..."
+	    start_index, end_index = 0, -1
+	    while np.isnan(self.model[start_index]):
+	        start_index += 1
+	    while np.isnan(self.model[end_index]):
+	        end_index -= 1
+	    self.model = self.model[start_index:end_index]
+	    self.observed = self.observed[start_index:end_index]
 
         # set up array of datetimes corresponding to the data (and timestamps)
         self.times = start_time + np.arange(self.model.size) * time_step
