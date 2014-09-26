@@ -144,7 +144,7 @@ class PlotsFvcom:
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         plt.show() 
 
-    def plot_xy(self, x, y, title=' ', xLabel=' ', yLabel=' '):
+    def plot_xy(self, x, y, error=[], title=' ', xLabel=' ', yLabel=' '):
         """
         Simple X vs Y plot
 
@@ -152,6 +152,13 @@ class PlotsFvcom:
         ------
           - x = 1D array
           - y = 1D array
+
+        Keywords:
+        --------
+          - error = error on 'y', 1D array
+          - title = plot title, string
+          - xLabel = title of the x-axis, string
+          - yLabel = title of the y-axis, string
         """
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')
@@ -160,8 +167,40 @@ class PlotsFvcom:
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
+        if not error==[]:
+            plt.errorbar(x, y, yerr=error)
         #plt.legend()
         plt.show()      
+
+    def Histogram(self, y, title=' ', xLabel=' ', yLabel=' '):
+        """
+        Histogram plot
+
+        Inputs:
+        ------
+          - bins = list of bin edges
+          - y = 1D array
+
+        Keywords:
+        --------
+          - title = plot title, string
+          - xLabel = title of the x-axis, string
+          - yLabel = title of the y-axis, string
+        """
+        ## the histogram of the data
+        #n, bins, patches = plt.hist(y, 50, normed=True)
+        density, bins = np.histogram(y, bins=50, normed=True, density=True)
+        unity_density = density / density.sum()
+        widths = bins[:-1] - bins[1:]
+        # To plot correct percentages in the y axis 
+        plt.bar(bins[1:], unity_density, width=widths)
+        formatter = ticker.FuncFormatter(lambda v, pos: str(v * 100))
+        plt.gca().yaxis.set_major_formatter(formatter)
+
+        plt.ylabel(yLabel)
+        plt.xlabel(xLabel)
+
+        plt.show()  
 
     def add_points(self, x, y, label=' ', color='black'):
         """
