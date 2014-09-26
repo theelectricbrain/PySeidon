@@ -171,7 +171,9 @@ class FunctionsStationThreeD:
             mean_depth = np.mean((depth[:,sLvl[1:]]
                        + depth[:,sLvl[:-1]]) / 2.0, 0)
             mean_dveldz = np.mean(dveldz,0)
-            self._plot.plot_xy(mean_dveldz, mean_depth, title='Shear profile ',
+            error = np.std(dveldz,axis=0)
+            self._plot.plot_xy(mean_dveldz, mean_depth, error=error[:],
+                               title='Shear profile ',
                                xLabel='Shear (1/s) ', yLabel='Depth (m) ')
 
         return dveldz             

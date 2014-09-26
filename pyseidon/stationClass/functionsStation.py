@@ -337,6 +337,56 @@ class FunctionsStation:
 
         return dep
 
+    def speed_histogram(self, station, t_start=[], t_end=[], time_ind=[], debug=False):
+        """
+        This function plots the histogram of occurrences for the signed
+        flow speed at any given point.
+
+        Inputs:
+        ------
+          - station = either station index (interger) or name (string)
+
+        Keywords:
+        --------
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                      or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+                    or time index as an integer
+          - time_ind = time indices to work in, 1D array of integers 
+        
+        Notes:
+        -----
+          - use time_ind or t_start and t_end, not both
+        """
+        debug = debug or self._debug
+        if debug:
+            start = time.time()
+            print 'Computing speed histogram...'
+
+        pI, nI, pa, pav = self.ebb_flood_split(station,
+                          t_start=t_start, t_end=t_end, time_ind=time_ind,
+                          debug=debug)
+        dirFlow, norm = self.flow_dir(station,
+                          t_start=t_start, t_end=t_end, time_ind=time_ind,
+                          exceedance=False, debug=debug)
+        norm[nI] = -1.0 * norm[nI]
+
+        #compute bins
+        #minBound = norm.min()
+        #maxBound = norm.max()
+        #step = round((maxBound-minBound/51.0),1)
+        #bins = np.arange(minBound,maxBound,step)
+
+        #plot histogram
+        self._plot.Histogram(norm,
+                             xLabel='Signed flow speed (m/s)',
+                             yLabel='Occurrences (%)')
+   
+        if debug:
+            end = time.time()
+            print "...processing time: ", (end - start)
+
+
     def Harmonic_analysis_at_point(self, station,
                                    time_ind=[], t_start=[], t_end=[],
                                    elevation=True, velocity=False,

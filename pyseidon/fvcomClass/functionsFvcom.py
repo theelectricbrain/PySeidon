@@ -220,7 +220,7 @@ class FunctionsFvcom:
         #Rose diagram
         self._plot.rose_diagram(dirFlow, norm)
         if exceedance:
-            self.exceedance(norm)
+            self.exceedance(norm, debug=debug)
 
         return dirFlow, norm
 
@@ -364,13 +364,6 @@ class FunctionsFvcom:
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find,float number 
 
-        Outputs:
-        -------
-          - floodIndex = flood time index, 1D array of integers
-          - ebbIndex = ebb time index, 1D array of integers
-          - pr_axis = principal flow ax1s, float number in degrees
-          - pr_ax_var = associated variance, float number
-
         Keywords:
         --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -381,9 +374,6 @@ class FunctionsFvcom:
         
         Notes:
         -----
-          - may take time to compute if time period too long
-          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
-            +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -399,7 +389,7 @@ class FunctionsFvcom:
                           exceedance=False, debug=debug)
         norm[nI] = -1.0 * norm[nI]
 
-        ##compute bins
+        #compute bins
         #minBound = norm.min()
         #maxBound = norm.max()
         #step = round((maxBound-minBound/51.0),1)
@@ -539,7 +529,10 @@ class FunctionsFvcom:
             print '...Passed'
        
         #Plot
-        self._plot.plot_xy(Exceedance, Ranges, yLabel='Amplitudes',
+        #error=np.ones(Exceedance.shape) * np.std(Exceedance)
+        #if debug: print "Error: ", str(np.std(Exceedance))
+        self._plot.plot_xy(Exceedance, Ranges, #error=error,
+                           yLabel='Amplitudes',
                            xLabel='Exceedance probability in %')
 
         return Exceedance, Ranges
