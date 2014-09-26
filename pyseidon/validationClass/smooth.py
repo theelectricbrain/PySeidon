@@ -26,6 +26,7 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
     start = max(times_1[0], times_2[0])
     end = min(times_1[-1], times_2[-1])
     length = end - start
+    dt_start = max(dt_1[0], dt_2[0])
 
     # grab number of steps and timestamp for start time
     step_sec = time_step.total_seconds()
@@ -57,6 +58,5 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
 	else:
 	    series_2[i] = np.nan
 
-	dt_start = max(dt_1[0], dt_2[0])
     if debug: print "...smooth done."
     return (series_1, series_2, time_step, dt_start)
