@@ -491,17 +491,17 @@ class TidalStats:
             plt.plot(self.times, self.observed, color='r',
                      label='Observed Data')
             plt.xlabel('Time')
-            if self.type == 'elevation'
+            if self.type == 'elevation':
                 plt.ylabel('Elevation (m)')
-            if self.type == 'speed'
+            if self.type == 'speed':
                 plt.ylabel('Flow speed (m/s)')
-            if self.type == 'direction'
+            if self.type == 'direction':
                 plt.ylabel('Flow direction (deg.)')
-            if self.type == 'u velocity'
+            if self.type == 'u velocity':
                 plt.ylabel('U velocity (m/s)')
-            if self.type == 'v velocity'
+            if self.type == 'v velocity':
                 plt.ylabel('V velocity (m/s)')
-            if self.type == 'velocity'
+            if self.type == 'velocity':
                 plt.ylabel('Signed flow speed (m/s)')
 
             plt.title('Predicted and Observed {}'.format(self.type))
