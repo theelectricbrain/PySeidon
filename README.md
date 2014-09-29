@@ -44,7 +44,7 @@ Installation:
 Up-dating:
 * The code will evolve and improve with time. To up-date, simply go through
   the installation procedure again.
-* To test the installation, type *'from pyseidon import *'* in Ipython shell.
+* To test the installation, type `from pyseidon import *` in Ipython shell.
 
 ### Contribution guidelines ###
 * [Tutorial 0: First steps](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_0.ipynb)
