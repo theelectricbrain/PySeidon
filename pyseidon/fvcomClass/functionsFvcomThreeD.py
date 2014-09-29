@@ -236,7 +236,7 @@ class FunctionsFvcomThreeD:
                               self._grid.lonc,
                               self._grid.latc, debug=debug)[0]
         #Compute depth
-        depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)
+        depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)       
 
         #Sigma levels to consider
         if top_lvl==[]:
@@ -282,7 +282,7 @@ class FunctionsFvcomThreeD:
                        + depth[:,sLvl[:-1]]) / 2.0, 0)
             mean_dveldz = np.mean(dveldz,0)
             error = np.std(dveldz,axis=0)
-            self._plot.plot_xy(mean_dveldz, mean_depth, error=error[:],
+            self._plot.plot_xy(mean_dveldz, mean_depth, xerror=error[:],
                                title='Shear profile ',
                                xLabel='Shear (1/s) ', yLabel='Depth (m) ')
 

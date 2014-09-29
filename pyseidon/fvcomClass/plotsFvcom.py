@@ -144,7 +144,7 @@ class PlotsFvcom:
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         plt.show() 
 
-    def plot_xy(self, x, y, error=[], title=' ', xLabel=' ', yLabel=' '):
+    def plot_xy(self, x, y, xerror=[], yerror=[], title=' ', xLabel=' ', yLabel=' '):
         """
         Simple X vs Y plot
 
@@ -155,7 +155,8 @@ class PlotsFvcom:
 
         Keywords:
         --------
-          - error = error on 'y', 1D array
+          - xerror = error on 'x', 1D array
+          - yerror = error on 'y', 1D array
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
@@ -167,8 +168,10 @@ class PlotsFvcom:
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
-        if not error==[]:
-            plt.errorbar(x, y, yerr=error)
+        if not yerror==[]:
+            plt.errorbar(x, y, yerr=error, fmt='o', ecolor='b')
+        if not xerror==[]:
+            plt.errorbar(x, y, xerr=error, fmt='o', ecolor='b')
         #plt.legend()
         plt.show()      
 
