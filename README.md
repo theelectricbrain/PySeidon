@@ -47,7 +47,8 @@ Up-dating:
 * To test the installation, type *'from pyseidon import *'* in Ipython shell.
 
 ### Contribution guidelines ###
-* [Tutorial 1](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon%20Tutorial.ipynb)
+* [Tutorial 0: First steps](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_0.ipynb)
+* [Tutorial 1: FVCOM class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_1.ipynb)
 
 ### Contacts ###
 * Project Leader: [Richard Karsten](richard.karsten@acadiau.ca)
