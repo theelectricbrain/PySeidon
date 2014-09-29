@@ -169,10 +169,14 @@ class PlotsFvcom:
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
         if not yerror==[]:
-            plt.errorbar(x, y, yerr=error, fmt='o', ecolor='b')
+            #plt.errorbar(x, y, yerr=yerror, fmt='o', ecolor='k')
+            plt.fill_between(x, y-yerror, y+yerror,
+            alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)
         if not xerror==[]:
-            plt.errorbar(x, y, xerr=error, fmt='o', ecolor='b')
-        #plt.legend()
+            #plt.errorbar(x, y, xerr=xerror, fmt='o', ecolor='k')
+            plt.fill_betweenx(y, x-xerror, x+xerror,
+            alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)
+
         plt.show()      
 
     def Histogram(self, y, title=' ', xLabel=' ', yLabel=' '):

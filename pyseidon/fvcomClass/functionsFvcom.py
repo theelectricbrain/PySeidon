@@ -529,9 +529,9 @@ class FunctionsFvcom:
             print '...Passed'
        
         #Plot
-        error=np.ones(Exceedance.shape) * np.std(Exceedance)
-        if debug: print "Error: ", str(np.std(Exceedance))
-        self._plot.plot_xy(Exceedance, Ranges, error=error,
+        #error=np.ones(Exceedance.shape) * np.std(Exceedance)
+        #if debug: print "Error: ", str(np.std(Exceedance))
+        self._plot.plot_xy(Exceedance, Ranges, #yerror=error,
                            yLabel='Amplitudes',
                            xLabel='Exceedance probability in %')
 
