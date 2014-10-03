@@ -3,6 +3,7 @@
 
 from __future__ import division
 import numpy as np
+from numpy.ma import MaskError
 import h5py
 
 class _load_adcp:
@@ -11,6 +12,7 @@ class _load_adcp:
 -----------------------------------------------------------
 
                   _bins = depth of measurement bins, 1D array, shape=(bins)
+                 |_depth = depth of measurement bins, 1D array, shape=(bins)
                  |_dir_vel = velocity direction time serie, 2D array, shape=(time,bins)
                  |_east_vel = East velocity time serie, 2D array, shape=(time,bins)
                  |_lat = latitude, float, decimal degrees
@@ -20,6 +22,7 @@ class _load_adcp:
  ADCP.Variables._|_north_vel = East velocity time serie, 2D array, shape=(time,bins) 
                  |_percent_of_depth = percent of the water column measured by ADCP, float
                  |_surf = pressure at surface timeserie, 1D array, shape=(time)
+                 |_el = elevation (m) at surface timeserie, 1D array, shape=(time)
                  |_ua = depth averaged velocity component timeserie, 1D array, shape=(time)
                  |_va = depth averaged velocity component timeserie, 1D array, shape=(time)
                  |_ucross = ???, 1D array, shape=(time)
@@ -36,6 +39,7 @@ class _load_adcp:
             self.lat = cls.Data['lat']
             self.lon = cls.Data['lon']
             self.bins = cls.Data['data'].bins[:].flatten()
+            self.depth = -1.0 * self.bins
             self.north_vel = cls.Data['data'].north_vel[:]
             self.east_vel = cls.Data['data'].east_vel[:]
             self.vert_vel = cls.Data['data'].vert_vel[:]
@@ -43,6 +47,7 @@ class _load_adcp:
             self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:]
             self.pressure = cls.Data['pres']
             self.surf = self.pressure.surf[:].flatten()
+            self.el = self.surf
             self.time = cls.Data['time']
             self.matlabTime = self.time.mtime[:].flatten()
             try:
@@ -62,6 +67,7 @@ class _load_adcp:
             self.mag_signed_vel = cls.Data['data']['mag_signed_vel'][:].T
             self.pressure = cls.Data['pres']
             self.surf = self.pressure['surf'][:].flatten()
+            self.el = self.surf
             self.time = cls.Data['time']
             self.matlabTime = self.time['mtime'][:].flatten()
             try:
@@ -81,14 +87,14 @@ class _load_adcp:
             data_ma_u = np.ma.array(self.east_vel,
                         mask=np.arange(self.east_vel.shape[1]) > index[:, 1, None])
             data_ma_u=np.ma.masked_array(data_ma_u,np.isnan(data_ma_u))
-        except:  #MaskError:
+        except MaskError:
             data_ma_u=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
 
         try:
             data_ma_v = np.ma.array(self.north_vel,
                         mask=np.arange(self.north_vel.shape[1]) > index[:, 1, None])
             data_ma_v=np.ma.masked_array(data_ma_v,np.isnan(data_ma_v))
-        except:  #MaskError:
+        except MaskError:
             data_ma_v=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))
         
         self.ua = np.array(data_ma_u.mean(axis=1))

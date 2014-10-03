@@ -172,7 +172,7 @@ class FunctionsStationThreeD:
                        + depth[:,sLvl[:-1]]) / 2.0, 0)
             mean_dveldz = np.mean(dveldz,0)
             error = np.std(dveldz,axis=0)
-            self._plot.plot_xy(mean_dveldz, mean_depth, error=error[:],
+            self._plot.plot_xy(mean_dveldz, mean_depth, xerror=error[:],
                                title='Shear profile ',
                                xLabel='Shear (1/s) ', yLabel='Depth (m) ')
 
@@ -250,7 +250,9 @@ class FunctionsStationThreeD:
         if graph:
             depth = np.mean(self.depth(station),0)
             vel = np.mean(velo_norm,0)
-            self._plot.plot_xy(vel, depth, title='Velocity norm profile ',
+            error = np.std(velo_norm,axis=0)
+            self._plot.plot_xy(vel, depth, xerror=error[:],
+                               title='Velocity norm profile ',
                                xLabel='Velocity (m/s) ', yLabel='Depth (m) ')
       
 

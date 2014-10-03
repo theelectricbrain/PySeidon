@@ -36,7 +36,9 @@ Inputs:
 
 Notes:
 -----
-   Only handle fully processed ADCP matlab data at the mo.
+  Only handle fully processed ADCP matlab data previously quality-controlled as well
+  as formatted through "EnsembleData_FlowFile" matlab script at the mo.
+
   Throughout the package, the following conventions apply:
   - Coordinates = decimal degrees East and North
   - Directions = in degrees, ???

@@ -195,7 +195,7 @@ class PlotsFvcom:
           - yLabel = title of the y-axis, string
         """
         ## the histogram of the data
-        #n, bins, patches = plt.hist(y, 50, normed=True)
+        fig = plt.figure(figsize=(18,10))
         density, bins = np.histogram(y, bins=50, normed=True, density=True)
         unity_density = density / density.sum()
         widths = bins[:-1] - bins[1:]
