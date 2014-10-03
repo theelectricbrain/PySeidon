@@ -48,21 +48,27 @@ class _load_validation:
         A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist()) 
         B = set(np.where(self.sim.matlabTime[:] <= absMax)[0].tolist())
         C = list(A.intersection(B))
+        self._C = C
+
         a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist()) 
         b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
-        c = list(a.intersection(b))        
+        c = list(a.intersection(b))
+        self._c = c
+        
         if len(C) == 0:
            print "---Time between simulation and measurement does not match up---"
            sys.exit()
 
         #Check what kind of simulated data it is
         if simulated.__module__=='pyseidon.stationClass.stationClass':
+            self._simtype = 'station'
             #Find closest point to ADCP
             ind = closest_point([self.obs.lon], [self.obs.lat],
                                 simulated.Grid.lon[:],
                                 simulated.Grid.lat[:])
             nameSite = ''.join(simulated.Grid.name[ind,:][0,:])
             print "Station site: " + nameSite
+            self.sim.lat = simulated.Grid.lat[ind]
             el = self.sim.el[:, ind].flatten()
             ua = self.sim.ua[:, ind].flatten()
             va = self.sim.va[:, ind].flatten()
@@ -70,23 +76,25 @@ class _load_validation:
                 u = np.squeeze(self.sim.u[:, :,ind])
                 v = np.squeeze(self.sim.v[:, :,ind])
                 sig = np.squeeze(simulated.Grid.siglay[:, ind])
-     
-            #Harmonic analysis over matching time
-            velCoef = ut_solv(self.sim.matlabTime[C],
-                              ua[C], va[C],
-                              simulated.Grid.lat[ind],
-                              #cnstit=ut_constits, rmin=0.95, notrend=True,
-                              cnstit='auto', rmin=0.95, notrend=True,
-                              method='ols', nodiagn=True, linci=True, conf_int=True)
 
-            elCoef = ut_solv(self.sim.matlabTime[C],
-                             el[C], [],
-                             simulated.Grid.lat[ind],
-                             #cnstit=ut_constits, rmin=0.95, notrend=True,
-                             cnstit='auto', rmin=0.95, notrend=True,
-                             method='ols', nodiagn=True, linci=True, conf_int=True)
+            #TR: comment out     
+            ##Harmonic analysis over matching time
+            #velCoef = ut_solv(self.sim.matlabTime[C],
+            #                  ua[C], va[C],
+            #                  simulated.Grid.lat[ind],
+            #                  #cnstit=ut_constits, rmin=0.95, notrend=True,
+            #                  cnstit='auto', rmin=0.95, notrend=True,
+            #                  method='ols', nodiagn=True, linci=True, conf_int=True)
+
+            #elCoef = ut_solv(self.sim.matlabTime[C],
+            #                 el[C], [],
+            #                 simulated.Grid.lat[ind],
+            #                 #cnstit=ut_constits, rmin=0.95, notrend=True,
+            #                 cnstit='auto', rmin=0.95, notrend=True,
+            #                 method='ols', nodiagn=True, linci=True, conf_int=True)
         #Alternative simulation type
         elif simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
+            self._simtype = 'fvcom'
             #Interpolation at measurement location
             el=simulated.Util2D.interpolation_at_point(self.sim.el,
                                                        self.obs.lon, self.obs.lat)
@@ -101,18 +109,19 @@ class _load_validation:
                                                          self.obs.lon, self.obs.lat)
                sig=simulated.Util3D.interpolation_at_point(simulated.Grid.siglay,
                                                            self.obs.lon, self.obs.lat)
-            #Harmonic analysis
-            velCoef = ut_solv(self.sim.matlabTime[C],
-                              ua[C], va[C], self.obs.lat,
-                              #cnstit=ut_constits, rmin=0.95, notrend=True,
-                              cnstit='auto', rmin=0.95, notrend=True,
-                              method='ols', nodiagn=True, linci=True, conf_int=True)
+            #TR: comment out 
+            ##Harmonic analysis
+            #velCoef = ut_solv(self.sim.matlabTime[C],
+            #                  ua[C], va[C], self.obs.lat,
+            #                  #cnstit=ut_constits, rmin=0.95, notrend=True,
+            #                  cnstit='auto', rmin=0.95, notrend=True,
+            #                  method='ols', nodiagn=True, linci=True, conf_int=True)
 
-            elCoef = ut_solv(self.sim.matlabTime[C],
-                             el[C], [], self.obs.lat,
-                             #cnstit=ut_constits, rmin=0.95, notrend=True,
-                             cnstit='auto', rmin=0.95, notrend=True,
-                             method='ols', nodiagn=True, linci=True, conf_int=True)
+            #elCoef = ut_solv(self.sim.matlabTime[C],
+            #                 el[C], [], self.obs.lat,
+            #                 #cnstit=ut_constits, rmin=0.95, notrend=True,
+            #                 cnstit='auto', rmin=0.95, notrend=True,
+            #                 method='ols', nodiagn=True, linci=True, conf_int=True)
 
         else:
             print "-This type of simulations is not supported yet-"
@@ -143,6 +152,7 @@ class _load_validation:
 
         #Check what kind of observed data it is
         if observed.__module__=='pyseidon.adcpClass.adcpClass':
+            self._obstype = 'adcp'
             obstype='ADCP'
             #Harmonic analysis
             self.obs.velCoef = ut_solv(self.obs.matlabTime[c], self.obs.ua[c],
@@ -174,14 +184,16 @@ class _load_validation:
 
         #Alternative measurement type
         elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
+            self._obstype = 'tidegauge'
             obstype='TideGauge'
-            self.obs.elCoef = ut_solv(self.obs.matlabTime[c], self.obs.el[c],
-                                      [], self.obs.lat,
-                                      #cnstit=ut_constits, notrend=True,
-                                      cnstit='auto', notrend=True,
-                                      rmin=0.95, method='ols', nodiagn=True,
-                                      #linci=True, ordercnstit='frq')
-                                      linci=True, coef_int=True)
+            #TR: comment out
+            #self.obs.elCoef = ut_solv(self.obs.matlabTime[c], self.obs.el[c],
+            #                          [], self.obs.lat,
+            #                          #cnstit=ut_constits, notrend=True,
+            #                          cnstit='auto', notrend=True,
+            #                          rmin=0.95, method='ols', nodiagn=True,
+            #                          #linci=True, ordercnstit='frq')
+            #                          linci=True, coef_int=True)
 
             #Store in dict structure for compatibility purposes
             obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el}
@@ -201,12 +213,13 @@ class _load_validation:
                        #'obs_time':self.obs.matlabTime,
                        #'mod_time':self.sim.matlabTime,
                        'obs_time':self.obs.matlabTime[c],
-                       'mod_time':self.sim.matlabTime[C],
-                       'elev_obs_harmonics':self.obs.elCoef,
-                       'elev_mod_harmonics':elCoef}
+                       'mod_time':self.sim.matlabTime[C]}#,
+        #TR: comment out
+        #               'elev_obs_harmonics':self.obs.elCoef,
+        #               'elev_mod_harmonics':elCoef}
         #Special blocks for 'struct'
-        if self.struct['type']=='ADCP':
-            self.struct['vel_obs_harmonics'] = self.obs.velCoef
-            self.struct['vel_mod_harmonics'] = velCoef
+        #if self.struct['type']=='ADCP':
+        #    self.struct['vel_obs_harmonics'] = self.obs.velCoef
+        #    self.struct['vel_mod_harmonics'] = velCoef
 
         if debug: print "..done"

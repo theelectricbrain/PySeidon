@@ -53,7 +53,8 @@ class Validation:
                         ' and ' + simulated._origin_file]
         self.Variables = _load_validation(observed, simulated, debug=self._debug)
  
-    def validate(self, filename=[], depth=[], plot=False, debug=False, debug_plot=False):
+    def validate_data(self, filename=[], depth=[], plot=False,
+                      debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -137,7 +138,90 @@ class Validation:
         for row in csv_cont:
            row = [str(e) for e in row[:][1:]]
            print('\t'.join(row))
-        print(70*'-')  
+        print(70*'-')
+
+    def validate_harmonics(self, filename=[], debug=False, debug_plot=False):
+        """
+        This method computes series of standard validation benchmarks.
+
+        Options:
+        ------
+          - filename: file name of the .csv file to be saved, string.
+          - depth: depth at which the validation will be performed, float.
+                   Only applicable for 3D simulations.
+          - plot: plot series of valiudation graphs, boolean.
+        """
+        c = self.Variables._c
+        C = self.Variables._C
+
+        #Harmonic analysis over matching time
+        if self.Variables._obstype=='adcp':
+            self.Variables.obs.velCoef = ut_solv(self.Variables.obs.matlabTime[c],
+                                         self.Variables.obs.ua[c],
+                                         self.Variables.obs.va[c],
+                                         self.Variables.obs.lat,
+                                         #cnstit=ut_constits, rmin=0.95, notrend=True,
+                                         cnstit='auto', rmin=0.95, notrend=True,
+                                         method='ols', nodiagn=True, linci=True,
+                                         coef_int=True)
+            
+
+            self.Variables.obs.elCoef = ut_solv(self.Variables.obs.matlabTime[c],
+                                        self.Variables.obs.surf[c],
+                                        [], self.Variables.obs.lat,
+                                        #cnstit=ut_constits, rmin=0.95, notrend=True,
+                                        cnstit='auto', rmin=0.95, notrend=True,
+                                        method='ols', nodiagn=True, linci=True,
+                                        coef_int=True)
+
+        elif self.Variables._obstype='tidegauge':
+            self.Variables.obs.elCoef = ut_solv(self.Variables.obs.matlabTime[c],
+                                        self.Variables.obs.el[c],
+                                        [], self.Variables.obs.lat,
+                                        #cnstit=ut_constits, notrend=True,
+                                        cnstit='auto', notrend=True,
+                                        rmin=0.95, method='ols', nodiagn=True,
+                                        #linci=True, ordercnstit='frq')
+                                        linci=True, coef_int=True)
+        else:
+            print "--This type of observations is not supported---"
+            sys.exit()
+
+        if self.Variables._simtype='fvcom':
+            self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
+                             el[C], [], self.Variables.obs.lat,
+                             #cnstit=ut_constits, rmin=0.95, notrend=True,
+                             cnstit='auto', rmin=0.95, notrend=True,
+                             method='ols', nodiagn=True, linci=True, conf_int=True)
+            if self.Variables._obstype=='adcp':
+                self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
+                                  ua[C], va[C], self.Variables.obs.lat,
+                                  #cnstit=ut_constits, rmin=0.95, notrend=True,
+                                  cnstit='auto', rmin=0.95, notrend=True,
+                                  method='ols', nodiagn=True, linci=True, conf_int=True)
+
+        elif self.Variables._simtype='station':
+            el = self.Variables.struct['mod_timeseries']['elev'][:]
+            self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
+                             el, [],
+                             self.Variables.sim.lat,
+                             #cnstit=ut_constits, rmin=0.95, notrend=True,
+                             cnstit='auto', rmin=0.95, notrend=True,
+                             method='ols', nodiagn=True, linci=True, conf_int=True)
+            if self.Variables._obstype=='adcp':
+                ua = self.Variables.struct['mod_timeseries']['ua'][:]
+                va = self.Variables.struct['mod_timeseries']['va'][:]
+                self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
+                                  ua, va,
+                                  self.Variables.sim.lat,
+                                  #cnstit=ut_constits, rmin=0.95, notrend=True,
+                                  cnstit='auto', rmin=0.95, notrend=True,
+                                  method='ols', nodiagn=True, linci=True, conf_int=True)
+
+    #Compute error
+        
+
+
 
     def Save_as(self, filename, fileformat='pickle', debug=False):
         """
@@ -162,7 +246,10 @@ class Validation:
             f = open(filename, "wb")
             data = {}
             data['History'] = self.History
-            data['Benchmarks'] = self.Benchmarks
+            try:
+                data['Benchmarks'] = self.Benchmarks
+            except AttributeError:
+                pass 
             data['Variables'] = self.Variables.__dict__
             #TR: Force caching Variables otherwise error during loading
             #    with 'netcdf4.Variable' type (see above)
