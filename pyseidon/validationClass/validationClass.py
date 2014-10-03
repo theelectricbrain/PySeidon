@@ -110,9 +110,9 @@ class Validation:
             vars.append('elev')
             vars.append('speed')
             vars.append('dir')
-            vars.append('u velocity')
-            vars.append('v velocity')
-            vars.append('velocity')
+            vars.append('u')
+            vars.append('v')
+            vars.append('vel')
 
         elif self.Variables.struct['type'] == 'TideGauge':
      	    elev_suite_dg = compareTG(self.Variables.struct,
