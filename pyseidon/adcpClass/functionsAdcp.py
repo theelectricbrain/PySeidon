@@ -293,10 +293,10 @@ class FunctionsAdcp:
             print "...processing time: ", (end - start)
 
 
-    def Harmonic_analysis_at_point(self,
-                                   time_ind=[], t_start=[], t_end=[],
-                                   elevation=True, velocity=False,
-                                   debug=False, **kwarg):
+    def Harmonic_analysis(self,
+                          time_ind=[], t_start=[], t_end=[],
+                          elevation=True, velocity=False,
+                          debug=False, **kwarg):
         '''
         Description:
         -----------
