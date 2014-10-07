@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+# encoding: utf-8
 from scipy.interpolate import interp1d
 import numpy as np
 from datetime import timedelta

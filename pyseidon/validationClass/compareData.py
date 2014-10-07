@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+# encoding: utf-8
 import numpy as np
 import sys
 from tidalStats import TidalStats

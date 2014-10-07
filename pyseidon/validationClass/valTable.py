@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+# encoding: utf-8
 import cPickle as pickle
 import numpy as np
 import pandas as pd

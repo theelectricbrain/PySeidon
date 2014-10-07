@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+# encoding: utf-8
 import numpy as np
 from scipy.stats import t
 import matplotlib.pyplot as plt
@@ -250,27 +252,27 @@ class TidalStats:
 	phase_minutes = best_phase * step_sec / 60
 
 	# plot RMSE vs. the phase shift to ensure we're getting the right one
-	if self._debug_plot:
-	    plt.plot(phases, errors, label='Phase Shift vs. RMSE')
-	    plt.vlines(best_phase, min(errors), max(errors))
-	    plt.xlabel('Timesteps of Shift')
-	    plt.ylabel('Root Mean Squared Error')
-	    plt.show()
+	#if self._debug_plot:
+	#    plt.plot(phases, errors, label='Phase Shift vs. RMSE')
+	#    plt.vlines(best_phase, min(errors), max(errors))
+	#    plt.xlabel('Timesteps of Shift')
+	#    plt.ylabel('Root Mean Squared Error')
+	#    plt.show()
 
-	    # plot data on top of shifted data
-	    if (best_phase < 0):
-		plt.plot(self.times[-best_phase:],
-			 self.model[-best_phase:])
-		plt.plot(self.times[-best_phase:],
-			 self.model[:self.length + best_phase], color='k')
-		plt.plot(self.times[-best_phase:],
-			 self.observed[:self.length + best_phase],
-			 color='r')
-		plt.xlabel('Times')
-		plt.ylabel('Values')
-		plt.title('Shifted Data vs. Original Data')
-		plt.show()
-        if debug or self._debug: print "...getPhase done."
+	#    # plot data on top of shifted data
+	#    if (best_phase < 0):
+	#	plt.plot(self.times[-best_phase:],
+	#		 self.model[-best_phase:])
+	#	plt.plot(self.times[-best_phase:],
+	#		 self.model[:self.length + best_phase], color='k')
+	#	plt.plot(self.times[-best_phase:],
+	#		 self.observed[:self.length + best_phase],
+	#		 color='r')
+	#	plt.xlabel('Times')
+	#	plt.ylabel('Values')
+	#	plt.title('Shifted Data vs. Original Data')
+	#	plt.show()
+        #if debug or self._debug: print "...getPhase done."
 	return phase_minutes
 
     def altPhase(self, debug=False):

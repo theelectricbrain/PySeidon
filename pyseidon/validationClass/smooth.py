@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+# encoding: utf-8
 from datetime import timedelta
 import numpy as np
 import time
