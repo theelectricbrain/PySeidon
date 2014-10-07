@@ -8,7 +8,7 @@ import sys
 local = os.path.dirname(__file__)
 sys.path.append(os.path.join(local,'fvcomClass'))
 sys.path.append(os.path.join(local,'adcpClass'))
-sys.path.append(os.path.join(local,'drifterClass'))
+#sys.path.append(os.path.join(local,'drifterClass'))
 sys.path.append(os.path.join(local,'stationClass'))
 sys.path.append(os.path.join(local,'tidegaugeClass'))
 sys.path.append(os.path.join(local,'validationClass'))
@@ -17,7 +17,7 @@ sys.path.append(os.path.join(local,'utilities'))
 #Local import
 from fvcomClass import *
 from adcpClass import *
-from drifterClass import *
+#from drifterClass import *
 from tidegaugeClass import *
 from validationClass import *
 from stationClass import *
@@ -26,8 +26,10 @@ from utilities import *
 #Permission info for OpenDap server
 #print "OpenDap server connexion info:"
 
-__version__ = '0.6'
-__all__ = ["FVCOM", "ADCP", "Drifter", "TideGauge",\
+__version__ = '1.0'
+#__all__ = ["FVCOM", "ADCP", "Drifter", "TideGauge",\
+#           "Validation", "Station", "utilities" ]
+__all__ = ["FVCOM", "ADCP", "TideGauge",\
            "Validation", "Station", "utilities" ]
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']
 __licence__ = 'GNU Affero GPL v3.0'
