@@ -33,11 +33,6 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
     obs_time = data['obs_time']
     mod_el = data['mod_timeseries']['elev']
     obs_el = data['obs_timeseries']['elev']
-    #TR: comment out
-    #v_mod_harm = data['vel_mod_harmonics']
-    #v_obs_harm = data['vel_obs_harmonics']
-    #el_mod_harm = data['elev_mod_harmonics']
-    #el_obs_harm = data['elev_mod_harmonics']
 
     #Check if 3D simulation
     if threeDim:
@@ -80,28 +75,6 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
         print "---time periods do not match up---"
         sys.exit()
-        #TR: comment out
-        #if debug: print "...harmonic reconstruction..."
-	#pred_uv = ut_reconstr(obs_time, v_mod_harm)
-	#pred_uv = np.asarray(pred_uv)
-	#pred_h = ut_reconstr(obs_time, el_mod_harm)
-	#pred_h = np.asarray(pred_h)
-
-	#if debug: print "...redo speed and direction and set interpolated variables..."
-	#mod_sp_int = np.sqrt(pred_uv[0]**2 + pred_uv[1]**2)
-	#mod_ve_int = mod_sp_int * np.sign(pred_uv[1])
-	#mod_dr_int = np.arctan2(pred_uv[1], pred_uv[0]) * 180 / np.pi
-	#mod_el_int = pred_h[0]
-	#mod_u_int = pred_uv[0]
-	#mod_v_int = pred_uv[1]
-	#obs_sp_int = obs_spd
-	#obs_ve_int = obs_spd * np.sign(obs_v)
-	#obs_dr_int = obs_dir
-	#obs_el_int = obs_el
-	#obs_u_int = obs_u
-	#obs_v_int = obs_v
-	#step_int = obs_dt[1] - obs_dt[0]
-	#start_int = obs_dt[0]
 
     else:
         if debug: print "...interpolate the data onto a common time step for each data type..."
@@ -242,12 +215,6 @@ def compareTG(data, debug=False, debug_plot=False):
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
         print "---time periods do not match up---"
         sys.exit()
-        #TR: comment out
-	#if debug: print "...use ut_reconstr to create a new timeseries..."
-	#mod_elev_int = ut_reconstr(obs_datenums, mod_harm)[0]
-	#obs_elev_int = obs_elev
-	#step_int = obs_time[1] - obs_time[0]
-	#start_int = obs_time[0]
 
     else:
 
