@@ -132,16 +132,20 @@ class Validation:
         #Make csv file
         self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
                                    debug=debug, debug_plot=debug_plot)
+        
         #Display csv
-        csvName = filename + '_val.csv'
-        csv_con = open(csvName, 'r')
-        csv_cont = list(csv.reader(csv_con, delimiter=','))
+        #csvName = filename + '_val.csv'
+        #csv_con = open(csvName, 'r')
+        #csv_cont = list(csv.reader(csv_con, delimiter=','))
         print "---Validation benchmarks---"
-        print(70*'-')
-        for row in csv_cont:
-           row = [str(e) for e in row[:][1:]]
-           print('\t'.join(row))
-        print(70*'-')
+        pd.set_option('display.max_rows', len(self.Benchmarks))
+        print(self.Benchmarks)
+        pd.reset_option('display.max_rows')
+        #print(70*'-')
+        #for row in csv_cont:
+        #   row = [str(e) for e in row[:][1:]]
+        #   print('\t'.join(row))
+        #print(70*'-')
 
     def validate_harmonics(self, filename=[], debug=False, debug_plot=False):
         """

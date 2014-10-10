@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from scipy.interpolate import interp1d
 from scipy.signal import correlate
 import time
+import seaborn
+import pandas as pd
 
 class TidalStats:
     '''
@@ -434,9 +436,11 @@ class TidalStats:
 
 	If save is set to True, exports the plot as an image file to out_f.
         '''
+        df = pd.DataFrame(data={'model': self.model.flatten(),
+                                'observed':self.observed.flatten()})
         plt.scatter(self.model, self.observed, c='b', marker='+', alpha=0.5)
 
-        # plot regression line
+        ## plot regression line
         mod_max = np.amax(self.model)
 	mod_min = np.amin(self.model)
         upper_intercept = lr['intercept'] + lr['pred_CI_width']
@@ -445,7 +449,7 @@ class TidalStats:
 				      mod_max * lr['slope'] + lr['intercept']],
                  color='k', linestyle='-', linewidth=2, label='Linear fit')
 
-        # plot CI's for slope
+        ## plot CI's for slope
         plt.plot([mod_min, mod_max],
 		 [mod_min * lr['slope_CI'][0] + lr['intercept_CI'][0],
 		  mod_max * lr['slope_CI'][0] + lr['intercept_CI'][0]],
@@ -455,7 +459,7 @@ class TidalStats:
                   mod_max * lr['slope_CI'][1] + lr['intercept_CI'][1]],
                  color='r', linestyle='--', linewidth=2, label='Slope CI')
 
-        # plot CI's for predictands
+        ## plot CI's for predictands
         plt.plot([mod_min, mod_max],
 		 [mod_min * lr['slope'] + upper_intercept,
                   mod_max * lr['slope'] + upper_intercept],
@@ -472,6 +476,15 @@ class TidalStats:
 
 	r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
 	plt.title(r_string)
+
+        #Pretty plot
+        seaborn.set(style="darkgrid")
+        color = seaborn.color_palette()[2]
+        g = seaborn.jointplot("model", "observed", data=df, kind="reg",
+                              xlim=(df.model.min(), df.model.max()),
+                              ylim=(df.observed.min(), df.observed.max()),
+                              color=color, size=7)   
+        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 
 	if save:
 	    plt.savefig(out_f)
