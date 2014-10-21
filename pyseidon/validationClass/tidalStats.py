@@ -37,29 +37,44 @@ class TidalStats:
         self.observed = self.observed.astype(np.float64)
 
         #TR: fix for interpolation pb when 0 index or -1 index array values = nan
+	if debug: print "...trim nans at start and end of data.."
         start_index, end_index = 0, -1
         while (np.isnan(self.observed[start_index]) or\
                np.isnan(self.observed[end_index]) or\
                np.isnan(self.model[start_index]) or\
                np.isnan(self.model[end_index])):
+            start_index += 1
+            end_index -= 1
 
-	    if debug: print "...trim nans at start and end of data.."
-	    start_index, end_index = 0, -1
-	    while np.isnan(self.observed[start_index]):
-	        start_index += 1
-	    while np.isnan(self.observed[end_index]):
-	        end_index -= 1
-	    self.model = self.model[start_index:end_index]
-	    self.observed = self.observed[start_index:end_index]
+        #Correction for bound index call
+        if end_index == -1:
+             end_index = None
+        else:
+             end_index += 1
 
-	    if debug: print "...trim nans in model data too, just in case..."
-	    start_index, end_index = 0, -1
-	    while np.isnan(self.model[start_index]):
-	        start_index += 1
-	    while np.isnan(self.model[end_index]):
-	        end_index -= 1
-	    self.model = self.model[start_index:end_index]
-	    self.observed = self.observed[start_index:end_index]
+        m = self.model[start_index:end_index]
+        o = self.observed[start_index:end_index]
+
+	setattr(self, 'model', m)
+	setattr(self, 'observed', o)
+        
+	#if debug: print "...trim nans at start and end of data.."
+	#start_index, end_index = 0, -1
+	#while np.isnan(self.observed[start_index]):
+	#    start_index += 1
+	#while np.isnan(self.observed[end_index]):
+	#    end_index -= 1
+	#setattr(self, 'model', self.model[start_index:end_index])
+	#setattr(self, 'observed', self.observed[start_index:end_index])
+
+	#if debug: print "...trim nans in model data too, just in case..."
+	#start_index, end_index = 0, -1
+	#while np.isnan(self.model[start_index]):
+	#    start_index += 1
+	#while np.isnan(self.model[end_index]):
+	#    end_index -= 1
+	#setattr(self, 'model', self.model[start_index:end_index])
+	#setattr(self, 'observed', self.observed[start_index:end_index])
 
         # set up array of datetimes corresponding to the data (and timestamps)
         self.times = start_time + np.arange(self.model.size) * time_step
