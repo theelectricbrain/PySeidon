@@ -58,24 +58,6 @@ class TidalStats:
 	setattr(self, 'model', m)
 	setattr(self, 'observed', o)
         
-	#if debug: print "...trim nans at start and end of data.."
-	#start_index, end_index = 0, -1
-	#while np.isnan(self.observed[start_index]):
-	#    start_index += 1
-	#while np.isnan(self.observed[end_index]):
-	#    end_index -= 1
-	#setattr(self, 'model', self.model[start_index:end_index])
-	#setattr(self, 'observed', self.observed[start_index:end_index])
-
-	#if debug: print "...trim nans in model data too, just in case..."
-	#start_index, end_index = 0, -1
-	#while np.isnan(self.model[start_index]):
-	#    start_index += 1
-	#while np.isnan(self.model[end_index]):
-	#    end_index -= 1
-	#setattr(self, 'model', self.model[start_index:end_index])
-	#setattr(self, 'observed', self.observed[start_index:end_index])
-
         # set up array of datetimes corresponding to the data (and timestamps)
         self.times = start_time + np.arange(self.model.size) * time_step
         self.step = time_step
