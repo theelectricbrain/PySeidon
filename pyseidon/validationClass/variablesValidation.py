@@ -54,10 +54,10 @@ class _load_validation:
         a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist()) 
         b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
         c = list(a.intersection(b))
-        self._c = c
         #-Correction by J.Culina 2014-
         c = sorted(c)
         #-end-
+        self._c = c
         
         if len(C) == 0:
            print "---Time between simulation and measurement does not match up---"
