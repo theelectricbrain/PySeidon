@@ -64,5 +64,5 @@ Dr. Brian Polagye, Dr. Richard Karsten, [Dr. Kristen Thyng](https://github.com/k
 
 ### Legal Information ###
 * Authorship attributed to Wesley Bowman, Thomas Roc and Jonathan Smith
-* Copyright (c) 2014 EcoEnergyII
+* Copyright (c) 2014 [EcoEnergyII](http://tidalenergy.acadiau.ca/EcoEII.html)
 * Licensed under an Affero GPL style license v3.0 (see License_PySeidon.txt)
