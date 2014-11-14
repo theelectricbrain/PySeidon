@@ -430,17 +430,17 @@ class FunctionsFvcom:
         #Assuming principal axis = flood heading
         #determine principal axes - potentially a problem if axes are very kinked
         #   since this would misclassify part of ebb and flood
-        if debug:
-            print 'Computing principal axis at point...'
+        if debug: print 'Computing principal axis at point...'
         pr_axis, pr_ax_var = principal_axis(U, V)
 
+        if debug: print 'Computing ebb/flood intervals...'
         #Defines interval
         flood_heading = np.array([-90, 90]) + pr_axis
         #initialise matrix
         s_signed_all = np.empty(U.shape)
         s_signed_all.fill(np.nan)
         PA_all = np.zeros(U.shape)
-        dir_all = np.arctan2(u,v) * 180 / np.pi
+        dir_all = np.arctan2(U,U) * 180 / np.pi
         ind = np.where(dir_all<0)
         dir_all[ind] = dir_all[ind] + 360     
 
@@ -453,12 +453,9 @@ class FunctionsFvcom:
         #dir_PA(dir_PA>270) = dir_PA(dir_PA>270) - 360;
 
         #general direction of flood passed as input argument
-        #if PA >= flood_heading[0] and PA <= flood_heading[1]:
-        if flood_heading[0] <= PA <= flood_heading[1]:
-            #ind_fld = find(dir_PA >= -90 & dir_PA<90)
-            floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
-        else:
-            ebbIndex = np.where((dir_PA >= -90) & (dir_PA<90))
+        floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
+        ebbIndex = np.arange(dir_PA.shape[0])
+        ebbIndex = np.delete(ebbIndex,floodIndex[:]) 
 
         if debug:
             end = time.time()
