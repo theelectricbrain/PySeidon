@@ -41,16 +41,16 @@ class TidalStats:
         start_index, end_index = 0, -1
         while (np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index])):
             start_index += 1
-            if debug: print "Start index: ", start_index
         while (np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index])):
             end_index -= 1
-            if debug: print "End index: ", end_index
 
         #Correction for bound index call
         if end_index == -1:
              end_index = None
         else:
              end_index += 1
+        if debug: print "Start index: ", start_index
+        if debug: print "End index: ", end_index
 
         m = self.model[start_index:end_index]
         o = self.observed[start_index:end_index]
