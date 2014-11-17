@@ -217,7 +217,7 @@ class Validation:
         elif self.Variables._simtype=='station':
             el = self.Variables.struct['mod_timeseries']['elev'][:]
             self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                             self.Variables.sim.el, [],
+                             self.Variables.sim.el[C], [],
                              self.Variables.sim.lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
@@ -226,7 +226,7 @@ class Validation:
                 ua = self.Variables.struct['mod_timeseries']['ua'][:]
                 va = self.Variables.struct['mod_timeseries']['va'][:]
                 self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                                  self.Variables.sim.ua, self.Variables.sim.va,
+                                  self.Variables.sim.ua[C], self.Variables.sim.va[C],
                                   self.Variables.sim.lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
                                   cnstit='auto', rmin=0.95, notrend=True,
