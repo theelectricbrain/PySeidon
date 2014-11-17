@@ -202,13 +202,14 @@ class Validation:
 
         if self.Variables._simtype=='fvcom':
             self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                             el[C], [], self.Variables.obs.lat,
+                             self.Variables.sim.el[C], [], self.Variables.obs.lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
             if self.Variables._obstype=='adcp':
                 self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                                  ua[C], va[C], self.Variables.obs.lat,
+                                  self.Variables.sim.ua[C], self.Variables.sim.va[C],
+                                  self.Variables.obs.lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
                                   cnstit='auto', rmin=0.95, notrend=True,
                                   method='ols', nodiagn=True, linci=True, conf_int=True)
@@ -216,7 +217,7 @@ class Validation:
         elif self.Variables._simtype=='station':
             el = self.Variables.struct['mod_timeseries']['elev'][:]
             self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                             el, [],
+                             self.Variables.sim.el, [],
                              self.Variables.sim.lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
@@ -225,7 +226,7 @@ class Validation:
                 ua = self.Variables.struct['mod_timeseries']['ua'][:]
                 va = self.Variables.struct['mod_timeseries']['va'][:]
                 self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                                  ua, va,
+                                  self.Variables.sim.ua, self.Variables.sim.va,
                                   self.Variables.sim.lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
                                   cnstit='auto', rmin=0.95, notrend=True,
