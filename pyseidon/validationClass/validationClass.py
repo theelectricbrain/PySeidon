@@ -163,34 +163,34 @@ class Validation:
             filename = input('Enter filename (string) for csv file: ')
             filename = str(filename)
 
-        #Overlapping index
-        c = self.Variables._c
-        C = self.Variables._C
 
         #Harmonic analysis over matching time
         if self.Variables._obstype=='adcp':
-            self.Variables.obs.velCoef = ut_solv(self.Variables.obs.matlabTime[c],
-                                         self.Variables.obs.ua[c],
-                                         self.Variables.obs.va[c],
-                                         self.Variables.obs.lat,
+            time = self.Variables.struct['obs_time']
+            lat = self.Variables.struct['lat']
+            ua =  self.Variables.struct['obs_timeseries']['ua'][:]
+            va =  self.Variables.struct['obs_timeseries']['va'][:]
+            el =  self.Variables.struct['obs_timeseries']['elev'] [:]          
+            
+            self.Variables.obs.velCoef = ut_solv(time, ua, va, lat,
                                          #cnstit=ut_constits, rmin=0.95, notrend=True,
                                          cnstit='auto', rmin=0.95, notrend=True,
                                          method='ols', nodiagn=True, linci=True,
                                          coef_int=True)
             
 
-            self.Variables.obs.elCoef = ut_solv(self.Variables.obs.matlabTime[c],
-                                        self.Variables.obs.surf[c],
-                                        [], self.Variables.obs.lat,
+            self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
                                         #cnstit=ut_constits, rmin=0.95, notrend=True,
                                         cnstit='auto', rmin=0.95, notrend=True,
                                         method='ols', nodiagn=True, linci=True,
                                         coef_int=True)
 
         elif self.Variables._obstype=='tidegauge':
-            self.Variables.obs.elCoef = ut_solv(self.Variables.obs.matlabTime[c],
-                                        self.Variables.obs.el[c],
-                                        [], self.Variables.obs.lat,
+            time = self.Variables.struct['obs_time']
+            lat = self.Variables.struct['lat']
+            el =  self.Variables.struct['obs_timeseries']['elev'] [:]
+ 
+            self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
                                         #cnstit=ut_constits, notrend=True,
                                         cnstit='auto', notrend=True,
                                         rmin=0.95, method='ols', nodiagn=True,
@@ -201,36 +201,38 @@ class Validation:
             sys.exit()
 
         if self.Variables._simtype=='fvcom':
-            self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                             self.Variables.sim.el[C], [], self.Variables.obs.lat)#,
+            time = self.Variables.struct['mod_time']
+            lat = self.Variables.struct['lat']
+            el =  self.Variables.struct['mod_timeseries']['elev'][:]           
+            
+            self.Variables.sim.elCoef = ut_solv(time, el, [], lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
-                             #cnstit='auto', rmin=0.95, notrend=True,
-                             #method='ols', nodiagn=True, linci=True, conf_int=True)
+                             cnstit='auto', rmin=0.95, notrend=True,
+                             method='ols', nodiagn=True, linci=True, conf_int=True)
             if self.Variables._obstype=='adcp':
-                self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                                  self.Variables.sim.ua[C], self.Variables.sim.va[C],
-                                  self.Variables.obs.lat)#,
+                ua =  self.Variables.struct['mod_timeseries']['ua'][:]
+                va =  self.Variables.struct['mod_timeseries']['va'][:]
+                self.Variables.sim.velCoef = ut_solv(time, ua, va, lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
-                                  #cnstit='auto', rmin=0.95, notrend=True,
-                                  #method='ols', nodiagn=True, linci=True, conf_int=True)
+                                  cnstit='auto', rmin=0.95, notrend=True,
+                                  method='ols', nodiagn=True, linci=True, conf_int=True)
 
         elif self.Variables._simtype=='station':
+            time = self.Variables.struct['mod_time']
+            lat = self.Variables.struct['lat']
             el = self.Variables.struct['mod_timeseries']['elev'][:]
-            self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                             self.Variables.sim.el[C], [],
-                             self.Variables.sim.lat)#,
+
+            self.Variables.sim.elCoef = ut_solv(time, el, [], lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
-                             #cnstit='auto', rmin=0.95, notrend=True,
-                             #method='ols', nodiagn=True, linci=True, conf_int=True)
+                             cnstit='auto', rmin=0.95, notrend=True,
+                             method='ols', nodiagn=True, linci=True, conf_int=True)
             if self.Variables._obstype=='adcp':
                 ua = self.Variables.struct['mod_timeseries']['ua'][:]
                 va = self.Variables.struct['mod_timeseries']['va'][:]
-                self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                                  self.Variables.sim.ua[C], self.Variables.sim.va[C],
-                                  self.Variables.sim.lat)#,
+                self.Variables.sim.velCoef = ut_solv(time, ua, va, lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
-                                  #cnstit='auto', rmin=0.95, notrend=True,
-                                  #method='ols', nodiagn=True, linci=True, conf_int=True)
+                                  cnstit='auto', rmin=0.95, notrend=True,
+                                  method='ols', nodiagn=True, linci=True, conf_int=True)
 
         #find matching and non-matching coef
         matchElCoef = []
