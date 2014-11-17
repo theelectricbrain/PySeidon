@@ -39,12 +39,12 @@ class TidalStats:
         #TR: fix for interpolation pb when 0 index or -1 index array values = nan
 	if debug: print "...trim nans at start and end of data.."
         start_index, end_index = 0, -1
-        while (np.isnan(self.observed[start_index]) or\
-               np.isnan(self.observed[end_index]) or\
-               np.isnan(self.model[start_index]) or\
-               np.isnan(self.model[end_index])):
+        while (np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index]):
             start_index += 1
+            if debug: print "Start index: ", start_index
+        while (np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index])):
             end_index -= 1
+            if debug: print "End index: ", end_index
 
         #Correction for bound index call
         if end_index == -1:
