@@ -125,7 +125,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
     '''
 
     if debug: print "...remove directions where velocities are small..."
-    MIN_VEL = 0.5
+    MIN_VEL = 0.1
     for i in np.arange(obs_sp_int.size):
  	if (obs_sp_int[i] < MIN_VEL):
 	    obs_dr_int[i] = np.nan
