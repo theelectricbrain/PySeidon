@@ -119,7 +119,7 @@ class Validation:
             vars.append('vel')
 
         elif self.Variables.struct['type'] == 'TideGauge':
-     	    elev_suite_dg = compareTG(self.Variables.struct,
+     	    elev_suite_dg = compareTG(self.Variables.struct, plot=plot,
                                       debug=debug, debug_plot=debug_plot)
     	    self.Variables.struct['tg_val'] = elev_suite_dg 
             #Variable to processed

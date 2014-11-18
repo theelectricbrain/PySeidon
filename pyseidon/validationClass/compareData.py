@@ -189,7 +189,7 @@ def tidalSuite(model, observed, step, start, type, plot=False,
 
     return stats_suite
 
-def compareTG(data, debug=False, debug_plot=False):
+def compareTG(data, plot=False, debug=False, debug_plot=False):
     '''
     Does a comprehensive comparison between tide gauge height data and
     modeled data, much like the above function.
