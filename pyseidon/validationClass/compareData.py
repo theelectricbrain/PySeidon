@@ -234,10 +234,6 @@ def compareTG(data, plot=False, debug=False, debug_plot=False):
 			    type='elevation', plot=plot,
                             debug=debug, debug_plot=debug_plot)
 
-    #elev_suite = stats.getStats()
-    #elev_suite['r_squared'] = stats.linReg()['r_2']
-    #elev_suite['phase'] = stats.getPhase(debug=False)
-
     if debug: print "...CompareTG done."
 
     return elev_suite
