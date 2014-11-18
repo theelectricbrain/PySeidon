@@ -131,7 +131,7 @@ class _load_validation:
         elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
             self._obstype = 'tidegauge'
             obstype='TideGauge'
-            obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el}
+            obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
 
         else:
             print "-This type of measurements is not supported yet-"
