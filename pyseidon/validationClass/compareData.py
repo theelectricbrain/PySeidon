@@ -229,7 +229,8 @@ def compareTG(data, debug=False, debug_plot=False):
     stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='height',
                        debug=debug, debug_plot=debug_plot)
 
-    elev_suite = tidalSuite(mod_el_int, obs_el_int, step_el_int, start_el_int,
+
+    elev_suite = tidalSuite(mod_elev_int, obs_elev_int, step_int, start_int,
 			    type='elevation', plot=plot,
                             debug=debug, debug_plot=debug_plot)
 
