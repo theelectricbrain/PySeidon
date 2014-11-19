@@ -147,12 +147,12 @@ class FunctionsFvcomThreeD:
 
         Inputs:
         ------
-          - var = 2D dimensional (sigma level, element) variable, array
+          - var = 3 dimensional (time, sigma level, element) variable, array
           - depth = interpolation depth (float in meters), negative from
                     water column top downwards
         Output:
         ------
-          - interpVar = 1 dimensional (element) variable, array
+          - interpVar = 2 dimensional (time, element) variable, array
         """
         debug = debug or self._debug
         if debug: print 'Interpolating at '+str(depth)+' meter depth...'
@@ -174,7 +174,7 @@ class FunctionsFvcomThreeD:
         inddown = dep.argmin(axis=1)
 
         #weight matrix & interp
-        interpVar = np.ones(indup.shape)*np.nan
+        interpVar = np.ones((var.shape[0], var.shape[2]))*np.nan
         for i in range(indup.shape[0]):
             for j in range(indup.shape[1]):
                 iU = indup[i,j]
