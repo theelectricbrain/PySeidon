@@ -226,7 +226,7 @@ def compareTG(data, plot=False, debug=False, debug_plot=False):
                    debug=debug, debug_plot=debug_plot)
 
     if debug: print "...get validation statistics..."
-    stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='height',
+    stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='elevation',
                        debug=debug, debug_plot=debug_plot)
 
 
