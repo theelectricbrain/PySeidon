@@ -67,7 +67,8 @@ class FunctionsFvcomThreeD:
                 hc[ind] = np.mean(self._grid.h[value])
                 siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
 
-            zeta = self._var.el[:,:] + h[None,:]
+            #zeta = self._var.el[:,:] + self._grid.h[None,:]
+            zeta = elc[:,:] + hc[None,:]
             dep = zeta[:,None,:]*siglay[None,:,:]
         except MemoryError:
             print '---Data too large for machine memory---'
@@ -138,6 +139,55 @@ class FunctionsFvcomThreeD:
             print "Computation time in (s): ", (end - start)
 
         return dep
+
+    def interp_at_depth(self, var, depth, debug=False):
+        """
+        This function interpolates any given FVCOM.Variables field
+        onto a specified depth plan
+
+        Inputs:
+        ------
+          - var = 2D dimensional (sigma level, element) variable, array
+          - depth = interpolation depth (float in meters), negative from
+                    water column top downwards
+        Output:
+        ------
+          - interpVar = 1 dimensional (element) variable, array
+        """
+        debug = debug or self._debug
+        if debug: print 'Interpolating at '+str(depth)+' meter depth...'
+
+        #checking if depth field already calculated
+        if not hasattr(self._grid, 'depth'):
+            self.depth()
+        dep = self._grid.depth - depth
+        #Finding closest values to specified depth
+        indup = dep.argmin(axis=1)
+
+        #assign inf to closest points
+        for i in range(dep.shape[0]):
+            for k in range(dep.shape[2]):
+                j=indup[i,k]
+                dep[i,j,k]=np.inf
+
+        #Finding second closest values to specified depth
+        inddown = dep.argmin(axis=1)
+
+        #weight matrix & interp
+        interpVar = np.ones(indup.shape)*np.nan
+        for i in range(indup.shape[0]):
+            for j in range(indup.shape[1]):
+                iU = indup[i,j]
+                iD = inddown[i,j]       
+                length = np.abs(self._grid.depth[i,iU,j]\
+                              - self._grid.depth[i,iD,j])
+                wU = np.abs(depth - self._grid.depth[i,iU,j])/length
+                wD = np.abs(depth - self._grid.depth[i,iD,j])/length
+                interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
+
+        if debug: print '...Passed'
+
+        return interpVar
 
     def verti_shear(self, debug=False):
         """
