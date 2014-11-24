@@ -154,9 +154,6 @@ class Validation:
         Options:
         ------
           - filename: file name of the .csv file to be saved, string.
-          - depth: depth at which the validation will be performed, float.
-                   Only applicable for 3D simulations.
-          - plot: plot series of valiudation graphs, boolean.
         """
         #User input
         if filename==[]:
@@ -353,7 +350,7 @@ class Validation:
                 print 'Dumping in pickle file...'
             try:    
                 pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
-            except SystemError:
+            except SystemError, MemoryError:
                 print '---Data too large for machine memory---'
                 raise
            

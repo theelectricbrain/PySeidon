@@ -120,7 +120,7 @@ def depthFromSurf(mod_data, mod_depth, siglay,
 	# create interpolation function
 	col_nonan = column[np.where(~np.isnan(column))[0]]
 	bin_nonan = bins[np.where(~np.isnan(column))[0]]
-	f_obs = interp1d(bin_nonan, column)
+	f_obs = interp1d(bin_nonan, col_nonan)
 
 	# find location of specified depth and perform interpolation
 	location = obs_depth[ii] - depth
