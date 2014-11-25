@@ -45,7 +45,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
         bins = data['obs_timeseries']['bins']
         siglay = data['mod_timeseries']['siglay']
         # use depth interpolation to get a single timeseries
-        mod_depth = mod_el + np.mean(obs_el)
+        mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
         (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
 				       obs_u_all, obs_el, bins, depth=depth,
                                        debug=debug, debug_plot=debug_plot)
