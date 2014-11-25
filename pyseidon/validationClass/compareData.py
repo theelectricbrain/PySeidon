@@ -45,7 +45,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
         bins = data['obs_timeseries']['bins']
         siglay = data['mod_timeseries']['siglay']
         # use depth interpolation to get a single timeseries
-        mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
+        mod_depth = mod_el + np.mean(mod_el)
         (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
 				       obs_u_all, obs_el, bins, depth=depth,
                                        debug=debug, debug_plot=debug_plot)
@@ -71,7 +71,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
     obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
     mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
     obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
-    obs_el = obs_el - np.mean(obs_el)
+    obs_el = obs_el - np.mean(obs_el[~np.isnan(obs_el)])
 
     if debug: print "...check if the modeled data lines up with the observed data..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
