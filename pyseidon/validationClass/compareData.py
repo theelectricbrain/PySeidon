@@ -45,7 +45,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
         bins = data['obs_timeseries']['bins']
         siglay = data['mod_timeseries']['siglay']
         # use depth interpolation to get a single timeseries
-        mod_depth = mod_el + np.mean(obs_el)
+        mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
         (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
 				       obs_u_all, obs_el, bins, depth=depth,
                                        debug=debug, debug_plot=debug_plot)
@@ -67,10 +67,10 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
 	obs_dt.append(dn2dt(j))
 
     if debug: print "...put data into a useful format..."
-    mod_spd = np.sqrt(mod_u**2 + mod_v**2)
-    obs_spd = np.sqrt(obs_u**2 + obs_v**2)
-    mod_dir = np.arctan2(mod_v, mod_u) * 180 / np.pi
-    obs_dir = np.arctan2(obs_v, obs_u) * 180 / np.pi
+    mod_spd = np.sqrt(mod_u**2.0 + mod_v**2.0)
+    obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
+    mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
+    obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
     obs_el = obs_el - np.mean(obs_el)
 
     if debug: print "...check if the modeled data lines up with the observed data..."
@@ -112,18 +112,17 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
                    debug=debug, debug_plot=debug_plot)
 
     if debug: print "...separate into ebb and flow..."
-    '''
-    # separate into ebb and flow
-    mod_dir_n = get_DirFromN(mod_u_int, mod_v_int)
-    obs_dir_n = get_DirFromN(obs_u_int, mod_v_int)
-    mod_signed_s, mod_PA = sign_speed(mod_u_int, mod_v_int, mod_sp_int,
-				      mod_dr_int, 0)
-    obs_signed_s, obs_PA = sign_speed(obs_u_int, obs_v_int, obs_sp_int,
-				      obs_dr_int, 0)
-    print mod_signed_s[:20], mod_PA[:20]
-    print obs_signed_s[:20], obs_PA[:20]
-    '''
-
+    
+    ## separate into ebb and flow
+    #mod_dir_n = get_DirFromN(mod_u_int, mod_v_int)
+    #obs_dir_n = get_DirFromN(obs_u_int, mod_v_int)
+    #mod_signed_s, mod_PA = sign_speed(mod_u_int, mod_v_int, mod_sp_int,
+    #			      mod_dr_int, 0)
+    #obs_signed_s, obs_PA = sign_speed(obs_u_int, obs_v_int, obs_sp_int,
+    #			      obs_dr_int, 0)
+    #print mod_signed_s[:20], mod_PA[:20]
+    #print obs_signed_s[:20], obs_PA[:20]
+    
     if debug: print "...remove directions where velocities are small..."
     MIN_VEL = 0.1
     for i in np.arange(obs_sp_int.size):
