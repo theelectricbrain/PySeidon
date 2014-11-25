@@ -350,7 +350,7 @@ class Validation:
                 print 'Dumping in pickle file...'
             try:    
                 pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
-            except SystemError, MemoryError:
+            except (SystemError, MemoryError) as e:
                 print '---Data too large for machine memory---'
                 raise
            
