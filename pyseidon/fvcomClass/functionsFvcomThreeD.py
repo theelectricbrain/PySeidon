@@ -170,7 +170,12 @@ class FunctionsFvcomThreeD:
         #Finding closest values to specified depth
         if ind==[]:
             if debug: print 'Finding closest indexes to depth...'
-            ind = dep[dep>0.0].argmin(axis=1)       
+            ind = np.zeros((dep.shape[0],dep.shape[2]))
+            for i in range(dep.shape[0]):
+                for k in range(dep.shape[2]):
+                    test = dep[i,:,k]
+                    ind[i,k] = test[test>0.0].argmin()
+                    
         inddown = ind + 1
 
         if debug: print 'Computing weights...'
