@@ -141,7 +141,7 @@ class FunctionsFvcomThreeD:
 
         return dep
 
-    def interp_at_depth(self, var, depth, indup=[], inddown=[], debug=False):
+    def interp_at_depth(self, var, depth, ind=[], debug=False):
         """
         This function interpolates any given FVCOM.Variables field
         onto a specified depth plan
@@ -153,14 +153,12 @@ class FunctionsFvcomThreeD:
                     water column top downwards
         Keywords:
         --------
-          - indup = array of closest indexes to depth, 2D array (ntime, nele)
-          - inddown = array of second closest indexes to depth, 2D array (ntime, nele)
+          - ind = array of closest indexes to depth, 2D array (ntime, nele)
 
         Output:
         ------
           - interpVar = 2 dimensional (time, element) variable, array
-          - indup = array of closest indexes to depth, 2D array (ntime, nele)
-          - inddown = array of second closest indexes to depth, 2D array (ntime, nele)
+          - ind = array of closest indexes to depth, 2D array (ntime, nele)
         """
         debug = debug or self._debug
         if debug: print 'Interpolating at '+str(depth)+' meter depth...'
@@ -170,27 +168,17 @@ class FunctionsFvcomThreeD:
             self.depth()
         dep = self._grid.depth - depth
         #Finding closest values to specified depth
-        if indup==[]:
+        if ind==[]:
             if debug: print 'Finding closest indexes to depth...'
-            indup = dep.argmin(axis=1)
-
-        #assign inf to closest points
-        for i in range(dep.shape[0]):
-            for k in range(dep.shape[2]):
-                j=indup[i,k]
-                dep[i,j,k]=np.inf
-
-        #Finding second closest values to specified depth
-        if inddown==[]:
-            if debug: print 'Finding second closest indexes to depth...'
-            inddown = dep.argmin(axis=1)
+            ind = dep[dep>0.0].argmin(axis=1)       
+        inddown = ind + 1
 
         if debug: print 'Computing weights...'
         #weight matrix & interp
         interpVar = np.ones((var.shape[0], var.shape[2]))*np.nan
-        for i in range(indup.shape[0]):
-            for j in range(indup.shape[1]):
-                iU = indup[i,j]
+        for i in range(ind.shape[0]):
+            for j in range(ind.shape[1]):
+                iU = ind[i,j]
                 iD = inddown[i,j]       
                 length = np.abs(self._grid.depth[i,iU,j]\
                               - self._grid.depth[i,iD,j])
@@ -200,7 +188,7 @@ class FunctionsFvcomThreeD:
 
         if debug: print '...Passed'
 
-        return interpVar, indup, inddown
+        return interpVar, ind
 
     def verti_shear(self, debug=False):
         """
@@ -815,9 +803,9 @@ class FunctionsFvcomThreeD:
         if debug: print "Initialising power curve..."
         Cp = interp1d(power_mat[0,:],power_mat[1,:])
 
-        u, indup, indown = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
-        pd, indup2, indown2 = self.interp_at_depth(self._var.power_density, depth,
-                                                   indup=indup, indown=indown, debug=debug)
+        u, ind = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
+        pd, ind2 = self.interp_at_depth(self._var.power_density, depth,
+                                                   indup=ind, debug=debug)
 
         pa = Cp(u)*pd
 
