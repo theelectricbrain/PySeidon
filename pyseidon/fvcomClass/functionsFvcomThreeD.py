@@ -759,89 +759,77 @@ class FunctionsFvcomThreeD:
         self._History.append('power density computed')
         print '-Power density to FVCOM.Variables.-' 
 
-    def power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
-                                        a4=0.002, a3=-0.03, a2=0.1,
-                                        a1=-0.1, a0=0.8,
-                                        b2=-0.02, b1=0.2, b0=-0.005, debug=False):
+    def power_assessment_at_depth(self, power_mat, depth, 
+                                        cut_in=1.0, cut_out=4.5, debug=False):
         """
-        This method creates a new variable: 'power assessment' (W/m2)
-        -> FVCOM.Variables.power_assessment
+        This function computes power assessment (W/m2) at given depth.
 
+        Description:
+        -----------
         This function performs tidal turbine power assessment by accounting for
-        cut-in and cut-out speed, power curve (pc):
-            pc = a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0
-        (where u is the flow speed)
-        and device controled power coefficient (dcpc):
-            dcpc =  b2*(tsr**2) + b1*tsr + b0
+        cut-in and cut-out speed, power curve/function (pc):
+            Cp = pc(u)
+           (where u is the flow speed)
+
         The power density (pd) is then calculated as follows:
-            pd = pc*dcpc*(1/2)*1025*(u**3)
+            pd = Cp*(1/2)*1025*(u**3)
+
+        Inputs:
+        ------
+          - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
+                        u being power_mat[0,:] and Ct(u) being power_mat[1,:]
+          - depth = given depth from the surface, float
+
+        Output:
+        ------
+          - pa = power assessment in (W/m2), 2D array (ntime, nele)
 
         Keywords:
         --------
-          - cut_in = cut-in speed in m/s, float
-          - cut_out = cut-out speed in m/s, float
-          - tsr = tip speed ratio, float
-          - a4 = pc curve parameter, float
-          - a3 = pc curve parameter, float        
-          - a2 = pc curve parameter, float
-          - a1 = pc curve parameter, float
-          - a0 = pc curve parameter, float    
-          - b2 = dcpc curve parameter, float
-          - b1 = dcpc curve parameter, float
-          - b0 = dcpc curve parameter, float
+          - cut_in = cut-in speed in m/s, float number
+          - cut_out = cut-out speed in m/s, float number
+
         Notes:
         -----
           - This may take some time to compute depending on the size
             of the data set
         """
         debug = (debug or self._debug)
-        if debug: print "Computing power assessment..."
+        if debug: print "Computing depth averaged power density..."
 
-        if not hasattr(self._var, 'velo_norm'):
-            if debug: print "Computing velo norm..."
-            self.velo_norm(debug=debug)
-        if debug: print "Computing powers of velo norm..."
-        u = self._var.velo_norm
-        if debug: print "Computing pc and dcpc..."
-        pc = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpc = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        if debug: print "Computing pd..."
-        pd = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        if not hasattr(self._var, 'power_density'):
+            if debug: print "Computing power density..."
+            self.power_density(debug=debug)
 
-        if debug: print "finding cut-in..."
-        u = cut_in
-        pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdin = ne.evaluate('pcin*dcpcin*0.5*1025.0*(u**3)')
+        if debug: print "Initialising power curve..."
+        Cp = interp1d(power_mat[0,:],power_mat[1,:])
+
+        u = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
+        pd = self.interp_at_depth(self._var.power_density, depth, debug=debug)
+
+        pa = Cp(u)*pd
+
+        if debug: print "finding cut-in and out..."
         #TR comment huge bottleneck here
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = 0.0
-        for i in range(pd.shape[0]):
-            for j in range(pd.shape[1]):
-                for k in range(pd.shape[2]):
-                    if pd[i,j,k] < pdin:
-                       pd[i,j,k] = 0.0 
+        for i in range(pa.shape[0]):
+            for j in range(pa.shape[1]):
+                if u[i,j] < cut_in:
+                   pa[i,j] = 0.0 
 
-        if debug: print "finding cut-out..."
-        u = cut_out
-        pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdout = ne.evaluate('pcout*dcpcout*0.5*1025.0*(u**3)')
+        paout = Cp(cut_out)*0.5*1025.0*(cut_out**3.0)
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = pdout
-        for i in range(pd.shape[0]):
-            for j in range(pd.shape[1]):
-                for k in range(pd.shape[2]):
-                    if pd[i,j,k] > pdout:
-                       pd[i,j,k] = pdout       
+        for i in range(pa.shape[0]):
+            for j in range(pa.shape[1]):
+                if u[i,j] > cut_out:
+                   pa[i,j] = paout     
 
-        # Add metadata entry
-        self._var.power_assessment = pd
-        self._History.append('power assessment computed')
-        print '-Power assessment to FVCOM.Variables.-'  
+        return pa 
 
     def _vertical_slice(self, var, start_pt, end_pt,
                         time_ind=[], t_start=[], t_end=[],

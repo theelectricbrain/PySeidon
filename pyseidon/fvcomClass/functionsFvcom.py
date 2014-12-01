@@ -4,6 +4,7 @@
 from __future__ import division
 import numpy as np
 from scipy import linalg as LA
+from scipy.interpolate import interp1d
 import sys
 import numexpr as ne
 from datetime import datetime
@@ -888,41 +889,39 @@ class FunctionsFvcom:
 
         return dep
 
-    #def depth_averaged_power_assessment(self, debug=False):
-    #    """
-    #    This method creates a new variable: 'depth averaged power density' (W/m2)
-    #    -> FVCOM.Variables.depth_av_power_density
-    #
-    #    Description:
-    #    -----------
-    #    The power density (pd) is then calculated as follows:
-    #        pd = 0.5*1025*(u**3)
-    #
-    #    Notes:
-    #    -----
-    #      - This may take some time to compute depending on the size
-    #        of the data set
-    #    """
-    #    debug = (debug or self._debug)
-    #    if debug: print "Computing depth averaged power density..."
-    #
-    #    if not hasattr(self._var, 'hori_velo_norm'):
-    #        if debug: print "Computing hori velo norm..."
-    #        self.hori_velo_norm(debug=debug)
-    #    if debug: print "Computing powers of hori velo norm..."
-    #    u = self._var.hori_velo_norm
-    #    if debug: print "Computing pd..."
-    #    pd = ne.evaluate('0.5*1025.0*(u**3)')
-    #
-    #    # Add metadata entry
-    #    self._var.depth_av_power_density = pd
-    #    self._History.append('depth averaged power density computed')
-    #    print '-Depth averaged power density to FVCOM.Variables.-' 
+    def depth_averaged_power_density(self, debug=False):
+        """
+        This method creates a new variable: 'depth averaged power density' (W/m2)
+        -> FVCOM.Variables.depth_av_power_density
+    
+        Description:
+        -----------
+        The power density (pd) is then calculated as follows:
+            pd = 0.5*1025*(u**3)
+    
+        Notes:
+        -----
+          - This may take some time to compute depending on the size
+            of the data set
+        """
+        debug = (debug or self._debug)
+        if debug: print "Computing depth averaged power density..."
+    
+        if not hasattr(self._var, 'hori_velo_norm'):
+            if debug: print "Computing hori velo norm..."
+            self.hori_velo_norm(debug=debug)
+        if debug: print "Computing powers of hori velo norm..."
+        u = self._var.hori_velo_norm
+        if debug: print "Computing pd..."
+        pd = ne.evaluate('0.5*1025.0*(u**3)')
+    
+        # Add metadata entry
+        self._var.depth_av_power_density = pd
+        self._History.append('depth averaged power density computed')
+        print '-Depth averaged power density to FVCOM.Variables.-' 
 
-    def depth_averaged_power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
-                                        a4=0.002, a3=-0.03, a2=0.1,
-                                        a1=-0.1, a0=0.8,
-                                        b2=-0.02, b1=0.2, b0=-0.005, debug=False):
+    def depth_averaged_power_assessment(self, power_mat,  
+                                        cut_in=1.0, cut_out=4.5, debug=False):
         """
         This method creates a new variable: 'depth averaged power assessment' (W/m2)
         -> FVCOM.Variables.depth_av_power_assessment
@@ -930,29 +929,22 @@ class FunctionsFvcom:
         Description:
         -----------
         This function performs tidal turbine power assessment by accounting for
-        cut-in and cut-out speed, power curve (pc):
-            pc = a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0
+        cut-in and cut-out speed, power curve/function (pc):
+            Cp = pc(u)
            (where u is the flow speed)
 
-        and device controled power coefficient (dcpc):
-            dcpc =  b2*(tsr**2) + b1*tsr + b0
-
         The power density (pd) is then calculated as follows:
-            pd = pc*dcpc*(1/2)*1025*(u**3)
+            pd = Cp*(1/2)*1025*(u**3)
+
+        Inputs:
+        ------
+          - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
+                        u being power_mat[0,:] and Ct(u) being power_mat[1,:]
 
         Keywords:
         --------
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
-          - tsr = tip speed ratio, float number
-          - a4 = pc curve parameter, float number
-          - a3 = pc curve parameter, float number       
-          - a2 = pc curve parameter, float number
-          - a1 = pc curve parameter, float number
-          - a0 = pc curve parameter, float number    
-          - b2 = dcpc curve parameter, float number
-          - b1 = dcpc curve parameter, float number
-          - b0 = dcpc curve parameter, float number
 
         Notes:
         -----
@@ -962,43 +954,37 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         if debug: print "Computing depth averaged power density..."
 
-        if not hasattr(self._var, 'hori_velo_norm'):
-            if debug: print "Computing hori velo norm..."
-            self.hori_velo_norm(debug=debug)
-        if debug: print "Computing powers of hori velo norm..."
+        if not hasattr(self._var, 'depth_av_power_density'):
+            if debug: print "Computing power density..."
+            self.depth_averaged_power_density(debug=debug)
+
+        if debug: print "Initialising power curve..."
+        Cp = interp1d(power_mat[0,:],power_mat[1,:])
+
         u = self._var.hori_velo_norm
-        if debug: print "Computing pc and dcpc..."
-        pc = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpc = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        if debug: print "Computing pd..."
-        pd = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        pd = self._var.depth_av_power_density
+
+        pa = Cp(u)*pd
 
         if debug: print "finding cut-in and out..."
-        u = cut_in
-        pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdin = ne.evaluate('pcin*dcpcin*0.5*1025.0*(u**3)')
         #TR comment huge bottleneck here
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = 0.0
-        for i in range(pd.shape[0]):
-            for j in range(pd.shape[1]):
-                if pd[i,j] < pdin:
-                   pd[i,j] = 0.0 
+        for i in range(pa.shape[0]):
+            for j in range(pa.shape[1]):
+                if u[i,j] < cut_in:
+                   pa[i,j] = 0.0 
 
-        u = cut_out
-        pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdout = ne.evaluate('pcout*dcpcout*0.5*1025.0*(u**3)')
+        paout = Cp(cut_out)*0.5*1025.0*(cut_out**3.0)
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = pdout
-        for i in range(pd.shape[0]):
-            for j in range(pd.shape[1]):
-                if pd[i,j] > pdout:
-                   pd[i,j] = pdout     
+        for i in range(pa.shape[0]):
+            for j in range(pa.shape[1]):
+                if u[i,j] > cut_out:
+                   pa[i,j] = paout     
 
         # Add metadata entry
         self._var.depth_av_power_assessment = pd
