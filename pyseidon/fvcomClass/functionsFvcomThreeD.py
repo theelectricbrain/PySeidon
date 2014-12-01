@@ -7,6 +7,7 @@ import sys
 import numexpr as ne
 from datetime import datetime
 from datetime import timedelta
+from scipy.interpolate import interp1d
 from interpolation_utils import *
 from miscellaneous import *
 from BP_tools import *
@@ -744,15 +745,14 @@ class FunctionsFvcomThreeD:
             of the data set
         """
         debug = (debug or self._debug)
-        if debug: print "Computing power assessment..."
+        if debug: print "Computing power density..."
 
         if not hasattr(self._var, 'velo_norm'):
-            if debug: print "Computing velo norm..."
             self.velo_norm(debug=debug)
-        if debug: print "Computing powers of velo norm..."
+        if debug: print "Computing power density variable..."
         u = self._var.velo_norm
-        if debug: print "Computing pd..."
-        pd = ne.evaluate('0.5*1025.0*(u**3)')  
+        #pd = ne.evaluate('0.5*1025.0*(u**3)')
+        pd = 0.5*1025.0*np.power(u,3.0)  
 
         # Add metadata entry
         self._var.power_density = pd
@@ -798,7 +798,6 @@ class FunctionsFvcomThreeD:
         if debug: print "Computing depth averaged power density..."
 
         if not hasattr(self._var, 'power_density'):
-            if debug: print "Computing power density..."
             self.power_density(debug=debug)
 
         if debug: print "Initialising power curve..."
@@ -809,7 +808,7 @@ class FunctionsFvcomThreeD:
 
         pa = Cp(u)*pd
 
-        if debug: print "finding cut-in and out..."
+        if debug: print "finding cut-in..."
         #TR comment huge bottleneck here
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
@@ -819,6 +818,7 @@ class FunctionsFvcomThreeD:
                 if u[i,j] < cut_in:
                    pa[i,j] = 0.0 
 
+        if debug: print "finding cut-out..."
         paout = Cp(cut_out)*0.5*1025.0*(cut_out**3.0)
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]

@@ -908,12 +908,11 @@ class FunctionsFvcom:
         if debug: print "Computing depth averaged power density..."
     
         if not hasattr(self._var, 'hori_velo_norm'):
-            if debug: print "Computing hori velo norm..."
             self.hori_velo_norm(debug=debug)
         if debug: print "Computing powers of hori velo norm..."
         u = self._var.hori_velo_norm
-        if debug: print "Computing pd..."
-        pd = ne.evaluate('0.5*1025.0*(u**3)')
+        #pd = ne.evaluate('0.5*1025.0*(u**3)')
+        pd = 0.5*1025.0*np.power(u,3.0)
     
         # Add metadata entry
         self._var.depth_av_power_density = pd
