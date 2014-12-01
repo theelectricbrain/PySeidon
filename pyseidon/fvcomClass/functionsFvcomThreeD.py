@@ -174,7 +174,10 @@ class FunctionsFvcomThreeD:
             for i in range(dep.shape[0]):
                 for k in range(dep.shape[2]):
                     test = dep[i,:,k]
-                    ind[i,k] = test[test>0.0].argmin()
+                    if not test[test>0.0].shape==test.shape:
+                        ind[i,k] = test[test>0.0].argmin()
+                    else:
+                        ind[i,k] = np.nan
                     
         inddown = ind + 1
 
@@ -184,12 +187,15 @@ class FunctionsFvcomThreeD:
         for i in range(ind.shape[0]):
             for j in range(ind.shape[1]):
                 iU = ind[i,j]
-                iD = inddown[i,j]       
-                length = np.abs(self._grid.depth[i,iU,j]\
-                              - self._grid.depth[i,iD,j])
-                wU = np.abs(depth - self._grid.depth[i,iU,j])/length
-                wD = np.abs(depth - self._grid.depth[i,iD,j])/length
-                interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
+                iD = inddown[i,j]
+                if not np.isnan(iU):       
+                    length = np.abs(self._grid.depth[i,iU,j]\
+                                  - self._grid.depth[i,iD,j])
+                    wU = np.abs(depth - self._grid.depth[i,iU,j])/length
+                    wD = np.abs(depth - self._grid.depth[i,iD,j])/length
+                    interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
+                else:
+                    interpVar[i,j] = np.nan
 
         if debug: print '...Passed'
 
