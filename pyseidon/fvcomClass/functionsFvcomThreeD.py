@@ -816,7 +816,7 @@ class FunctionsFvcomThreeD:
 
         u, ind = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
         pd, ind2 = self.interp_at_depth(self._var.power_density, depth,
-                                                   indup=ind, debug=debug)
+                                                   ind=ind, debug=debug)
 
         pa = Cp(u)*pd
 
