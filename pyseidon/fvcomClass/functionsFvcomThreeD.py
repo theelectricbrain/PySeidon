@@ -141,7 +141,7 @@ class FunctionsFvcomThreeD:
 
         return dep
 
-    def interp_at_depth(self, var, depth, debug=False):
+    def interp_at_depth(self, var, depth, indup=[], inddown=[], debug=False):
         """
         This function interpolates any given FVCOM.Variables field
         onto a specified depth plan
@@ -151,9 +151,16 @@ class FunctionsFvcomThreeD:
           - var = 3 dimensional (time, sigma level, element) variable, array
           - depth = interpolation depth (float in meters), negative from
                     water column top downwards
+        Keywords:
+        --------
+          - indup = array of closest indexes to depth, 2D array (ntime, nele)
+          - inddown = array of second closest indexes to depth, 2D array (ntime, nele)
+
         Output:
         ------
           - interpVar = 2 dimensional (time, element) variable, array
+          - indup = array of closest indexes to depth, 2D array (ntime, nele)
+          - inddown = array of second closest indexes to depth, 2D array (ntime, nele)
         """
         debug = debug or self._debug
         if debug: print 'Interpolating at '+str(depth)+' meter depth...'
@@ -163,7 +170,9 @@ class FunctionsFvcomThreeD:
             self.depth()
         dep = self._grid.depth - depth
         #Finding closest values to specified depth
-        indup = dep.argmin(axis=1)
+        if indup==[]:
+            if debug: print 'Finding closest indexes to depth...'
+            indup = dep.argmin(axis=1)
 
         #assign inf to closest points
         for i in range(dep.shape[0]):
@@ -172,8 +181,11 @@ class FunctionsFvcomThreeD:
                 dep[i,j,k]=np.inf
 
         #Finding second closest values to specified depth
-        inddown = dep.argmin(axis=1)
+        if inddown==[]:
+            if debug: print 'Finding second closest indexes to depth...'
+            inddown = dep.argmin(axis=1)
 
+        if debug: print 'Computing weights...'
         #weight matrix & interp
         interpVar = np.ones((var.shape[0], var.shape[2]))*np.nan
         for i in range(indup.shape[0]):
@@ -188,7 +200,7 @@ class FunctionsFvcomThreeD:
 
         if debug: print '...Passed'
 
-        return interpVar
+        return interpVar, indup, inddown
 
     def verti_shear(self, debug=False):
         """
@@ -750,9 +762,9 @@ class FunctionsFvcomThreeD:
         if not hasattr(self._var, 'velo_norm'):
             self.velo_norm(debug=debug)
         if debug: print "Computing power density variable..."
-        u = self._var.velo_norm
+        #u = self._var.velo_norm
         #pd = ne.evaluate('0.5*1025.0*(u**3)')
-        pd = 0.5*1025.0*np.power(u,3.0)  
+        pd = 0.5*1025.0*np.power(self._var.velo_norm,3.0)  
 
         # Add metadata entry
         self._var.power_density = pd
@@ -803,8 +815,9 @@ class FunctionsFvcomThreeD:
         if debug: print "Initialising power curve..."
         Cp = interp1d(power_mat[0,:],power_mat[1,:])
 
-        u = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
-        pd = self.interp_at_depth(self._var.power_density, depth, debug=debug)
+        u, indup, indown = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
+        pd, indup2, indown2 = self.interp_at_depth(self._var.power_density, depth,
+                                                   indup=indup, indown=indown, debug=debug)
 
         pa = Cp(u)*pd
 
