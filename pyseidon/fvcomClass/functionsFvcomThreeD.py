@@ -157,7 +157,7 @@ class FunctionsFvcomThreeD:
 
         Output:
         ------
-          - interpVar = 2 dimensional (time, element) variable, array
+          - interpVar = 2 dimensional (time, element) variable, masked array
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
         """
         debug = debug or self._debug
@@ -196,6 +196,9 @@ class FunctionsFvcomThreeD:
                     interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
                 else:
                     interpVar[i,j] = np.nan
+
+        if debug: print 'Computing nan mask...'
+        interpVar = np.ma.masked_array(interpVar,np.isnan(interpVar))
 
         if debug: print '...Passed'
 
@@ -793,7 +796,7 @@ class FunctionsFvcomThreeD:
 
         Output:
         ------
-          - pa = power assessment in (W/m2), 2D array (ntime, nele)
+          - pa = power assessment in (W/m2), 2D masked array (ntime, nele)
 
         Keywords:
         --------
