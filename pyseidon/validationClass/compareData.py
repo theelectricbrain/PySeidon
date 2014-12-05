@@ -220,7 +220,7 @@ def compareTG(data, plot=False, debug=False, debug_plot=False):
     else:
 
         if debug: print "...interpolate timeseries onto a common timestep..."
-        (obs_elev_int, mod_elev_int, step_int, start_int) = \
+        (mod_elev_int, obs_elev_int, step_int, start_int) = \
             smooth(mod_elev, mod_time, obs_elev, obs_time,
                    debug=debug, debug_plot=debug_plot)
 
