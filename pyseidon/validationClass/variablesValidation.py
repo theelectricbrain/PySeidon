@@ -37,8 +37,8 @@ class _load_validation:
         self.struct = np.array([])
 
         #Check if times coincide
-        obsMax = self.obs.matlabTime.max()
-        obsMin = self.obs.matlabTime.min()
+        obsMax = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].max()
+        obsMin = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].min()
         simMax = self.sim.matlabTime.max()
         simMin = self.sim.matlabTime.min()
         absMin = max(obsMin, simMin)
