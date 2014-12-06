@@ -529,3 +529,9 @@ class TidalStats:
 	    plt.savefig(out_f)
 	else:
 	    plt.show()	
+
+    def save_data(self):
+            df = pd.DataFrame(data={'time': self.times.flatten(),
+                                    'observed':self.observed.flatten(),
+                                    'modeled':self.model.flatten() })
+            df.to_csv(str(self.type)+'.csv')

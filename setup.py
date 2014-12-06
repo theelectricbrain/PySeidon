@@ -6,15 +6,19 @@ def readme():
         return f.read()
 
 setup(name='PySeidon',
-      version='1.1',
-      description='Suite of tools for FVCOM model',
+      version='2.0',
+      description='Suite of tools for tidal-energy and FVCOM-user communities',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',
       author='Wesley Bowman, Thomas Roc, Jon Smith',
-      author_email='thomas.roc@acadiau.ca,wesley.bowman23@gmail.com,lavieenroux20@gmail.com',
+      author_email='thomas.roc@acadiau.ca,wesley.bowman23@gmail.com,'+\
+                   'lavieenroux20@gmail.com',
       maintainer='Thomas Roc',
       license='GNU Affero GPL v3.0',
       packages=find_packages(),
-      package_dir={'PySeidon' :'pyseidon'},   
+      package_dir={'PySeidon' :'pyseidon'},
+      install_requires=['setuptools', 'utide', 'numpy', 'pandas', 'pydap', 'pydap',
+                        'networkx', 'seaborn', 'scipy','matplotlib', 'h5py', 'numexpr',
+                        'datetime', 'netCDF4'],
       zip_safe=False)
 

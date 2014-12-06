@@ -18,7 +18,8 @@ def dn2dt(datenum):
     return datetime.fromordinal(int(datenum)) + timedelta(days=datenum%1) - \
            timedelta(days=366)
 
-def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False):
+def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
+              debug=False, debug_plot=False):
     '''
     Does a comprehensive validation process between modeled and observed
     data on the following:
@@ -133,28 +134,28 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
 
     if debug: print "...get stats for each tidal variable..."
     elev_suite = tidalSuite(mod_el_int, obs_el_int, step_el_int, start_el_int,
-			    type='elevation', plot=plot,
+			    type='elevation', plot=plot, save_csv=save_csv, 
                             debug=debug, debug_plot=debug_plot)
     speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
-			    type='speed', plot=plot,
+			    type='speed', plot=plot, save_csv=save_csv, 
                             debug=debug, debug_plot=debug_plot)
     dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
-			   type='direction', plot=plot,
+			   type='direction', plot=plot, save_csv=save_csv, 
                            debug=debug, debug_plot=debug_plot)
     u_suite = tidalSuite(mod_u_int, obs_u_int, step_u_int, start_u_int,
-			 type='u velocity', plot=plot,
+			 type='u velocity', plot=plot, save_csv=save_csv, 
                          debug=debug, debug_plot=debug_plot)
     v_suite = tidalSuite(mod_v_int, obs_v_int, step_v_int, start_v_int,
-			 type='v velocity', plot=plot,
+			 type='v velocity', plot=plot, save_csv=save_csv, 
                          debug=debug, debug_plot=debug_plot)
     vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
-			   type='velocity', plot=plot,
+			   type='velocity', plot=plot, save_csv=save_csv, 
                            debug=debug, debug_plot=debug_plot)
     #ebb_suite = tidalSuite(mod_ebb, obs_ebb, step_ebb_int, start_ebb_int,
-    #     		    type='ebb', plot=True,
+    #     		    type='ebb', plot=True, save_csv=save_csv, 
     #                       debug=debug, debug_plot=debug_plot)
     #flo_suite = tidalSuite(mod_flo, obs_flo, step_flo_int, start_flo_int,
-    #	         	    type='flow', plot=True,
+    #	         	    type='flow', plot=True, save_csv=save_csv, 
     #                        debug=debug, debug_plot=debug_plot)
     # output statistics in useful format
 
@@ -163,7 +164,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
     return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite)
 
 def tidalSuite(model, observed, step, start, type, plot=False,
-              debug=False, debug_plot=False):
+               save_csv=False, debug=False, debug_plot=False):
     '''
     Create stats classes for a given tidal variable.
 
@@ -181,14 +182,17 @@ def tidalSuite(model, observed, step, start, type, plot=False,
     stats_suite['phase'] = stats.getPhase()
 
     if plot or debug_plot:
-	stats.plotData()
+        stats.plotData()
 	stats.plotRegression(stats.linReg())
+
+    if save_csv:
+        stats.save_data()    
 
     if debug: print "...tidalSuite done."
 
     return stats_suite
 
-def compareTG(data, plot=False, debug=False, debug_plot=False):
+def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     '''
     Does a comprehensive comparison between tide gauge height data and
     modeled data, much like the above function.
@@ -230,7 +234,7 @@ def compareTG(data, plot=False, debug=False, debug_plot=False):
 
 
     elev_suite = tidalSuite(mod_elev_int, obs_elev_int, step_int, start_int,
-			    type='elevation', plot=plot,
+			    type='elevation', plot=plot, save_csv=save_csv,
                             debug=debug, debug_plot=debug_plot)
 
     if debug: print "...CompareTG done."

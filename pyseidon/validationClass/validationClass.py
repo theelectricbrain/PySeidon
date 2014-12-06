@@ -4,7 +4,6 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
-import csv
 import cPickle as pkl
 
 #import netCDF4 as nc
@@ -56,7 +55,7 @@ class Validation:
                         ' and ' + simulated._origin_file]
         self.Variables = _load_validation(observed, simulated, debug=self._debug)
  
-    def validate_data(self, filename=[], depth=[], plot=False,
+    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False, 
                       debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -67,6 +66,8 @@ class Validation:
           - depth: depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
           - plot: plot series of valiudation graphs, boolean.
+          - save_csv: will save both observed and modeled interpolated
+                      timeseries into *.csv file  
 
         References:
         ----------
@@ -102,7 +103,7 @@ class Validation:
         if self.Variables.struct['type'] == 'ADCP':
     	    (elev_suite, speed_suite, dir_suite, u_suite, v_suite, 
              vel_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
-                                    plot=plot, depth=depth,
+                                    plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
     	    self.Variables.struct['speed_val'] = speed_suite
@@ -119,7 +120,8 @@ class Validation:
             vars.append('vel')
 
         elif self.Variables.struct['type'] == 'TideGauge':
-     	    elev_suite_dg = compareTG(self.Variables.struct, plot=plot,
+     	    elev_suite_dg = compareTG(self.Variables.struct,
+                                      plot=plot, save_csv=save_csv,
                                       debug=debug, debug_plot=debug_plot)
     	    self.Variables.struct['tg_val'] = elev_suite_dg 
             #Variable to processed
