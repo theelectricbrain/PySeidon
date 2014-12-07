@@ -37,8 +37,8 @@ class _load_validation:
         self.struct = np.array([])
 
         #Check if times coincide
-        obsMax = self.obs.matlabTime.max()
-        obsMin = self.obs.matlabTime.min()
+        obsMax = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].max()
+        obsMin = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].min()
         simMax = self.sim.matlabTime.max()
         simMin = self.sim.matlabTime.min()
         absMin = max(obsMin, simMin)
@@ -46,11 +46,17 @@ class _load_validation:
         A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist()) 
         B = set(np.where(self.sim.matlabTime[:] <= absMax)[0].tolist())
         C = list(A.intersection(B))
+        #-Correction by J.Culina 2014-
+        C = sorted(C)
+        #-end-
         self._C = C
 
         a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist()) 
         b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
         c = list(a.intersection(b))
+        #-Correction by J.Culina 2014-
+        c = sorted(c)
+        #-end-
         self._c = c
         
         if len(C) == 0:
@@ -125,7 +131,7 @@ class _load_validation:
         elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
             self._obstype = 'tidegauge'
             obstype='TideGauge'
-            obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el}
+            obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
 
         else:
             print "-This type of measurements is not supported yet-"

@@ -11,6 +11,7 @@ from miscellaneous import *
 from BP_tools import *
 from utide import ut_solv, ut_reconstr
 import time
+from miscellaneous import mattime_to_datetime 
 
 class FunctionsAdcp:
     ''''Utils' subset of FVCOM class gathers useful functions""" '''
@@ -549,6 +550,21 @@ class FunctionsAdcp:
       
 
         return velo_norm 
+
+    def mattime2datetime(self, mattime, debug=False):
+        """
+        Description:
+        ----------
+        Output the time (yyyy-mm-dd, hh:mm:ss) corresponding to
+        a given matlab time
+
+        Inputs:
+        ------
+          - mattime = matlab time (floats)
+        """  
+        time = mattime_to_datetime(mattime, debug=debug)   
+        print time[0]
+
 #TR_comments: templates
 #    def whatever(self, debug=False):
 #        if debug or self._debug:

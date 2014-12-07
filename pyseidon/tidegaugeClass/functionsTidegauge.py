@@ -4,6 +4,7 @@
 from __future__ import division
 import numpy as np
 from utide import ut_solv, ut_reconstr
+from miscellaneous import mattime_to_datetime 
 
 class FunctionsTidegauge:
     ''''Utils' subset of TideGauge class gathers useful functions""" '''
@@ -88,6 +89,20 @@ class FunctionsTidegauge:
         time = self._var.matlabTime[time_ind]
         ts_recon, _ = ut_reconstr(time, harmo, **kwarg)
         return ts_recon
+
+    def mattime2datetime(self, mattime, debug=False):
+        """
+        Description:
+        ----------
+        Output the time (yyyy-mm-dd, hh:mm:ss) corresponding to
+        a given matlab time
+
+        Inputs:
+        ------
+          - mattime = matlab time (floats)
+        """  
+        time = mattime_to_datetime(mattime, debug=debug)   
+        print time[0]
 
 #TR_comments: templates
 #    def whatever(self, debug=False):

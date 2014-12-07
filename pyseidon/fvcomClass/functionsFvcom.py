@@ -4,6 +4,7 @@
 from __future__ import division
 import numpy as np
 from scipy import linalg as LA
+from scipy.interpolate import interp1d
 import sys
 import numexpr as ne
 from datetime import datetime
@@ -224,6 +225,135 @@ class FunctionsFvcom:
 
         return dirFlow, norm
 
+#    def ebb_flood_split_at_point(self, pt_lon, pt_lat,
+#                                 t_start=[], t_end=[], time_ind=[], debug=False):
+#        """
+#        This functions computes time indices for ebb and flood but also the 
+#        principal flow directions and associated variances
+#        at any given point.
+#
+#        Inputs:
+#        ------
+#          - pt_lon = longitude in decimal degrees East to find, float number 
+#          - pt_lat = latitude in decimal degrees North to find,float number 
+#
+#        Outputs:
+#        -------
+#          - floodIndex = flood time index, 1D array of integers
+#          - ebbIndex = ebb time index, 1D array of integers
+#          - pr_axis = principal flow ax1s, float number in degrees
+#          - pr_ax_var = associated variance, float number
+#
+#        Keywords:
+#        --------
+#          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
+#                      or time index as an integer
+#          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
+#                    or time index as an integer
+#          - time_ind = time indices to work in, 1D array of integers 
+#        
+#        Notes:
+#        -----
+#          - may take time to compute if time period too long
+#          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
+#            +/-180=West, -90=South
+#          - use time_ind or t_start and t_end, not both
+#          - assume that flood is aligned with principal direction
+#        """
+#        debug = debug or self._debug
+#        if debug:
+#            start = time.time()
+#            print 'Computing principal flow directions...'
+#
+#        # Find time interval to work in
+#        argtime = []
+#        if not time_ind==[]:
+#            argtime = time_ind
+#        elif not t_start==[]:
+#            if type(t_start)==str:
+#                argtime = time_to_index(t_start, t_end,
+#                                        self._var.matlabTime,
+#                                        debug=debug)
+#            else:
+#                argtime = arange(t_start, t_end)
+#
+#        #Choose the right pair of velocity components
+#        u = self._var.ua
+#        v = self._var.va
+#
+#        #Extraction at point
+#        # Finding closest point
+#        index = closest_point([pt_lon], [pt_lat],
+#                              self._grid.lonc,
+#                              self._grid.latc, debug=debug)[0]
+#        if debug:
+#            print 'Extraction of u and v at point...'
+#        U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
+#                                        debug=debug)  
+#        V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
+#                                        debug=debug) 
+#
+#        #use only the time indices of interest
+#        if not argtime==[]:
+#            U = U[argtime[:]]
+#            V = V[argtime[:]] 
+#
+#        #WB version of BP's principal axis
+#        if debug:
+#            print 'Computin principal axis at point...'
+#        pr_axis, pr_ax_var = principal_axis(U, V)
+#
+#        #ebb/flood split
+#        if debug:
+#            print 'Splitting ebb and flood at point...'
+#        # reverse 0-360 deg convention
+#       ra = (-pr_axis - 90.0) * np.pi /180.0
+#        if ra>np.pi:
+#            ra = ra - (2.0*np.pi)
+#        elif ra<-np.pi:
+#            ra = ra + (2.0*np.pi)    
+#        dirFlow = np.arctan2(V,U)
+#        #Define bins of angles
+#        if ra == 0.0:
+#            binP = [0.0, np.pi/2.0]
+#            binP = [0.0, -np.pi/2.0]
+#        elif ra > 0.0:
+#            if ra == np.pi:
+#                binP = [np.pi/2.0 , np.pi]
+#                binM = [-np.pi, -np.pi/2.0 ]        
+#            elif ra < (np.pi/2.0):
+#                binP = [0.0, ra + (np.pi/2.0)]
+#                binM = [-((np.pi/2.0)-ra), 0.0]
+#            else:
+#                binP = [ra - (np.pi/2.0), np.pi]
+#                binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
+#        else:
+#            if ra == -np.pi:
+#                binP = [np.pi/2.0 , np.pi]
+#                binM = [-np.pi, -np.pi/2.0]
+#            elif ra > -(np.pi/2.0):
+#                binP = [0.0, ra + (np.pi/2.0)]
+#                binM = [ ((-np.pi/2.0)+ra), 0.0]
+#            else:
+#                binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
+#                binM = [-np.pi, ra + (np.pi/2.0)]
+#                               
+#        test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
+#                ((dirFlow > binM[0]) * (dirFlow < binM[1])))
+#        floodIndex = np.where(test == True)[0]
+#        ebbIndex = np.where(test == False)[0]
+#
+#        #TR fit with Rose diagram angle convention
+#        #pr_axis = pr_axis - 90.0
+#        #if pr_axis<0.0:
+#        #    pr_axis[ind] = pr_axis[ind] + 360   
+#
+#        if debug:
+#            end = time.time()
+#            print "...processing time: ", (end - start)
+#
+#        return floodIndex, ebbIndex, pr_axis, pr_ax_var
+
     def ebb_flood_split_at_point(self, pt_lon, pt_lat,
                                  t_start=[], t_end=[], time_ind=[], debug=False):
         """
@@ -298,54 +428,35 @@ class FunctionsFvcom:
             V = V[argtime[:]] 
 
         #WB version of BP's principal axis
-        if debug:
-            print 'Computin principal axis at point...'
+        #Assuming principal axis = flood heading
+        #determine principal axes - potentially a problem if axes are very kinked
+        #   since this would misclassify part of ebb and flood
+        if debug: print 'Computing principal axis at point...'
         pr_axis, pr_ax_var = principal_axis(U, V)
 
-        #ebb/flood split
-        if debug:
-            print 'Splitting ebb and flood at point...'
-        # reverse 0-360 deg convention
-        ra = (-pr_axis - 90.0) * np.pi /180.0
-        if ra>np.pi:
-            ra = ra - (2.0*np.pi)
-        elif ra<-np.pi:
-            ra = ra + (2.0*np.pi)    
-        dirFlow = np.arctan2(V,U)
-        #Define bins of angles
-        if ra == 0.0:
-            binP = [0.0, np.pi/2.0]
-            binP = [0.0, -np.pi/2.0]
-        elif ra > 0.0:
-            if ra == np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0 ]        
-            elif ra < (np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [-((np.pi/2.0)-ra), 0.0]
-            else:
-                binP = [ra - (np.pi/2.0), np.pi]
-                binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
-        else:
-            if ra == -np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0]
-            elif ra > -(np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [ ((-np.pi/2.0)+ra), 0.0]
-            else:
-                binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
-                binM = [-np.pi, ra + (np.pi/2.0)]
-                                
-        test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
-                ((dirFlow > binM[0]) * (dirFlow < binM[1])))
-        floodIndex = np.where(test == True)[0]
-        ebbIndex = np.where(test == False)[0]
+        if debug: print 'Computing ebb/flood intervals...'
+        #Defines interval
+        flood_heading = np.array([-90, 90]) + pr_axis
+        #initialise matrix
+        s_signed_all = np.empty(U.shape)
+        s_signed_all.fill(np.nan)
+        PA_all = np.zeros(U.shape)
+        dir_all = np.arctan2(U,U) * 180 / np.pi
+        ind = np.where(dir_all<0)
+        dir_all[ind] = dir_all[ind] + 360     
 
-        #TR fit with Rose diagram angle convention
-        #pr_axis = pr_axis - 90.0
-        #if pr_axis<0.0:
-        #    pr_axis[ind] = pr_axis[ind] + 360   
+        # sign speed - eliminating wrap-around
+        dir_PA = dir_all - pr_axis
+        dir_PA[dir_PA < -90] += 360
+        dir_PA[dir_PA > 270] -= 360
+
+        #dir_PA[dir_PA<-90] = dir_PA(dir_PA<-90) + 360;
+        #dir_PA(dir_PA>270) = dir_PA(dir_PA>270) - 360;
+
+        #general direction of flood passed as input argument
+        floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
+        ebbIndex = np.arange(dir_PA.shape[0])
+        ebbIndex = np.delete(ebbIndex,floodIndex[:]) 
 
         if debug:
             end = time.time()
@@ -778,16 +889,16 @@ class FunctionsFvcom:
 
         return dep
 
-    def depth_averaged_power_assessment(self, debug=False):
+    def depth_averaged_power_density(self, debug=False):
         """
         This method creates a new variable: 'depth averaged power density' (W/m2)
         -> FVCOM.Variables.depth_av_power_density
-
+    
         Description:
         -----------
         The power density (pd) is then calculated as follows:
             pd = 0.5*1025*(u**3)
-
+    
         Notes:
         -----
           - This may take some time to compute depending on the size
@@ -795,24 +906,21 @@ class FunctionsFvcom:
         """
         debug = (debug or self._debug)
         if debug: print "Computing depth averaged power density..."
-
+    
         if not hasattr(self._var, 'hori_velo_norm'):
-            if debug: print "Computing hori velo norm..."
             self.hori_velo_norm(debug=debug)
         if debug: print "Computing powers of hori velo norm..."
-        u = self._var.hori_velo_norm
-        if debug: print "Computing pd..."
-        pd = ne.evaluate('0.5*1025.0*(u**3)')
-
+        #u = self._var.hori_velo_norm
+        #pd = ne.evaluate('0.5*1025.0*(u**3)')
+        pd = 0.5*1025.0*np.power(self._var.hori_velo_norm,3.0)
+    
         # Add metadata entry
         self._var.depth_av_power_density = pd
         self._History.append('depth averaged power density computed')
         print '-Depth averaged power density to FVCOM.Variables.-' 
 
-    def depth_averaged_power_assessment(self, cut_in=1.0, cut_out=4.5, tsr=4.3, 
-                                        a4=0.002, a3=-0.03, a2=0.1,
-                                        a1=-0.1, a0=0.8,
-                                        b2=-0.02, b1=0.2, b0=-0.005, debug=False):
+    def depth_averaged_power_assessment(self, power_mat,  
+                                        cut_in=1.0, cut_out=4.5, debug=False):
         """
         This method creates a new variable: 'depth averaged power assessment' (W/m2)
         -> FVCOM.Variables.depth_av_power_assessment
@@ -820,29 +928,22 @@ class FunctionsFvcom:
         Description:
         -----------
         This function performs tidal turbine power assessment by accounting for
-        cut-in and cut-out speed, power curve (pc):
-            pc = a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0
+        cut-in and cut-out speed, power curve/function (pc):
+            Cp = pc(u)
            (where u is the flow speed)
 
-        and device controled power coefficient (dcpc):
-            dcpc =  b2*(tsr**2) + b1*tsr + b0
-
         The power density (pd) is then calculated as follows:
-            pd = pc*dcpc*(1/2)*1025*(u**3)
+            pd = Cp*(1/2)*1025*(u**3)
+
+        Inputs:
+        ------
+          - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
+                        u being power_mat[0,:] and Ct(u) being power_mat[1,:]
 
         Keywords:
         --------
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
-          - tsr = tip speed ratio, float number
-          - a4 = pc curve parameter, float number
-          - a3 = pc curve parameter, float number       
-          - a2 = pc curve parameter, float number
-          - a1 = pc curve parameter, float number
-          - a0 = pc curve parameter, float number    
-          - b2 = dcpc curve parameter, float number
-          - b1 = dcpc curve parameter, float number
-          - b0 = dcpc curve parameter, float number
 
         Notes:
         -----
@@ -852,43 +953,37 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         if debug: print "Computing depth averaged power density..."
 
-        if not hasattr(self._var, 'hori_velo_norm'):
-            if debug: print "Computing hori velo norm..."
-            self.hori_velo_norm(debug=debug)
-        if debug: print "Computing powers of hori velo norm..."
+        if not hasattr(self._var, 'depth_av_power_density'):
+            if debug: print "Computing power density..."
+            self.depth_averaged_power_density(debug=debug)
+
+        if debug: print "Initialising power curve..."
+        Cp = interp1d(power_mat[0,:],power_mat[1,:])
+
         u = self._var.hori_velo_norm
-        if debug: print "Computing pc and dcpc..."
-        pc = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpc = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        if debug: print "Computing pd..."
-        pd = ne.evaluate('pc*dcpc*0.5*1025.0*(u**3)')
+        pd = self._var.depth_av_power_density
+
+        pa = Cp(u)*pd
 
         if debug: print "finding cut-in and out..."
-        u = cut_in
-        pcin = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpcin = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdin = ne.evaluate('pcin*dcpcin*0.5*1025.0*(u**3)')
         #TR comment huge bottleneck here
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = 0.0
-        for i in range(pd.shape[0]):
-            for j in range(pd.shape[1]):
-                if pd[i,j] < pdin:
-                   pd[i,j] = 0.0 
+        for i in range(pa.shape[0]):
+            for j in range(pa.shape[1]):
+                if u[i,j] < cut_in:
+                   pa[i,j] = 0.0 
 
-        u = cut_out
-        pcout = ne.evaluate('a4*(u**4) + a3*(u**3) + a2*(u**2) + a1*u + a0')
-        dcpcout = ne.evaluate('b2*(tsr**2) + b1*tsr + b0')
-        pdout = ne.evaluate('pcout*dcpcout*0.5*1025.0*(u**3)')
+        paout = Cp(cut_out)*0.5*1025.0*(cut_out**3.0)
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = pdout
-        for i in range(pd.shape[0]):
-            for j in range(pd.shape[1]):
-                if pd[i,j] > pdout:
-                   pd[i,j] = pdout     
+        for i in range(pa.shape[0]):
+            for j in range(pa.shape[1]):
+                if u[i,j] > cut_out:
+                   pa[i,j] = paout     
 
         # Add metadata entry
         self._var.depth_av_power_assessment = pd

@@ -307,10 +307,14 @@ Notes:
             try:    
                 pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
             except SystemError:
-                print '---Data too large for machine memory---'
-                print 'Tip: use ax or tx during class initialisation'
-                print '---  to use partial data'
-                raise
+                try:
+                    print "---Very large data, this may take a while---"
+                    pkl.dump(data, f)
+                except SystemError:                 
+                    print "---Data too large for machine memory---"
+                    print "Tip: use ax or tx during class initialisation"
+                    print "---  to use partial data"
+                    sys.exit()
            
             f.close()
         elif fileformat=='matlab':

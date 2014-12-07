@@ -4,7 +4,6 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
-import csv
 import cPickle as pkl
 
 #import netCDF4 as nc
@@ -56,7 +55,7 @@ class Validation:
                         ' and ' + simulated._origin_file]
         self.Variables = _load_validation(observed, simulated, debug=self._debug)
  
-    def validate_data(self, filename=[], depth=[], plot=False,
+    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False, 
                       debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -67,6 +66,8 @@ class Validation:
           - depth: depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
           - plot: plot series of valiudation graphs, boolean.
+          - save_csv: will save both observed and modeled interpolated
+                      timeseries into *.csv file  
 
         References:
         ----------
@@ -102,7 +103,7 @@ class Validation:
         if self.Variables.struct['type'] == 'ADCP':
     	    (elev_suite, speed_suite, dir_suite, u_suite, v_suite, 
              vel_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
-                                    plot=plot, depth=depth,
+                                    plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
     	    self.Variables.struct['speed_val'] = speed_suite
@@ -120,6 +121,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'TideGauge':
      	    elev_suite_dg = compareTG(self.Variables.struct,
+                                      plot=plot, save_csv=save_csv,
                                       debug=debug, debug_plot=debug_plot)
     	    self.Variables.struct['tg_val'] = elev_suite_dg 
             #Variable to processed
@@ -132,61 +134,66 @@ class Validation:
         #Make csv file
         self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
                                    debug=debug, debug_plot=debug_plot)
+        
         #Display csv
-        csvName = filename + '_val.csv'
-        csv_con = open(csvName, 'r')
-        csv_cont = list(csv.reader(csv_con, delimiter=','))
+        #csvName = filename + '_val.csv'
+        #csv_con = open(csvName, 'r')
+        #csv_cont = list(csv.reader(csv_con, delimiter=','))
         print "---Validation benchmarks---"
-        print(70*'-')
-        for row in csv_cont:
-           row = [str(e) for e in row[:][1:]]
-           print('\t'.join(row))
-        print(70*'-')
+        pd.set_option('display.max_rows', len(self.Benchmarks))
+        print(self.Benchmarks)
+        pd.reset_option('display.max_rows')
+        #print(70*'-')
+        #for row in csv_cont:
+        #   row = [str(e) for e in row[:][1:]]
+        #   print('\t'.join(row))
+        #print(70*'-')
 
-    def validate_harmonics(self, filename=[], debug=False, debug_plot=False):
+    def validate_harmonics(self, filename=[], save_csv=False,
+                           debug=False, debug_plot=False):
         """
-        This method computes the error in % for each component of the harmonic analysis.
+        This method computes and store in a csv file the error in %
+        for each component of the harmonic analysis (i.e. *_error.csv).     
 
         Options:
         ------
           - filename: file name of the .csv file to be saved, string.
-          - depth: depth at which the validation will be performed, float.
-                   Only applicable for 3D simulations.
-          - plot: plot series of valiudation graphs, boolean.
+          - save_csv: will save both observed and modeled harmonic
+                      coefficients into *.csv files (i.e. *_harmo_coef.csv) 
         """
         #User input
         if filename==[]:
             filename = input('Enter filename (string) for csv file: ')
             filename = str(filename)
 
-        #Overlapping index
-        c = self.Variables._c
-        C = self.Variables._C
 
         #Harmonic analysis over matching time
         if self.Variables._obstype=='adcp':
-            self.Variables.obs.velCoef = ut_solv(self.Variables.obs.matlabTime[c],
-                                         self.Variables.obs.ua[c],
-                                         self.Variables.obs.va[c],
-                                         self.Variables.obs.lat,
+            time = self.Variables.struct['obs_time']
+            lat = self.Variables.struct['lat']
+            ua =  self.Variables.struct['obs_timeseries']['ua'][:]
+            va =  self.Variables.struct['obs_timeseries']['va'][:]
+            el =  self.Variables.struct['obs_timeseries']['elev'] [:]          
+            
+            self.Variables.obs.velCoef = ut_solv(time, ua, va, lat,
                                          #cnstit=ut_constits, rmin=0.95, notrend=True,
                                          cnstit='auto', rmin=0.95, notrend=True,
                                          method='ols', nodiagn=True, linci=True,
                                          coef_int=True)
             
 
-            self.Variables.obs.elCoef = ut_solv(self.Variables.obs.matlabTime[c],
-                                        self.Variables.obs.surf[c],
-                                        [], self.Variables.obs.lat,
+            self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
                                         #cnstit=ut_constits, rmin=0.95, notrend=True,
                                         cnstit='auto', rmin=0.95, notrend=True,
                                         method='ols', nodiagn=True, linci=True,
                                         coef_int=True)
 
         elif self.Variables._obstype=='tidegauge':
-            self.Variables.obs.elCoef = ut_solv(self.Variables.obs.matlabTime[c],
-                                        self.Variables.obs.el[c],
-                                        [], self.Variables.obs.lat,
+            time = self.Variables.struct['obs_time']
+            lat = self.Variables.struct['lat']
+            el =  self.Variables.struct['obs_timeseries']['elev'] [:]
+ 
+            self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
                                         #cnstit=ut_constits, notrend=True,
                                         cnstit='auto', notrend=True,
                                         rmin=0.95, method='ols', nodiagn=True,
@@ -197,32 +204,35 @@ class Validation:
             sys.exit()
 
         if self.Variables._simtype=='fvcom':
-            self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                             el[C], [], self.Variables.obs.lat,
+            time = self.Variables.struct['mod_time']
+            lat = self.Variables.struct['lat']
+            el =  self.Variables.struct['mod_timeseries']['elev'][:]           
+            
+            self.Variables.sim.elCoef = ut_solv(time, el, [], lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
             if self.Variables._obstype=='adcp':
-                self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                                  ua[C], va[C], self.Variables.obs.lat,
+                ua =  self.Variables.struct['mod_timeseries']['ua'][:]
+                va =  self.Variables.struct['mod_timeseries']['va'][:]
+                self.Variables.sim.velCoef = ut_solv(time, ua, va, lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
                                   cnstit='auto', rmin=0.95, notrend=True,
                                   method='ols', nodiagn=True, linci=True, conf_int=True)
 
         elif self.Variables._simtype=='station':
+            time = self.Variables.struct['mod_time']
+            lat = self.Variables.struct['lat']
             el = self.Variables.struct['mod_timeseries']['elev'][:]
-            self.Variables.sim.elCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                             el, [],
-                             self.Variables.sim.lat,
+
+            self.Variables.sim.elCoef = ut_solv(time, el, [], lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
             if self.Variables._obstype=='adcp':
                 ua = self.Variables.struct['mod_timeseries']['ua'][:]
                 va = self.Variables.struct['mod_timeseries']['va'][:]
-                self.Variables.sim.velCoef = ut_solv(self.Variables.sim.matlabTime[C],
-                                  ua, va,
-                                  self.Variables.sim.lat,
+                self.Variables.sim.velCoef = ut_solv(time, ua, va, lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
                                   cnstit='auto', rmin=0.95, notrend=True,
                                   method='ols', nodiagn=True, linci=True, conf_int=True)
@@ -255,54 +265,99 @@ class Validation:
 	    np.hstack((noMatchVelCoef,np.delete(self.Variables.obs.velCoef['name'],
                        matchVelCoefInd[:,1]) ))
         except AttributeError:
-            pass      
+            pass
 
-        #Compare obs. vs. sim. harmo coef
-        ##error in %
+
+        #Compare obs. vs. sim. elevation harmo coef
         data = {}
         columns = ['A', 'g', 'A_ci', 'g_ci']
-        for key in columns:
-            err = (abs(self.Variables.sim.elCoef[key][matchElCoefInd[:,0]] / \
-                       self.Variables.obs.elCoef[key][matchElCoefInd[:,1]] - 1.0)) * 100.0
-            data[key] = err
 
-        columns.append('mean')
-        err=(abs(self.Variables.sim.elCoef['mean'] / \
-             self.Variables.obs.elCoef['mean'] - 1.0)) * 100.0
-        data['mean'] = err * np.zeros(matchElCoefInd.shape[0])
-        ##create table
-        table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)        
-        ##export as .csv file
-        out_file = '{}_el_harmo_val.csv'.format(filename)
-        table.to_csv(out_file)
-        ##print non-matching coefs
-        if not noMatchElCoef.shape[0]==0:
-            print "Non-matching harmonic coefficients for elevation: ", noMatchElCoef 
-
-        ##same for velocity coefficients
-        if not matchVelCoef==[]:
-            ##error in %
+        #Store harmonics in csv files 
+        if save_csv:
+            #observed elevation coefs
+            for key in columns:
+                data[key] = self.Variables.obs.elCoef[key]           
+            table = pd.DataFrame(data=data, index=self.Variables.obs.elCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_obs_el_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
             data = {}
-            columns1 = ['Lsmaj', 'g', 'theta_ci', 'Lsmin_ci', 'Lsmaj_ci', 'theta', 'g_ci']
-            for key in columns1:
-                err = (abs(self.Variables.sim.velCoef[key][matchVelCoefInd[:,0]] / \
-                           self.Variables.obs.velCoef[key][matchVelCoefInd[:,1]] - 1.0)) \
-                           * 100.0
+
+            #modeled elevation coefs
+            for key in columns:
+                data[key] = self.Variables.sim.elCoef[key]           
+            table = pd.DataFrame(data=data, index=self.Variables.sim.elCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_sim_el_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
+            data = {}
+
+        ##error in %
+        if not matchElCoef==[]:
+            for key in columns:
+                b=self.Variables.sim.elCoef[key][matchElCoefInd[:,0]]
+                a=self.Variables.obs.elCoef[key][matchElCoefInd[:,1]]
+                err = abs((a-b)/a) * 100.0
                 data[key] = err
-            columns2 = ['vmean', 'umean']
-            columns = columns1 + columns2
-            for key in columns2:
-                err=(abs(self.Variables.sim.velCoef[key] / \
-                     self.Variables.obs.velCoef[key] - 1.0)) * 100.0
-                data[key] = err * np.zeros(matchVelCoefInd.shape[0])
+
+            ##create table
+            table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)        
+            ##export as .csv file
+            out_file = '{}_el_harmo_error.csv'.format(filename)
+            table.to_csv(out_file)
+            ##print non-matching coefs
+            if not noMatchElCoef.shape[0]==0:
+                print "Non-matching harmonic coefficients for elevation: ", noMatchElCoef
+        else:
+            print "-No matching harmonic coefficients for elevation-" 
+
+        #Compare obs. vs. sim. velocity harmo coef
+        data = {}
+        columns = ['Lsmaj', 'g', 'theta_ci', 'Lsmin_ci',
+                   'Lsmaj_ci', 'theta', 'g_ci']
+ 
+        #Store harmonics in csv files 
+        if save_csv:
+            #observed elevation coefs
+            for key in columns:
+                data[key] = self.Variables.obs.velCoef[key]          
+            table = pd.DataFrame(data=data, index=self.Variables.obs.velCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_obs_velo_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
+            data = {}
+
+            #modeled elevation coefs
+            for key in columns:
+                data[key] = self.Variables.sim.velCoef[key]           
+            table = pd.DataFrame(data=data, index=self.Variables.sim.velCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_sim_velo_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
+            data = {}
+
+        ##error in %
+        if not matchVelCoef==[]:
+            for key in columns:
+                b=self.Variables.sim.velCoef[key][matchVelCoefInd[:,0]]
+                a=self.Variables.obs.velCoef[key][matchVelCoefInd[:,1]]
+                err = abs((a-b)/a) * 100.0
+                data[key] = err
+
             ##create table
             table = pd.DataFrame(data=data, index=matchVelCoef, columns=columns)        
             ##export as .csv file
-            out_file = '{}_vel_harmo_val.csv'.format(filename)
+            out_file = '{}_vel0_harmo_error.csv'.format(filename)
             table.to_csv(out_file)
             ##print non-matching coefs
             if not noMatchVelCoef.shape[0]==0:
-                print "Non-matching harmonic coefficients for velocity: ", noMatchVelCoef         
+                print "Non-matching harmonic coefficients for velocity: ", noMatchVelCoef
+        else:
+            print "-No matching harmonic coefficients for velocity-"      
     
 
     def Save_as(self, filename, fileformat='pickle', debug=False):
@@ -346,7 +401,7 @@ class Validation:
                 print 'Dumping in pickle file...'
             try:    
                 pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
-            except SystemError:
+            except (SystemError, MemoryError) as e:
                 print '---Data too large for machine memory---'
                 raise
            

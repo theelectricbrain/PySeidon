@@ -88,7 +88,7 @@ def depth_at_FVCOM_element(ind, trinodes, time_ind):
       -ind = element index, integer
       -trinodes = grid trinodes
       -time_ind = reference time indexes for surface elevation, list of integer
-    Output: depth at element, 1D array
+    Output: deoth at element, 1D array
 
     """
     indexes = trinodes[ind,:]

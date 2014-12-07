@@ -36,7 +36,7 @@ def valTable(struct, filename, vars, debug=False, debug_plot=False):
     # export as .csv file
     out_file = '{}_val.csv'.format(filename)
     table.to_csv(out_file)
-    return val_dict
+    return table
 
 def siteStats(site, variable, type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, 
 	      skill, r2, phase, debug=False, debug_plot=False):

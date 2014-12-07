@@ -18,7 +18,8 @@ def dn2dt(datenum):
     return datetime.fromordinal(int(datenum)) + timedelta(days=datenum%1) - \
            timedelta(days=366)
 
-def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False):
+def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
+              debug=False, debug_plot=False):
     '''
     Does a comprehensive validation process between modeled and observed
     data on the following:
@@ -45,7 +46,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
         bins = data['obs_timeseries']['bins']
         siglay = data['mod_timeseries']['siglay']
         # use depth interpolation to get a single timeseries
-        mod_depth = mod_el + np.mean(obs_el)
+        mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
         (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
 				       obs_u_all, obs_el, bins, depth=depth,
                                        debug=debug, debug_plot=debug_plot)
@@ -67,11 +68,11 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
 	obs_dt.append(dn2dt(j))
 
     if debug: print "...put data into a useful format..."
-    mod_spd = np.sqrt(mod_u**2 + mod_v**2)
-    obs_spd = np.sqrt(obs_u**2 + obs_v**2)
-    mod_dir = np.arctan2(mod_v, mod_u) * 180 / np.pi
-    obs_dir = np.arctan2(obs_v, obs_u) * 180 / np.pi
-    obs_el = obs_el - np.mean(obs_el)
+    mod_spd = np.sqrt(mod_u**2.0 + mod_v**2.0)
+    obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
+    mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
+    obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
+    obs_el = obs_el - np.mean(obs_el[~np.isnan(obs_el)])
 
     if debug: print "...check if the modeled data lines up with the observed data..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
@@ -112,20 +113,19 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
                    debug=debug, debug_plot=debug_plot)
 
     if debug: print "...separate into ebb and flow..."
-    '''
-    # separate into ebb and flow
-    mod_dir_n = get_DirFromN(mod_u_int, mod_v_int)
-    obs_dir_n = get_DirFromN(obs_u_int, mod_v_int)
-    mod_signed_s, mod_PA = sign_speed(mod_u_int, mod_v_int, mod_sp_int,
-				      mod_dr_int, 0)
-    obs_signed_s, obs_PA = sign_speed(obs_u_int, obs_v_int, obs_sp_int,
-				      obs_dr_int, 0)
-    print mod_signed_s[:20], mod_PA[:20]
-    print obs_signed_s[:20], obs_PA[:20]
-    '''
-
+    
+    ## separate into ebb and flow
+    #mod_dir_n = get_DirFromN(mod_u_int, mod_v_int)
+    #obs_dir_n = get_DirFromN(obs_u_int, mod_v_int)
+    #mod_signed_s, mod_PA = sign_speed(mod_u_int, mod_v_int, mod_sp_int,
+    #			      mod_dr_int, 0)
+    #obs_signed_s, obs_PA = sign_speed(obs_u_int, obs_v_int, obs_sp_int,
+    #			      obs_dr_int, 0)
+    #print mod_signed_s[:20], mod_PA[:20]
+    #print obs_signed_s[:20], obs_PA[:20]
+    
     if debug: print "...remove directions where velocities are small..."
-    MIN_VEL = 0.5
+    MIN_VEL = 0.1
     for i in np.arange(obs_sp_int.size):
  	if (obs_sp_int[i] < MIN_VEL):
 	    obs_dr_int[i] = np.nan
@@ -134,28 +134,28 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
 
     if debug: print "...get stats for each tidal variable..."
     elev_suite = tidalSuite(mod_el_int, obs_el_int, step_el_int, start_el_int,
-			    type='elevation', plot=plot,
+			    type='elevation', plot=plot, save_csv=save_csv, 
                             debug=debug, debug_plot=debug_plot)
     speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
-			    type='speed', plot=plot,
+			    type='speed', plot=plot, save_csv=save_csv, 
                             debug=debug, debug_plot=debug_plot)
     dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
-			   type='direction', plot=plot,
+			   type='direction', plot=plot, save_csv=save_csv, 
                            debug=debug, debug_plot=debug_plot)
     u_suite = tidalSuite(mod_u_int, obs_u_int, step_u_int, start_u_int,
-			 type='u velocity', plot=plot,
+			 type='u velocity', plot=plot, save_csv=save_csv, 
                          debug=debug, debug_plot=debug_plot)
     v_suite = tidalSuite(mod_v_int, obs_v_int, step_v_int, start_v_int,
-			 type='v velocity', plot=plot,
+			 type='v velocity', plot=plot, save_csv=save_csv, 
                          debug=debug, debug_plot=debug_plot)
     vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
-			   type='velocity', plot=plot,
+			   type='velocity', plot=plot, save_csv=save_csv, 
                            debug=debug, debug_plot=debug_plot)
     #ebb_suite = tidalSuite(mod_ebb, obs_ebb, step_ebb_int, start_ebb_int,
-    #     		    type='ebb', plot=True,
+    #     		    type='ebb', plot=True, save_csv=save_csv, 
     #                       debug=debug, debug_plot=debug_plot)
     #flo_suite = tidalSuite(mod_flo, obs_flo, step_flo_int, start_flo_int,
-    #	         	    type='flow', plot=True,
+    #	         	    type='flow', plot=True, save_csv=save_csv, 
     #                        debug=debug, debug_plot=debug_plot)
     # output statistics in useful format
 
@@ -164,7 +164,7 @@ def compareUV(data, threeDim, depth=5, plot=False, debug=False, debug_plot=False
     return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite)
 
 def tidalSuite(model, observed, step, start, type, plot=False,
-              debug=False, debug_plot=False):
+               save_csv=False, debug=False, debug_plot=False):
     '''
     Create stats classes for a given tidal variable.
 
@@ -182,14 +182,17 @@ def tidalSuite(model, observed, step, start, type, plot=False,
     stats_suite['phase'] = stats.getPhase()
 
     if plot or debug_plot:
-	stats.plotData()
+        stats.plotData()
 	stats.plotRegression(stats.linReg())
+
+    if save_csv:
+        stats.save_data()    
 
     if debug: print "...tidalSuite done."
 
     return stats_suite
 
-def compareTG(data, debug=False, debug_plot=False):
+def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     '''
     Does a comprehensive comparison between tide gauge height data and
     modeled data, much like the above function.
@@ -221,16 +224,18 @@ def compareTG(data, debug=False, debug_plot=False):
     else:
 
         if debug: print "...interpolate timeseries onto a common timestep..."
-        (obs_elev_int, mod_elev_int, step_int, start_int) = \
+        (mod_elev_int, obs_elev_int, step_int, start_int) = \
             smooth(mod_elev, mod_time, obs_elev, obs_time,
                    debug=debug, debug_plot=debug_plot)
 
     if debug: print "...get validation statistics..."
-    stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='height',
+    stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='elevation',
                        debug=debug, debug_plot=debug_plot)
-    elev_suite = stats.getStats()
-    elev_suite['r_squared'] = stats.linReg()['r_2']
-    elev_suite['phase'] = stats.getPhase(debug=False)
+
+
+    elev_suite = tidalSuite(mod_elev_int, obs_elev_int, step_int, start_int,
+			    type='elevation', plot=plot, save_csv=save_csv,
+                            debug=debug, debug_plot=debug_plot)
 
     if debug: print "...CompareTG done."
 
