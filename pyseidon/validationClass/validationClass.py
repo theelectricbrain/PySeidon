@@ -149,13 +149,17 @@ class Validation:
         #   print('\t'.join(row))
         #print(70*'-')
 
-    def validate_harmonics(self, filename=[], debug=False, debug_plot=False):
+    def validate_harmonics(self, filename=[], save_csv=False,
+                           debug=False, debug_plot=False):
         """
-        This method computes the error in % for each component of the harmonic analysis.
+        This method computes and store in a csv file the error in %
+        for each component of the harmonic analysis (i.e. *_error.csv).     
 
         Options:
         ------
           - filename: file name of the .csv file to be saved, string.
+          - save_csv: will save both observed and modeled harmonic
+                      coefficients into *.csv files (i.e. *_harmo_coef.csv) 
         """
         #User input
         if filename==[]:
@@ -261,54 +265,99 @@ class Validation:
 	    np.hstack((noMatchVelCoef,np.delete(self.Variables.obs.velCoef['name'],
                        matchVelCoefInd[:,1]) ))
         except AttributeError:
-            pass      
+            pass
 
-        #Compare obs. vs. sim. harmo coef
-        ##error in %
+
+        #Compare obs. vs. sim. elevation harmo coef
         data = {}
-        columns = ['A', 'g', 'A_ci', 'g_ci']
-        for key in columns:
-            err = (abs(self.Variables.sim.elCoef[key][matchElCoefInd[:,0]] / \
-                       self.Variables.obs.elCoef[key][matchElCoefInd[:,1]] - 1.0)) * 100.0
-            data[key] = err
+        columns = ['A', 'g', 'A_ci', 'g_ci', 'mean']
 
-        columns.append('mean')
-        err=(abs(self.Variables.sim.elCoef['mean'] / \
-             self.Variables.obs.elCoef['mean'] - 1.0)) * 100.0
-        data['mean'] = err * np.zeros(matchElCoefInd.shape[0])
-        ##create table
-        table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)        
-        ##export as .csv file
-        out_file = '{}_el_harmo_val.csv'.format(filename)
-        table.to_csv(out_file)
-        ##print non-matching coefs
-        if not noMatchElCoef.shape[0]==0:
-            print "Non-matching harmonic coefficients for elevation: ", noMatchElCoef 
-
-        ##same for velocity coefficients
-        if not matchVelCoef==[]:
-            ##error in %
+        #Store harmonics in csv files 
+        if save_csv:
+            #observed elevation coefs
+            for key in columns:
+                data[key] = self.Variables.obs.elCoef[key][:]           
+            table = pd.DataFrame(data=data, index=self.Variables.obs.elCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_obs_el_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
             data = {}
-            columns1 = ['Lsmaj', 'g', 'theta_ci', 'Lsmin_ci', 'Lsmaj_ci', 'theta', 'g_ci']
-            for key in columns1:
-                err = (abs(self.Variables.sim.velCoef[key][matchVelCoefInd[:,0]] / \
-                           self.Variables.obs.velCoef[key][matchVelCoefInd[:,1]] - 1.0)) \
-                           * 100.0
+
+            #modeled elevation coefs
+            for key in columns:
+                data[key] = self.Variables.sim.elCoef[key][:]           
+            table = pd.DataFrame(data=data, index=self.Variables.sim.elCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_sim_el_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
+            data = {}
+
+        ##error in %
+        if not matchElCoef==[]:
+            for key in columns:
+                b=self.Variables.sim.elCoef[key][matchElCoefInd[:,0]]
+                a=self.Variables.obs.elCoef[key][matchElCoefInd[:,1]]
+                err = abs((a-b)/a) * 100.0
                 data[key] = err
-            columns2 = ['vmean', 'umean']
-            columns = columns1 + columns2
-            for key in columns2:
-                err=(abs(self.Variables.sim.velCoef[key] / \
-                     self.Variables.obs.velCoef[key] - 1.0)) * 100.0
-                data[key] = err * np.zeros(matchVelCoefInd.shape[0])
+
+            ##create table
+            table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)        
+            ##export as .csv file
+            out_file = '{}_el_harmo_error.csv'.format(filename)
+            table.to_csv(out_file)
+            ##print non-matching coefs
+            if not noMatchElCoef.shape[0]==0:
+                print "Non-matching harmonic coefficients for elevation: ", noMatchElCoef
+        else:
+            print "-No matching harmonic coefficients for elevation-" 
+
+        #Compare obs. vs. sim. velocity harmo coef
+        data = {}
+        columns = ['vmean', 'umean','Lsmaj', 'g', 'theta_ci', 'Lsmin_ci',
+                   'Lsmaj_ci', 'theta', 'g_ci']
+ 
+        #Store harmonics in csv files 
+        if save_csv:
+            #observed elevation coefs
+            for key in columns:
+                data[key] = self.Variables.obs.velCoef[key][:]           
+            table = pd.DataFrame(data=data, index=self.Variables.obs.velCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_obs_velo_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
+            data = {}
+
+            #modeled elevation coefs
+            for key in columns:
+                data[key] = self.Variables.sim.velCoef[key][:]           
+            table = pd.DataFrame(data=data, index=self.Variables.sim.velCoef['name'],
+                                 columns=columns)
+            ##export as .csv file
+            out_file = '{}_sim_velo_harmo_coef.csv'.format(filename)
+            table.to_csv(out_file)            
+            data = {}
+
+        ##error in %
+        if not matchVelCoef==[]:
+            for key in columns:
+                b=self.Variables.sim.velCoef[key][matchVelCoefInd[:,0]]
+                a=self.Variables.obs.velCoef[key][matchVelCoefInd[:,1]]
+                err = abs((a-b)/a) * 100.0
+                data[key] = err
+
             ##create table
             table = pd.DataFrame(data=data, index=matchVelCoef, columns=columns)        
             ##export as .csv file
-            out_file = '{}_vel_harmo_val.csv'.format(filename)
+            out_file = '{}_vel0_harmo_error.csv'.format(filename)
             table.to_csv(out_file)
             ##print non-matching coefs
             if not noMatchVelCoef.shape[0]==0:
-                print "Non-matching harmonic coefficients for velocity: ", noMatchVelCoef         
+                print "Non-matching harmonic coefficients for velocity: ", noMatchVelCoef
+        else:
+            print "-No matching harmonic coefficients for velocity-"      
     
 
     def Save_as(self, filename, fileformat='pickle', debug=False):
