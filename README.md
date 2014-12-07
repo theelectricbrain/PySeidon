@@ -30,6 +30,7 @@ Requirements:
 * It recommended to install Anaconda beforehand: One can download Anaconda from [here](http://continuum.io/downloads#all)
 
 Dependencies:
+
 Althought they should be automatically resolved during the installation, this package relies on the following dependencies:
 * setuptools: One can download setuptools from [here](https://pypi.python.org/pypi/setuptools#installation-instructions)
 * UTide: One can download UTide from [here](https://github.com/wesleybowman/UTide)
