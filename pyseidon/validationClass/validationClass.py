@@ -270,7 +270,7 @@ class Validation:
 
         #Compare obs. vs. sim. elevation harmo coef
         data = {}
-        columns = ['A', 'g', 'A_ci', 'g_ci', 'mean']
+        columns = ['A', 'g', 'A_ci', 'g_ci']
 
         #Store harmonics in csv files 
         if save_csv:
@@ -315,7 +315,7 @@ class Validation:
 
         #Compare obs. vs. sim. velocity harmo coef
         data = {}
-        columns = ['vmean', 'umean','Lsmaj', 'g', 'theta_ci', 'Lsmin_ci',
+        columns = ['Lsmaj', 'g', 'theta_ci', 'Lsmin_ci',
                    'Lsmaj_ci', 'theta', 'g_ci']
  
         #Store harmonics in csv files 
