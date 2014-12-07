@@ -276,7 +276,7 @@ class Validation:
         if save_csv:
             #observed elevation coefs
             for key in columns:
-                data[key] = self.Variables.obs.elCoef[key][:]           
+                data[key] = self.Variables.obs.elCoef[key]           
             table = pd.DataFrame(data=data, index=self.Variables.obs.elCoef['name'],
                                  columns=columns)
             ##export as .csv file
@@ -286,7 +286,7 @@ class Validation:
 
             #modeled elevation coefs
             for key in columns:
-                data[key] = self.Variables.sim.elCoef[key][:]           
+                data[key] = self.Variables.sim.elCoef[key]           
             table = pd.DataFrame(data=data, index=self.Variables.sim.elCoef['name'],
                                  columns=columns)
             ##export as .csv file
@@ -322,7 +322,7 @@ class Validation:
         if save_csv:
             #observed elevation coefs
             for key in columns:
-                data[key] = self.Variables.obs.velCoef[key][:]           
+                data[key] = self.Variables.obs.velCoef[key]          
             table = pd.DataFrame(data=data, index=self.Variables.obs.velCoef['name'],
                                  columns=columns)
             ##export as .csv file
@@ -332,7 +332,7 @@ class Validation:
 
             #modeled elevation coefs
             for key in columns:
-                data[key] = self.Variables.sim.velCoef[key][:]           
+                data[key] = self.Variables.sim.velCoef[key]           
             table = pd.DataFrame(data=data, index=self.Variables.sim.velCoef['name'],
                                  columns=columns)
             ##export as .csv file
