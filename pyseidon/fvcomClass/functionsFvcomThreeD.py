@@ -170,14 +170,21 @@ class FunctionsFvcomThreeD:
         #Finding closest values to specified depth
         if ind==[]:
             if debug: print 'Finding closest indexes to depth...'
-            ind = np.zeros((dep.shape[0],dep.shape[2]))
-            for i in range(dep.shape[0]):
-                for k in range(dep.shape[2]):
-                    test = dep[i,:,k]
-                    if not test[test>0.0].shape==test.shape:
-                        ind[i,k] = test[test>0.0].argmin()
-                    else:
-                        ind[i,k] = np.nan
+            #mask negative value
+            dep = np.ma.masked_where(dep<0.0, dep)
+            #find min argument in masked array
+            ind = dep.argmin(axis=1)
+            #set to nan to shallow elements
+            ind[ind==dep.shape[1]] = np.nan
+
+            #ind = np.zeros((dep.shape[0],dep.shape[2]))
+            #for i in range(dep.shape[0]):
+            #    for k in range(dep.shape[2]):
+            #        test = dep[i,:,k]
+            #        if not test[test>0.0].shape==test.shape:
+            #            ind[i,k] = test[test>0.0].argmin()
+            #        else:
+            #            ind[i,k] = np.nan
                     
         inddown = ind + 1
 
