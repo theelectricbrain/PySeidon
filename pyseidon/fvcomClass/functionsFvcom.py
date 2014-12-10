@@ -225,135 +225,6 @@ class FunctionsFvcom:
 
         return dirFlow, norm
 
-#    def ebb_flood_split_at_point(self, pt_lon, pt_lat,
-#                                 t_start=[], t_end=[], time_ind=[], debug=False):
-#        """
-#        This functions computes time indices for ebb and flood but also the 
-#        principal flow directions and associated variances
-#        at any given point.
-#
-#        Inputs:
-#        ------
-#          - pt_lon = longitude in decimal degrees East to find, float number 
-#          - pt_lat = latitude in decimal degrees North to find,float number 
-#
-#        Outputs:
-#        -------
-#          - floodIndex = flood time index, 1D array of integers
-#          - ebbIndex = ebb time index, 1D array of integers
-#          - pr_axis = principal flow ax1s, float number in degrees
-#          - pr_ax_var = associated variance, float number
-#
-#        Keywords:
-#        --------
-#          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-#                      or time index as an integer
-#          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-#                    or time index as an integer
-#          - time_ind = time indices to work in, 1D array of integers 
-#        
-#        Notes:
-#        -----
-#          - may take time to compute if time period too long
-#          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
-#            +/-180=West, -90=South
-#          - use time_ind or t_start and t_end, not both
-#          - assume that flood is aligned with principal direction
-#        """
-#        debug = debug or self._debug
-#        if debug:
-#            start = time.time()
-#            print 'Computing principal flow directions...'
-#
-#        # Find time interval to work in
-#        argtime = []
-#        if not time_ind==[]:
-#            argtime = time_ind
-#        elif not t_start==[]:
-#            if type(t_start)==str:
-#                argtime = time_to_index(t_start, t_end,
-#                                        self._var.matlabTime,
-#                                        debug=debug)
-#            else:
-#                argtime = arange(t_start, t_end)
-#
-#        #Choose the right pair of velocity components
-#        u = self._var.ua
-#        v = self._var.va
-#
-#        #Extraction at point
-#        # Finding closest point
-#        index = closest_point([pt_lon], [pt_lat],
-#                              self._grid.lonc,
-#                              self._grid.latc, debug=debug)[0]
-#        if debug:
-#            print 'Extraction of u and v at point...'
-#        U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
-#                                        debug=debug)  
-#        V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
-#                                        debug=debug) 
-#
-#        #use only the time indices of interest
-#        if not argtime==[]:
-#            U = U[argtime[:]]
-#            V = V[argtime[:]] 
-#
-#        #WB version of BP's principal axis
-#        if debug:
-#            print 'Computin principal axis at point...'
-#        pr_axis, pr_ax_var = principal_axis(U, V)
-#
-#        #ebb/flood split
-#        if debug:
-#            print 'Splitting ebb and flood at point...'
-#        # reverse 0-360 deg convention
-#       ra = (-pr_axis - 90.0) * np.pi /180.0
-#        if ra>np.pi:
-#            ra = ra - (2.0*np.pi)
-#        elif ra<-np.pi:
-#            ra = ra + (2.0*np.pi)    
-#        dirFlow = np.arctan2(V,U)
-#        #Define bins of angles
-#        if ra == 0.0:
-#            binP = [0.0, np.pi/2.0]
-#            binP = [0.0, -np.pi/2.0]
-#        elif ra > 0.0:
-#            if ra == np.pi:
-#                binP = [np.pi/2.0 , np.pi]
-#                binM = [-np.pi, -np.pi/2.0 ]        
-#            elif ra < (np.pi/2.0):
-#                binP = [0.0, ra + (np.pi/2.0)]
-#                binM = [-((np.pi/2.0)-ra), 0.0]
-#            else:
-#                binP = [ra - (np.pi/2.0), np.pi]
-#                binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
-#        else:
-#            if ra == -np.pi:
-#                binP = [np.pi/2.0 , np.pi]
-#                binM = [-np.pi, -np.pi/2.0]
-#            elif ra > -(np.pi/2.0):
-#                binP = [0.0, ra + (np.pi/2.0)]
-#                binM = [ ((-np.pi/2.0)+ra), 0.0]
-#            else:
-#                binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
-#                binM = [-np.pi, ra + (np.pi/2.0)]
-#                               
-#        test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
-#                ((dirFlow > binM[0]) * (dirFlow < binM[1])))
-#        floodIndex = np.where(test == True)[0]
-#        ebbIndex = np.where(test == False)[0]
-#
-#        #TR fit with Rose diagram angle convention
-#        #pr_axis = pr_axis - 90.0
-#        #if pr_axis<0.0:
-#        #    pr_axis[ind] = pr_axis[ind] + 360   
-#
-#        if debug:
-#            end = time.time()
-#            print "...processing time: ", (end - start)
-#
-#        return floodIndex, ebbIndex, pr_axis, pr_ax_var
-
     def ebb_flood_split_at_point(self, pt_lon, pt_lat,
                                  t_start=[], t_end=[], time_ind=[], debug=False):
         """
@@ -919,7 +790,7 @@ class FunctionsFvcom:
         self._History.append('depth averaged power density computed')
         print '-Depth averaged power density to FVCOM.Variables.-' 
 
-    def depth_averaged_power_assessment(self, power_mat,  
+    def depth_averaged_power_assessment(self, power_mat, rated_speed,
                                         cut_in=1.0, cut_out=4.5, debug=False):
         """
         This method creates a new variable: 'depth averaged power assessment' (W/m2)
@@ -939,6 +810,7 @@ class FunctionsFvcom:
         ------
           - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
                         u being power_mat[0,:] and Ct(u) being power_mat[1,:]
+          - rated_speed = rated speed speed in m/s, float number
 
         Keywords:
         --------
@@ -970,20 +842,23 @@ class FunctionsFvcom:
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = 0.0
-        for i in range(pa.shape[0]):
-            for j in range(pa.shape[1]):
-                if u[i,j] < cut_in:
-                   pa[i,j] = 0.0 
+        #for i in range(pa.shape[0]):
+        #    for j in range(pa.shape[1]):
+        #        if (u[i,j] < cut_in) or (u[i,j] > cut_out):
+        #           pa[i,j] = 0.0
+        pa=np.ma.masked_where(((u[i,j] < cut_in) or (u[i,j] > cut_out)), pa)
 
-        paout = Cp(cut_out)*0.5*1025.0*(cut_out**3.0)
+        if debug: print "finding rated speed..."
+        parated = Cp(rated_speed)*0.5*1025.0*(rated_speed**3.0)
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = pdout
-        for i in range(pa.shape[0]):
-            for j in range(pa.shape[1]):
-                if u[i,j] > cut_out:
-                   pa[i,j] = paout     
+        #for i in range(pa.shape[0]):
+        #    for j in range(pa.shape[1]):
+        #        if u[i,j] > rated_speed:
+        #           pa[i,j] = parated 
+        pa[u>rated_speed] = parated    
 
         # Add metadata entry
         self._var.depth_av_power_assessment = pd

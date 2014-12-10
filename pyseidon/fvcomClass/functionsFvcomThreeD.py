@@ -781,7 +781,7 @@ class FunctionsFvcomThreeD:
         self._History.append('power density computed')
         print '-Power density to FVCOM.Variables.-' 
 
-    def power_assessment_at_depth(self, power_mat, depth, 
+    def power_assessment_at_depth(self, depth, power_mat, rated_speed, 
                                         cut_in=1.0, cut_out=4.5, debug=False):
         """
         This function computes power assessment (W/m2) at given depth.
@@ -798,9 +798,11 @@ class FunctionsFvcomThreeD:
 
         Inputs:
         ------
+          - depth = given depth from the surface, float
           - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
                         u being power_mat[0,:] and Ct(u) being power_mat[1,:]
-          - depth = given depth from the surface, float
+          - rated_speed = rated speed speed in m/s, float number
+
 
         Output:
         ------
@@ -836,21 +838,23 @@ class FunctionsFvcomThreeD:
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = 0.0
-        for i in range(pa.shape[0]):
-            for j in range(pa.shape[1]):
-                if u[i,j] < cut_in:
-                   pa[i,j] = 0.0 
+        #for i in range(pa.shape[0]):
+        #    for j in range(pa.shape[1]):
+        #        if (u[i,j] < cut_in) or (u[i,j] > cut_out):
+        #           pa[i,j] = 0.0 
+        pa=np.ma.masked_where(((u[i,j] < cut_in) or (u[i,j] > cut_out)), pa)
 
-        if debug: print "finding cut-out..."
-        paout = Cp(cut_out)*0.5*1025.0*(cut_out**3.0)
+        if debug: print "finding rated speed..."
+        parated = Cp(rated_speed)*0.5*1025.0*(rated_speed**3.0)
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = pdout
-        for i in range(pa.shape[0]):
-            for j in range(pa.shape[1]):
-                if u[i,j] > cut_out:
-                   pa[i,j] = paout     
+        #for i in range(pa.shape[0]):
+        #    for j in range(pa.shape[1]):
+        #        if u[i,j] > rated_speed:
+        #           pa[i,j] = parated
+        pa[u>rated_speed] = parated     
 
         return pa 
 
