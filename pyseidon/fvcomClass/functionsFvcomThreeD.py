@@ -174,7 +174,7 @@ class FunctionsFvcomThreeD:
             dep = np.ma.masked_where(dep<0.0, dep)
             #find min argument in masked array
             ind = dep.argmin(axis=1)
-            ind.astype(float)
+            ind=ind.astype(float)
             #set to nan to shallow elements
             ind[ind==dep.shape[1]] = np.nan
 
