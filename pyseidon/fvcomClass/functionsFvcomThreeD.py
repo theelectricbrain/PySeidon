@@ -176,7 +176,7 @@ class FunctionsFvcomThreeD:
             ind = dep.argmin(axis=1)
             ind=ind.astype(float)
             #set to nan to shallow elements
-            ind[ind==dep.shape[1]] = np.nan
+            ind[ind==dep.shape[1]-1.0] = np.nan
 
             #ind = np.zeros((dep.shape[0],dep.shape[2]))
             #for i in range(dep.shape[0]):
