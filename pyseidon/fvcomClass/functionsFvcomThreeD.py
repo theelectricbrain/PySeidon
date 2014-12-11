@@ -842,7 +842,10 @@ class FunctionsFvcomThreeD:
         #    for j in range(pa.shape[1]):
         #        if (u[i,j] < cut_in) or (u[i,j] > cut_out):
         #           pa[i,j] = 0.0 
-        pa=np.ma.masked_where(((u<cut_in) or (u>cut_out)), pa)
+        inM = np.ma.masked_where(u<cut_in, u).mask
+        outM = np.ma.masked_where(u>cut_out, u).mask
+        ioM = inM * outM * u.mask
+        pa=np.ma.masked_where(ioM, pa)
 
         if debug: print "finding rated speed..."
         parated = Cp(rated_speed)*0.5*1025.0*(rated_speed**3.0)
