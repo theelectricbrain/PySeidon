@@ -846,7 +846,7 @@ class FunctionsFvcom:
         #    for j in range(pa.shape[1]):
         #        if (u[i,j] < cut_in) or (u[i,j] > cut_out):
         #           pa[i,j] = 0.0
-        pa=np.ma.masked_where(((u[i,j] < cut_in) or (u[i,j] > cut_out)), pa)
+        pa=np.ma.masked_where(((u<cut_in) or (u>cut_out)), pa)
 
         if debug: print "finding rated speed..."
         parated = Cp(rated_speed)*0.5*1025.0*(rated_speed**3.0)
