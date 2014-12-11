@@ -563,7 +563,7 @@ class FunctionsFvcomThreeD:
 
             #Compute directions
             if debug:
-                print 'Computing arctan2 and norm...'
+                print 'Computing arctan2...'
             dirFlow = np.rad2deg(np.arctan2(V,U))
 
         else:
@@ -575,9 +575,8 @@ class FunctionsFvcomThreeD:
         #use only the time indices of interest
         if not argtime==[]:
             dirFlow = dirFlow[argtime[:],:]
-            norm = norm[argtime[:],:] 
 
-        return dirFlow, norm
+        return dirFlow
 
     def flow_dir(self, debug=False):
         """"
