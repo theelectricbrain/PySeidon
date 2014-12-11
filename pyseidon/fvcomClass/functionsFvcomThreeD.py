@@ -52,8 +52,8 @@ class FunctionsFvcomThreeD:
         debug = debug or self._debug
         if debug:
             start = time.time()
+            print "Computing depth..."
 
-        print "Computing depth..."
         #Compute depth      
         size = self._grid.nele
         size1 = self._grid.ntime
