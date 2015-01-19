@@ -693,7 +693,7 @@ class FunctionsFvcom:
                 elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
                 hc[ind] = np.mean(self._grid.h[value])
 
-            dep = self._var.el[:,:] + h[None,:]
+            dep = self._var.el[:,:] + hc[None,:]
         except MemoryError:
             print '---Data too large for machine memory---'
             print 'Tip: use ax or tx during class initialisation'
