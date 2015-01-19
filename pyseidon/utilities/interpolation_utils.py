@@ -153,10 +153,11 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
     n1 = int(triele[index,0])
     n2 = int(triele[index,1])
     n3 = int(triele[index,2])
-    #TR comment: not quiet sure what this step does
-    if n1==0: n1 = trinodes.shape[1]
-    if n2==0: n2 = trinodes.shape[1]
-    if n3==0: n3 = trinodes.shape[1]
+    #change end bound indices 
+    test = triele.shape[0]
+    if n1==test: n1 = 0
+    if n2==test: n2 = 0
+    if n3==test: n3 = 0
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int

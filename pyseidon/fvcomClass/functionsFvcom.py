@@ -539,15 +539,20 @@ class FunctionsFvcom:
         n1 = self._grid.triele[:,0]
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
-        #TR comment: not quiet sure what this step does
-        n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
-        n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
-        n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+        #change end bound indices 
+        test = self._grid.triele.shape[0]
+        n1[np.where(n1==test)[0]] = 0
+        n2[np.where(n2==test)[0]] = 0
+        n3[np.where(n3==test)[0]] = 0
         #TR quick fix: due to error with pydap.proxy.ArrayProxy
         #              not able to cop with numpy.int
-        n1 = int(n1)
-        n2 = int(n2)
-        n3 = int(n3)
+        N1 = []
+        N2 = []
+        N3 = []
+
+        N1[:] = n1[:]
+        N2[:] = n2[:]
+        N3[:] = n3[:]
 
         if debug:
             end = time.time()
@@ -560,13 +565,13 @@ class FunctionsFvcom:
         j=0
         for i in t:
             dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
-                      + np.multiply(self._grid.a1u[1,:], self._var.va[i,n1]) \
-                      + np.multiply(self._grid.a1u[2,:], self._var.va[i,n2]) \
-                      + np.multiply(self._grid.a1u[3,:], self._var.va[i,n3])
+                      + np.multiply(self._grid.a1u[1,:], self._var.va[i,N1]) \
+                      + np.multiply(self._grid.a1u[2,:], self._var.va[i,N2]) \
+                      + np.multiply(self._grid.a1u[3,:], self._var.va[i,N3])
             dudy[j,:] = np.multiply(self._grid.a2u[0,:], self._var.ua[i,:]) \
-                      + np.multiply(self._grid.a2u[1,:], self._var.ua[i,n1]) \
-                      + np.multiply(self._grid.a2u[2,:], self._var.ua[i,n2]) \
-                      + np.multiply(self._grid.a2u[3,:], self._var.ua[i,n3])
+                      + np.multiply(self._grid.a2u[1,:], self._var.ua[i,N1]) \
+                      + np.multiply(self._grid.a2u[2,:], self._var.ua[i,N2]) \
+                      + np.multiply(self._grid.a2u[3,:], self._var.ua[i,N3])
             j+=1
         if debug:
             print "loop number ", i
@@ -625,15 +630,21 @@ class FunctionsFvcom:
             n1 = self._grid.triele[:,0]
             n2 = self._grid.triele[:,1]
             n3 = self._grid.triele[:,2]
-            #TR comment: not quiet sure what this step does
-            n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
-            n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
-            n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+            #change end bound indices 
+            test = self._grid.triele.shape[0]
+            n1[np.where(n1==test)[0]] = 0
+            n2[np.where(n2==test)[0]] = 0
+            n3[np.where(n3==test)[0]] = 0
             #TR quick fix: due to error with pydap.proxy.ArrayProxy
             #              not able to cop with numpy.int
-            n1 = int(n1)
-            n2 = int(n2)
-            n3 = int(n3)
+            N1 = []
+            N2 = []
+            N3 = []
+
+            N1[:] = n1[:]
+            N2[:] = n2[:]
+            N3[:] = n3[:]
+
 
             if debug:
                 end = time.time()
@@ -646,13 +657,13 @@ class FunctionsFvcom:
             j=0
             for i in t:
                 dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
-                          + np.multiply(self._grid.a1u[1,:], self._var.va[i,n1]) \
-                          + np.multiply(self._grid.a1u[2,:], self._var.va[i,n2]) \
-                          + np.multiply(self._grid.a1u[3,:], self._var.va[i,n3])
+                          + np.multiply(self._grid.a1u[1,:], self._var.va[i,N1]) \
+                          + np.multiply(self._grid.a1u[2,:], self._var.va[i,N2]) \
+                          + np.multiply(self._grid.a1u[3,:], self._var.va[i,N3])
                 dudy[j,:] = np.multiply(self._grid.a2u[0,:], self._var.ua[i,:]) \
-                          + np.multiply(self._grid.a2u[1,:], self._var.ua[i,n1]) \
-                          + np.multiply(self._grid.a2u[2,:], self._var.ua[i,n2]) \
-                          + np.multiply(self._grid.a2u[3,:], self._var.ua[i,n3])
+                          + np.multiply(self._grid.a2u[1,:], self._var.ua[i,N1]) \
+                          + np.multiply(self._grid.a2u[2,:], self._var.ua[i,N2]) \
+                          + np.multiply(self._grid.a2u[3,:], self._var.ua[i,N3])
                 j+=1
             if debug:
                 print "loop number ", i
