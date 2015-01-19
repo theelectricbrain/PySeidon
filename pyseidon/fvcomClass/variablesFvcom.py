@@ -575,8 +575,8 @@ Some others shall be generated as methods are being called, ex:
                 ax=[-66.23, -66.19, 44.37, 44.41]
             elif ax=='DG':
                 ax=[-65.84, -65.73, 44.64, 44.72]
-            #elif ax=='MP':
-            #    ax=[
+            elif ax=='MP':
+                ax=[-65.5, -63.3, 45.0, 46.0]
            
             print 'Re-indexing may take some time...'   
             Data = regioner(self, ax, debug=debug)
