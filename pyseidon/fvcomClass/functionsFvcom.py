@@ -533,7 +533,7 @@ class FunctionsFvcom:
             print 'Computing vorticity...'
             start = time.time()
 
-        t = arange(self._grid.ntime)  
+        t = np.arange(self._grid.ntime)  
 
         #Surrounding elements
         n1 = self._grid.triele[:,0]
