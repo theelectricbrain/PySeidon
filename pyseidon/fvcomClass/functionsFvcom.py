@@ -539,11 +539,12 @@ class FunctionsFvcom:
         n1 = self._grid.triele[:,0]
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
-        #change end bound indices 
-        test = self._grid.triele.shape[0]
-        n1[np.where(n1==test)[0]] = 0
-        n2[np.where(n2==test)[0]] = 0
-        n3[np.where(n3==test)[0]] = 0
+        #No need anymore
+        ##change end bound indices 
+        #test = self._grid.triele.shape[0]
+        #n1[np.where(n1==test)[0]] = 0
+        #n2[np.where(n2==test)[0]] = 0
+        #n3[np.where(n3==test)[0]] = 0
         #TR quick fix: due to error with pydap.proxy.ArrayProxy
         #              not able to cop with numpy.int
         N1 = []
@@ -630,11 +631,12 @@ class FunctionsFvcom:
             n1 = self._grid.triele[:,0]
             n2 = self._grid.triele[:,1]
             n3 = self._grid.triele[:,2]
-            #change end bound indices 
-            test = self._grid.triele.shape[0]
-            n1[np.where(n1==test)[0]] = 0
-            n2[np.where(n2==test)[0]] = 0
-            n3[np.where(n3==test)[0]] = 0
+            #No need anymore
+            ##change end bound indices 
+            #test = self._grid.triele.shape[0]
+            #n1[np.where(n1==test)[0]] = 0
+            #n2[np.where(n2==test)[0]] = 0
+            #n3[np.where(n3==test)[0]] = 0
             #TR quick fix: due to error with pydap.proxy.ArrayProxy
             #              not able to cop with numpy.int
             N1 = []

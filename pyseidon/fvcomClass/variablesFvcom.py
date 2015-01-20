@@ -548,7 +548,7 @@ Some others shall be generated as methods are being called, ex:
         self.awx = data.variables['awx'].data
         self.awy = data.variables['awy'].data
         self.trinodes = np.transpose(data.variables['nv'].data) - 1
-        self.triele = np.transpose(data.variables['nbe'].data)
+        self.triele = np.transpose(data.variables['nbe'].data) - 1
         if ax==[]:
             #Define bounding box
             self._ax = []
