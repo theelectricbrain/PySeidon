@@ -18,6 +18,17 @@ def node_region(ax, lon, lat):
 
     return region_n
 
+def element_region(ax, lonc, latc):
+
+    region_e = np.argwhere((lonc >= ax[0]) &
+                            (lonc <= ax[1]) &
+                            (latc >= ax[2]) &
+                            (latc <= ax[3]))
+
+    region_e = region_e.flatten()
+
+    return region_e
+
 
 def regioner(gridVar, ax, debug=False):
     """
@@ -85,16 +96,18 @@ on. Default is 2D.
         inds = nv_sortedind[i1:i2]
         element_index_tmp[inds % l] = 1
         element_index = np.where(element_index_tmp == 1)[0]
-        node_index = np.unique(nv[element_index,:])
-        #create new linkage arrays
-        nv_tmp = nv[element_index,:]
-        L = len(nv_tmp[:,0])
-        #nv_tmp2 = np.empty((1, L*3.0))
-        nv_tmp2 = np.empty((1, L*3))
+
+    #TR needs to be inside the loop?
+    node_index = np.unique(nv[element_index,:])
+    #create new linkage arrays
+    nv_tmp = nv[element_index,:]
+    L = len(nv_tmp[:,0])
+    #nv_tmp2 = np.empty((1, L*3.0))
+    nv_tmp2 = np.empty((1, L*3))
 
     #make a new array of the node labellings for the tri's in the region
     if debug:
-        print 'Re-labelling elements and nodes...'
+        print 'Re-labelling nodes...'
     nv2 = nv_tmp.reshape(L * 3, order='F')
     nv2_sortedind = nv2.argsort()
     nv2_sortd = nv2[nv2_sortedind]
@@ -106,25 +119,34 @@ on. Default is 2D.
         nv_tmp2[0, inds] = i
 
     nv_new = np.reshape(nv_tmp2, (L, 3), 'F')
-    #now do the same for nbe
+
+    #now do the same for nbe...sort of
     nbe_index = np.unique(nbe[element_index, :])
+    #ghost points
+    ghost=np.asarray(list(set(nbe_index) - set(element_index)))
+    
     nbe_tmp = nbe[element_index,:]
     lnbe = len(nbe_tmp[:,0])
     nbe_tmp2 = np.empty((1, lnbe*3))
 
+    if debug:
+        print 'Re-labelling elements...'
     nbe2 = nbe_tmp.reshape(lnbe*3, order='F')
     nbe_sortedind = nbe2.argsort()
     nbe_sortd = nbe2[nbe_sortedind]
-
+    
+    #TR: iterator
+    I = 0
     for i in xrange(len(nbe_index)):
-        i1 = bisect_left(nbe_sortd, nbe_index[i])
-        i2 = bisect_right(nbe_sortd, nbe_index[i])
-        inds = nbe_sortedind[i1:i2]
-        nbe_tmp2[0, inds] = i
+        #TR: check if ghost point
+        if not nbe_index[i] in ghost:
+            i1 = bisect_left(nbe_sortd, nbe_index[i])
+            i2 = bisect_right(nbe_sortd, nbe_index[i])
+            inds = nbe_sortedind[i1:i2]
+            nbe_tmp2[0, inds] = I
+            I += 1 
 
     nbe_new = np.reshape(nbe_tmp2, (lnbe,3), 'F')
-    #nbe_new[nbe_new > len(nv_new[:,0]), :] = 0
-    nbe_new[nbe_new > len(nv_new[:,0])] = 0
 
     #create new variables for the region
 
