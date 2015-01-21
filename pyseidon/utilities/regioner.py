@@ -102,8 +102,9 @@ on. Default is 2D.
     #create new linkage arrays
     nv_tmp = nv[element_index,:]
     L = len(nv_tmp[:,0])
-    #nv_tmp2 = np.empty((1, L*3.0))
-    nv_tmp2 = np.empty((1, L*3))
+    #nv_tmp2 = np.empty((1, L*3))
+    #TR: test to treat ghost points as NaN
+    nv_tmp2 = np.ones((1, L*3))*np.nan
 
     #make a new array of the node labellings for the tri's in the region
     if debug:
