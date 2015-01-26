@@ -17,7 +17,7 @@ sys.path.append(os.path.join(local,'utilities'))
 #Local import
 from fvcomClass import *
 from adcpClass import *
-from drifterClass import *
+#from drifterClass import *
 from tidegaugeClass import *
 from validationClass import *
 from stationClass import *
