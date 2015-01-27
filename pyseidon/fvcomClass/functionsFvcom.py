@@ -309,10 +309,10 @@ class FunctionsFvcom:
         #Defines interval
         flood_heading = np.array([-90, 90]) + pr_axis
         #initialise matrix
-        s_signed_all = np.empty(U.shape)
-        s_signed_all.fill(np.nan)
-        PA_all = np.zeros(U.shape)
-        dir_all = np.arctan2(U,U) * 180 / np.pi
+        #s_signed_all = np.empty(U.shape)
+        #s_signed_all.fill(np.nan)
+        #PA_all = np.zeros(U.shape)
+        dir_all = np.rad2deg(np.arctan2(v,u))
         ind = np.where(dir_all<0)
         dir_all[ind] = dir_all[ind] + 360     
 
