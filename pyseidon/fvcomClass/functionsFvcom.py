@@ -333,7 +333,7 @@ class FunctionsFvcom:
             end = time.time()
             print "...processing time: ", (end - start)
 
-        return floodIndex[0], ebbIndex[0], pr_axis, pr_ax_var
+        return floodIndex[0], ebbIndex, pr_axis, pr_ax_var
 
     def speed_histogram(self, pt_lon, pt_lat,
                         t_start=[], t_end=[], time_ind=[], debug=False):
