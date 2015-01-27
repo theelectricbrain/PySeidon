@@ -36,46 +36,55 @@ class TidalStats:
         self.observed = np.asarray(observed_data)
         self.observed = self.observed.astype(np.float64)
 
-        #TR: fix for interpolation pb when 0 index or -1 index array values = nan
-	if debug: print "...trim nans at start and end of data.."
-        start_index, end_index = 0, -1
-        while (np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index])):
-            start_index += 1
-        while (np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index])):
-            end_index -= 1
+        #TR: pass this step if dealing with Drifter's data
+        try:
+            #TR: fix for interpolation pb when 0 index or -1 index array values = nan
+    	    if debug: print "...trim nans at start and end of data.."
+            start_index, end_index = 0, -1
+            while (np.isnan(self.observed[start_index])\
+                or np.isnan(self.model[start_index])):
+                start_index += 1
+            while (np.isnan(self.observed[end_index])\
+                or np.isnan(self.model[end_index])):
+                end_index -= 1
 
-        #Correction for bound index call
-        if end_index == -1:
-             end_index = None
-        else:
-             end_index += 1
-        if debug: print "Start index: ", start_index
-        if debug: print "End index: ", end_index
+            #Correction for bound index call
+            if end_index == -1:
+                 end_index = None
+            else:
+                 end_index += 1
+            if debug: print "Start index: ", start_index
+            if debug: print "End index: ", end_index
 
-        m = self.model[start_index:end_index]
-        o = self.observed[start_index:end_index]
+            m = self.model[start_index:end_index]
+            o = self.observed[start_index:end_index]
 
-	setattr(self, 'model', m)
-	setattr(self, 'observed', o)
+	    setattr(self, 'model', m)
+	    setattr(self, 'observed', o)
         
-        # set up array of datetimes corresponding to the data (and timestamps)
-        self.times = start_time + np.arange(self.model.size) * time_step
-        self.step = time_step
-        timestamps = np.zeros(len(self.times))
-        for j, jj in enumerate(self.times):
-            timestamps[j] = time.mktime(jj.timetuple())
+            # set up array of datetimes corresponding to the data (and timestamps)
+            self.times = start_time + np.arange(self.model.size) * time_step
+            self.step = time_step
+            timestamps = np.zeros(len(self.times))
+            for j, jj in enumerate(self.times):
+                timestamps[j] = time.mktime(jj.timetuple())
 
-	if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
-	if (True in np.isnan(self.observed)):
-	    obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
-	    time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
-	    func = interp1d(time_nonan, obs_nonan)
-	    self.observed = func(timestamps)
-	if (True in np.isnan(self.model)):
-	    mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
-	    time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
-	    func = interp1d(time_nonan, mod_nonan)
-	    self.model = func(timestamps)
+	    if debug:
+                print "...uses linear interpolation to eliminate any NaNs in the data..."
+	    if (True in np.isnan(self.observed)):
+	        obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
+	        time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
+	        func = interp1d(time_nonan, obs_nonan)
+	        self.observed = func(timestamps)
+	    if (True in np.isnan(self.model)):
+	        mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
+	        time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
+	        func = interp1d(time_nonan, mod_nonan)
+	        self.model = func(timestamps)
+        #TR: pass this step if dealing with Drifter's data
+        except AttributeError:
+            self.step = time_step #needed for getMDPO, getMDNO, getPhase & altPhase
+            pass
 
 	self.error = self.observed - self.model
 	self.length = self.error.size
@@ -148,7 +157,10 @@ class TidalStats:
         Takes one parameter: the number of minutes between consecutive
         data points.
         '''
-        timestep = self.step.seconds / 60
+        try: #Fix for Drifter's data
+            timestep = self.step.seconds / 60
+        except AttributeError:
+            timestep = self.step / 60            
 
         max_duration = 0
         current_duration = 0
@@ -171,7 +183,10 @@ class TidalStats:
         Takes one parameter: the number of minutes between consecutive
         data points.
         '''
-        timestep = self.step.seconds / 60
+        try: #Fix for Drifter's data
+            timestep = self.step.seconds / 60
+        except AttributeError:
+            timestep = self.step / 60 
 
         max_duration = 0
         current_duration = 0
@@ -215,7 +230,11 @@ class TidalStats:
         if debug or self._debug: print "getPhase..."
 	# grab the length of the timesteps in seconds
 	max_phase_sec = max_phase.seconds
-	step_sec = self.step.seconds
+        try: #Fix for Drifter's data
+	    step_sec = self.step.seconds
+        except AttributeError:
+            step_sec = self.step / 60
+
 	num_steps = max_phase_sec / step_sec
 
 	if debug or self._debug: print "...iterate through the phase shifts and check RMSE..."
@@ -294,7 +313,10 @@ class TidalStats:
 	time_shift = samples[xcorr.argmax()]
 
 	# find number of minutes in time shift
-	step_sec = self.step.seconds
+        try: #Fix for Drifter's data
+	    step_sec = self.step.seconds
+        except AttributeError:
+	    step_sec = self.step
 	lag = time_shift * step_sec / 60
 
         if debug or self._debug: print "...altPhase done."
@@ -315,7 +337,10 @@ class TidalStats:
         stats['MDPO'] = self.getMDPO()
         stats['MDNO'] = self.getMDNO()
         stats['skill'] = self.getWillmott()
-	stats['phase'] = self.getPhase(debug=debug)
+        try: #Fix for Drifter's data
+	    stats['phase'] = self.getPhase(debug=debug)
+        except:
+	    stats['phase'] = 0.0
 
         if debug or self._debug: print "...getStats..."
 

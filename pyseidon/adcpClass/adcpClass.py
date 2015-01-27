@@ -41,7 +41,8 @@ Notes:
 
   Throughout the package, the following conventions apply:
   - Coordinates = decimal degrees East and North
-  - Directions = in degrees, ???
+  - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
+                 +/-180=West, -90=South
   - Depth = 0m is the free surface and depth is negative
     '''
 
@@ -59,6 +60,7 @@ Notes:
             self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
         except NotImplementedError:
             self.Data = h5py.File(filename)
+        #TR_comments: Initialize class structure
         self.Variables = _load_adcp(self, debug=self._debug)
         self.Plots = PlotsAdcp(self.Variables, debug=self._debug)
         self.Utils = FunctionsAdcp(self.Variables,

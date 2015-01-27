@@ -308,7 +308,7 @@ Some others shall be generated as methods are being called, ex:
             start = mattime_to_datetime(self.matlabTime[0])
             end = mattime_to_datetime(self.matlabTime[-1])
             text = 'Full temporal domain from ' + str(start) +\
-                   ' to ' + str(start)
+                   ' to ' + str(end)
             self._History.append(text)
             #Add time dimension to grid variables
             grid.ntime = self.julianTime.shape[0]

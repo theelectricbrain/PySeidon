@@ -84,68 +84,109 @@ class _load_validation:
         #Alternative simulation type
         elif simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
             self._simtype = 'fvcom'
-            #Interpolation at measurement location
-            el=simulated.Util2D.interpolation_at_point(self.sim.el,
-                                                       self.obs.lon, self.obs.lat)
-            ua=simulated.Util2D.interpolation_at_point(self.sim.ua,
-                                                       self.obs.lon, self.obs.lat)
-            va=simulated.Util2D.interpolation_at_point(self.sim.va,
-                                                       self.obs.lon, self.obs.lat)
-            if self.sim._3D:
-               u=simulated.Util3D.interpolation_at_point(self.sim.u,
-                                                         self.obs.lon, self.obs.lat)
-               v=simulated.Util3D.interpolation_at_point(self.sim.v,
-                                                         self.obs.lon, self.obs.lat)
-               sig=simulated.Util3D.interpolation_at_point(simulated.Grid.siglay,
+            #Different treatment measurements come from drifter
+            if not observed.__module__=='pyseidon.drifterClass.drifterClass':
+                if debug: print "...Interpolation at measurement location..."
+                el=simulated.Util2D.interpolation_at_point(self.sim.el,
                                                            self.obs.lon, self.obs.lat)
+                ua=simulated.Util2D.interpolation_at_point(self.sim.ua,
+                                                           self.obs.lon, self.obs.lat)
+                va=simulated.Util2D.interpolation_at_point(self.sim.va,
+                                                           self.obs.lon, self.obs.lat)
+                if self.sim._3D:
+                   u=simulated.Util3D.interpolation_at_point(self.sim.u,
+                                                             self.obs.lon, self.obs.lat)
+                   v=simulated.Util3D.interpolation_at_point(self.sim.v,
+                                                             self.obs.lon, self.obs.lat)
+                   sig=simulated.Util3D.interpolation_at_point(simulated.Grid.siglay,
+                                                               self.obs.lon, self.obs.lat)
+            else: #Interpolation for drifter
+                if debug: print "...Interpolation at measurement locations & times..."
+                if self.sim._3D:
+                    #Import only the surface velocities
+                    #TR_comment: is surface vertical indice -1 or 0?
+                    uSim = np.squeeze(self.sim.u[self._C,-1,:])
+                    vSim = np.squeeze(self.sim.v[self._C,-1,:])
+                else:
+                    uSim = np.squeeze(self.sim.ua[self._C,:])
+                    vSim = np.squeeze(self.sim.va[self._C,:])
+
+                #Finding the closest Drifter time to simulated data assuming measurement
+                #time step way slower than model one
+                indClosest = []
+                for i in self._C:
+                    ind = np.abs(self.obs.matlabTime[:]-self.sim.matlabTime[i]).argmin()
+                    indClosest.append(ind)
+                #Keep only unique values to avoid sampling in measutement gaps
+                #TR: this doesn't not guarantee that the unique value kept is indeed
+                #    the closest one among the values relative to the same indice!!!
+                uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
+                uObs = self.obs.u[uniqCloInd]
+                vObs = self.obs.v[uniqCloInd]
+                uSim = np.squeeze(uSim[uniqInd,:])
+                vSim = np.squeeze(vSim[uniqInd,:])
+                #Interpolation of timeseries at drifter's trajectory points
+                for i in range(len(uniqCloInd)):
+                    uSimInterp=simulated.Util2D.interpolation_at_point(uSim,
+                                                self.obs.lon[indClosest[i]],
+                                                self.obs.lat[indClosest[i]])
+                    vSimInterp=simulated.Util2D.interpolation_at_point(vSim,
+                                                self.obs.lon[indClosest[i]],
+                                                self.obs.lat[indClosest[i]])
+        
         else:
             print "-This type of simulations is not supported yet-"
             sys.exit()
 
-        #Store in dict structure for compatibility purposes
-        if not self.sim._3D:
-            sim_mod={'ua':ua[C],
-                     'va':va[C],
-                     'elev':el[C]}
-        else:
-            sim_mod={'ua':ua[C],
-                     'va':va[C],
-                     'elev':el[C],
-                     'u':u[C,:],
-                     'v':v[C,:],
-                     'siglay':sig[:]}
+        #Store in dict structure for compatibility purposes (except for drifters)
+        if not observed.__module__=='pyseidon.drifterClass.drifterClass':
+            if not self.sim._3D:
+                sim_mod={'ua':ua[C],'va':va[C],'elev':el[C]}
+            else:
+                sim_mod={'ua':ua[C],'va':va[C],'elev':el[C],'u':u[C,:],
+                         'v':v[C,:],'siglay':sig[:]}
              
 
-        #Check what kind of observed data it is
-        if observed.__module__=='pyseidon.adcpClass.adcpClass':
-            self._obstype = 'adcp'
-            obstype='ADCP'
-            obs_mod={'ua':self.obs.ua[c],
-                     'va':self.obs.va[c],
-                     'elev':self.obs.surf[c],
-                     'u':self.obs.east_vel[c,:],
-                     'v':self.obs.north_vel[c,:],
-                     'bins':self.obs.bins[:]}
+            #Check what kind of observed data it is
+            if observed.__module__=='pyseidon.adcpClass.adcpClass':
+                self._obstype = 'adcp'
+                obstype='ADCP'
+                obs_mod={'ua':self.obs.ua[c],'va':self.obs.va[c],'elev':self.obs.surf[c],
+                         'u':self.obs.east_vel[c,:],'v':self.obs.north_vel[c,:],
+                         'bins':self.obs.bins[:]}
 
-        #Alternative measurement type
-        elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
-            self._obstype = 'tidegauge'
-            obstype='TideGauge'
-            obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
+            #Alternative measurement type
+            elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
+                self._obstype = 'tidegauge'
+                obstype='TideGauge'
+                obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
 
+            else:
+                print "-This type of measurements is not supported yet-"
+                sys.exit()
         else:
-            print "-This type of measurements is not supported yet-"
-            sys.exit()
+            self._obstype = 'drifter'
+            obstype='Drifter'
 
         #Store in dict structure for compatibility purposes
         #Common block for 'struct'
-        self.struct = {'name': observed.History[0].split(' ')[-1],
-                       'type':obstype,
-                       'lat':self.obs.lat,
-                       'lon':self.obs.lon,
-                       'obs_timeseries':obs_mod,
-                       'mod_timeseries':sim_mod,
-                       'obs_time':self.obs.matlabTime[c],
-                       'mod_time':self.sim.matlabTime[C]}
+        if not observed.__module__=='pyseidon.drifterClass.drifterClass':
+            self.struct = {'name': observed.History[0].split(' ')[-1],
+                           'type':obstype,
+                           'lat':self.obs.lat,
+                           'lon':self.obs.lon,
+                           'obs_timeseries':obs_mod,
+                           'mod_timeseries':sim_mod,
+                           'obs_time':self.obs.matlabTime[c],
+                           'mod_time':self.sim.matlabTime[C]}
+        else:#Drifter's case
+            self.struct = {'name': observed.History[0].split(' ')[-1],
+                           'type':obstype,
+                           'lat':self.obs.lat[indClosest],
+                           'lon':self.obs.lon[indClosest],
+                           'obs_timeseries':{'u': uObs, 'v': vObs},
+                           'mod_timeseries':{'u': uSimInterp, 'v': vSimInterp},
+                           'obs_time':self.obs.matlabTime[indClosest],
+                           'mod_time':self.sim.matlabTime[C]}
 
         if debug: print "..done"

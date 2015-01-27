@@ -179,7 +179,10 @@ def tidalSuite(model, observed, step, start, type, plot=False,
                        debug=debug, debug_plot=debug_plot)
     stats_suite = stats.getStats()
     stats_suite['r_squared'] = stats.linReg()['r_2']
-    stats_suite['phase'] = stats.getPhase()
+    try: #Fix for Drifter's data
+	stats_suite['phase'] = stats.getPhase(debug=debug)
+    except:
+        stats_suite['phase'] = 0.0
 
     if plot or debug_plot:
         stats.plotData()

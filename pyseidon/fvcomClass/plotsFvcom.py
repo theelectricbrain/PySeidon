@@ -88,8 +88,6 @@ class PlotsFvcom:
         fig = plt.figure(figsize=(18,10))
         plt.rc('font',size='22')
         self._fig = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
-        #CS = self._fig.tricontour(tri, -1.0*self._grid.h, levels=levels,
-        #                          shading='faceted',cmap=plt.cm.gist_earth)
 
         #Plotting functions
         if debug:
@@ -118,7 +116,7 @@ class PlotsFvcom:
     def rose_diagram(self, direction, norm):
 
         """
-        Plot rose diagram
+        Plots rose diagram
 
         Inputs:
         ------
@@ -211,7 +209,7 @@ class PlotsFvcom:
 
     def add_points(self, x, y, label=' ', color='black'):
         """
-        Add scattered points (x,y) on current figure,
+        Adds scattered points (x,y) on current figure,
         where x and y are 1D arrays of the same lengths.
 
         Inputs:
@@ -230,4 +228,10 @@ class PlotsFvcom:
                      textcoords='offset points', ha='right',
                      arrowprops=dict(arrowstyle="->", shrinkA=0))
 
+    def _save_as_pickle(ax, filename='saved_plot.p'):
+        """
+        Saves figure as pickle file which can be then re-loaded 
+        with: ax = pickle.load(file('saved_plot.p'))
+        """ 
+        pickle.dump(ax, file(filename, 'w'))
                                 

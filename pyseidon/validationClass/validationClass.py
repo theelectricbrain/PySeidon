@@ -127,6 +127,51 @@ class Validation:
             #Variable to processed
             vars.append('tg')
 
+        elif self.Variables.struct['type'] == 'Drifter':
+            #Compute norm, speed & direction
+            obs_u = self.Variables.struct['obs_timeseries']['u']
+            obs_v = self.Variables.struct['obs_timeseries']['v']
+            mod_u = self.Variables.struct['mod_timeseries']['u']
+            mod_v = self.Variables.struct['mod_timeseries']['v']
+
+            mod_spd = np.sqrt(mod_u**2.0 + mod_v**2.0)
+            obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
+            mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
+            obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
+            obs_ve = obs_spd * np.sign(obs_v)
+            mod_ve = mod_spd * np.sign(mod_v)
+
+            #Compute validation benchmarks
+            step = self.Variables.struct['mod_time'][1]\
+                 - self.Variables.struct['mod_time'][0] 
+            start = self.Variables.struct['mod_time'][0]
+            speed_suite = tidalSuite(mod_spd, obs_spd, step, start,
+			  type='speed', plot=plot, save_csv=save_csv, 
+                          debug=debug, debug_plot=debug_plot)
+            dir_suite = tidalSuite(mod_dir, obs_dir, step, start,
+			type='direction', plot=plot, save_csv=save_csv, 
+                        debug=debug, debug_plot=debug_plot)
+            u_suite = tidalSuite(mod_u, obs_u, step, start,
+	              type='u velocity', plot=plot, save_csv=save_csv, 
+                      debug=debug, debug_plot=debug_plot)
+            v_suite = tidalSuite(mod_v, obs_v, step, start,
+		      type='v velocity', plot=plot, save_csv=save_csv, 
+                      debug=debug, debug_plot=debug_plot)
+            vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
+			type='velocity', plot=plot, save_csv=save_csv, 
+                        debug=debug, debug_plot=debug_plot)
+    	    self.Variables.struct['speed_val'] = speed_suite
+    	    self.Variables.struct['dir_val'] = dir_suite
+            self.Variables.struct['u_val'] = u_suite
+	    self.Variables.struct['v_val'] = v_suite
+	    self.Variables.struct['vel_val'] = vel_suite            
+            #Variable to processed
+            vars.append('speed')
+            vars.append('dir')
+            vars.append('u')
+            vars.append('v')
+            vars.append('vel')
+
         else:
             print "-This type of measurements is not supported yet-"
             sys.exit()
