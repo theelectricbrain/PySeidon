@@ -173,7 +173,9 @@ def principal_axis(u, v):
     #rotation angle of major axis in radians relative to cartesian coordiantes
     ra = np.arctan2(V[0,1], V[1,1])
     #express principal axis in compass coordinates
-    PA = -ra * 180 / np.pi + 90
+    #PA = -ra * 180 / np.pi + 90
+    #TR: still not sure here
+    PA = -ra * 180 / np.pi    
     #variance captured by principal
     varxp_PA = np.diag(lamb[0]) / np.trace(lamb)
 
