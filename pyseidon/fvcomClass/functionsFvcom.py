@@ -312,7 +312,7 @@ class FunctionsFvcom:
         #s_signed_all = np.empty(U.shape)
         #s_signed_all.fill(np.nan)
         #PA_all = np.zeros(U.shape)
-        dir_all = np.rad2deg(np.arctan2(v,u))
+        dir_all = np.rad2deg(np.arctan2(V,U))
         ind = np.where(dir_all<0)
         dir_all[ind] = dir_all[ind] + 360     
 
