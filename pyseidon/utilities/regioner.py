@@ -126,7 +126,9 @@ on. Default is 2D.
     
     nbe_tmp = nbe[element_index,:]
     lnbe = len(nbe_tmp[:,0])
-    nbe_tmp2 = np.empty((1, lnbe*3))
+    #nbe_tmp2 = np.empty((1, lnbe*3))
+    #TR: np.empty sometimes generates freak values
+    nbe_tmp2 = np.zeros((1, lnbe*3))
 
     if debug:
         print 'Re-labelling elements...'
