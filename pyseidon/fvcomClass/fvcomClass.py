@@ -13,6 +13,7 @@ from scipy.io import savemat
 from scipy.io import loadmat
 from pydap.client import open_url
 import cPickle as pkl
+import pickle as Pkl
 import copy
 
 #Add local path to utilities
@@ -86,7 +87,13 @@ Notes:
         #Loading pickle file
         if filename.endswith('.p'):
             f = open(filename, "rb")
-            data = pkl.load(f)
+            try:
+                data = pkl.load(f)
+            except MemoryError:
+                try:
+                    data = Pkl.load(f)
+                except KeyError:
+                    data = pkl.load(f,2)
             self._origin_file = data['Origin']
             self.History = data['History']
             if debug: print "Turn keys into attributs"

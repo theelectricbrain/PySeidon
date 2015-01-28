@@ -230,8 +230,12 @@ Some others shall be generated as methods are being called, ex:
                         #            Mitchell to improve loading time
                         #TR comment: no idea why I have to transpose here but
                         #            I do !!
-                        getattr(self, aliaS)[i,:,:] =\
+                        try:
+                            getattr(self, aliaS)[i,:,:] =\
                                 np.transpose(data.variables[key].data[i,:,region_e])
+                        except ValueError:
+                            getattr(self, aliaS)[i,:,:] =\
+                            data.variables[key].data[i,:,region_e]
                     keyCount +=1
                 except KeyError:
                     if debug: print key, " is missing !"
