@@ -25,7 +25,8 @@ class PlotsFvcom:
         grid = self._grid
         #self._grid._ax = grid._ax
 
-    def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
+    def colormap_var(self, var, title='Title', cmin=[], cmax=[], cmap=[],
+                     mesh=True, debug=False):
         '''
         2D xy colormap plot of any given variable and mesh.
 
@@ -38,6 +39,7 @@ class PlotsFvcom:
           - title = plot title, string
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
+          - cmap = matplolib colormap
           - mesh = True, with mesh; False, without mesh
         '''
         debug = debug or self._debug
@@ -92,7 +94,10 @@ class PlotsFvcom:
         #Plotting functions
         if debug:
             print "Computing colormap..."
-        f = self._fig.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
+        if cmap==[]:
+            f = self._fig.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
+        else:
+            f = self._fig.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=cmap) 
         if mesh:
             plt.triplot(tri)
 
@@ -222,11 +227,12 @@ class PlotsFvcom:
           - Label = a string
           - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """
-        plt.scatter(x, y, s=100, color=color)
+        plt.scatter(x, y, s=50, color=color)
         #TR : annotate does not work on my machine !?
         plt.annotate(label, xy=(x, y), xycoords='data', xytext=(-20, 20),
                      textcoords='offset points', ha='right',
-                     arrowprops=dict(arrowstyle="->", shrinkA=0))
+                     arrowprops=dict(arrowstyle="->", shrinkA=0),
+                     fontsize=12)
 
     def _save_as_pickle(ax, filename='saved_plot.p'):
         """
