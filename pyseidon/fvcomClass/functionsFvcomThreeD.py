@@ -543,34 +543,26 @@ class FunctionsFvcomThreeD:
             else:
                 argtime = arange(t_start, t_end)
         
-        #Checking if dir_flow already computed
-        if not hasattr(self._var, 'flow_dir'):
-            #Choose the right pair of velocity components
-            if self._var._3D and vertical:
-                u = self._var.u
-                v = self._var.v
-            else:
-                u = self._var.ua
-                v = self._var.va
-
-            #Extraction at point
-            if debug:
-                print 'Extraction of u and v at point...'
-            U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
-                                                  index=index, debug=debug)  
-            V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
-                                                  index=index, debug=debug)       
-
-            #Compute directions
-            if debug:
-                print 'Computing arctan2...'
-            dirFlow = np.rad2deg(np.arctan2(V,U))
-
+        #Choose the right pair of velocity components
+        if self._var._3D and vertical:
+            u = self._var.u
+            v = self._var.v
         else:
-            dirFlow = self._util.interpolation_at_point(self._var.flow_dir,
-                                                            pt_lon, pt_lat,
-                                                            index=index, debug=debug) 
-         
+            u = self._var.ua
+            v = self._var.va
+
+        #Extraction at point
+        if debug:
+            print 'Extraction of u and v at point...'
+        U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
+                                              index=index, debug=debug)  
+        V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
+                                              index=index, debug=debug)       
+        #Compute directions
+        if debug:
+            print 'Computing arctan2...'
+        dirFlow = np.rad2deg(np.arctan2(V,U))
+       
         if debug: print '...Passed'
         #use only the time indices of interest
         if not argtime==[]:
@@ -595,7 +587,7 @@ class FunctionsFvcomThreeD:
         try:
             u = self._var.u
             v = self._var.v
-            dirFlow = np.rad2deg(np.arctan2(V,U))
+            dirFlow = np.rad2deg(np.arctan2(v,u))
         except MemoryError:
             print '---Data too large for machine memory---'
             print 'Tip: use ax or tx during class initialisation'

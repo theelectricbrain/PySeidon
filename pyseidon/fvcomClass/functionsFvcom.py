@@ -196,17 +196,11 @@ class FunctionsFvcom:
                                         debug=debug)  
         V = self.interpolation_at_point(v, pt_lon, pt_lat, index=index,
                                         debug=debug)       
-        #Checking if dir_flow already computed
-        if not hasattr(self._var, 'depth_av_flow_dir'):
-            #Compute directions
-            if debug:
-                print 'Computing arctan2 and norm...'
-            dirFlow = np.rad2deg(np.arctan2(V,U))#
 
-        else:
-            dirFlow = self.interpolation_at_point(self._var.depth_av_flow_dir,
-                                                  pt_lon, pt_lat,
-                                                  index=index, debug=debug) 
+        #Compute directions
+        if debug:
+            print 'Computing arctan2 and norm...'
+        dirFlow = np.rad2deg(np.arctan2(V,U))
 
         #Compute velocity norm
         norm = ne.evaluate('sqrt(U**2 + V**2)')
