@@ -231,9 +231,9 @@ class FunctionsFvcomThreeD:
         depth = self._grid.depth
 
         # Checking if horizontal velocity norm already exists
-        if not hasattr(self._var, 'hori_velo_norm'):
-            self.hori_velo_norm()
-        vel = self._var.hori_velo_norm
+        if not hasattr(self._var, 'velo_norm'):
+            self.velo_norm()
+        vel = self._var.velo_norm
 
         try:
             #Sigma levels to consider
@@ -618,7 +618,7 @@ class FunctionsFvcomThreeD:
             print 'Computing vorticity...'
             start = time.time()
 
-        t = arange(self._grid.ntime)  
+        t = np.arange(self._grid.ntime)  
 
         #Surrounding elements
         n1 = self._grid.triele[:,0]
