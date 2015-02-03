@@ -147,8 +147,12 @@ Some others shall be generated as methods are being called, ex:
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                getattr(self, aliaS)[I,:,:] =\
-                                        np.transpose(data.variables[key].data[i,:,:])
+                                try:
+                                    getattr(self, aliaS)[I,:,:] =\
+                                    np.transpose(data.variables[key].data[i,:,:])
+                                except ValueError:
+                                    getattr(self, aliaS)[I,:,:] =\
+                                    data.variables[key].data[i,:,:]
                                 I += 1
                             keyCount +=1
                         except KeyError:

@@ -168,7 +168,6 @@ class PlotsFvcom:
         plt.rc('font',size='22')
         self._fig = plt.plot(x, y, label=title)
         scale = 1
-        ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
         if not yerror==[]:
