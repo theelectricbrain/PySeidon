@@ -651,26 +651,26 @@ class FunctionsFvcomThreeD:
         
         dvdx = np.zeros((self._grid.ntime,self._grid.nlevel,self._grid.nele))
         dudy = np.zeros((self._grid.ntime,self._grid.nlevel,self._grid.nele))
-        lvl = self._grid.nlevel
+        nele = self._grid.nele
 
         j=0
         for i in t:
-            dvdx[j,:,:] = np.multiply(self._grid.a1u[0,:].reshape(lvl,1),
+            dvdx[j,:,:] = np.multiply(self._grid.a1u[0,:].reshape(1,nele),
                           self._var.v[i,:,:]) \
-                        + np.multiply(self._grid.a1u[1,:].reshape(lvl,1),
-                          self._var.v[i,:,N1]) \
-                        + np.multiply(self._grid.a1u[2,:].reshape(lvl,1),
-                          self._var.v[i,:,N2]) \
-                        + np.multiply(self._grid.a1u[3,:].reshape(lvl,1),
-                          self._var.v[i,:,N3])
-            dudy[j,:,:] = np.multiply(self._grid.a2u[0,:].reshape(lvl,1),
+                        + np.multiply(self._grid.a1u[1,:].reshape(nele,1),
+                          self._var.v[i,:,N1]).T \
+                        + np.multiply(self._grid.a1u[2,:].reshape(nele,1),
+                          self._var.v[i,:,N2]).T \
+                        + np.multiply(self._grid.a1u[3,:].reshape(nele,1),
+                          self._var.v[i,:,N3]).T
+            dudy[j,:,:] = np.multiply(self._grid.a2u[0,:].reshape(1,nele),
                           self._var.u[i,:,:]) \
-                        + np.multiply(self._grid.a2u[1,:].reshape(lvl,1),
-                          self._var.u[i,:,N1]) \
-                        + np.multiply(self._grid.a2u[2,:].reshape(lvl,1),
-                          self._var.u[i,:,N2]) \
-                        + np.multiply(self._grid.a2u[3,:].reshape(lvl,1),
-                          self._var.u[i,:,N3])
+                        + np.multiply(self._grid.a2u[1,:].reshape(nele,1),
+                          self._var.u[i,:,N1]).T \
+                        + np.multiply(self._grid.a2u[2,:].reshape(nele,1),
+                          self._var.u[i,:,N2]).T \
+                        + np.multiply(self._grid.a2u[3,:].reshape(nele,1),
+                          self._var.u[i,:,N3]).T
             j+=1
         if debug:
             print "loop number ", i
