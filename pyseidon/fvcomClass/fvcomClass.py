@@ -7,7 +7,7 @@ import numpy as np
 import sys
 from utide import ut_solv, ut_reconstr
 #TR comment: 2 alternatives
-#import netCDF4 as nc
+import netCDF4 as nc
 from scipy.io import netcdf
 from scipy.io import savemat
 from scipy.io import loadmat
@@ -22,6 +22,9 @@ sys.path.append('../utilities/')
 #Utility import
 from shortest_element_path import shortest_element_path
 from object_from_dict import ObjectFromDict
+from pyseidon2pickle import pyseidon_to_pickle
+from pyseidon2matlab import pyseidon_to_matlab
+from pyseidon2netcdf import pyseidon_to_netcdf
 
 #Local import
 from variablesFvcom import _load_var, _load_grid
@@ -110,8 +113,11 @@ Notes:
                     #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
                     #WB_comments: scipy has causes some errors, and even though can be
                     #             faster, can be unreliable
-                    #self.Data = nc.Dataset(data['Origin'], 'r')
-                    self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
+                    try:
+                        self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
+                    except OverflowError: #due to mmap not coping with big array > 4Gib
+                        self.Data = nc.Dataset(data['Origin'], 'r')
+                        
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
@@ -130,8 +136,10 @@ Notes:
                 #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
                 #WB_comments: scipy has causes some errors, and even though can be
                 #             faster, can be unreliable
-                #self.Data = nc.Dataset(filename, 'r')
-                self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                try:
+                    self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                except OverflowError: #due to mmap not coping with big array > 4Gib
+                    self.Data = nc.Dataset(filename, 'r')
             text = 'Created from ' + filename
             self._origin_file = filename
             #Metadata
@@ -256,9 +264,10 @@ Notes:
         return newself  
    
     #Methods
-    def Save_as(self, filename, fileformat='pickle', debug=False):
+    def Save_as(self, filename, fileformat='netcdf', debug=False):
         """
         This method saves the current FVCOM structure as:
+           - *.nc, i.e. netcdf file
            - *.p, i.e. python file
            - *.mat, i.e. Matlab file
 
@@ -268,100 +277,18 @@ Notes:
 
         Keywords:
         --------
-          - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
+          - fileformat = format of the file to be saved, i.e. 'pickle', .netcdf. or 'matlab'
         """
         debug = debug or self._debug
         if debug:
             print 'Saving file...'
-        #Define bounding box
-        if debug:
-            print "Computing bounding box..."
-        if self.Grid._ax == []:
-            lon = self.Grid.lon[:]
-            lat = self.Grid.lat[:]
-            self.Grid._ax = [lon.min(), lon.max(),
-                             lat.min(), lat.max()]
         #Save as different formats
         if fileformat=='pickle':
-            filename = filename + ".p"
-            f = open(filename, "wb")
-            data = {}
-            data['Origin'] = self._origin_file
-            data['History'] = self.History
-            data['Grid'] = self.Grid.__dict__
-            data['Variables'] = self.Variables.__dict__
-            #TR: Force caching Variables otherwise error during loading
-            #    with 'netcdf4.Variable' type (see above)
-            for key in data['Variables']:
-                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
-                if any([type(data['Variables'][key]).__name__==x for x in listkeys]):
-                    if debug:
-                        print "Force caching for " + key
-                    data['Variables'][key] = data['Variables'][key][:]
-            #Unpickleable objects
-            data['Grid'].pop("triangle", None)
-            #TR: Force caching Variables otherwise error during loading
-            #    with 'netcdf4.Variable' type (see above)
-            for key in data['Grid']:
-                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
-                if any([type(data['Grid'][key]).__name__==x for x in listkeys]):
-                    if debug:
-                        print "Force caching for " + key
-                    data['Grid'][key] = data['Grid'][key][:]
-            #Save in pickle file
-            if debug:
-                print 'Dumping in pickle file...'
-            try:    
-                pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
-            except SystemError:
-                try:
-                    print "---Very large data, this may take a while---"
-                    pkl.dump(data, f)
-                except SystemError:                 
-                    print "---Data too large for machine memory---"
-                    print "Tip: use ax or tx during class initialisation"
-                    print "---  to use partial data"
-                    sys.exit()
-           
-            f.close()
+            pyseidon_to_pickle(self, filename, debug)
         elif fileformat=='matlab':
-            filename = filename + ".mat"
-            #TR comment: based on MitchellO'Flaherty-Sproul's code
-            dtype = float
-            data = {}
-            Grd = {}
-            Var = {}
-            data['Origin'] = self._origin_file
-            data['History'] = self.History
-            Grd = self.Grid.__dict__
-            Var = self.Variables.__dict__
-            #TR: Force caching Variables otherwise error during loading
-            #    with 'netcdf4.Variable' type (see above)
-            for key in Var:
-                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
-                if any([type(Var[key]).__name__==x for x in listkeys]):
-                    if debug:
-                        print "Force caching for " + key
-                    Var[key] = Var[key][:]
-                #keyV = key + '-var'
-                #data[keyV] = Var[key]
-                data[key] = Var[key]
-            #Unpickleable objects
-            Grd.pop("triangle", None)
-            for key in Grd:
-                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
-                if any([type(Grd[key]).__name__==x for x in listkeys]):
-                    if debug:
-                        print "Force caching for " + key
-                    Grd[key] = Grd[key][:]
-                #keyG = key + '-grd'
-                #data[keyG] = Grd[key]
-                data[key] = Grd[key]
-
-            #Save in mat file file
-            if debug:
-                print 'Dumping in matlab file...'
-            savemat(filename, data, oned_as='column')       
+            pyseidon_to_matlab(self, filename, debug)
+        elif fileformat=='netcdf':
+            pyseidon_to_netcdf(self, filename, debug)   
         else:
             print "---Wrong file format---"                            
 
