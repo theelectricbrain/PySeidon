@@ -15,6 +15,8 @@ from pydap.client import open_url
 import cPickle as pkl
 import pickle as Pkl
 import copy
+from os.path import isfile
+import gc
 
 #Add local path to utilities
 sys.path.append('../utilities/')
@@ -84,8 +86,9 @@ Notes:
     def __init__(self, filename, ax=[], tx=[], debug=False):
         ''' Initialize FVCOM class.'''
         self._debug = debug
-        if debug:
-            print '-Debug mode on-'
+        if debug: print '-Debug mode on-'
+        #Force garbage collector when fvcom object created
+        gc.collect()  
 
         #Loading pickle file
         if filename.endswith('.p'):
@@ -113,17 +116,18 @@ Notes:
                     #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
                     #WB_comments: scipy has causes some errors, and even though can be
                     #             faster, can be unreliable
-                    try:
-                        self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
-                        #due to mmap not coping with big array > 4Gib
-                    except (OverflowError, TypeError) as e:
-                        self.Data = nc.Dataset(data['Origin'], 'r',
-                                    format='NETCDF4_CLASSIC')
-                        
+                    if isfile(data['Origin']):
+                        try:
+                            self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
+                            #due to mmap not coping with big array > 4Gib
+                        except (OverflowError, TypeError) as e:
+                            self.Data = nc.Dataset(data['Origin'], 'r',
+                                       format='NETCDF4_CLASSIC') 
+                    else:
+                        print "the original *.nc file has not been found"                   
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
-
         #Loading netcdf file         
         elif filename.endswith('.nc'):
             if filename.startswith('http'):
@@ -192,6 +196,31 @@ Notes:
             self.Plots.vertical_slice = self.Util3D._vertical_slice
 
     #Special methods
+    def __del__(self):
+        """making sure that all opened files are closed when deleted or overwritten"""
+        try:
+            if type(self.Data).__name__ == "netcdf_file":
+                try:
+                    self.Data.close()
+                except AttributeError:
+                    pass
+            elif type(self.Data).__name__ == "Dataset":
+                self.Data.close()
+            else:
+                try:
+                    f.close()
+                except (NameError,AttributeError) as e:
+                    pass 
+        except AttributeError:
+            try:
+                f.close()
+            except (NameError,AttributeError) as e:
+                pass
+
+    def __new__(self):
+        """Force garbage collector when new fvcom object created"""
+        gc.collect()         
+
     def __add__(self, FvcomClass, debug=False):
         """
         This special method permits to stack variables
