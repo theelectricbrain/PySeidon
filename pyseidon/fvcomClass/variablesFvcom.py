@@ -55,7 +55,10 @@ Some others shall be generated as methods are being called, ex:
         al3D = ['u', 'u', 'v', 'gls', 'tke'] 
 
         #Check if time period defined
-        self.julianTime = data.variables['time']      
+        try:
+            self.julianTime = data.variables['time']
+        except KeyError: #exeception due to Save_as(netcdf)
+            self.julianTime = data.variables['julianTime']      
         if not tx==[]:
             #Time period           
             region_t = self._t_region(tx, debug=debug)
@@ -83,7 +86,10 @@ Some others shall be generated as methods are being called, ex:
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
                         try:
-                            setattr(self, aliaS, data.variables[key].data[ts:te,:])
+                            try:
+                                setattr(self, aliaS, data.variables[key].data[ts:te,:])
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS, data.variables[key][ts:te,:]) 
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -96,7 +102,10 @@ Some others shall be generated as methods are being called, ex:
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
                         try:
-                            setattr(self, aliaS, data.variables[key].data[ts:te,:,:])
+                            try:
+                                setattr(self, aliaS, data.variables[key].data[ts:te,:,:])
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS, data.variables[key][ts:te,:,:])
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -122,8 +131,12 @@ Some others shall be generated as methods are being called, ex:
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                getattr(self, aliaS)[I,:] =\
-                                        np.transpose(data.variables[key].data[i,:])
+                                try:
+                                    getattr(self, aliaS)[I,:] =\
+                                    np.transpose(data.variables[key].data[i,:])
+                                except AttributeError: #exeception due nc.Dataset
+                                    getattr(self, aliaS)[I,:] =\
+                                    np.transpose(data.variables[key][i,:])
                                 I += 1
                             keyCount +=1
                         except KeyError:
@@ -148,11 +161,19 @@ Some others shall be generated as methods are being called, ex:
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
                                 try:
-                                    getattr(self, aliaS)[I,:,:] =\
-                                    np.transpose(data.variables[key].data[i,:,:])
+                                    try:
+                                        getattr(self, aliaS)[I,:,:] =\
+                                        np.transpose(data.variables[key].data[i,:,:])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        getattr(self, aliaS)[I,:,:] =\
+                                        np.transpose(data.variables[key][i,:,:])
                                 except ValueError:
-                                    getattr(self, aliaS)[I,:,:] =\
-                                    data.variables[key].data[i,:,:]
+                                    try:
+                                        getattr(self, aliaS)[I,:,:] =\
+                                        data.variables[key].data[i,:,:]
+                                    except AttributeError: #exeception due nc.Dataset
+                                        getattr(self, aliaS)[I,:,:] =\
+                                        data.variables[key][i,:,:]
                                 I += 1
                             keyCount +=1
                         except KeyError:
@@ -183,13 +204,22 @@ Some others shall be generated as methods are being called, ex:
                         if debug: print 'Index bound: ' +\
                             str(ID[0]) + '-' + str(ID[-1]+1)
                         if H==0:
-                            setattr(self, aliaS,
-                                    data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
+                            try:
+                                setattr(self, aliaS,
+                                data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS,
+                                data.variables[key][ts:te,ID[0]:(ID[-1]+1)])
                             H=1
                         else:
-                            setattr(self, aliaS,
-                            np.hstack((getattr(self, aliaS),
-                            data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])))
+                            try:
+                                setattr(self, aliaS,
+                                np.hstack((getattr(self, aliaS),
+                                data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])))
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS,
+                                np.hstack((getattr(self, aliaS),
+                                data.variables[key][ts:te,ID[0]:(ID[-1]+1)])))
                     #loading hori data
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
@@ -200,13 +230,22 @@ Some others shall be generated as methods are being called, ex:
                                 if debug: print 'Index bound: ' +\
                                           str(ID[0]) + '-' + str(ID[-1]+1)
                                 if H==0:
-                                    setattr(self, aliaS,
-                                    data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
+                                    try:
+                                        setattr(self, aliaS,
+                                        data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS,
+                                        data.variables[key][ts:te,ID[0]:(ID[-1]+1)])
                                     H=1
                                 else:
-                                    setattr(self, aliaS,
-                                    np.hstack((getattr(self, aliaS),
-                                    data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])))
+                                    try:
+                                        setattr(self, aliaS,
+                                        np.hstack((getattr(self, aliaS),
+                                        data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])))
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS,
+                                        np.hstack((getattr(self, aliaS),
+                                        data.variables[key][ts:te,ID[0]:(ID[-1]+1)])))
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -225,13 +264,22 @@ Some others shall be generated as methods are being called, ex:
                                 if debug: print 'Index bound: ' +\
                                           str(ID[0]) + '-' + str(ID[-1]+1)
                                 if H==0:
-                                    setattr(self, aliaS, data.variables[key].data\
-                                                       [ts:te,:,ID[0]:(ID[-1]+1)])
+                                    try:
+                                        setattr(self, aliaS, data.variables[key].data\
+                                        [ts:te,:,ID[0]:(ID[-1]+1)])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS, data.variables[key]\
+                                        [ts:te,:,ID[0]:(ID[-1]+1)])
                                     H=1
                                 else:
-                                    setattr(self, aliaS,
-                                    np.dstack((getattr(self, aliaS),
-                                    data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)])))
+                                    try:
+                                        setattr(self, aliaS,
+                                        np.dstack((getattr(self, aliaS),
+                                        data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)])))
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS,
+                                        np.dstack((getattr(self, aliaS),
+                                        data.variables[key][ts:te,:,ID[0]:(ID[-1]+1)])))
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -255,8 +303,12 @@ Some others shall be generated as methods are being called, ex:
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    getattr(self, aliaS)[I,:] =\
-                                    np.transpose(data.variables[key].data[i,region_n])
+                                    try:
+                                        getattr(self, aliaS)[I,:] =\
+                                        np.transpose(data.variables[key].data[i,region_n])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        getattr(self, aliaS)[I,:] =\
+                                        np.transpose(data.variables[key][i,region_n])
                                     I += 1
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
@@ -266,8 +318,12 @@ Some others shall be generated as methods are being called, ex:
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    getattr(self, aliaS)[I,:] =\
-                                    np.transpose(data.variables[key].data[i,region_e])
+                                    try:
+                                        getattr(self, aliaS)[I,:] =\
+                                        np.transpose(data.variables[key].data[i,region_e])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        getattr(self, aliaS)[I,:] =\
+                                        np.transpose(data.variables[key][i,region_e])
                                     I += 1
                             keyCount +=1
                         except KeyError:
@@ -291,8 +347,12 @@ Some others shall be generated as methods are being called, ex:
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                getattr(self, aliaS)[I,:,:] =\
-                                np.transpose(data.variables[key].data[i,:,region_e])
+                                try:
+                                    getattr(self, aliaS)[I,:,:] =\
+                                    np.transpose(data.variables[key].data[i,:,region_e])
+                                except AttributeError: #exeception due nc.Dataset
+                                    getattr(self, aliaS)[I,:,:] =\
+                                    np.transpose(data.variables[key][i,:,region_e])
                                 I += 1
                             keyCount +=1
                         except KeyError:
@@ -306,7 +366,10 @@ Some others shall be generated as methods are being called, ex:
         #No time period define    
         else:
             # get time and adjust it to matlab datenum
-            self.julianTime = data.variables['time'].data
+            try:
+                self.julianTime = data.variables['time'].data
+            except KeyError: #exeception due to Save_as(netcdf)
+                self.julianTime = data.variables['julianTime'] 
             self.matlabTime = self.julianTime[:] + 678942.0
             #-Append message to History field
             start = mattime_to_datetime(self.matlabTime[0])
@@ -326,7 +389,10 @@ Some others shall be generated as methods are being called, ex:
                 keyCount = 0
                 for key, aliaS in zip(kwl2D, al2D):
                     try:
-                        setattr(self, aliaS, data.variables[key].data)
+                        try:
+                            setattr(self, aliaS, data.variables[key].data)
+                        except AttributeError: #exeception due nc.Dataset
+                            setattr(self, aliaS, data.variables[key][:])
                         keyCount +=1
                     except KeyError:
                         if debug: print key, " is missing !"
@@ -339,7 +405,10 @@ Some others shall be generated as methods are being called, ex:
                 keyCount = 0
                 for key, aliaS in zip(kwl3D, al3D):
                     try:
-                        setattr(self, aliaS, data.variables[key].data)
+                        try:
+                            setattr(self, aliaS, data.variables[key].data)
+                        except AttributeError: #exeception due nc.Dataset
+                            setattr(self, aliaS, data.variables[key][:])
                         keyCount +=1
                     except KeyError:
                         if debug: print key, " is missing !"
@@ -371,13 +440,22 @@ Some others shall be generated as methods are being called, ex:
                                 if debug: print 'Index bound: ' +\
                                     str(ID[0]) + '-' + str(ID[-1]+1)
                                 if H==0:
-                                    setattr(self, aliaS,
-                                    data.variables[key].data[:,ID[0]:(ID[-1]+1)])
+                                    try:
+                                        setattr(self, aliaS,
+                                        data.variables[key].data[:,ID[0]:(ID[-1]+1)])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS,
+                                        data.variables[key][:,ID[0]:(ID[-1]+1)])
                                     H=1
                                 else:
-                                    setattr(self, aliaS,
-                                    np.hstack((getattr(self, aliaS),
-                                    data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                                    try:
+                                        setattr(self, aliaS,
+                                        np.hstack((getattr(self, aliaS),
+                                        data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS,
+                                        np.hstack((getattr(self, aliaS),
+                                        data.variables[key][:,ID[0]:(ID[-1]+1)])))
                         else:
                             try:                        
                                 for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
@@ -385,14 +463,22 @@ Some others shall be generated as methods are being called, ex:
                                     if debug: print 'Index bound: ' +\
                                               str(ID[0]) + '-' + str(ID[-1]+1)
                                     if H==0:
-                                        setattr(self, aliaS,
-                                                data.variables[key].\
-                                                data[:,ID[0]:(ID[-1]+1)])
+                                        try:
+                                            setattr(self, aliaS,
+                                            data.variables[key].data[:,ID[0]:(ID[-1]+1)])
+                                        except AttributeError: #exeception due nc.Dataset
+                                            setattr(self, aliaS,
+                                            data.variables[key][:,ID[0]:(ID[-1]+1)])
                                         H=1
                                     else:
-                                        setattr(self, aliaS,
-                                        np.hstack((getattr(self, aliaS),
-                                        data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                                        try:
+                                            setattr(self, aliaS,
+                                            np.hstack((getattr(self, aliaS),
+                                            data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                                        except AttributeError: #exeception due nc.Dataset
+                                            setattr(self, aliaS,
+                                            np.hstack((getattr(self, aliaS),
+                                            data.variables[key][:,ID[0]:(ID[-1]+1)])))
                                     keyCount +=1
                             except KeyError:
                                 if debug: print key, " is missing !"
@@ -411,13 +497,22 @@ Some others shall be generated as methods are being called, ex:
                                 if debug: print 'Index bound: ' +\
                                           str(ID[0]) + '-' + str(ID[-1]+1)
                                 if H==0:
-                                    setattr(self, aliaS,
-                                    data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])
+                                    try:
+                                        setattr(self, aliaS,
+                                        data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS,
+                                        data.variables[key][:,:,ID[0]:(ID[-1]+1)])
                                     H=1
                                 else:
-                                    setattr(self, aliaS,
-                                    np.dstack((getattr(self, aliaS),
-                                    data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])))
+                                    try:
+                                        setattr(self, aliaS,
+                                        np.dstack((getattr(self, aliaS),
+                                        data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])))
+                                    except AttributeError: #exeception due nc.Dataset
+                                        setattr(self, aliaS,
+                                        np.dstack((getattr(self, aliaS),
+                                        data.variables[key][:,:,ID[0]:(ID[-1]+1)])))
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -440,8 +535,12 @@ Some others shall be generated as methods are being called, ex:
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    getattr(self, aliaS)[i,:] =\
-                                    np.transpose(data.variables[key].data[i,region_n])
+                                    try:
+                                        getattr(self, aliaS)[i,:] =\
+                                        np.transpose(data.variables[key].data[i,region_n])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        getattr(self, aliaS)[i,:] =\
+                                        np.transpose(data.variables[key][i,region_n])
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                                 for i in range(grid.ntime):
@@ -449,8 +548,12 @@ Some others shall be generated as methods are being called, ex:
                                     #            Mitchell to improve loading time
                                     #TR comment: no idea why I have to transpose here but
                                     #            I do !!
-                                    getattr(self, aliaS)[i,:] =\
-                                    np.transpose(data.variables[key].data[i,region_e])
+                                    try:
+                                        getattr(self, aliaS)[i,:] =\
+                                        np.transpose(data.variables[key].data[i,region_e])
+                                    except AttributeError: #exeception due nc.Dataset
+                                        getattr(self, aliaS)[i,:] =\
+                                        np.transpose(data.variables[key][i,region_e])
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -472,8 +575,12 @@ Some others shall be generated as methods are being called, ex:
                                 #            Mitchell to improve loading time
                                 #TR comment: no idea why I have to transpose here but
                                 #            I do !!
-                                getattr(self, aliaS)[i,:,:] =\
-                                np.transpose(data.variables[key].data[i,:,region_e])
+                                try:
+                                    getattr(self, aliaS)[i,:,:] =\
+                                    np.transpose(data.variables[key].data[i,:,region_e])
+                                except AttributeError: #exeception due nc.Dataset
+                                    getattr(self, aliaS)[i,:,:] =\
+                                    np.transpose(data.variables[key][i,:,region_e])
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -538,21 +645,37 @@ Some others shall be generated as methods are being called, ex:
         #Pointer to History
         self._History = History
         History = self._History
-        self.lon = data.variables['lon'].data
-        self.lat = data.variables['lat'].data
-        self.lonc = data.variables['lonc'].data
-        self.latc = data.variables['latc'].data
-        self.x = data.variables['x'].data
-        self.y = data.variables['y'].data
-        self.xc = data.variables['xc'].data
-        self.yc = data.variables['yc'].data
-        self.a1u = data.variables['a1u'].data
-        self.a2u = data.variables['a2u'].data
-        self.aw0 = data.variables['aw0'].data
-        self.awx = data.variables['awx'].data
-        self.awy = data.variables['awy'].data
-        self.trinodes = np.transpose(data.variables['nv'].data) - 1
-        self.triele = np.transpose(data.variables['nbe'].data) - 1
+        #list of grid variable
+        gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
+                   'a1u','a2u','aw0','awx','awy']
+        for key in gridvar:
+            try:
+                setattr(self, key, data.variables[key].data)
+            except AttributeError: #exception for nc.dataset type data
+                setattr(self, key, data.variables[key][:])
+
+        #special treatment for triele & trinodes due to Save_as(netcdf)
+        datavar = data.variables.keys()
+        if "trinodes" in datavar:
+            try:
+                setattr(self, 'trinodes', data.variables['trinodes'].data)
+            except AttributeError: #exception for nc.dataset type data
+                setattr(self, 'trinodes', data.variables['trinodes'][:])
+        else:
+            self.trinodes = np.transpose(data.variables['nv'].data) - 1
+        if "triele" in datavar:
+            try:
+                setattr(self, 'triele', data.variables['triele'].data)
+            except AttributeError: #exception for nc.dataset type data
+                setattr(self, 'triele', data.variables['triele'][:])
+        else:
+            self.triele = np.transpose(data.variables['nbe'].data) - 1
+        #special treatment for depth2D & depth due to Save_as(netcdf)
+        if "depth2D" in datavar:
+            setattr(self, "depth2D", data.variables["depth2D"][:])
+        if "depth" in datavar:
+            setattr(self, "depth", data.variables["depth"][:])
+
         if ax==[]:
             #Define bounding box
             self._ax = []
@@ -564,13 +687,15 @@ Some others shall be generated as methods are being called, ex:
             self.siglay = data.variables['siglay'][:]
             self.siglev = data.variables['siglev'][:]
             self.nlevel = self.siglay.shape[0]
-            try:
-                self.nele = data.dimensions['nele']
-                self.nnode = data.dimensions['node']
-            except AttributeError:
-                #TR: bug due to difference in Pydap's data sturcture
-                self.nele = self.lonc.shape[0]
-                self.nnode = data.lon.shape[0]
+            self.nele = self.lonc.shape[0]
+            self.nnode = self.lon.shape[0]
+            #try:
+            #    self.nele = data.dimensions['nele']
+            #    self.nnode = data.dimensions['node']
+            #except AttributeError:
+            #    #TR: bug due to difference in Pydap's data sturcture
+            #    self.nele = self.lonc.shape[0]
+            #    self.nnode = self.lon.shape[0]
         else:
             #Checking for pre-defined regions
             if ax=='GP':
@@ -584,21 +709,12 @@ Some others shall be generated as methods are being called, ex:
            
             print 'Re-indexing may take some time...'   
             Data = regioner(self, ax, debug=debug)
-            self.lon = Data['lon'][:]
-            self.lat = Data['lat'][:]
-            self.lonc = Data['lonc'][:]
-            self.latc = Data['latc'][:]
-            self.x = Data['x'][:]
-            self.y = Data['y'][:]
-            self.xc = Data['xc'][:]
-            self.yc = Data['yc'][:]
-            self.a1u = Data['a1u'][:]
-            self.a2u = Data['a2u'][:]
-            self.aw0 = Data['aw0'][:]
-            self.awx = Data['awx'][:]
-            self.awy = Data['awy'][:]
-            self.trinodes = Data['nv'][:]
-            self.triele = Data['nbe'][:]
+            #list of grid variable
+            gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
+                       'a1u','a2u','aw0','awx','awy','nv','nbe']
+            for key in gridvar:
+                setattr(self, key, data.variables[key])
+            #Special treatment here
             self.triangle = Data['triangle']
             #Only load the element within the box
             self._node_index = Data['node_index']

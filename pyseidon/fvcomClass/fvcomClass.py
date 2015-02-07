@@ -24,7 +24,7 @@ from shortest_element_path import shortest_element_path
 from object_from_dict import ObjectFromDict
 from pyseidon2pickle import pyseidon_to_pickle
 from pyseidon2matlab import pyseidon_to_matlab
-from pyseidon2netcdf import pyseidon_to_netcdf
+from pyseidon2netcdf_alter import pyseidon_to_netcdf
 
 #Local import
 from variablesFvcom import _load_var, _load_grid
@@ -115,8 +115,10 @@ Notes:
                     #             faster, can be unreliable
                     try:
                         self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
-                    except OverflowError: #due to mmap not coping with big array > 4Gib
-                        self.Data = nc.Dataset(data['Origin'], 'r')
+                        #due to mmap not coping with big array > 4Gib
+                    except (OverflowError, TypeError) as e:
+                        self.Data = nc.Dataset(data['Origin'], 'r',
+                                    format='NETCDF4_CLASSIC')
                         
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
@@ -138,8 +140,9 @@ Notes:
                 #             faster, can be unreliable
                 try:
                     self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
-                except OverflowError: #due to mmap not coping with big array > 4Gib
-                    self.Data = nc.Dataset(filename, 'r')
+                    #due to mmap not coping with big array > 4Gib
+                except (OverflowError, TypeError) as e: 
+                    self.Data = nc.Dataset(filename, 'r', format='NETCDF4_CLASSIC')
             text = 'Created from ' + filename
             self._origin_file = filename
             #Metadata
