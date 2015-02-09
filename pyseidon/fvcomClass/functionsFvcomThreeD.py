@@ -338,9 +338,9 @@ class FunctionsFvcomThreeD:
             dvel = norm[:,sLvl[1:]] - norm[:,sLvl[:-1]]           
             dveldz = dvel / dz
         else:
-            dveldz = interpolation_at_point(self._var.verti_shear,
-                                            pt_lon, pt_lat,
-                                            index=index, debug=debug)
+            dveldz = self.interpolation_at_point(self._var.verti_shear,
+                                                 pt_lon, pt_lat,
+                                                 index=index, debug=debug)
 
         if debug:
             print '...Passed'
@@ -354,7 +354,7 @@ class FunctionsFvcomThreeD:
             mean_depth = np.mean((depth[:,sLvl[1:]]
                        + depth[:,sLvl[:-1]]) / 2.0, 0)
             mean_dveldz = np.mean(dveldz,0)
-            error = np.std(dveldz,axis=0)
+            error = np.std(dveldz,axis=0)/2.0
             self._plot.plot_xy(mean_dveldz, mean_depth, xerror=error[:],
                                title='Shear profile ',
                                xLabel='Shear (1/s) ', yLabel='Depth (m) ')
@@ -408,7 +408,7 @@ class FunctionsFvcomThreeD:
             print '...Passed'
 
     def velo_norm_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
-                           debug=False):
+                           graph=True, debug=False):
         """
         This function computes the velocity norm at any given point.
 
@@ -428,6 +428,7 @@ class FunctionsFvcomThreeD:
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
+          - graph = boolean, plots or not veritcal profile
 
         Notes:
         -----
@@ -489,7 +490,17 @@ class FunctionsFvcomThreeD:
 
         #use only the time indices of interest
         if not argtime==[]:
-            velo_norm = velo_norm[argtime[:],:]  
+            velo_norm = velo_norm[argtime[:],:]
+
+        #Plot mean values
+        if graph:
+            depth = self.depth_at_point(pt_lon, pt_lat, index=index)
+            mean_depth = np.mean(depth, 0)
+            mean_vel = np.mean(velo_norm,0)
+            error = np.std(velo_norm,axis=0)/2.0
+            self._plot.plot_xy(mean_vel, mean_depth, xerror=error[:],
+                               title='Flow speed vertical  ',
+                               xLabel='Flow speed (1/s) ', yLabel='Depth (m) ')
 
         return velo_norm 
 

@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
+import matplotlib.patches as mpatches
 import seaborn
 from windrose import WindroseAxes
 from interpolation_utils import *
@@ -176,16 +177,22 @@ class PlotsFvcom:
         self._ax = self._fig.add_subplot(111)         
         self._ax.plot(x, y, label=title)
         scale = 1
-        plt.ylabel(yLabel)
-        plt.xlabel(xLabel)
+        self._ax.set_ylabel(yLabel)
+        self._ax.set_xlabel(xLabel)
+        self._ax.get_xaxis().set_minor_locator(ticker.AutoMinorLocator())
+	self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
+	self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
+	self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
         if not yerror==[]:
-            #plt.errorbar(x, y, yerr=yerror, fmt='o', ecolor='k')
             self._ax.fill_between(x, y-yerror, y+yerror,
-            alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)
+            alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)        
         if not xerror==[]:
-            #plt.errorbar(x, y, xerr=xerror, fmt='o', ecolor='k')
             self._ax.fill_betweenx(y, x-xerror, x+xerror,
             alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)
+        if (not xerror==[]) or (not yerror==[]): 
+            blue_patch = mpatches.Patch(color='#089FFF',
+                         label='Standard deviation',alpha=0.2)
+            plt.legend(handles=[blue_patch],loc=1, fontsize=12)
 
         self._fig.show()      
 
