@@ -82,7 +82,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                 pass
         if var == 'el':
             try:
-                tmp_var = f.createVariable(var, 'float', ('time','node'))
+                tmp_var = f.createVariable('zeta', 'float', ('time','node'))
                 tmp_var[:,:] = getattr(fvcom.Variables, var)[:,:]
             except AttributeError:
                 pass

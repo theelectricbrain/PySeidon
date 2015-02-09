@@ -48,11 +48,17 @@ Some others shall be generated as methods are being called, ex:
         History = self._History
 
         #List of keywords
-        kwl2D = ['ua', 'va', 'zeta']
-        kwl3D = ['ww', 'u', 'v', 'gls', 'tke']
+        kwl2D = ['ua', 'va', 'zeta','depth_av_flow_dir', 'hori_velo_norm',
+                 'depth_av_vorticity', 'depth_av_power_density',
+                 'depth_av_power_assessment']
+        kwl3D = ['ww', 'u', 'v', 'gls', 'tke', 'flow_dir', 'velo_norm',
+                 'verti_shear', 'vorticity', 'power_density']
         #List of aliaSes
-        al2D = ['ua', 'va', 'el']
-        al3D = ['u', 'u', 'v', 'gls', 'tke'] 
+        al2D = ['ua', 'va', 'el','depth_av_flow_dir', 'hori_velo_norm',
+               'depth_av_vorticity', 'depth_av_power_density',
+               'depth_av_power_assessment']
+        al3D = ['w', 'u', 'v', 'gls', 'tke', 'flow_dir', 'velo_norm',
+                 'verti_shear', 'vorticity', 'power_density'] 
 
         #Check if time period defined
         try:
