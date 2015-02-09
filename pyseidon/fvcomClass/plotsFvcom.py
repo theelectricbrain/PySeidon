@@ -108,9 +108,9 @@ class PlotsFvcom:
             plt.triplot(tri)
 
         #Label and axis parameters
-        plt.ylabel('Latitude')
-        plt.xlabel('Longitude')
-        plt.gca().patch.set_facecolor('0.5')
+        self._ax.set_ylabel('Latitude')
+        self._ax.set_xlabell('Longitude')
+        self._ax.patch.set_facecolor('0.5')
         cbar=self._fig.colorbar(f, ax=self._ax)
         cbar.set_label(title, rotation=-90,labelpad=30)
         scale = 1

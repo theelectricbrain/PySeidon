@@ -138,7 +138,7 @@ class FunctionsFvcom:
             print '...Passed'
 
     def flow_dir_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
-                          exceedance=False, debug=False):
+                          graph=True, exceedance=False, debug=False):
         """
         This function computes flow directions and associated norm
         at any give location.
@@ -213,9 +213,10 @@ class FunctionsFvcom:
         if debug:
             print '...Passed'
         #Rose diagram
-        self._plot.rose_diagram(dirFlow, norm)
-        if exceedance:
-            self.exceedance(norm, debug=debug)
+        if graph:
+            self._plot.rose_diagram(dirFlow, norm)
+            if exceedance:
+                self.exceedance(norm, graph=True, debug=debug)
 
         return dirFlow, norm
 
@@ -445,7 +446,7 @@ class FunctionsFvcom:
 
         return varInterp
 
-    def exceedance(self, var, pt_lon=[], pt_lat=[], debug=False):
+    def exceedance(self, var, pt_lon=[], pt_lat=[], graph=True, debug=False):
         """
         This function calculates the excedence curve of a var(time)
         at any given point.
@@ -483,7 +484,7 @@ class FunctionsFvcom:
             signal=var
         
         Max = max(signal)	
-        dy = (Max/30.0)
+        dy = (Max/50.0)
         Ranges = np.arange(0,(Max + dy), dy)
         Exceedance = np.zeros(Ranges.shape[0])
         dt = self._var.julianTime[1] - self._var.julianTime[0]
@@ -505,11 +506,12 @@ class FunctionsFvcom:
             print '...Passed'
        
         #Plot
-        error=np.ones(Exceedance.shape) * np.std(var)/2.0
-        #if debug: print "Error: ", str(np.std(Exceedance))
-        self._plot.plot_xy(Exceedance, Ranges, yerror=error,
-                           yLabel='Amplitudes',
-                           xLabel='Exceedance probability in %')
+        if graph:
+            error=np.ones(Exceedance.shape) * np.std(var)/2.0
+            #if debug: print "Error: ", str(np.std(Exceedance))
+            self._plot.plot_xy(Exceedance, Ranges, yerror=error,
+                               yLabel='Amplitudes',
+                               xLabel='Exceedance probability in %')
 
         return Exceedance, Ranges
 
