@@ -198,6 +198,7 @@ Notes:
     #Special methods
     def __del__(self):
         """making sure that all opened files are closed when deleted or overwritten"""
+        #TR: not sure __del__ is the best approach for that
         try:
             if type(self.Data).__name__ == "netcdf_file":
                 try:

@@ -25,6 +25,12 @@ class PlotsFvcom:
         grid = self._grid
         #self._grid._ax = grid._ax
 
+    def _def_fig(self):
+        """Defines figure window"""
+        self._fig = plt.figure(figsize=(18,10))
+        plt.rc('font',size='22')
+
+
     def colormap_var(self, var, title='Title', cmin=[], cmax=[], cmap=[],
                      mesh=True, debug=False):
         '''
@@ -87,17 +93,16 @@ class PlotsFvcom:
         levels=np.arange(cmin, (cmax+step), step)   # depth contours to plot
 
         #Figure window params
-        fig = plt.figure(figsize=(18,10))
-        plt.rc('font',size='22')
-        self._fig = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
+        self._def_fig()
+        self._ax = self._fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
 
         #Plotting functions
         if debug:
             print "Computing colormap..."
         if cmap==[]:
-            f = self._fig.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
+            f = self._ax.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
         else:
-            f = self._fig.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=cmap) 
+            f = self._ax.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=cmap) 
         if mesh:
             plt.triplot(tri)
 
@@ -105,16 +110,16 @@ class PlotsFvcom:
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.gca().patch.set_facecolor('0.5')
-        cbar=fig.colorbar(f, ax=self._fig)
+        cbar=self._fig.colorbar(f, ax=self._ax)
         cbar.set_label(title, rotation=-90,labelpad=30)
         scale = 1
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
-        self._fig.xaxis.set_major_formatter(ticks)
-        self._fig.yaxis.set_major_formatter(ticks)
-        self._fig.set_xlim([bb[0],bb[1]])
-        self._fig.set_ylim([bb[2],bb[3]])
-        plt.grid()
-        plt.show()
+        self._ax.xaxis.set_major_formatter(ticks)
+        self._ax.yaxis.set_major_formatter(ticks)
+        self._ax.set_xlim([bb[0],bb[1]])
+        self._ax.set_ylim([bb[2],bb[3]])
+        self._ax.grid()
+        self._fig.show()
         if debug or self._debug:
             print '...Passed'
 
@@ -134,18 +139,19 @@ class PlotsFvcom:
         direction = np.mod(90.0 - direction, 360.0)
 
         #Create new figure
-        fig = plt.figure(figsize=(18,10))
-        plt.rc('font',size='22')
+        #fig = plt.figure(figsize=(18,10))
+        #plt.rc('font',size='22')
+        self._def_fig()      
         rect = [0.1, 0.1, 0.8, 0.8]
-        ax = WindroseAxes(fig, rect)#, axisbg='w')
-        fig.add_axes(ax)
+        ax = WindroseAxes(self._fig, rect)#, axisbg='w')
+        self._fig.add_axes(ax)
         #Rose
         ax.bar(direction, norm , normed=True, opening=0.8, edgecolor='white')
         #adjust legend
         l = ax.legend(shadow=True, bbox_to_anchor=[-0.1, 0], loc='lower left')
         plt.setp(l.get_texts(), fontsize=10)
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
-        plt.show() 
+        self._fig.show() 
 
     def plot_xy(self, x, y, xerror=[], yerror=[], title=' ', xLabel=' ', yLabel=' '):
         """
@@ -164,22 +170,24 @@ class PlotsFvcom:
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
         """
-        fig = plt.figure(figsize=(18,10))
-        plt.rc('font',size='22')
-        self._fig = plt.plot(x, y, label=title)
+        #fig = plt.figure(figsize=(18,10))
+        #plt.rc('font',size='22')
+        self._def_fig()
+        self._ax = self._fig.add_subplot(111)         
+        self._ax.plot(x, y, label=title)
         scale = 1
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
         if not yerror==[]:
             #plt.errorbar(x, y, yerr=yerror, fmt='o', ecolor='k')
-            plt.fill_between(x, y-yerror, y+yerror,
+            self._ax.fill_between(x, y-yerror, y+yerror,
             alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)
         if not xerror==[]:
             #plt.errorbar(x, y, xerr=xerror, fmt='o', ecolor='k')
-            plt.fill_betweenx(y, x-xerror, x+xerror,
+            self._ax.fill_betweenx(y, x-xerror, x+xerror,
             alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)
 
-        plt.show()      
+        self._fig.show()      
 
     def Histogram(self, y, title=' ', xLabel=' ', yLabel=' '):
         """
@@ -197,19 +205,21 @@ class PlotsFvcom:
           - yLabel = title of the y-axis, string
         """
         ## the histogram of the data
-        fig = plt.figure(figsize=(18,10))
+        #fig = plt.figure(figsize=(18,10))
+        self._def_fig()
+        self._ax = self._fig.add_subplot(111)        
         density, bins = np.histogram(y, bins=50, normed=True, density=True)
         unity_density = density / density.sum()
         widths = bins[:-1] - bins[1:]
         # To plot correct percentages in the y axis 
-        plt.bar(bins[1:], unity_density, width=widths)
+        self._ax.bar(bins[1:], unity_density, width=widths)
         formatter = ticker.FuncFormatter(lambda v, pos: str(v * 100))
-        plt.gca().yaxis.set_major_formatter(formatter)
+        self._ax.yaxis.set_major_formatter(formatter)
 
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
 
-        plt.show()  
+        self._fig.show()  
 
     def add_points(self, x, y, label=' ', color='black'):
         """
