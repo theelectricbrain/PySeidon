@@ -739,21 +739,39 @@ Some others shall be generated as methods are being called, ex:
                     if debug: print 'Index bound: ' +\
                         str(ID[0]) + '-' + str(ID[-1]+1)
                     if H==0:
-                        self.h = data.variables['h'].data[ID[0]:(ID[-1]+1)]
-                        self.siglay = data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]
-                        self.siglev = data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]
+                        try:
+                            self.h = data.variables['h'].data[ID[0]:(ID[-1]+1)]
+                            self.siglay = data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]
+                            self.siglev = data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]
+                        except AttributeError: #exception for nc.dataset type data
+                            self.h = data.variables['h'][ID[0]:(ID[-1]+1)]
+                            self.siglay = data.variables['siglay'][:,ID[0]:(ID[-1]+1)]
+                            self.siglev = data.variables['siglev'][:,ID[0]:(ID[-1]+1)]
                     else:
-                        self.h = np.hstack((self.h,
-                        data.variables['h'].data[ID[0]:(ID[-1]+1)]))
-                        self.siglay = np.hstack((self.siglay,
-                        data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]))
-                        self.siglev = np.hstack((self.siglev,
-                        data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]))
+                        try:
+                            self.h = np.hstack((self.h,
+                            data.variables['h'].data[ID[0]:(ID[-1]+1)]))
+                            self.siglay = np.hstack((self.siglay,
+                            data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]))
+                            self.siglev = np.hstack((self.siglev,
+                            data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]))
+                        except AttributeError: #exception for nc.dataset type data
+                            self.h = np.hstack((self.h,
+                            data.variables['h'][ID[0]:(ID[-1]+1)]))
+                            self.siglay = np.hstack((self.siglay,
+                            data.variables['siglay'][:,ID[0]:(ID[-1]+1)]))
+                            self.siglev = np.hstack((self.siglev,
+                            data.variables['siglev'][:,ID[0]:(ID[-1]+1)]))
                     H=1
             else:
-                self.h = data.variables['h'].data[self._node_index]
-                self.siglay = data.variables['siglay'].data[:,self._node_index]
-                self.siglev = data.variables['siglev'].data[:,self._node_index]
+                try:  
+                    self.h = data.variables['h'].data[self._node_index]
+                    self.siglay = data.variables['siglay'].data[:,self._node_index]
+                    self.siglev = data.variables['siglev'].data[:,self._node_index]
+                except AttributeError: #exception for nc.dataset type data
+                    self.h = data.variables['h'][self._node_index]
+                    self.siglay = data.variables['siglay'][:,self._node_index]
+                    self.siglev = data.variables['siglev'][:,self._node_index]
             #Dimensions
             self.nlevel = self.siglay.shape[0]
             self.nele = Data['element_index'].shape[0]
