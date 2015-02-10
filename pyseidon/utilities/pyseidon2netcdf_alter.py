@@ -56,12 +56,12 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                 'xc', 'x', 'yc', 'y', 
                 'lonc', 'lon', 'latc', 'lat',
                 'aw0', 'awy', 'awx',
-                'h','hc', 'depth2D']
+                'h','hc', 'depth2D',
+                'siglay','siglev', 'depth']
     #list of potential 3D var * grid var
     if fvcom.Variables._3D:
         varname = varname + ['u', 'v', 'flow_dir', 'velo_norm', 'verti_shear',
                              'vorticity', 'power_density']
-        gridname = gridname + ['siglay','siglev', 'depth']
 
     #load in netcdf file
     if debug: print "Loading variables' matrices in nc file..."
@@ -72,7 +72,8 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                    'hori_velo_norm']:
             try:
                 tmp_var = f.createVariable(var, 'float', ('time','nele'))
-                tmp_var[:,:] = getattr(fvcom.Variables, var)[:,:]
+                #tmp_var[:,:] = getattr(fvcom.Variables, var)[:,:]
+                tmp_var[:] = getattr(fvcom.Variables, var)[:]
             except AttributeError:
                 pass
         if var in ['julianTime', 'matlabTime']:
