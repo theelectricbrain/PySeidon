@@ -719,8 +719,10 @@ Some others shall be generated as methods are being called, ex:
             gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
                        'a1u','a2u','aw0','awx','awy','nv','nbe']
             for key in gridvar:
-                setattr(self, key, data.variables[key])
+                setattr(self, key, Data[key][:])
             #Special treatment here
+            self.trinodes = Data['nv'][:]
+            self.triele = Data['nbe'][:]
             self.triangle = Data['triangle']
             #Only load the element within the box
             self._node_index = Data['node_index']
