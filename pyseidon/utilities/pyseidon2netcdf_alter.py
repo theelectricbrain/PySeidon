@@ -122,7 +122,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
             try:
                 tmp_var = f.createVariable(grd, 'float', ('node',)) 
                 tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e::
+            except (AttributeError, IndexError) as e:
                 pass
         if grd in ['triele','trinodes']:
             try:
