@@ -109,7 +109,7 @@ class PlotsFvcom:
 
         #Label and axis parameters
         self._ax.set_ylabel('Latitude')
-        self._ax.set_xlabell('Longitude')
+        self._ax.set_xlabel('Longitude')
         self._ax.patch.set_facecolor('0.5')
         cbar=self._fig.colorbar(f, ax=self._ax)
         cbar.set_label(title, rotation=-90,labelpad=30)

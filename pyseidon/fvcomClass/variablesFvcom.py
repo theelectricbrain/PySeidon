@@ -141,8 +141,7 @@ Some others shall be generated as methods are being called, ex:
                                     getattr(self, aliaS)[I,:] =\
                                     np.transpose(data.variables[key].data[i,:])
                                 except AttributeError: #exeception due nc.Dataset
-                                    getattr(self, aliaS)[I,:] =\
-                                    np.transpose(data.variables[key][i,:])
+                                    getattr(self, aliaS)[I,:] = data.variables[key][i,:]
                                 I += 1
                             keyCount +=1
                         except KeyError:
@@ -158,8 +157,13 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             testKey = data.variables[key]
                             del testKey
-                            setattr(self, aliaS,
-                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            if aliaS == 'verti_shear':#exception for vertical shear
+                                setattr(self, aliaS,
+                                np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
+                            else:
+                                setattr(self, aliaS,
+                                np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+
                             I = 0
                             for i in region_t:
                                 #TR comment: looping on time indices is a trick from
@@ -172,7 +176,7 @@ Some others shall be generated as methods are being called, ex:
                                         np.transpose(data.variables[key].data[i,:,:])
                                     except AttributeError: #exeception due nc.Dataset
                                         getattr(self, aliaS)[I,:,:] =\
-                                        np.transpose(data.variables[key][i,:,:])
+                                        data.variables[key][i,:,:]
                                 except ValueError:
                                     try:
                                         getattr(self, aliaS)[I,:,:] =\
@@ -314,7 +318,7 @@ Some others shall be generated as methods are being called, ex:
                                         np.transpose(data.variables[key].data[i,region_n])
                                     except AttributeError: #exeception due nc.Dataset
                                         getattr(self, aliaS)[I,:] =\
-                                        np.transpose(data.variables[key][i,region_n])
+                                        data.variables[key][i,region_n]
                                     I += 1
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
@@ -329,7 +333,7 @@ Some others shall be generated as methods are being called, ex:
                                         np.transpose(data.variables[key].data[i,region_e])
                                     except AttributeError: #exeception due nc.Dataset
                                         getattr(self, aliaS)[I,:] =\
-                                        np.transpose(data.variables[key][i,region_e])
+                                        data.variables[key][i,region_e]
                                     I += 1
                             keyCount +=1
                         except KeyError:
@@ -345,8 +349,12 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             testKey = data.variables[key]
                             del testKey
-                            setattr(self, alias,
-                            np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            if aliaS == 'verti_shear':#exception for vertical shear
+                                setattr(self, aliaS,
+                                np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
+                            else:
+                                setattr(self, aliaS,
+                                np.zeros((grid.ntime,grid.nlevel, grid.nele)))
                             I=0
                             for i in region_t:
                                 #TR comment: looping on time indices is a trick from
@@ -358,7 +366,7 @@ Some others shall be generated as methods are being called, ex:
                                     np.transpose(data.variables[key].data[i,:,region_e])
                                 except AttributeError: #exeception due nc.Dataset
                                     getattr(self, aliaS)[I,:,:] =\
-                                    np.transpose(data.variables[key][i,:,region_e])
+                                    data.variables[key][i,:,region_e]
                                 I += 1
                             keyCount +=1
                         except KeyError:
@@ -546,7 +554,7 @@ Some others shall be generated as methods are being called, ex:
                                         np.transpose(data.variables[key].data[i,region_n])
                                     except AttributeError: #exeception due nc.Dataset
                                         getattr(self, aliaS)[i,:] =\
-                                        np.transpose(data.variables[key][i,region_n])
+                                        data.variables[key][i,region_n]
                             else:
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                                 for i in range(grid.ntime):
@@ -559,7 +567,7 @@ Some others shall be generated as methods are being called, ex:
                                         np.transpose(data.variables[key].data[i,region_e])
                                     except AttributeError: #exeception due nc.Dataset
                                         getattr(self, aliaS)[i,:] =\
-                                        np.transpose(data.variables[key][i,region_e])
+                                        data.variables[key][i,region_e]
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
@@ -574,8 +582,12 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             testKey = data.variables[key]
                             del testKey
-                            setattr(self, aliaS,
-                            np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            if aliaS == 'verti_shear':#exception for vertical shear
+                                setattr(self, aliaS,
+                                np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
+                            else:
+                                setattr(self, aliaS,
+                                np.zeros((grid.ntime,grid.nlevel, grid.nele)))
                             for i in range(grid.ntime):
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
@@ -586,7 +598,7 @@ Some others shall be generated as methods are being called, ex:
                                     np.transpose(data.variables[key].data[i,:,region_e])
                                 except AttributeError: #exeception due nc.Dataset
                                     getattr(self, aliaS)[i,:,:] =\
-                                    np.transpose(data.variables[key][i,:,region_e])
+                                    data.variables[key][i,:,region_e]
                             keyCount +=1
                         except KeyError:
                             if debug: print key, " is missing !"
