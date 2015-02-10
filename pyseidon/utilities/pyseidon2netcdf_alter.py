@@ -66,6 +66,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
     #load in netcdf file
     if debug: print "Loading variables' matrices in nc file..."
     for var in varname:
+        if debug: print "...loading "+var+"..."
         if var in ['ua', 'va','depth_av_flow_dir','depth_av_vorticity',
                    'depth_av_power_density','depth_av_power_assessment',
                    'hori_velo_norm']:
@@ -141,25 +142,24 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                 tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
             except AttributeError:
                 pass
-        if fvcom.Variables._3D:
-            if grd == 'siglay':
-                try:
-                    tmp_var = f.createVariable(grd,'float', ('siglay','node'))
-                    tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
-                except AttributeError:
-                    pass
-            if grd == 'siglev':
-                try:
-                    tmp_var = f.createVariable(grd,'float', ('siglev','node'))
-                    tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
-                except AttributeError:
-                    pass
-            if grd == 'depth':
-                try:
-                    tmp_var = f.createVariable(grd,'float', ('time','siglay','nele'))
-                    tmp_var[:,:,:] = getattr(fvcom.Grid, grd)[:,:,:]
-                except AttributeError:
-                    pass
+        if grd == 'siglay':
+            try:
+                tmp_var = f.createVariable(grd,'float', ('siglay','node'))
+                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+            except AttributeError:
+                pass
+        if grd == 'siglev':
+            try:
+                tmp_var = f.createVariable(grd,'float', ('siglev','node'))
+                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+            except AttributeError:
+                pass
+        if grd == 'depth':
+            try:
+                tmp_var = f.createVariable(grd,'float', ('time','siglay','nele'))
+                tmp_var[:,:,:] = getattr(fvcom.Grid, grd)[:,:,:]
+            except AttributeError:
+                pass
     f.close()
     if debug: print "...done"    
 
