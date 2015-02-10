@@ -72,7 +72,6 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                    'hori_velo_norm']:
             try:
                 tmp_var = f.createVariable(var, 'float', ('time','nele'))
-                #tmp_var[:,:] = getattr(fvcom.Variables, var)[:,:]
                 tmp_var[:] = getattr(fvcom.Variables, var)[:]
             except AttributeError:
                 pass
@@ -85,7 +84,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
         if var == 'el':
             try:
                 tmp_var = f.createVariable('zeta', 'float', ('time','node'))
-                tmp_var[:,:] = getattr(fvcom.Variables, var)[:,:]
+                tmp_var[:] = getattr(fvcom.Variables, var)[:]
             except AttributeError:
                 pass
         if fvcom.Variables._3D:
@@ -93,30 +92,30 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                        'vorticity', 'power_density']:
                 try:
                     tmp_var = f.createVariable(var,'float',('time','siglay','nele'))
-                    tmp_var[:,:,:] = getattr(fvcom.Variables, var)[:,:,:]
+                    tmp_var[:] = getattr(fvcom.Variables, var)[:]
                 except AttributeError:
                     pass
             if var in ['verti_shear']:
                 try:
                     tmp_var = f.createVariable(var,'float',
                                                       ('time','vertshear','nele'))
-                    tmp_var[:,:,:] = getattr(fvcom.Variables, var)[:,:,:]
+                    tmp_var[:] = getattr(fvcom.Variables, var)[:]
                 except AttributeError:
                     pass
 
     if debug: print "Loading grid' matrices in nc file..."
     for grd in gridname:
+        if debug: print "...loading "+grd+"..."
         if grd in ['xc', 'yc', 'lonc', 'latc', 'hc']:
             try:
                 tmp_var = f.createVariable(grd, 'float', ('nele',))
                 tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-                #tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
         if grd == 'depth2D':
             try:
                 tmp_var = f.createVariable(grd, 'float', ('time','nele'))
-                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
         if grd in ['x', 'y', 'lon', 'lat', 'h']:
@@ -128,37 +127,37 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
         if grd in ['triele','trinodes']:
             try:
                 tmp_var = f.createVariable(grd, 'i', ('nele','three'))
-                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
         if grd in ['a1u', 'a2u']:
             try:
                 tmp_var = f.createVariable(grd, 'i', ('four','nele'))
-                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
         if grd in ['aw0', 'awy', 'awx']:
             try:
                 tmp_var = f.createVariable(grd, 'i', ('three','nele'))
-                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
         if grd == 'siglay':
             try:
                 tmp_var = f.createVariable(grd,'float', ('siglay','node'))
-                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
         if grd == 'siglev':
             try:
                 tmp_var = f.createVariable(grd,'float', ('siglev','node'))
-                tmp_var[:,:] = getattr(fvcom.Grid, grd)[:,:]
+                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
         if grd == 'depth':
             try:
                 tmp_var = f.createVariable(grd,'float', ('time','siglay','nele'))
-                tmp_var[:,:,:] = getattr(fvcom.Grid, grd)[:,:,:]
+                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except AttributeError:
                 pass
     f.close()
