@@ -406,7 +406,7 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             setattr(self, aliaS, data.variables[key].data)
                         except AttributeError: #exeception due nc.Dataset
-                            setattr(self, aliaS, data.variables[key][:])
+                            setattr(self, aliaS, data.variables[key])#[:])
                         keyCount +=1
                     except KeyError:
                         if debug: print key, " is missing !"
@@ -422,7 +422,7 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             setattr(self, aliaS, data.variables[key].data)
                         except AttributeError: #exeception due nc.Dataset
-                            setattr(self, aliaS, data.variables[key][:])
+                            setattr(self, aliaS, data.variables[key])#[:])
                         keyCount +=1
                     except KeyError:
                         if debug: print key, " is missing !"
