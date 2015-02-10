@@ -670,7 +670,7 @@ Some others shall be generated as methods are being called, ex:
             try:
                 setattr(self, key, data.variables[key].data)
             except AttributeError: #exception for nc.dataset type data
-                setattr(self, key, data.variables[key][:])
+                setattr(self, key, data.variables[key])#[:])
 
         #special treatment for triele & trinodes due to Save_as(netcdf)
         datavar = data.variables.keys()
@@ -678,21 +678,21 @@ Some others shall be generated as methods are being called, ex:
             try:
                 setattr(self, 'trinodes', data.variables['trinodes'].data)
             except AttributeError: #exception for nc.dataset type data
-                setattr(self, 'trinodes', data.variables['trinodes'][:])
+                setattr(self, 'trinodes', data.variables['trinodes'])#[:])
         else:
             self.trinodes = np.transpose(data.variables['nv'].data) - 1
         if "triele" in datavar:
             try:
                 setattr(self, 'triele', data.variables['triele'].data)
             except AttributeError: #exception for nc.dataset type data
-                setattr(self, 'triele', data.variables['triele'][:])
+                setattr(self, 'triele', data.variables['triele'])#[:])
         else:
             self.triele = np.transpose(data.variables['nbe'].data) - 1
         #special treatment for depth2D & depth due to Save_as(netcdf)
         if "depth2D" in datavar:
-            setattr(self, "depth2D", data.variables["depth2D"][:])
+            setattr(self, "depth2D", data.variables["depth2D"])#[:])
         if "depth" in datavar:
-            setattr(self, "depth", data.variables["depth"][:])
+            setattr(self, "depth", data.variables["depth"])#[:])
 
         if ax==[]:
             #Define bounding box
