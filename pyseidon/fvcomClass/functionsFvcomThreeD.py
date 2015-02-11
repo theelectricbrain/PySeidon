@@ -944,9 +944,6 @@ class FunctionsFvcomThreeD:
                                                self._grid.h[:], debug=debug)
             el, _ = short_path.getTargets([ind])           
             # Plot shortest path
-            fig = plt.figure(figsize=(18,10))
-            plt.rc('font',size='22')
-            fig.add_subplot(111)
             short_path.graphGrid(plot=True)
 
             # Find time interval to work in

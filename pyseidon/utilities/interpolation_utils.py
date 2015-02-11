@@ -230,7 +230,7 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     #Triangulation
     #if debug:
     #    print triIndex, lon[triIndex], lat[triIndex]
-    triIndex = trinodes[index]
+    triIndex = trinodes[index]#.sort()
     if tri==[]:
         tri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
 
