@@ -944,6 +944,9 @@ class FunctionsFvcomThreeD:
                                                self._grid.h[:], debug=debug)
             el, _ = short_path.getTargets([ind])           
             # Plot shortest path
+            fig = plt.figure(figsize=(18,10))
+            plt.rc('font',size='22')
+            fig.add_subplot(111)
             short_path.graphGrid(plot=True)
 
             # Find time interval to work in
@@ -1004,14 +1007,14 @@ class FunctionsFvcomThreeD:
             #plt.clf()
             fig = plt.figure(figsize=(18,10))
             plt.rc('font',size='22')
-            fig.add_subplot(111) #,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
+            ax = fig.add_subplot(111) #,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
             #levels = np.linspace(0,3.3,34)
             #cs = ax.contourf(line,depth,varP,levels=levels, cmap=plt.cm.jet)
-            cs = plt.contourf(line,depth,varP,levels=levels, vmax=cmax,vmin=cmin,
+            cs = ax.contourf(line,depth,varP,levels=levels, vmax=cmax,vmin=cmin,
                               cmap=plt.get_cmap('jet'))
             cbar = fig.colorbar(cs)
             #cbar.set_label(title, rotation=-90,labelpad=30)
-            plt.contour(line,depth,varP,cs.levels) #, linewidths=0.5,colors='k')
+            ax.contour(line,depth,varP,cs.levels) #, linewidths=0.5,colors='k')
             #ax.set_title()
             plt.title(title)
             #scale = 1
