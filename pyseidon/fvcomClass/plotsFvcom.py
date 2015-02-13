@@ -75,7 +75,7 @@ class PlotsFvcom:
             # Mesh triangle
             if debug:
                 print "Computing triangulation..."
-            trinodes = self._grid.trinodes 
+            trinodes = self._grid.trinodes[:] 
             tri = Tri.Triangulation(lon, lat, triangles=trinodes)
             self._grid.triangle = tri
         else:
@@ -105,7 +105,7 @@ class PlotsFvcom:
         else:
             f = self._ax.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=cmap) 
         if mesh:
-            plt.triplot(tri)
+            plt.triplot(tri, color='white', linewidth=0.5)
 
         #Label and axis parameters
         self._ax.set_ylabel('Latitude')
