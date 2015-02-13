@@ -645,7 +645,7 @@ Some grid data are directly passed on from FVCOM output:
              |_nlevel = vertical level dimension, integer
              |_ntime = time dimension, integer
              |_trinodes = surrounding node indices, 2D array (3, nele)
-             |_trinodes = surrounding element indices, 2D array (3, nele)
+             |_triele = surrounding element indices, 2D array (3, nele)
              |_siglay = sigma layers, 2D array (nlevel, nnode)
              |_siglay = sigma levels, 2D array (nlevel+1, nnode)
              |_and a all bunch of grid parameters...

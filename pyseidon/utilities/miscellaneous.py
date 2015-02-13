@@ -92,6 +92,7 @@ def depth_at_FVCOM_element(ind, trinodes, time_ind):
 
     """
     indexes = trinodes[ind,:]
+    indexes.sort()#due to new version of netCDF4
     h = self._grid.h[indexes]
     zeta = np.mean(self._var.el[time_ind,indexes],0) + h[:]   
     siglay = self._grid.siglay[:,indexes]

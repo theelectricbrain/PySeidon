@@ -53,7 +53,8 @@ class FunctionsFvcom:
         elc = np.zeros((size1, size))
         hc = np.zeros((size))
         #TR comment: I am dubeous about the interpolation method here
-        for ind, value in enumerate(self._grid.trinodes):
+        for ind, value in enumerate(self._grid.trinodes[:]):
+            value.sort()#due to new version of netCDF4
             elc[:, ind] = np.mean(self._var.el[:, value-1], axis=1)
             hc[ind] = np.mean(self._grid.h[value-1])
 
@@ -535,12 +536,13 @@ class FunctionsFvcom:
         n1 = self._grid.triele[:,0]
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
-        #No need anymore
+        
         ##change end bound indices 
         #test = self._grid.triele.shape[0]
-        #n1[np.where(n1==test)[0]] = 0
-        #n2[np.where(n2==test)[0]] = 0
-        #n3[np.where(n3==test)[0]] = 0
+        test = -1
+        n1[np.where(n1==test)[0]] = 0
+        n2[np.where(n2==test)[0]] = 0
+        n3[np.where(n3==test)[0]] = 0
         #TR quick fix: due to error with pydap.proxy.ArrayProxy
         #              not able to cop with numpy.int
         N1 = []
@@ -627,12 +629,13 @@ class FunctionsFvcom:
             n1 = self._grid.triele[:,0]
             n2 = self._grid.triele[:,1]
             n3 = self._grid.triele[:,2]
-            #No need anymore
+
             ##change end bound indices 
             #test = self._grid.triele.shape[0]
-            #n1[np.where(n1==test)[0]] = 0
-            #n2[np.where(n2==test)[0]] = 0
-            #n3[np.where(n3==test)[0]] = 0
+            test = -1
+            n1[np.where(n1==test)[0]] = 0
+            n2[np.where(n2==test)[0]] = 0
+            n3[np.where(n3==test)[0]] = 0
             #TR quick fix: due to error with pydap.proxy.ArrayProxy
             #              not able to cop with numpy.int
             N1 = []
@@ -698,7 +701,8 @@ class FunctionsFvcom:
         hc = np.zeros((size))
 
         try:
-            for ind, value in enumerate(self._grid.trinodes):
+            for ind, value in enumerate(self._grid.trinodes[:]):
+                value.sort()#due to new version of netCDF4
                 elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
                 hc[ind] = np.mean(self._grid.h[value])
 
