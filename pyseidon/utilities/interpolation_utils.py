@@ -230,7 +230,8 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     #Triangulation
     #if debug:
     #    print triIndex, lon[triIndex], lat[triIndex]
-    triIndex = trinodes[index]#.sort()
+    triIndex = trinodes[index]
+    triIndex.sort()#due to new version of netCDF4
     if tri==[]:
         tri = Tri.Triangulation(lon[triIndex], lat[triIndex], np.array([[0,1,2]]))
 
