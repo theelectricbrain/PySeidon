@@ -60,7 +60,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                 'siglay','siglev', 'depth']
     #list of potential 3D var * grid var
     if fvcom.Variables._3D:
-        varname = varname + ['u', 'v', 'flow_dir', 'velo_norm', 'verti_shear',
+        varname = varname + ['u', 'v', 'w', 'flow_dir', 'velo_norm', 'verti_shear',
                              'vorticity', 'power_density']
 
     #load in netcdf file
@@ -91,7 +91,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
             except (AttributeError, IndexError) as e:
                 pass
         if fvcom.Variables._3D:
-            if var in ['u', 'v', 'flow_dir', 'velo_norm',
+            if var in ['u', 'v', 'w', 'flow_dir', 'velo_norm',
                        'vorticity', 'power_density']:
                 try:
                     if hasattr(fvcom.Variables, var):
