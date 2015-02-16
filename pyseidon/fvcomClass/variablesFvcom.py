@@ -344,7 +344,7 @@ Some others shall be generated as methods are being called, ex:
                     
                     #loading verti data
                     keyCount = 0
-                    for key in zip(kwl3D, al3D):
+                    for key, aliaS in zip(kwl3D, al3D):
                         try:
                             if key in data.variables.keys():
                                 if aliaS == 'verti_shear':#exception for vertical shear
