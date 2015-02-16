@@ -129,7 +129,7 @@ Some others shall be generated as methods are being called, ex:
                         try:
                             if key=='zeta':
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
-                            else:
+                            elif key in data.variables.keys():
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                             I = 0
                             for i in region_t:
@@ -320,7 +320,7 @@ Some others shall be generated as methods are being called, ex:
                                         getattr(self, aliaS)[I,:] =\
                                         data.variables[key][i,region_n]
                                     I += 1
-                            else:
+                            elif key in data.variables.keys():
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                                 I = 0
                                 for i in region_t:
@@ -555,7 +555,7 @@ Some others shall be generated as methods are being called, ex:
                                     except AttributeError: #exeception due nc.Dataset
                                         getattr(self, aliaS)[i,:] =\
                                         data.variables[key][i,region_n]
-                            else:
+                            elif key in data.variables.keys():
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                                 for i in range(grid.ntime):
                                     #TR comment: looping on time indices is a trick from
