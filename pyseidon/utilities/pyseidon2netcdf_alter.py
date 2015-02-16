@@ -91,7 +91,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
             except (AttributeError, IndexError) as e:
                 pass
         if fvcom.Variables._3D:
-            if var in ['u', 'v', 'w', 'flow_dir', 'velo_norm',
+            if var in ['u', 'v', 'flow_dir', 'velo_norm',
                        'vorticity', 'power_density']:
                 try:
                     if hasattr(fvcom.Variables, var):
@@ -104,6 +104,14 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
                     if hasattr(fvcom.Variables, var):
                         tmp_var = f.createVariable(var,'float',
                                                       ('time','vertshear','nele'))
+                        tmp_var[:] = getattr(fvcom.Variables, var)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if var in ['w']:
+                try:
+                    if hasattr(fvcom.Variables, var):
+                        tmp_var = f.createVariable('ww','float',
+                                                      ('time','siglay','nele'))
                         tmp_var[:] = getattr(fvcom.Variables, var)[:]
                 except (AttributeError, IndexError) as e:
                     pass

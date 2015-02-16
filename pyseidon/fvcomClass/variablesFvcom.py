@@ -155,14 +155,13 @@ Some others shall be generated as methods are being called, ex:
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
                         try:
-                            testKey = data.variables[key]
-                            del testKey
-                            if aliaS == 'verti_shear':#exception for vertical shear
-                                setattr(self, aliaS,
-                                np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
-                            else:
-                                setattr(self, aliaS,
-                                np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            if key in data.variables.keys():
+                                if aliaS == 'verti_shear':#exception for vertical shear
+                                    setattr(self, aliaS,
+                                    np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
+                                else:
+                                    setattr(self, aliaS,
+                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
 
                             I = 0
                             for i in region_t:
@@ -347,14 +346,13 @@ Some others shall be generated as methods are being called, ex:
                     keyCount = 0
                     for key in zip(kwl3D, al3D):
                         try:
-                            testKey = data.variables[key]
-                            del testKey
-                            if aliaS == 'verti_shear':#exception for vertical shear
-                                setattr(self, aliaS,
-                                np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
-                            else:
-                                setattr(self, aliaS,
-                                np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            if key in data.variables.keys():
+                                if aliaS == 'verti_shear':#exception for vertical shear
+                                    setattr(self, aliaS,
+                                    np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
+                                else:
+                                    setattr(self, aliaS,
+                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
                             I=0
                             for i in region_t:
                                 #TR comment: looping on time indices is a trick from
@@ -580,14 +578,13 @@ Some others shall be generated as methods are being called, ex:
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
                         try:
-                            testKey = data.variables[key]
-                            del testKey
-                            if aliaS == 'verti_shear':#exception for vertical shear
-                                setattr(self, aliaS,
-                                np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
-                            else:
-                                setattr(self, aliaS,
-                                np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                            if key in data.variables.keys():
+                                if aliaS == 'verti_shear':#exception for vertical shear
+                                    setattr(self, aliaS,
+                                    np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
+                                else:
+                                    setattr(self, aliaS,
+                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
                             for i in range(grid.ntime):
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
