@@ -195,6 +195,9 @@ Notes:
                                                self._debug)
             self.Plots.vertical_slice = self.Util3D._vertical_slice
 
+        ##Re-assignement of utility functions as methods
+        self.dump_profile_data = self.Plots._dump_profile_data_as_csv 
+
     #Special methods
     def __del__(self):
         """making sure that all opened files are closed when deleted or overwritten"""
@@ -297,7 +300,7 @@ Notes:
         return newself  
    
     #Methods
-    def Save_as(self, filename, fileformat='netcdf', debug=False):
+    def save_as(self, filename, fileformat='netcdf', debug=False):
         """
         This method saves the current FVCOM structure as:
            - *.nc, i.e. netcdf file
@@ -323,7 +326,7 @@ Notes:
         elif fileformat=='netcdf':
             pyseidon_to_netcdf(self, filename, debug)   
         else:
-            print "---Wrong file format---"                            
+            print "---Wrong file format---"                        
 
 #Test section when running in shell >> python fvcomClass.py
 #if __name__ == '__main__':

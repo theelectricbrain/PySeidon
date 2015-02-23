@@ -447,7 +447,7 @@ class FunctionsFvcom:
 
         return varInterp
 
-    def exceedance(self, var, pt_lon=[], pt_lat=[], graph=True, debug=False):
+    def exceedance(self, var, pt_lon=[], pt_lat=[], graph=True, dump=False, debug=False):
         """
         This function calculates the excedence curve of a var(time)
         at any given point.
@@ -461,6 +461,7 @@ class FunctionsFvcom:
           - pt_lon, pt_lat = coordinates, float numbers.
                              Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
+          - dump = boolean, dump graph data in csv file
 
         Outputs:
         -------
@@ -512,7 +513,8 @@ class FunctionsFvcom:
             #if debug: print "Error: ", str(np.std(Exceedance))
             self._plot.plot_xy(Exceedance, Ranges, yerror=error,
                                yLabel='Amplitudes',
-                               xLabel='Exceedance probability in %')
+                               xLabel='Exceedance probability in %',
+                               dump=dump)
 
         return Exceedance, Ranges
 

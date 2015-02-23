@@ -8,6 +8,7 @@ import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
 import matplotlib.patches as mpatches
 import seaborn
+import pandas as pd
 from windrose import WindroseAxes
 from interpolation_utils import *
 from miscellaneous import depth_at_FVCOM_element as depth_at_ind
@@ -32,8 +33,8 @@ class PlotsFvcom:
         plt.rc('font',size='22')
 
 
-    def colormap_var(self, var, title='Title', cmin=[], cmax=[], cmap=[],
-                     mesh=True, debug=False):
+    def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
+                     degree=True, mesh=True, dump=False, debug=False):
         '''
         2D xy colormap plot of any given variable and mesh.
 
@@ -48,6 +49,8 @@ class PlotsFvcom:
           - cmax = maximum limit colorbar
           - cmap = matplolib colormap
           - mesh = True, with mesh; False, without mesh
+          - degree = boolean, coordinates in degrees (True) or meters (False) 
+          - dump = boolean, dump profile data in csv file
         '''
         debug = debug or self._debug
         if debug:
@@ -61,25 +64,42 @@ class PlotsFvcom:
             print "Var has the wrong dimension, var.shape[0]= Grid.nele or nnode"
             return
 
-        # Bounding box nodes, elements and variable 
-        lon = self._grid.lon[:]
-        lat = self._grid.lat[:]
-        if debug:
-            print "Computing bounding box..."
-        if self._grid._ax == []:
-            self._grid._ax = [lon.min(), lon.max(),
-                             lat.min(), lat.max()]
-        bb = self._grid._ax  
-
-        if not hasattr(self._grid, 'triangle'):        
-            # Mesh triangle
+        # Bounding box nodes, elements and variable
+        if degree:
+            lon = self._grid.lon[:]
+            lat = self._grid.lat[:]
             if debug:
-                print "Computing triangulation..."
-            trinodes = self._grid.trinodes[:] 
-            tri = Tri.Triangulation(lon, lat, triangles=trinodes)
-            self._grid.triangle = tri
+                print "Computing bounding box..."
+            if self._grid._ax == []:
+                self._grid._ax = [lon.min(), lon.max(),
+                                 lat.min(), lat.max()]
+            bb = self._grid._ax  
+
+            if not hasattr(self._grid, 'triangle'):        
+                # Mesh triangle
+                if debug:
+                    print "Computing triangulation..."
+                trinodes = self._grid.trinodes[:] 
+                tri = Tri.Triangulation(lon, lat, triangles=trinodes)
+                self._grid.triangleLL = tri
+            else:
+                tri = self._grid.triangleLL
         else:
-            tri = self._grid.triangle
+            x = self._grid.x[:]
+            y = self._grid.y[:]
+            if debug:
+                print "Computing bounding box..."
+            bb = [x.min(), x.max(), y.min(), y.max()] 
+
+            if not hasattr(self._grid, 'triangle'):        
+                # Mesh triangle
+                if debug:
+                    print "Computing triangulation..."
+                trinodes = self._grid.trinodes[:] 
+                tri = Tri.Triangulation(x, y, triangles=trinodes)
+                self._grid.triangleXY = tri
+            else:
+                tri = self._grid.triangleXY
 
         #setting limits and levels of colormap
         if cmin==[]:
@@ -95,7 +115,11 @@ class PlotsFvcom:
 
         #Figure window params
         self._def_fig()
-        self._ax = self._fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
+        if degree:
+            self._ax = self._fig.add_subplot(111,
+                       aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
+        else:
+            self._ax = self._fig.add_subplot(111, aspect=1.0)
 
         #Plotting functions
         if debug:
@@ -108,19 +132,27 @@ class PlotsFvcom:
             plt.triplot(tri, color='white', linewidth=0.5)
 
         #Label and axis parameters
-        self._ax.set_ylabel('Latitude')
-        self._ax.set_xlabel('Longitude')
+        if degree:
+            self._ax.set_ylabel('Latitude')
+            self._ax.set_xlabel('Longitude')
+        else:
+            self._ax.set_ylabel('Distance (m)')
+            self._ax.set_xlabel('Distance (m)')
         self._ax.patch.set_facecolor('0.5')
         cbar=self._fig.colorbar(f, ax=self._ax)
         cbar.set_label(title, rotation=-90,labelpad=30)
         scale = 1
-        ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
-        self._ax.xaxis.set_major_formatter(ticks)
-        self._ax.yaxis.set_major_formatter(ticks)
+        if degree:
+            ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
+            self._ax.xaxis.set_major_formatter(ticks)
+            self._ax.yaxis.set_major_formatter(ticks)
         self._ax.set_xlim([bb[0],bb[1]])
         self._ax.set_ylim([bb[2],bb[3]])
         self._ax.grid()
         self._fig.show()
+
+        if dump: self._dump_map_data_as_csv(var, x, y, title=title,
+                                       varLabel='map', xLabel=' ', yLabel=' ')
         if debug or self._debug:
             print '...Passed'
 
@@ -154,7 +186,8 @@ class PlotsFvcom:
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         self._fig.show() 
 
-    def plot_xy(self, x, y, xerror=[], yerror=[], title=' ', xLabel=' ', yLabel=' '):
+    def plot_xy(self, x, y, xerror=[], yerror=[],
+                title=' ', xLabel=' ', yLabel=' ', dump=False):
         """
         Simple X vs Y plot
 
@@ -170,6 +203,7 @@ class PlotsFvcom:
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
+          - dump = boolean, dump profile data in csv file
         """
         #fig = plt.figure(figsize=(18,10))
         #plt.rc('font',size='22')
@@ -194,7 +228,10 @@ class PlotsFvcom:
                          label='Standard deviation',alpha=0.2)
             plt.legend(handles=[blue_patch],loc=1, fontsize=12)
 
-        self._fig.show()      
+        self._fig.show()
+        if dump: self._dump_profile_data_as_csv(x, y,xerror=xerror, yerror=yerror,
+                                                title=title, xLabel=xLabel,
+                                                yLabel=yLabel)     
 
     def Histogram(self, y, title=' ', xLabel=' ', yLabel=' '):
         """
@@ -250,10 +287,61 @@ class PlotsFvcom:
                      arrowprops=dict(arrowstyle="->", shrinkA=0),
                      fontsize=12)
 
-    def _save_as_pickle(ax, filename='saved_plot.p'):
+    def _dump_profile_data_as_csv(self, x, y, xerror=[], yerror=[],
+                                 title=' ', xLabel=' ', yLabel=' '):
         """
-        Saves figure as pickle file which can be then re-loaded 
-        with: ax = pickle.load(file('saved_plot.p'))
-        """ 
-        pickle.dump(ax, file(filename, 'w'))
+        Dumps profile data in csv file
+
+        Inputs:
+        ------
+          - x = 1D array
+          - y = 1D array
+
+        Options:
+        --------
+          - xerror = error on 'x', 1D array
+          - yerror = error on 'y', 1D array
+          - title = file name, string
+          - xLabel = name of the x-data, string
+          - yLabel = name of the y-data, string
+        """
+        if title == ' ': title = 'dump_profile_data'
+        filename=title + '.csv'
+        if xLabel == ' ': xLabel = 'X'
+        if yLabel == ' ': yLabel = 'Y'
+        if not xerror == []:
+            df = pd.DataFrame({xLabel:x[:], yLabel:y[:], 'error': xerror[:]})
+        elif not yerror == []:
+            df = pd.DataFrame({xLabel:x[:], yLabel:y[:], 'error': yerror[:]})
+        else:
+            df = pd.DataFrame({xLabel:x[:], yLabel:y[:]})
+        df.to_csv(filename, sep='\t', encoding='utf-8')
+
+    def _dump_map_data_as_csv(self, var, x, y, title=' ',
+                              varLabel=' ', xLabel=' ', yLabel=' '):
+        """
+        Dumps profile data in csv file
+
+        Inputs:
+        ------
+          - var = gridded variable, 1 D numpy array (nele or nnode)
+          - x = coordinates, 1 D numpy array (nele or nnode)
+          - y = coordinates, 1 D numpy array (nele or nnode)
+
+        Options:
+        --------
+          - xerror = error on 'x', 1D array
+          - yerror = error on 'y', 1D array
+          - title = file name, string
+          - xLabel = name of the x-data, string
+          - yLabel = name of the y-data, string
+        """
+        if title == ' ': title = 'dump_map_data'
+        filename=title + '.csv'
+        if varLabel == ' ': varLabel = 'Z'
+        if xLabel == ' ': xLabel = 'X'
+        if yLabel == ' ': yLabel = 'Y'
+        df = pd.DataFrame({xLabel:x[:], yLabel:y[:], varLabel: var[:]})
+
+        df.to_csv(filename, sep='\t', encoding='utf-8')
                                 

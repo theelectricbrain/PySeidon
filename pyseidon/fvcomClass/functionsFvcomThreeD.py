@@ -262,7 +262,7 @@ class FunctionsFvcomThreeD:
             print '...Passed'
 
     def verti_shear_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[],  time_ind=[],
-                             bot_lvl=[], top_lvl=[], graph=True, debug=False):
+                             bot_lvl=[], top_lvl=[], graph=True, dump=False, debug=False):
         """
         This function computes vertical shear at any given point.
 
@@ -285,6 +285,7 @@ class FunctionsFvcomThreeD:
           - bot_lvl = index of the bottom level to consider, integer
           - top_lvl = index of the top level to consider, integer
           - graph = plots graph if True
+          - dump = boolean, dump profile data in csv file
 
         Notes:
         -----
@@ -357,7 +358,8 @@ class FunctionsFvcomThreeD:
             error = np.std(dveldz,axis=0)/2.0
             self._plot.plot_xy(mean_dveldz, mean_depth, xerror=error[:],
                                title='Shear profile ',
-                               xLabel='Shear (1/s) ', yLabel='Depth (m) ')
+                               xLabel='Shear (1/s) ', yLabel='Depth (m) ',
+                               dump=dump)
 
         return dveldz             
 
@@ -408,7 +410,7 @@ class FunctionsFvcomThreeD:
             print '...Passed'
 
     def velo_norm_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
-                           graph=True, debug=False):
+                           graph=True, dump=False, debug=False):
         """
         This function computes the velocity norm at any given point.
 
@@ -429,6 +431,7 @@ class FunctionsFvcomThreeD:
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - graph = boolean, plots or not veritcal profile
+          - dump = boolean, dump profile data in csv file
 
         Notes:
         -----
@@ -500,7 +503,8 @@ class FunctionsFvcomThreeD:
             error = np.std(velo_norm,axis=0)/2.0
             self._plot.plot_xy(mean_vel, mean_depth, xerror=error[:],
                                title='Flow speed vertical  ',
-                               xLabel='Flow speed (1/s) ', yLabel='Depth (m) ')
+                               xLabel='Flow speed (1/s) ', yLabel='Depth (m) ',
+                               dump=dump)
 
         return velo_norm 
 
