@@ -226,7 +226,8 @@ class PlotsFvcom:
         if (not xerror==[]) or (not yerror==[]): 
             blue_patch = mpatches.Patch(color='#089FFF',
                          label='Standard deviation',alpha=0.2)
-            plt.legend(handles=[blue_patch],loc=1, fontsize=12)
+            #plt.legend(handles=[blue_patch],loc=1, fontsize=12)
+            plt.legend(blue_patch,loc=1, fontsize=12)
 
         self._fig.show()
         if dump: self._dump_profile_data_as_csv(x, y,xerror=xerror, yerror=yerror,
