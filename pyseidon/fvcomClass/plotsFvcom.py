@@ -75,7 +75,7 @@ class PlotsFvcom:
                                  lat.min(), lat.max()]
             bb = self._grid._ax  
 
-            if not hasattr(self._grid, 'triangle'):        
+            if not hasattr(self._grid, 'triangleLL'):        
                 # Mesh triangle
                 if debug:
                     print "Computing triangulation..."
@@ -91,7 +91,7 @@ class PlotsFvcom:
                 print "Computing bounding box..."
             bb = [x.min(), x.max(), y.min(), y.max()] 
 
-            if not hasattr(self._grid, 'triangle'):        
+            if not hasattr(self._grid, 'triangleXY'):        
                 # Mesh triangle
                 if debug:
                     print "Computing triangulation..."
