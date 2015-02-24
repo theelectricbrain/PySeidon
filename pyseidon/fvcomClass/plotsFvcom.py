@@ -320,7 +320,7 @@ class PlotsFvcom:
     def _dump_map_data_as_csv(self, var, x, y, title=' ',
                               varLabel=' ', xLabel=' ', yLabel=' '):
         """
-        Dumps profile data in csv file
+        Dumps map data in csv file
 
         Inputs:
         ------

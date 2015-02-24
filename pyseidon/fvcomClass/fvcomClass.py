@@ -196,7 +196,8 @@ Notes:
             self.Plots.vertical_slice = self.Util3D._vertical_slice
 
         ##Re-assignement of utility functions as methods
-        self.dump_profile_data = self.Plots._dump_profile_data_as_csv 
+        self.dump_profile_data = self.Plots._dump_profile_data_as_csv
+        self.dump_map_data = self.Plots._dump_map_data_as_csv 
 
     #Special methods
     def __del__(self):
