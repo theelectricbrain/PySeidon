@@ -151,8 +151,14 @@ class PlotsFvcom:
         self._ax.grid()
         self._fig.show()
 
-        if dump: self._dump_map_data_as_csv(var, x, y, title=title,
-                                       varLabel='map', xLabel=' ', yLabel=' ')
+        if dump:
+            if degree:
+                self._dump_map_data_as_csv(var, self._grid.lonc, self._grid.latc,
+                                           title=title, varLabel='map',
+                                           xLabel=' ', yLabel=' ')
+            else:
+                self._dump_map_data_as_csv(var, self._grid.xc, self._grid.yc, title=title,
+                                           varLabel='map', xLabel=' ', yLabel=' ')
         if debug or self._debug:
             print '...Passed'
 

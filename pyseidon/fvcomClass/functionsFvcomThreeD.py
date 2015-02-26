@@ -63,7 +63,7 @@ class FunctionsFvcomThreeD:
         siglay = np.zeros((size2, size))
 
         try:
-            for ind, value in enumerate(self._grid.trinodes):
+            for ind, value in enumerate(self._grid.trinodes[:]):
                 elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
                 hc[ind] = np.mean(self._grid.h[value])
                 siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
@@ -166,7 +166,8 @@ class FunctionsFvcomThreeD:
         #checking if depth field already calculated
         if not hasattr(self._grid, 'depth'):
             self.depth()
-        dep = self._grid.depth - depth
+        Depth = self._grid.depth[:]#otherwise to slow with netcdf4 lib 
+        dep = Depth[:] - depth
         #Finding closest values to specified depth
         if ind==[]:
             if debug: print 'Finding closest indexes to depth...'
@@ -190,23 +191,63 @@ class FunctionsFvcomThreeD:
         inddown = ind + 1
 
         if debug: print 'Computing weights...'
-        #weight matrix & interp
-        interpVar = np.ones((var.shape[0], var.shape[2]))*np.nan
+        ##weight matrix & interp
+        #interpVar = np.ones((var.shape[0], var.shape[2]))*np.nan
+        #for i in range(ind.shape[0]):
+        #    for j in range(ind.shape[1]):
+        #        iU = ind[i,j]
+        #        iD = inddown[i,j]
+        #        if not np.isnan(iU):
+        #            iU = int(iU)
+        #            iD = int(iD)      
+        #            length = np.abs(self._grid.depth[i,iU,j]\
+        #                          - self._grid.depth[i,iD,j])
+        #            wU = np.abs(depth - self._grid.depth[i,iU,j])/length
+        #            wD = np.abs(depth - self._grid.depth[i,iD,j])/length
+        #            interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
+        #        else:
+        #            interpVar[i,j] = np.nan
+        #if debug: print 'Computing nan mask...'
+        #interpVar = np.ma.masked_array(interpVar,np.isnan(interpVar))
+
+        ##Streamlining
+        I = []; J = []; U = []; D = []
         for i in range(ind.shape[0]):
             for j in range(ind.shape[1]):
                 iU = ind[i,j]
                 iD = inddown[i,j]
-                if not np.isnan(iU):       
-                    length = np.abs(self._grid.depth[i,iU,j]\
-                                  - self._grid.depth[i,iD,j])
-                    wU = np.abs(depth - self._grid.depth[i,iU,j])/length
-                    wD = np.abs(depth - self._grid.depth[i,iD,j])/length
-                    interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
-                else:
-                    interpVar[i,j] = np.nan
-
-        if debug: print 'Computing nan mask...'
-        interpVar = np.ma.masked_array(interpVar,np.isnan(interpVar))
+                I.append(i)
+                J.append(j)
+                U.append(iU)
+                D.append(iD)
+        if debug: print 'Convert lists to arrays...'
+        I=np.asarray(I); J=np.asarray(J); U=np.asarray(U); D=np.asarray(D)
+        if debug: print 'Find nan indices...'
+        nanI = np.ones(U.shape)
+        nanU = np.where(np.isnan(U))
+        nanD = np.where(np.isnan(D))
+        nanI[nanU] = np.nan
+        nanI[nanD] = np.nan
+        if debug: print 'convert to integer...'
+        U[nanU] = 0
+        D[nanD] = 0
+        I = I.astype(int)
+        J = J.astype(int)
+        U = U.astype(int)
+        D = D.astype(int)
+        if debug: print 'Compute weights...'
+        Var = var[:] #otherwise to slow with netcdf4 lib
+        dUp = Depth[I,U,J]
+        varUp = Var[I,U,J]
+        dDo = Depth[I,D,J]
+        varDo = Var[I,D,J]
+        lengths = np.abs(dUp - dDo)
+        wU = np.abs(depth - dUp)/lengths
+        wD = np.abs(depth - dDo)/lengths
+        if debug: print 'interpolation...'
+        interpVar = nanI * ((wU * varUp) + (wD * varDo))
+        if debug: print 'reshaping...'
+        interpVar = np.reshape(interpVar, (Var.shape[0], Var.shape[2]))
 
         if debug: print '...Passed'
 
@@ -228,12 +269,12 @@ class FunctionsFvcomThreeD:
         #Compute depth if necessary
         if not hasattr(self._grid, 'depth'):        
            depth = self.depth(debug=debug)
-        depth = self._grid.depth
+        depth = self._grid.depth[:]
 
         # Checking if horizontal velocity norm already exists
         if not hasattr(self._var, 'velo_norm'):
             self.velo_norm()
-        vel = self._var.velo_norm
+        vel = self._var.velo_norm[:]
 
         try:
             #Sigma levels to consider
