@@ -118,21 +118,21 @@ class FunctionsFvcomThreeD:
         #Finding index
         if index==[]:      
             index = closest_point([pt_lon], [pt_lat],
-                                  self._grid.lonc,
-                                  self._grid.latc, debug=debug)[0]
+                                  self._grid.lonc[:],
+                                  self._grid.latc[:], debug=debug)[0]
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
-            h = self.interpolation_at_point(self._grid.h, pt_lon, pt_lat,
+            h = self.interpolation_at_point(self._grid.h[:], pt_lon, pt_lat,
                                             index=index, debug=debug)
-            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
+            el = self.interpolation_at_point(self._var.el[:], pt_lon, pt_lat,
                                              index=index, debug=debug)
-            siglay = self.interpolation_at_point(self._grid.siglay, pt_lon, pt_lat,
+            siglay = self.interpolation_at_point(self._grid.siglay[:], pt_lon, pt_lat,
                                                  index=index, debug=debug)
             zeta = el + h
             dep = zeta[:,None]*siglay[None,:]
         else:
-            dep = self.interpolation_at_point(self._grid.depth,
+            dep = self.interpolation_at_point(self._grid.depth[:],
                                               pt_lon, pt_lat, index=index,
                                               debug=debug)          
         if debug:
@@ -248,7 +248,8 @@ class FunctionsFvcomThreeD:
         interpVar = nanI * ((wU * varUp) + (wD * varDo))
         if debug: print 'reshaping...'
         interpVar = np.reshape(interpVar, (Var.shape[0], Var.shape[2]))
-
+        if debug: print 'masking...'        
+        interpVar = np.ma.masked_array(interpVar,np.isnan(interpVar))
         if debug: print '...Passed'
 
         return interpVar, ind
@@ -342,14 +343,15 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
+                                        debug=debug)
             else:
                 argtime = np.arange(t_start, t_end) 
 
         # Finding closest point
         index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+                              self._grid.lonc[:],
+                              self._grid.latc[:], debug=debug)[0]
         #Compute depth
         depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)       
 
@@ -363,8 +365,8 @@ class FunctionsFvcomThreeD:
 
         # Checking if vertical shear already exists
         if not hasattr(self._var, 'verti_shear'): 
-            u = self._var.u
-            v = self._var.v
+            u = self._var.u[:]
+            v = self._var.v[:]
 
             #Extraction at point
             if debug:
@@ -380,7 +382,7 @@ class FunctionsFvcomThreeD:
             dvel = norm[:,sLvl[1:]] - norm[:,sLvl[:-1]]           
             dveldz = dvel / dz
         else:
-            dveldz = self.interpolation_at_point(self._var.verti_shear,
+            dveldz = self.interpolation_at_point(self._var.verti_shear[:],
                                                  pt_lon, pt_lat,
                                                  index=index, debug=debug)
 
@@ -488,29 +490,30 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
+                                        debug=debug)
             else:
                 argtime = arange(t_start, t_end)
 
         try:
             if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u
-                v = self._var.v
-                w = self._var.w
+                u = self._var.u[:]
+                v = self._var.v[:]
+                w = self._var.w[:]
             else:
                 vel = self._var.velo_norm
         except AttributeError:
             if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u
-                v = self._var.v
+                u = self._var.u[:]
+                v = self._var.v[:]
             else:
-                vel = self._var.velo_norm
+                vel = self._var.velo_norm[:]
 
 
         # Finding closest point
         index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+                              self._grid.lonc[:],
+                              self._grid.latc[:], debug=debug)[0]
 
         #Computing horizontal velocity norm
         if debug:
@@ -586,8 +589,8 @@ class FunctionsFvcomThreeD:
 
         # Finding closest point
         index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+                              self._grid.lonc[:],
+                              self._grid.latc[:], debug=debug)[0]
 
         # Find time interval to work in
         argtime = []
@@ -595,17 +598,18 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
+                                        debug=debug)
             else:
                 argtime = arange(t_start, t_end)
         
         #Choose the right pair of velocity components
         if self._var._3D and vertical:
-            u = self._var.u
-            v = self._var.v
+            u = self._var.u[:]
+            v = self._var.v[:]
         else:
-            u = self._var.ua
-            v = self._var.va
+            u = self._var.ua[:]
+            v = self._var.va[:]
 
         #Extraction at point
         if debug:
@@ -641,8 +645,8 @@ class FunctionsFvcomThreeD:
             print 'Computing flow directions...'
 
         try:
-            u = self._var.u
-            v = self._var.v
+            u = self._var.u[:]
+            v = self._var.v[:]
             dirFlow = np.rad2deg(np.arctan2(v,u))
         except MemoryError:
             print '---Data too large for machine memory---'
@@ -772,7 +776,7 @@ class FunctionsFvcomThreeD:
             t = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                t = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                t = time_to_index(t_start, t_end, self._var.matlabTime[:], debug=debug)
             else:
                 t = arange(t_start, t_end)
         else:
@@ -805,8 +809,8 @@ class FunctionsFvcomThreeD:
                 print "Check element=0, computation time in (s): ", (end - start)
                 print "start np.multiply" 
 
-            x0 = self._grid.xc
-            y0 = self._grid.yc
+            x0 = self._grid.xc[:]
+            y0 = self._grid.yc[:]
         
             dvdx = np.zeros((t.shape[0],self._grid.nlevel,self._grid.nele))
             dudy = np.zeros((t.shape[0],self._grid.nlevel,self._grid.nele))
@@ -855,7 +859,7 @@ class FunctionsFvcomThreeD:
         if debug: print "Computing power density variable..."
         #u = self._var.velo_norm
         #pd = ne.evaluate('0.5*1025.0*(u**3)')
-        pd = 0.5*1025.0*np.power(self._var.velo_norm,3.0)  
+        pd = 0.5*1025.0*np.power(self._var.velo_norm[:],3.0)  
 
         # Add metadata entry
         self._var.power_density = pd
@@ -880,7 +884,7 @@ class FunctionsFvcomThreeD:
         Inputs:
         ------
           - depth = given depth from the surface, float
-          - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
+          - power_mat = power matrix (u,Cp(u)), 2D array (2,n),
                         u being power_mat[0,:] and Ct(u) being power_mat[1,:]
           - rated_speed = rated speed speed in m/s, float number
 
@@ -908,8 +912,8 @@ class FunctionsFvcomThreeD:
         if debug: print "Initialising power curve..."
         Cp = interp1d(power_mat[0,:],power_mat[1,:])
 
-        u, ind = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
-        pd, ind2 = self.interp_at_depth(self._var.power_density, depth,
+        u, ind = self.interp_at_depth(self._var.velo_norm[:], depth, debug=debug)
+        pd, ind2 = self.interp_at_depth(self._var.power_density[:], depth,
                                                    ind=ind, debug=debug)
 
         pa = Cp(u)*pd
@@ -922,7 +926,8 @@ class FunctionsFvcomThreeD:
         #for i in range(pa.shape[0]):
         #    for j in range(pa.shape[1]):
         #        if (u[i,j] < cut_in) or (u[i,j] > cut_out):
-        #           pa[i,j] = 0.0 
+        #           pa[i,j] = 0.0
+        
         inM = np.ma.masked_where(u<cut_in, u).mask
         outM = np.ma.masked_where(u>cut_out, u).mask
         ioM = inM * outM * u.mask
@@ -977,7 +982,7 @@ class FunctionsFvcomThreeD:
             lons = [start_pt[0], end_pt[0]]
             lats = [start_pt[1], end_pt[1]]
             #Finding the closest elements to start and end points
-            ind = closest_point(lons, lats, self._grid.lonc, self._grid.latc, debug)
+            ind = closest_point(lons, lats, self._grid.lonc[:], self._grid.latc[:], debug)
 
             #Finding the shortest path between start and end points
             if debug : print "Computing shortest path..."

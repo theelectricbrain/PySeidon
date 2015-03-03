@@ -84,8 +84,8 @@ class FunctionsFvcom:
             print 'Computing horizontal velocity norm...'
 
         try:
-            u = self._var.ua
-            v = self._var.va
+            u = self._var.ua[:]
+            v = self._var.va[:]
             vel = ne.evaluate('sqrt(u**2 + v**2)')  
         except MemoryError:
             print '---Data too large for machine memory---'
@@ -118,8 +118,8 @@ class FunctionsFvcom:
             print 'Computing flow directions...'
 
         try:
-            u = self._var.ua
-            v = self._var.va
+            u = self._var.ua[:]
+            v = self._var.va[:]
             dirFlow = np.rad2deg(np.arctan2(v,u))
 
         except MemoryError:
@@ -178,19 +178,20 @@ class FunctionsFvcom:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
+                                        debug=debug)
             else:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        u = self._var.ua
-        v = self._var.va
+        u = self._var.ua[:]
+        v = self._var.va[:]
 
         #Extraction at point
         # Finding closest point
         index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+                              self._grid.lonc[:],
+                              self._grid.latc[:], debug=debug)[0]
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -268,20 +269,20 @@ class FunctionsFvcom:
         elif not t_start==[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end,
-                                        self._var.matlabTime,
+                                        self._var.matlabTime[:],
                                         debug=debug)
             else:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        u = self._var.ua
-        v = self._var.va
+        u = self._var.ua[:]
+        v = self._var.va[:]
 
         #Extraction at point
         # Finding closest point
         index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+                              self._grid.lonc[:],
+                              self._grid.latc[:], debug=debug)[0]
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -429,8 +430,8 @@ class FunctionsFvcom:
             if debug:
                 start = time.time() 
             varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
-                                      self._grid.aw0, self._grid.awx, self._grid.awy,
-                                      debug=debug)
+                                      self._grid.aw0[:], self._grid.awx[:],
+                                      self._grid.awy[:], debug=debug)
             if debug:
                 end = time.time()
                 print "Processing time: ", (end - start) 
@@ -439,7 +440,7 @@ class FunctionsFvcom:
             if debug:
                 start = time.time() 
             varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                      trinodes, self._grid.a1u, self._grid.a2u,
+                                      trinodes, self._grid.a1u[:], self._grid.a2u[:],
                                       debug=debug)
             if debug:
                 end = time.time()
@@ -618,7 +619,7 @@ class FunctionsFvcom:
             t = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                t = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                t = time_to_index(t_start, t_end, self._var.matlabTime[:], debug=debug)
             else:
                 t = arange(t_start, t_end)
         else:
@@ -755,19 +756,19 @@ class FunctionsFvcom:
         #Finding index
         if index==[]:      
             index = closest_point([pt_lon], [pt_lat],
-                                  self._grid.lonc,
-                                  self._grid.latc, debug=debug)[0]
+                                  self._grid.lonc[:],
+                                  self._grid.latc[:], debug=debug)[0]
 
         if not hasattr(self._grid, 'depth2D'):
             #Compute depth
-            h = self.interpolation_at_point(self._grid.h, pt_lon, pt_lat,
+            h = self.interpolation_at_point(self._grid.h[:], pt_lon, pt_lat,
                                             index=index, debug=debug)
-            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
+            el = self.interpolation_at_point(self._var.el[:], pt_lon, pt_lat,
                                              index=index, debug=debug)
 
             dep = el + h
         else:
-            dep = self.interpolation_at_point(self._grid.depth2D, pt_lon, pt_lat,
+            dep = self.interpolation_at_point(self._grid.depth2D[:], pt_lon, pt_lat,
                                             index=index, debug=debug)
         if debug:
             end = time.time()
@@ -798,7 +799,7 @@ class FunctionsFvcom:
         if debug: print "Computing powers of hori velo norm..."
         #u = self._var.hori_velo_norm
         #pd = ne.evaluate('0.5*1025.0*(u**3)')
-        pd = 0.5*1025.0*np.power(self._var.hori_velo_norm,3.0)
+        pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)
     
         # Add metadata entry
         self._var.depth_av_power_density = pd
@@ -847,8 +848,8 @@ class FunctionsFvcom:
         if debug: print "Initialising power curve..."
         Cp = interp1d(power_mat[0,:],power_mat[1,:])
 
-        u = self._var.hori_velo_norm
-        pd = self._var.depth_av_power_density
+        u = self._var.hori_velo_norm[:]
+        pd = self._var.depth_av_power_density[:]
 
         pa = Cp(u)*pd
 
@@ -931,24 +932,24 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         #TR_comments: Add debug flag in Utide: debug=self._debug
         index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+                              self._grid.lonc[:],
+                              self._grid.latc[:], debug=debug)[0]
         argtime = []
         if not time_ind==[]:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end,
-                                        self._var.matlabTime,
+                                        self._var.matlabTime[:],
                                         debug=debug)
             else:
                 argtime = arange(t_start, t_end)
         
         if velocity:
             time = self._var.matlabTime[:]
-            u = self.interpolation_at_point(self._var.ua, pt_lon, pt_lat,
+            u = self.interpolation_at_point(self._var.ua[:], pt_lon, pt_lat,
                                             index=index, debug=debug)  
-            v = self.interpolation_at_point(self._var.va, pt_lon, pt_lat,
+            v = self.interpolation_at_point(self._var.va[:], pt_lon, pt_lat,
                                             index=index, debug=debug) 
             if not argtime==[]:
                 time = time[argtime[:]]
@@ -960,7 +961,7 @@ class FunctionsFvcom:
 
         if elevation:
             time = self._var.matlabTime[:]
-            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
+            el = self.interpolation_at_point(self._var.el[:], pt_lon, pt_lat,
                                              index=index, debug=debug)
 
             if not argtime==[]:
