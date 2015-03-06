@@ -14,6 +14,7 @@ from miscellaneous import *
 from BP_tools import *
 from utide import ut_solv, ut_reconstr
 import time
+from pydap.exceptions import ServerError
 
 class FunctionsFvcom:
     """
@@ -87,10 +88,14 @@ class FunctionsFvcom:
             u = self._var.ua[:]
             v = self._var.va[:]
             vel = ne.evaluate('sqrt(u**2 + v**2)')  
-        except MemoryError:
-            print '---Data too large for machine memory---'
-            print 'Tip: use ax or tx during class initialisation'
-            print '---  to use partial data'
+        except (MemoryError, ServerError) as e:
+            if e == ServerError:
+                print '---Data too large for server---'
+                print 'Tip: Save data on your machine or use partial data'
+            elif e == MemoryError:          
+                print '---Data too large for machine memory---'
+                print 'Tip: use ax or tx during class initialisation'
+                print '---  to use partial data'
             raise
 
         #Custom return    
@@ -122,10 +127,14 @@ class FunctionsFvcom:
             v = self._var.va[:]
             dirFlow = np.rad2deg(np.arctan2(v,u))
 
-        except MemoryError:
-            print '---Data too large for machine memory---'
-            print 'Tip: use ax or tx during class initialisation'
-            print '---  to use partial data'
+        except (MemoryError, ServerError) as e:
+            if e == ServerError:
+                print '---Data too large for server---'
+                print 'Tip: save data on your machine or use partial data'
+            elif e == MemoryError:          
+                print '---Data too large for machine memory---'
+                print 'Tip: use ax or tx during class initialisation'
+                print '---  to use partial data'
             raise
 
         #Custom return    
@@ -184,8 +193,12 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        u = self._var.ua[:]
-        v = self._var.va[:]
+        try:
+            u = self._var.ua[:]
+            v = self._var.va[:]
+        except ServerError:
+            u = self._var.ua
+            v = self._var.va            
 
         #Extraction at point
         # Finding closest point
@@ -275,8 +288,12 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        u = self._var.ua[:]
-        v = self._var.va[:]
+        try:
+            u = self._var.ua[:]
+            v = self._var.va[:]
+        except ServerError:
+            u = self._var.ua
+            v = self._var.va
 
         #Extraction at point
         # Finding closest point

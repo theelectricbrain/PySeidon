@@ -14,6 +14,7 @@ from BP_tools import *
 from shortest_element_path import *
 import time
 import seaborn
+from pydap.exceptions import ServerError
 
 #TR comment: This all routine needs to be tested and debugged
 class FunctionsFvcomThreeD:
@@ -236,7 +237,10 @@ class FunctionsFvcomThreeD:
         U = U.astype(int)
         D = D.astype(int)
         if debug: print 'Compute weights...'
-        Var = var[:] #otherwise to slow with netcdf4 lib
+        try:
+            Var = var[:] #otherwise to slow with netcdf4 lib
+        except SeverError:
+            Var = var
         dUp = Depth[I,U,J]
         varUp = Var[I,U,J]
         dDo = Depth[I,D,J]
@@ -364,9 +368,13 @@ class FunctionsFvcomThreeD:
 
 
         # Checking if vertical shear already exists
-        if not hasattr(self._var, 'verti_shear'): 
-            u = self._var.u[:]
-            v = self._var.v[:]
+        if not hasattr(self._var, 'verti_shear'):
+            try: 
+                u = self._var.u[:]
+                v = self._var.v[:]
+            except SeverError:
+                u = self._var.u
+                v = self._var.v
 
             #Extraction at point
             if debug:
@@ -425,8 +433,9 @@ class FunctionsFvcomThreeD:
                 v = self._var.v[:]
                 w = self._var.w[:]
                 vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
-            except MemoryError:
-                print '---Data too large for machine memory---'
+            except (MemoryError, ServerError) as e:
+                print '---Data too large for machine memory or server---'
+                print 'Tip: Save data on your machine first'
                 print 'Tip: use ax or tx during class initialisation'
                 print '---  to use partial data'
                 raise
@@ -436,8 +445,9 @@ class FunctionsFvcomThreeD:
                 u = self._var.u[:]
                 v = self._var.v[:]
                 vel = ne.evaluate('sqrt(u**2 + v**2)')
-            except MemoryError:
-                print '---Data too large for machine memory---'
+            except (MemoryError, ServerError) as e:
+                print '---Data too large for machine memory or server---'
+                print 'Tip: Save data on your machine first'
                 print 'Tip: use ax or tx during class initialisation'
                 print '---  to use partial data'
                 raise
@@ -496,19 +506,30 @@ class FunctionsFvcomThreeD:
                 argtime = arange(t_start, t_end)
 
         try:
-            if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u[:]
-                v = self._var.v[:]
-                w = self._var.w[:]
+            if not hasattr(self._var, 'velo_norm'):
+                try:            
+                    u = self._var.u[:]
+                    v = self._var.v[:]
+                    w = self._var.w[:]
+                except SeverError:
+                    u = self._var.u
+                    v = self._var.v
+                    w = self._var.w
             else:
                 vel = self._var.velo_norm
         except AttributeError:
-            if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u[:]
-                v = self._var.v[:]
+            if not hasattr(self._var, 'velo_norm'): 
+                try:            
+                    u = self._var.u[:]
+                    v = self._var.v[:]
+                except SeverError:
+                    u = self._var.u
+                    v = self._var.v
             else:
-                vel = self._var.velo_norm[:]
-
+                try:
+                    vel = self._var.velo_norm[:]
+                except SeverError:
+                    vel = self._var.velo_norm
 
         # Finding closest point
         index = closest_point([pt_lon], [pt_lat],
@@ -605,11 +626,19 @@ class FunctionsFvcomThreeD:
         
         #Choose the right pair of velocity components
         if self._var._3D and vertical:
-            u = self._var.u[:]
-            v = self._var.v[:]
+            try:
+                u = self._var.u[:]
+                v = self._var.v[:]
+            except SeverError:
+                u = self._var.u
+                v = self._var.v
         else:
-            u = self._var.ua[:]
-            v = self._var.va[:]
+            try:
+                u = self._var.ua[:]
+                v = self._var.va[:]
+            except SeverError:
+                u = self._var.ua
+                v = self._var.va
 
         #Extraction at point
         if debug:
@@ -648,8 +677,9 @@ class FunctionsFvcomThreeD:
             u = self._var.u[:]
             v = self._var.v[:]
             dirFlow = np.rad2deg(np.arctan2(v,u))
-        except MemoryError:
-            print '---Data too large for machine memory---'
+        except (MemoryError, ServerError) as e:
+            print '---Data too large for machine memory or server---'
+            print 'Tip: Save data on your machine'
             print 'Tip: use ax or tx during class initialisation'
             print '---  to use partial data'
             raise
