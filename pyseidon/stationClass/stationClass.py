@@ -123,6 +123,9 @@ Notes:
                 tmp = ObjectFromDict(tmp)
                 self = self.__add__(tmp)
 
+        ##Re-assignement of utility functions as methods
+        self.dump_profile_data = self.Plots._dump_profile_data_as_csv
+
     def _isMulti(self, filename):
         """Tells if filename point to a file or a folder"""
         split = filename.split('/')

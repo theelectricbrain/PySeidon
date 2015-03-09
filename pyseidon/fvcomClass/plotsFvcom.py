@@ -11,7 +11,7 @@ import seaborn
 import pandas as pd
 from windrose import WindroseAxes
 from interpolation_utils import *
-from miscellaneous import depth_at_FVCOM_element as depth_at_ind
+#from miscellaneous import depth_at_FVCOM_element as depth_at_ind
 
 class PlotsFvcom:
     """
@@ -34,7 +34,7 @@ class PlotsFvcom:
 
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
-                     degree=True, mesh=True, dump=False, debug=False):
+                     degree=True, mesh=True, dump=False, debug=False, **kwargs):
         '''
         2D xy colormap plot of any given variable and mesh.
 
@@ -51,6 +51,9 @@ class PlotsFvcom:
           - mesh = True, with mesh; False, without mesh
           - degree = boolean, coordinates in degrees (True) or meters (False) 
           - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         '''
         debug = debug or self._debug
         if debug:
@@ -155,10 +158,10 @@ class PlotsFvcom:
             if degree:
                 self._dump_map_data_as_csv(var, self._grid.lonc, self._grid.latc,
                                            title=title, varLabel='map',
-                                           xLabel=' ', yLabel=' ')
+                                           xLabel=' ', yLabel=' ', **kwargs)
             else:
                 self._dump_map_data_as_csv(var, self._grid.xc, self._grid.yc, title=title,
-                                           varLabel='map', xLabel=' ', yLabel=' ')
+                                           varLabel='map', xLabel=' ', yLabel=' ', **kwargs)
         if debug or self._debug:
             print '...Passed'
 
@@ -193,7 +196,7 @@ class PlotsFvcom:
         self._fig.show() 
 
     def plot_xy(self, x, y, xerror=[], yerror=[],
-                title=' ', xLabel=' ', yLabel=' ', dump=False):
+                title=' ', xLabel=' ', yLabel=' ', dump=False, **kwargs):
         """
         Simple X vs Y plot
 
@@ -210,6 +213,9 @@ class PlotsFvcom:
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
           - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         """
         #fig = plt.figure(figsize=(18,10))
         #plt.rc('font',size='22')
@@ -238,7 +244,7 @@ class PlotsFvcom:
         self._fig.show()
         if dump: self._dump_profile_data_as_csv(x, y,xerror=xerror, yerror=yerror,
                                                 title=title, xLabel=xLabel,
-                                                yLabel=yLabel)     
+                                                yLabel=yLabel, **kwargs)     
 
     def Histogram(self, y, title=' ', xLabel=' ', yLabel=' '):
         """
@@ -295,7 +301,7 @@ class PlotsFvcom:
                      fontsize=12)
 
     def _dump_profile_data_as_csv(self, x, y, xerror=[], yerror=[],
-                                 title=' ', xLabel=' ', yLabel=' '):
+                                 title=' ', xLabel=' ', yLabel=' ', **kwargs):
         """
         Dumps profile data in csv file
 
@@ -311,6 +317,9 @@ class PlotsFvcom:
           - title = file name, string
           - xLabel = name of the x-data, string
           - yLabel = name of the y-data, string
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         """
         if title == ' ': title = 'dump_profile_data'
         filename=title + '.csv'
@@ -322,10 +331,10 @@ class PlotsFvcom:
             df = pd.DataFrame({xLabel:x[:], yLabel:y[:], 'error': yerror[:]})
         else:
             df = pd.DataFrame({xLabel:x[:], yLabel:y[:]})
-        df.to_csv(filename, sep='\t', encoding='utf-8')
+        df.to_csv(filename, encoding='utf-8', **kwargs)
 
     def _dump_map_data_as_csv(self, var, x, y, title=' ',
-                              varLabel=' ', xLabel=' ', yLabel=' '):
+                              varLabel=' ', xLabel=' ', yLabel=' ', **kwargs):
         """
         Dumps map data in csv file
 
@@ -342,6 +351,9 @@ class PlotsFvcom:
           - title = file name, string
           - xLabel = name of the x-data, string
           - yLabel = name of the y-data, string
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         """
         if title == ' ': title = 'dump_map_data'
         filename=title + '.csv'
@@ -350,5 +362,5 @@ class PlotsFvcom:
         if yLabel == ' ': yLabel = 'Y'
         df = pd.DataFrame({xLabel:x[:], yLabel:y[:], varLabel: var[:]})
 
-        df.to_csv(filename, sep='\t', encoding='utf-8')
+        df.to_csv(filename, encoding='utf-8', **kwargs)
                                 
