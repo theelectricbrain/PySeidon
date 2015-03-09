@@ -237,9 +237,9 @@ class FunctionsFvcomThreeD:
         U = U.astype(int)
         D = D.astype(int)
         if debug: print 'Compute weights...'
-        try:
-            Var = var[:] #otherwise to slow with netcdf4 lib
-        except SeverError:
+        if type(var).__name__=='Variable': #Fix for netcdf4 lib
+            Var = var[:]
+        else:
             Var = var
         dUp = Depth[I,U,J]
         varUp = Var[I,U,J]
@@ -369,10 +369,10 @@ class FunctionsFvcomThreeD:
 
         # Checking if vertical shear already exists
         if not hasattr(self._var, 'verti_shear'):
-            try: 
+            if type(self._var.u).__name__=='Variable': 
                 u = self._var.u[:]
                 v = self._var.v[:]
-            except SeverError:
+            else:
                 u = self._var.u
                 v = self._var.v
 
@@ -390,7 +390,11 @@ class FunctionsFvcomThreeD:
             dvel = norm[:,sLvl[1:]] - norm[:,sLvl[:-1]]           
             dveldz = dvel / dz
         else:
-            dveldz = self.interpolation_at_point(self._var.verti_shear[:],
+            if type(self._var.verti_shear).__name__=='Variable':
+                shear = self._var.verti_shear[:]
+            else:
+                shear = self._var.verti_shear
+            dveldz = self.interpolation_at_point(self._var.verti_shear,
                                                  pt_lon, pt_lat,
                                                  index=index, debug=debug)
 
@@ -507,11 +511,11 @@ class FunctionsFvcomThreeD:
 
         try:
             if not hasattr(self._var, 'velo_norm'):
-                try:            
+                if type(self._var.u).__name__=='Variable': #Fix for netcdf4 lib            
                     u = self._var.u[:]
                     v = self._var.v[:]
                     w = self._var.w[:]
-                except SeverError:
+                else:
                     u = self._var.u
                     v = self._var.v
                     w = self._var.w
@@ -519,16 +523,16 @@ class FunctionsFvcomThreeD:
                 vel = self._var.velo_norm
         except AttributeError:
             if not hasattr(self._var, 'velo_norm'): 
-                try:            
+                if type(self._var.u).__name__=='Variable': #Fix for netcdf4 lib            
                     u = self._var.u[:]
                     v = self._var.v[:]
-                except SeverError:
+                else:
                     u = self._var.u
                     v = self._var.v
             else:
-                try:
+                if type(self._var.velo_norm).__name__=='Variable': #Fix for netcdf4 lib:
                     vel = self._var.velo_norm[:]
-                except SeverError:
+                else:
                     vel = self._var.velo_norm
 
         # Finding closest point
@@ -626,17 +630,17 @@ class FunctionsFvcomThreeD:
         
         #Choose the right pair of velocity components
         if self._var._3D and vertical:
-            try:
+            if type(self._var.u).__name__=='Variable': #Fix for netcdf4 lib
                 u = self._var.u[:]
                 v = self._var.v[:]
-            except SeverError:
+            else:
                 u = self._var.u
                 v = self._var.v
         else:
-            try:
+            if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib:
                 u = self._var.ua[:]
                 v = self._var.va[:]
-            except SeverError:
+            else:
                 u = self._var.ua
                 v = self._var.va
 

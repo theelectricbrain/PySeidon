@@ -193,10 +193,10 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        try:
+        if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib
             u = self._var.ua[:]
             v = self._var.va[:]
-        except ServerError:
+        else:
             u = self._var.ua
             v = self._var.va            
 
@@ -337,10 +337,10 @@ class FunctionsFvcom:
                 argtime = arange(t_start, t_end)
 
         #Choose the right pair of velocity components
-        try:
+        if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib
             u = self._var.ua[:]
             v = self._var.va[:]
-        except ServerError:
+        else:
             u = self._var.ua
             v = self._var.va
 
@@ -820,15 +820,23 @@ class FunctionsFvcom:
 
         if not hasattr(self._grid, 'depth2D'):
             #Compute depth
-            h = self.interpolation_at_point(self._grid.h[:], pt_lon, pt_lat,
-                                            index=index, debug=debug)
-            el = self.interpolation_at_point(self._var.el[:], pt_lon, pt_lat,
-                                             index=index, debug=debug)
+            if type(self._grid.h).__name__=='Variable': #Fix for netcdf4 lib
+                H = self._grid.h[:]
+                self._var.el[:]
+            else:
+                H = self._grid.h
+                self._var.el
+            
+            h = self.interpolation_at_point(H, pt_lon, pt_lat, index=index, debug=debug)
+            el = self.interpolation_at_point(EL, pt_lon, pt_lat, index=index, debug=debug)
 
             dep = el + h
         else:
-            dep = self.interpolation_at_point(self._grid.depth2D[:], pt_lon, pt_lat,
-                                            index=index, debug=debug)
+            if type(self._grid.depth2D).__name__=='Variable': #Fix for netcdf4 lib
+                d2D = self._grid.depth2D[:]
+            else:
+                d2D = self._grid.depth2D
+            dep = self.interpolation_at_point(d2D, pt_lon, pt_lat, index=index, debug=debug)
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
@@ -1006,10 +1014,15 @@ class FunctionsFvcom:
         
         if velocity:
             time = self._var.matlabTime[:]
-            u = self.interpolation_at_point(self._var.ua[:], pt_lon, pt_lat,
-                                            index=index, debug=debug)  
-            v = self.interpolation_at_point(self._var.va[:], pt_lon, pt_lat,
-                                            index=index, debug=debug) 
+            if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib
+                ua = self._var.ua[:]
+                va = self._var.va[:]
+            else:
+                ua = self._var.ua
+                va = self._var.va
+
+            u = self.interpolation_at_point(ua, pt_lon, pt_lat, index=index, debug=debug)  
+            v = self.interpolation_at_point(va, pt_lon, pt_lat, index=index, debug=debug) 
             if not argtime==[]:
                 time = time[argtime[:]]
                 u = u[argtime[:]]
@@ -1020,7 +1033,11 @@ class FunctionsFvcom:
 
         if elevation:
             time = self._var.matlabTime[:]
-            el = self.interpolation_at_point(self._var.el[:], pt_lon, pt_lat,
+            if type(self._var.el).__name__=='Variable': #Fix for netcdf4 lib
+                el = self._var.el[:]
+            else:
+                el = self._var.el
+            el = self.interpolation_at_point(el, pt_lon, pt_lat,
                                              index=index, debug=debug)
 
             if not argtime==[]:
