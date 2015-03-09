@@ -235,6 +235,55 @@ class FunctionsFvcom:
 
         return dirFlow, norm
 
+    def bidirectionality(self, pt_lon, pt_lat, debug=False):
+        """"
+        This function computes the depth averaged bidirectionality (deg.)
+
+        Inputs:
+        ------
+          - pt_lon = longitude in decimal degrees East of the reference point, float number 
+          - pt_lat = latitude in decimal degrees North of the reference point, float number
+
+        Outputs:
+        -------
+          - bidir = 1D array of depth averaged bidirectionality, (nele)
+
+        Notes:
+        -----
+          - bidirectionality between 0 and 90 deg., i.e. 0=perfect alignment,
+            90 = perpendicular abb and flood
+          - bidirectionality is weighted by the flow speed to filter out slack water
+        """
+        debug = debug or self._debug
+        if debug:
+            start = time.time()
+            print 'Computing bidirectonality...'
+        ##compute necessary fields
+        if not hasattr(self._var, 'hori_velo_norm'):
+            self.hori_velo_norm(debug=debug)
+        if not hasattr(self._var, 'depth_av_flow_dir'):
+            self.flow_dir(debug=debug)
+        ##Compute weights, function of flow velocity
+        #weights
+        fI,eI,pa,pav=self.ebb_flood_split_at_point(pt_lon,pt_lat, debug=debug)
+        weightF=self._var.hori_velo_norm[fI,:]/np.nansum(self._var.hori_velo_norm[fI,:],0)
+        weightE=self._var.hori_velo_norm[eI,:]/np.nansum(self._var.hori_velo_norm[eI,:],0)
+        #weighted directions
+        dirF=np.nansum(self._var.depth_av_flow_dir[fI,:]*weightF,0)
+        dirF[dirF < 0] += 180.0
+        dirE=np.nansum(self._var.depth_av_flow_dir[eI,:]*weightE,0)
+        dirE[dirE < 0] += 180.0
+        ##keep angle between 0-90 deg.
+        bidir = (dirF - dirE)
+        bidir[bidir < 0] += 180.0
+        bidir[bidir > 90] = 180.0 - bidir[bidir > 90]
+
+        if debug:
+            end = time.time()
+            print "...processing time: ", (end - start)                      
+                
+        return bidir 
+
     def ebb_flood_split_at_point(self, pt_lon, pt_lat,
                                  t_start=[], t_end=[], time_ind=[], debug=False):
         """
