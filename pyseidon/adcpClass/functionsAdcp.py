@@ -140,54 +140,64 @@ class FunctionsAdcp:
             V = self._var.va[:]
 
         #WB version of BP's principal axis
-        if debug:
-            print 'Computin principal axis at point...'
+        #Assuming principal axis = flood heading
+        #determine principal axes - potentially a problem if axes are very kinked
+        #   since this would misclassify part of ebb and flood
+        if debug: print 'Computin principal axis at point...'
         pr_axis, pr_ax_var = principal_axis(U, V)
 
         #ebb/flood split
-        if debug:
-            print 'Splitting ebb and flood at point...'
+        if debug: print 'Splitting ebb and flood at point...'
+        ###TR: version 1
         # reverse 0-360 deg convention
-        ra = (-pr_axis - 90.0) * np.pi /180.0
-        if ra>np.pi:
-            ra = ra - (2.0*np.pi)
-        elif ra<-np.pi:
-            ra = ra + (2.0*np.pi)    
-        dirFlow = np.arctan2(V,U)
-        #Define bins of angles
-        if ra == 0.0:
-            binP = [0.0, np.pi/2.0]
-            binP = [0.0, -np.pi/2.0]
-        elif ra > 0.0:
-            if ra == np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0 ]        
-            elif ra < (np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [-((np.pi/2.0)-ra), 0.0]
-            else:
-                binP = [ra - (np.pi/2.0), np.pi]
-                binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
-        else:
-            if ra == -np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0]
-            elif ra > -(np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [ ((-np.pi/2.0)+ra), 0.0]
-            else:
-                binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
-                binM = [-np.pi, ra + (np.pi/2.0)]
-                                
-        test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
-                ((dirFlow > binM[0]) * (dirFlow < binM[1])))
-        floodIndex = np.where(test == True)[0]
-        ebbIndex = np.where(test == False)[0]
-
-        #TR fit with Rose diagram angle convention
-        #pr_axis = pr_axis - 90.0
-        #if pr_axis<0.0:
-        #    pr_axis[ind] = pr_axis[ind] + 360   
+        #ra = (-pr_axis - 90.0) * np.pi /180.0
+        #if ra>np.pi:
+        #    ra = ra - (2.0*np.pi)
+        #elif ra<-np.pi:
+        #    ra = ra + (2.0*np.pi)    
+        #dirFlow = np.arctan2(V,U)
+        ##Define bins of angles
+        #if ra == 0.0:
+        #    binP = [0.0, np.pi/2.0]
+        #    binP = [0.0, -np.pi/2.0]
+        #elif ra > 0.0:
+        #    if ra == np.pi:
+        #        binP = [np.pi/2.0 , np.pi]
+        #        binM = [-np.pi, -np.pi/2.0 ]        
+        #    elif ra < (np.pi/2.0):
+        #        binP = [0.0, ra + (np.pi/2.0)]
+        #        binM = [-((np.pi/2.0)-ra), 0.0]
+        #    else:
+        #        binP = [ra - (np.pi/2.0), np.pi]
+        #        binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
+        #else:
+        #    if ra == -np.pi:
+        #        binP = [np.pi/2.0 , np.pi]
+        #        binM = [-np.pi, -np.pi/2.0]
+        #    elif ra > -(np.pi/2.0):
+        #        binP = [0.0, ra + (np.pi/2.0)]
+        #        binM = [ ((-np.pi/2.0)+ra), 0.0]
+        #    else:
+        #        binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
+        #        binM = [-np.pi, ra + (np.pi/2.0)]
+        #                        
+        #test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
+        #        ((dirFlow > binM[0]) * (dirFlow < binM[1])))
+        #floodIndex = np.where(test == True)[0]
+        #ebbIndex = np.where(test == False)[0]
+        ###TR: version 2
+        flood_heading = np.array([-90, 90]) + pr_axis
+        dir_all = np.rad2deg(np.arctan2(V,U))
+        ind = np.where(dir_all<0)
+        dir_all[ind] = dir_all[ind] + 360     
+        # sign speed - eliminating wrap-around
+        dir_PA = dir_all - pr_axis
+        dir_PA[dir_PA < -90] += 360
+        dir_PA[dir_PA > 270] -= 360
+        #general direction of flood passed as input argument
+        floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
+        ebbIndex = np.arange(dir_PA.shape[0])
+        ebbIndex = np.delete(ebbIndex,floodIndex[:])         
 
         if debug:
             end = time.time()

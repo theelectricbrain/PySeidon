@@ -322,10 +322,6 @@ class FunctionsFvcom:
         if debug: print 'Computing ebb/flood intervals...'
         #Defines interval
         flood_heading = np.array([-90, 90]) + pr_axis
-        #initialise matrix
-        #s_signed_all = np.empty(U.shape)
-        #s_signed_all.fill(np.nan)
-        #PA_all = np.zeros(U.shape)
         dir_all = np.rad2deg(np.arctan2(V,U))
         ind = np.where(dir_all<0)
         dir_all[ind] = dir_all[ind] + 360     
@@ -334,9 +330,6 @@ class FunctionsFvcom:
         dir_PA = dir_all - pr_axis
         dir_PA[dir_PA < -90] += 360
         dir_PA[dir_PA > 270] -= 360
-
-        #dir_PA[dir_PA<-90] = dir_PA(dir_PA<-90) + 360;
-        #dir_PA(dir_PA>270) = dir_PA(dir_PA>270) - 360;
 
         #general direction of flood passed as input argument
         floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
