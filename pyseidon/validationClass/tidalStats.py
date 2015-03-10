@@ -511,7 +511,7 @@ class TidalStats:
                               xlim=(df.model.min(), df.model.max()),
                               ylim=(df.observed.min(), df.observed.max()),
                               color=color, size=7)   
-        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
+        fig.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 
 	if save:
 	    fig.savefig(out_f)
@@ -558,7 +558,7 @@ class TidalStats:
             ax.scatter(self.model, self.observed, c='b', alpha=0.5)
             ax.set_xlabel('Predicted Height')
             ax.set_ylabel('Observed Height')
-            ax.title('Predicted vs. Observed {}'.format(self.type))
+            fig.suptitle('Predicted vs. Observed {}'.format(self.type))
 
 	if save:
 	    fig.savefig(out_f)
