@@ -198,6 +198,9 @@ class FunctionsAdcp:
         floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
         ebbIndex = np.arange(dir_PA.shape[0])
         ebbIndex = np.delete(ebbIndex,floodIndex[:])         
+        #TR: quick fix
+        if type(floodIndex).__name__=='tuple':
+            floodIndex = floodIndex[0]
 
         if debug:
             end = time.time()
@@ -205,7 +208,7 @@ class FunctionsAdcp:
 
         return floodIndex, ebbIndex, pr_axis, pr_ax_var
 
-    def exceedance(self, var, debug=False):
+    def exceedance(self, var, graph=True, dump=False, debug=False, **kwargs):
         """
         This function calculate the excedence curve of a var(time).
 
@@ -216,6 +219,10 @@ class FunctionsAdcp:
         Keywords:
         --------
           - graph: True->plots curve; False->does not
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
 
         Outputs:
         -------
@@ -250,17 +257,20 @@ class FunctionsAdcp:
                     Exceedance[i] = Exceedance[i] + (time[j+1] - time[j])
 
         Exceedance = (Exceedance * 100) / Period
+        #Plot
+        if graph:
+            error=np.ones(Exceedance.shape) * np.std(var)/2.0
+            self._plot.plot_xy(Exceedance, Ranges, yerror=error,
+                               yLabel='Amplitudes',
+                               xLabel='Exceedance probability in %', dump=dump, **kwargs)
 
         if debug:
             print '...Passed'
-       
-        #Plot
-        self._plot.plot_xy(Exceedance, Ranges, yLabel='Amplitudes',
-                           xLabel='Exceedance probability in %')
 
         return Exceedance, Ranges
 
-    def speed_histogram(self, t_start=[], t_end=[], time_ind=[], debug=False):
+    def speed_histogram(self, t_start=[], t_end=[], time_ind=[],
+                        debug=False, dump=False, **kwargs):
         """
         This function plots the histogram of occurrences for the signed
         flow speed.
@@ -271,7 +281,11 @@ class FunctionsAdcp:
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
-          - time_ind = time indices to work in, 1D array of integers 
+          - time_ind = time indices to work in, 1D array of integers
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         
         Notes:
         -----
@@ -296,8 +310,9 @@ class FunctionsAdcp:
 
         #plot histogram
         self._plot.Histogram(norm,
+                             title='Flow speed histogram',
                              xLabel='Signed flow speed (m/s)',
-                             yLabel='Occurrences (%)')
+                             yLabel='Occurrences (%)', dump=dump, **kwargs)
    
         if debug:
             end = time.time()
@@ -307,7 +322,7 @@ class FunctionsAdcp:
     def Harmonic_analysis(self,
                           time_ind=[], t_start=[], t_end=[],
                           elevation=True, velocity=False,
-                          debug=False, **kwarg):
+                          debug=False, **kwargs):
         '''
         Description:
         -----------
@@ -368,7 +383,7 @@ class FunctionsAdcp:
                 v = v[argtime[:]]
 
             lat = self._var.lat
-            harmo = ut_solv(time, u, v, lat, **kwarg)
+            harmo = ut_solv(time, u, v, lat, **kwargs)
 
         if elevation:
             time = self._var.matlabTime[:]
@@ -379,13 +394,13 @@ class FunctionsAdcp:
                 el = el[argtime[:]]
 
             lat = self._var.lat
-            harmo = ut_solv(time, el, [], lat, **kwarg)
+            harmo = ut_solv(time, el, [], lat, **kwargs)
             #Write meta-data only if computed over all the elements
 
             return harmo
 
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
-                                time_ind=slice(None), debug=False, **kwarg):
+                                time_ind=slice(None), debug=False, **kwargs):
         '''
         Description:
         ----------
@@ -431,7 +446,7 @@ class FunctionsAdcp:
         return Reconstruct  
 
     def verti_shear(self, t_start=[], t_end=[],  time_ind=[],
-                    graph=True, debug=False):
+                    graph=True, dump=False, debug=False, **kwargs):
         """
         Compute vertical shear
 
@@ -447,6 +462,10 @@ class FunctionsAdcp:
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - graph = plots graph if True
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
 
         Notes:
         -----
@@ -495,12 +514,13 @@ class FunctionsAdcp:
             error = np.std(mdat,axis=0)
             self._plot.plot_xy(mean_dveldz, mean_depth, xerror=error[:],
                                title='Shear profile ',
-                               xLabel='Shear (1/s) ', yLabel='Depth (m) ')
+                               xLabel='Shear (1/s) ', yLabel='Depth (m) ',
+                               dump=dump, **kwargs)
 
         return dveldz             
 
     def velo_norm(self, t_start=[], t_end=[], time_ind=[],
-                  graph=True, debug=False):
+                  graph=True, dump=False, debug=False, **kwargs):
         """
         Compute the velocity norm
 
@@ -516,6 +536,10 @@ class FunctionsAdcp:
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - graph = plots vertical profile averaged over time if True
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
 
         Notes:
         -----
@@ -556,7 +580,8 @@ class FunctionsAdcp:
             error = np.std(mdat,axis=0)
             self._plot.plot_xy(vel, depth, xerror=error[:],
                                title='Velocity norm profile ',
-                               xLabel='Velocity (m/s) ', yLabel='Depth (m) ')
+                               xLabel='Velocity (m/s) ', yLabel='Depth (m) ',
+                               dump=dump, **kwargs)
       
 
         return velo_norm 

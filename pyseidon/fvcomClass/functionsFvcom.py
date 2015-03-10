@@ -391,8 +391,8 @@ class FunctionsFvcom:
 
         return floodIndex[0], ebbIndex, pr_axis, pr_ax_var
 
-    def speed_histogram(self, pt_lon, pt_lat,
-                        t_start=[], t_end=[], time_ind=[], debug=False):
+    def speed_histogram(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
+                        debug=False, dump=False, **kwargs):
         """
         This function plots the histogram of occurrences for the signed
         flow speed at any given point.
@@ -409,6 +409,10 @@ class FunctionsFvcom:
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, 1D array of integers 
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         
         Notes:
         -----
@@ -435,8 +439,10 @@ class FunctionsFvcom:
 
         #plot histogram
         self._plot.Histogram(norm,
+                             title='Flow speed histogram',
                              xLabel='Signed flow speed (m/s)',
-                             yLabel='Occurrences (%)')
+                             yLabel='Occurrences (%)',
+                             dump=dump, **kwargs)
    
         if debug:
             end = time.time()
@@ -507,7 +513,8 @@ class FunctionsFvcom:
 
         return varInterp
 
-    def exceedance(self, var, pt_lon=[], pt_lat=[], graph=True, dump=False, debug=False):
+    def exceedance(self, var, pt_lon=[], pt_lat=[],
+                   graph=True, dump=False, debug=False, **kwargs):
         """
         This function calculates the excedence curve of a var(time)
         at any given point.
@@ -522,6 +529,9 @@ class FunctionsFvcom:
                              Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
           - dump = boolean, dump graph data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
 
         Outputs:
         -------
@@ -574,7 +584,7 @@ class FunctionsFvcom:
             self._plot.plot_xy(Exceedance, Ranges, yerror=error,
                                yLabel='Amplitudes',
                                xLabel='Exceedance probability in %',
-                               dump=dump)
+                               dump=dump, **kwargs)
 
         return Exceedance, Ranges
 

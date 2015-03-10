@@ -246,7 +246,7 @@ class PlotsFvcom:
                                                 title=title, xLabel=xLabel,
                                                 yLabel=yLabel, **kwargs)     
 
-    def Histogram(self, y, title=' ', xLabel=' ', yLabel=' '):
+    def Histogram(self, y, title=' ', xLabel=' ', yLabel=' ', dump=False, **kwargs):
         """
         Histogram plot
 
@@ -260,6 +260,10 @@ class PlotsFvcom:
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         """
         ## the histogram of the data
         #fig = plt.figure(figsize=(18,10))
@@ -272,11 +276,19 @@ class PlotsFvcom:
         self._ax.bar(bins[1:], unity_density, width=widths)
         formatter = ticker.FuncFormatter(lambda v, pos: str(v * 100))
         self._ax.yaxis.set_major_formatter(formatter)
+        self._ax.get_xaxis().set_minor_locator(ticker.AutoMinorLocator())
+	self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
+	self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
+	self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
 
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
 
-        self._fig.show()  
+        self._fig.show() 
+
+        if dump: self._dump_profile_data_as_csv(bins[1:], unity_density,
+                                                title=title, xLabel=xLabel,
+                                                yLabel=yLabel, **kwargs) 
 
     def add_points(self, x, y, label=' ', color='black'):
         """
