@@ -460,44 +460,49 @@ class TidalStats:
         '''
         df = pd.DataFrame(data={'model': self.model.flatten(),
                                 'observed':self.observed.flatten()})
-        plt.scatter(self.model, self.observed, c='b', marker='+', alpha=0.5)
+        #define figure frame
+        fig = plt.figure(figsize=(18,10))
+        plt.rc('font',size='22')
+        ax = fig.add_subplot(111)
+
+        ax.scatter(self.model, self.observed, c='b', marker='+', alpha=0.5)
 
         ## plot regression line
         mod_max = np.amax(self.model)
 	mod_min = np.amin(self.model)
         upper_intercept = lr['intercept'] + lr['pred_CI_width']
         lower_intercept = lr['intercept'] - lr['pred_CI_width']
-        plt.plot([mod_min, mod_max], [mod_min * lr['slope'] + lr['intercept'],
+        ax.plot([mod_min, mod_max], [mod_min * lr['slope'] + lr['intercept'],
 				      mod_max * lr['slope'] + lr['intercept']],
                  color='k', linestyle='-', linewidth=2, label='Linear fit')
 
         ## plot CI's for slope
-        plt.plot([mod_min, mod_max],
+        ax.plot([mod_min, mod_max],
 		 [mod_min * lr['slope_CI'][0] + lr['intercept_CI'][0],
 		  mod_max * lr['slope_CI'][0] + lr['intercept_CI'][0]],
                  color='r', linestyle='--', linewidth=2)
-        plt.plot([mod_min, mod_max],
+        ax.plot([mod_min, mod_max],
 		 [mod_min * lr['slope_CI'][1] + lr['intercept_CI'][1],
                   mod_max * lr['slope_CI'][1] + lr['intercept_CI'][1]],
                  color='r', linestyle='--', linewidth=2, label='Slope CI')
 
         ## plot CI's for predictands
-        plt.plot([mod_min, mod_max],
+        ax.plot([mod_min, mod_max],
 		 [mod_min * lr['slope'] + upper_intercept,
                   mod_max * lr['slope'] + upper_intercept],
                  color='g', linestyle='--', linewidth=2)
-        plt.plot([mod_min, mod_max],
+        ax.plot([mod_min, mod_max],
 		 [mod_min * lr['slope'] + lower_intercept,
                   mod_max * lr['slope'] + lower_intercept],
                  color='g', linestyle='--', linewidth=2, label='Predictand CI')
 
-        plt.xlabel('Modeled Data')
-        plt.ylabel('Observed Data')
-        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
+        ax.set_xlabel('Modeled Data')
+        ax.set_ylabel('Observed Data')
+        fig.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 	plt.legend(loc='lower right', shadow=True)
 
 	r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
-	plt.title(r_string)
+	ax.title(r_string)
 
         #Pretty plot
         seaborn.set(style="darkgrid")
@@ -509,9 +514,9 @@ class TidalStats:
         plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 
 	if save:
-	    plt.savefig(out_f)
+	    fig.savefig(out_f)
 	else:
-	    plt.show()
+	    fig.show()
 
     def plotData(self, graph='time', save=False, out_f='', debug=False):
         '''
@@ -524,36 +529,41 @@ class TidalStats:
 	If save is set to True, saves the image file in out_f.
         '''
         if (graph == 'time'):
-            plt.plot(self.times, self.model, label='Model Predictions')
-            plt.plot(self.times, self.observed, color='r',
-                     label='Observed Data')
-            plt.xlabel('Time')
-            if self.type == 'elevation':
-                plt.ylabel('Elevation (m)')
-            if self.type == 'speed':
-                plt.ylabel('Flow speed (m/s)')
-            if self.type == 'direction':
-                plt.ylabel('Flow direction (deg.)')
-            if self.type == 'u velocity':
-                plt.ylabel('U velocity (m/s)')
-            if self.type == 'v velocity':
-                plt.ylabel('V velocity (m/s)')
-            if self.type == 'velocity':
-                plt.ylabel('Signed flow speed (m/s)')
+            #define figure frame
+            fig = plt.figure(figsize=(18,10))
+            plt.rc('font',size='22')
+            ax = fig.add_subplot(111)
 
-            plt.title('Predicted and Observed {}'.format(self.type))
-	    plt.legend(shadow=True)
+            ax.plot(self.times, self.model, label='Model Predictions')
+            ax.plot(self.times, self.observed, color='r',
+                     label='Observed Data')
+            ax.set_xlabel('Time')
+            if self.type == 'elevation':
+                ax.set_ylabel('Elevation (m)')
+            if self.type == 'speed':
+                ax.set_ylabel('Flow speed (m/s)')
+            if self.type == 'direction':
+                ax.set_ylabel('Flow direction (deg.)')
+            if self.type == 'u velocity':
+                ax.set_ylabel('U velocity (m/s)')
+            if self.type == 'v velocity':
+                ax.set_ylabel('V velocity (m/s)')
+            if self.type == 'velocity':
+                ax.set_ylabel('Signed flow speed (m/s)')
+
+            ax.title('Predicted and Observed {}'.format(self.type))
+	    ax.legend(shadow=True)
 
         if (graph == 'scatter'):
-            plt.scatter(self.model, self.observed, c='b', alpha=0.5)
-            plt.xlabel('Predicted Height')
-            plt.ylabel('Observed Height')
-            plt.title('Predicted vs. Observed {}'.format(self.type))
+            ax.scatter(self.model, self.observed, c='b', alpha=0.5)
+            ax.set_xlabel('Predicted Height')
+            ax.set_ylabel('Observed Height')
+            ax.title('Predicted vs. Observed {}'.format(self.type))
 
 	if save:
-	    plt.savefig(out_f)
+	    fig.savefig(out_f)
 	else:
-	    plt.show()	
+	    fig.show()	
 
     def save_data(self):
             df = pd.DataFrame(data={'time': self.times.flatten(),

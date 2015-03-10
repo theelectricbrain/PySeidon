@@ -7,7 +7,6 @@ from tidalStats import TidalStats
 from smooth import smooth
 from datetime import datetime, timedelta
 from utide import ut_reconstr
-import matplotlib.pyplot as plt
 from depthInterp import depthFromSurf
 #from save_FlowFile_BPFormat import sign_speed, get_DirFromN
 
