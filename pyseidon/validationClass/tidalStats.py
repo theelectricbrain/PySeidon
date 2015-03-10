@@ -502,7 +502,7 @@ class TidalStats:
 	plt.legend(loc='lower right', shadow=True)
 
 	r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
-	ax.title(r_string)
+	fig.suptle(r_string)
 
         #Pretty plot
         seaborn.set(style="darkgrid")
@@ -551,7 +551,7 @@ class TidalStats:
             if self.type == 'velocity':
                 ax.set_ylabel('Signed flow speed (m/s)')
 
-            ax.title('Predicted and Observed {}'.format(self.type))
+            fig.suptitle('Predicted and Observed {}'.format(self.type))
 	    ax.legend(shadow=True)
 
         if (graph == 'scatter'):
