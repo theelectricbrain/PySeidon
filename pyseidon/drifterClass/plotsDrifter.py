@@ -73,10 +73,10 @@ class PlotsDrifter:
         sc.set_clim([cmin,cmax])
 
         #Label and axis parameters
-        plt.ylabel('Latitude')
-        plt.xlabel('Longitude')
+        self._ax.set_ylabel('Latitude')
+        self._ax.set_xlabel('Longitude')
         plt.gca().patch.set_facecolor('0.5')
-        cbar=fig.colorbar(sc,ax=self._ax)
+        cbar=self._fig.colorbar(sc,ax=self._ax)
         cbar.set_label(title, rotation=-90,labelpad=30)
         scale = 1
         ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
@@ -85,7 +85,7 @@ class PlotsDrifter:
         self._ax.grid()
         self._fig.show()
         if dump:
-            self._dump_data_as_csv(norm, u, v, lon, lat, title=title, **kwargs)
+            self._dump_data_as_csv(norm, u, v, lon, lat, title='drifter_velocity', **kwargs)
         if debug or self._debug:
             print '...Passed'
 

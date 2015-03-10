@@ -74,4 +74,6 @@ Notes:
         #                           self.History,
         #                           debug=self._debug) 
 
+        ##Re-assignement of utility functions as methods
+        self.dump_data_as_csv = self.Plots._dump_data_as_csv    
 
