@@ -502,7 +502,7 @@ class TidalStats:
 	plt.legend(loc='lower right', shadow=True)
 
 	r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
-	fig.suptitle(r_string)
+	ax.title(r_string)
 
         #Pretty plot
         seaborn.set(style="darkgrid")
@@ -511,7 +511,7 @@ class TidalStats:
                               xlim=(df.model.min(), df.model.max()),
                               ylim=(df.observed.min(), df.observed.max()),
                               color=color, size=7)   
-        fig.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
+        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 
 	if save:
 	    fig.savefig(out_f)
