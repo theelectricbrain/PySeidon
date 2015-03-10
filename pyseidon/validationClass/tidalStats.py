@@ -502,7 +502,7 @@ class TidalStats:
 	plt.legend(loc='lower right', shadow=True)
 
 	r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
-	ax.title(r_string)
+	plt.title(r_string)
 
         #Pretty plot
         seaborn.set(style="darkgrid")
