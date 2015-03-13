@@ -103,10 +103,30 @@ class _load_validation:
             else: #Interpolation for drifter
                 if debug: print "...Interpolation at measurement locations & times..."
                 if self.sim._3D:
-                    #Import only the surface velocities
-                    #TR_comment: is surface vertical indice -1 or 0?
-                    uSim = np.squeeze(self.sim.u[self._C,-1,:])
-                    vSim = np.squeeze(self.sim.v[self._C,-1,:])
+                    lock=True
+                    while lock:
+                        userInp = input("Compare to depth averaged flow ('daf'),\
+                                         surface flow ('sf') or \
+                                         interp. at given depth (float): ")
+                        if userInp == 'daf':
+                            uSim = np.squeeze(self.sim.ua[self._C,:])
+                            vSim = np.squeeze(self.sim.va[self._C,:])
+                            lock=False
+                        elif userInp == 'sf':                     
+                            #Import only the surface velocities
+                            #TR_comment: is surface vertical indice -1 or 0?
+                            uSim = np.squeeze(self.sim.u[self._C,0,:])
+                            vSim = np.squeeze(self.sim.v[self._C,0,:])
+                            lock=False
+                        elif type(userInp) == float:
+                            if userInp > 0.0: userInp = userInp*-1.0
+                            uSim = interp_at_depth(self.sim.u[self._C,:,:],
+                                                   userInp, debug=debug)
+                            vSim = interp_at_depth(self.sim.v[self._C,:,:],
+                                                   userInp, debug=debug)
+                            lock=False
+                        else:
+                            print "Answer by 'daf', 'sf' or a float number only!!!"
                 else:
                     uSim = np.squeeze(self.sim.ua[self._C,:])
                     vSim = np.squeeze(self.sim.va[self._C,:])
