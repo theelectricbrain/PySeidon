@@ -487,9 +487,9 @@ class FunctionsFvcom:
             index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
         # Conversion (lon, lat) to (x, y)
         pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
-                               index=index, trinodes=trinodes, debug=debug)
+                               index, trinodes, debug=debug)
         pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
-                               index=index, trinodes=trinodes, debug=debug)
+                               index, trinodes, debug=debug)
         #change in function of the data you dealing with
         if any(i == self._grid.nnode for i in var.shape):
             if debug:

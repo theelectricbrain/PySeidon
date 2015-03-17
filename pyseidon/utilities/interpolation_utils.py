@@ -154,10 +154,10 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
     n2 = int(triele[index,1])
     n3 = int(triele[index,2])
     #change end bound indices 
-    test = triele.shape[0]
-    if n1==test: n1 = 0
-    if n2==test: n2 = 0
-    if n3==test: n3 = 0
+    #test = triele.shape[0]
+    #if n1==test: n1 = 0
+    #if n2==test: n2 = 0
+    #if n3==test: n3 = 0
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
@@ -169,34 +169,40 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
     y0 = pt_y - yc[index]
 
     if len(var.shape)==1:
-        dvardx = (a1u[0,index] * var[index]) \
-               + (a1u[1,index] * var[n1]) \
-               + (a1u[2,index] * var[n2]) \
-               + (a1u[3,index] * var[n3])
-        dvardy = (a2u[0,index] * var[index]) \
-               + (a2u[1,index] * var[n1]) \
-               + (a2u[2,index] * var[n2]) \
-               + (a2u[3,index] * var[n3])
+        #Ghost point treatment
+        Var=np.hstack((var, 0.0))
+        dvardx = (a1u[0,index] * Var[index]) \
+               + (a1u[1,index] * Var[n1]) \
+               + (a1u[2,index] * Var[n2]) \
+               + (a1u[3,index] * Var[n3])
+        dvardy = (a2u[0,index] * Var[index]) \
+               + (a2u[1,index] * Var[n1]) \
+               + (a2u[2,index] * Var[n2]) \
+               + (a2u[3,index] * Var[n3])
         varPt = var[index] + (dvardx * x0) + (dvardy * y0)
     elif len(var.shape)==2:
-        dvardx = (a1u[0,index] * var[:,index]) \
-               + (a1u[1,index] * var[:,n1]) \
-               + (a1u[2,index] * var[:,n2]) \
-               + (a1u[3,index] * var[:,n3])
-        dvardy = (a2u[0,index] * var[:,index]) \
-               + (a2u[1,index] * var[:,n1]) \
-               + (a2u[2,index] * var[:,n2]) \
-               + (a2u[3,index] * var[:,n3])
+        #Ghost point treatment        
+        Var=np.concatenate((var,np.zeros((var.shape[0],1))), axis=1)
+        dvardx = (a1u[0,index] * Var[:,index]) \
+               + (a1u[1,index] * Var[:,n1]) \
+               + (a1u[2,index] * Var[:,n2]) \
+               + (a1u[3,index] * Var[:,n3])
+        dvardy = (a2u[0,index] * Var[:,index]) \
+               + (a2u[1,index] * Var[:,n1]) \
+               + (a2u[2,index] * Var[:,n2]) \
+               + (a2u[3,index] * Var[:,n3])
         varPt = var[:,index] + (dvardx * x0) + (dvardy * y0)
     else:
-        dvardx = (a1u[0,index] * var[:,:,index]) \
-               + (a1u[1,index] * var[:,:,n1]) \
-               + (a1u[2,index] * var[:,:,n2]) \
-               + (a1u[3,index] * var[:,:,n3])
-        dvardy = (a2u[0,index] * var[:,:,index]) \
-               + (a2u[1,index] * var[:,:,n1]) \
-               + (a2u[2,index] * var[:,:,n2]) \
-               + (a2u[3,index] * var[:,:,n3])
+        #Ghost point treatment
+        Var=np.concatenate((var,np.zeros((var.shape[0],var.shape[1],1))), axis=2)
+        dvardx = (a1u[0,index] * Var[:,:,index]) \
+               + (a1u[1,index] * Var[:,:,n1]) \
+               + (a1u[2,index] * Var[:,:,n2]) \
+               + (a1u[3,index] * Var[:,:,n3])
+        dvardy = (a2u[0,index] * Var[:,:,index]) \
+               + (a2u[1,index] * Var[:,:,n1]) \
+               + (a2u[2,index] * Var[:,:,n2]) \
+               + (a2u[3,index] * Var[:,:,n3])
         varPt = var[:,:,index] + (dvardx * x0) + (dvardy * y0)
 
     if debug:
@@ -208,7 +214,7 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele, trinodes,
     return varPt.squeeze()
 
 def interp_at_point(var, pt_lon, pt_lat, lon, lat,
-                    index=[], trinodes=[], tri=[], debug=False):
+                    index, trinodes, tri=[], debug=False):
     """
     Interpol any given variables at any give location.
 
@@ -220,7 +226,11 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
       - lon = list of longitudes of var, numpy array, dim=(nele or node)
       - lat = list of latitudes of var, numpy array, dim=(nele or node)
       - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
+    Keywords:
+    --------
+      - tri = triangulation object
     Outputs:
+    -------
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:
