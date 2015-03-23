@@ -14,6 +14,7 @@ from miscellaneous import *
 from BP_tools import *
 from utide import ut_solv, ut_reconstr
 import time
+import matplotlib.tri as Tri
 from pydap.exceptions import ServerError
 
 class FunctionsFvcom:
@@ -35,7 +36,7 @@ class FunctionsFvcom:
         History = self._History
 
     #TR comment: I don't think I need this anymore  
-    def _centers(self, var, debug=False):
+    def _centers(self, debug=False):
         """
         Create new variable 'bathy and elevation at center points' (m)
         -> FVCOM.Grid.hc, elc
@@ -56,8 +57,8 @@ class FunctionsFvcom:
         #TR comment: I am dubeous about the interpolation method here
         for ind, value in enumerate(self._grid.trinodes[:]):
             value.sort()#due to new version of netCDF4
-            elc[:, ind] = np.mean(self._var.el[:, value-1], axis=1)
-            hc[ind] = np.mean(self._grid.h[value-1])
+            elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
+            hc[ind] = np.mean(self._grid.h[value])
 
         #Custom return    
         self._grid.hc = hc
@@ -202,9 +203,11 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc[:],
-                              self._grid.latc[:], debug=debug)[0]
+        index = closest_point(pt_lon, pt_lat,
+                              self._grid.lon,
+                              self._grid.lat,
+                              self._grid.lonc,
+                              self._grid.latc, trinodes, debug=debug)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -346,9 +349,11 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc[:],
-                              self._grid.latc[:], debug=debug)[0]
+        index = closest_point(pt_lon, pt_lat,
+                              self._grid.lon,
+                              self._grid.lat,
+                              self._grid.lonc,
+                              self._grid.latc, trinodes, debug=debug)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -484,14 +489,34 @@ class FunctionsFvcom:
 
         if index==[]:
             # Find indices of the closest element
-            index = closest_point([pt_lon], [pt_lat], lonc, latc, debug=debug)[0]
+            index = closest_point(pt_lon, pt_lat, lon, lat,
+                                  lonc, latc, trinodes, debug=debug)
+            if debug: print "index: ", index
+        #TR comment: sometimes, for el and h, this index is not valid!!!
         # Conversion (lon, lat) to (x, y)
         pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
                                index, trinodes, debug=debug)
         pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
                                index, trinodes, debug=debug)
+        #Mitchell's method to convert deg. coordinates to
+        # relative coordinates in meters
+        #lonweight = (lon[trinodes[index,0]]\
+        #           + lon[trinodes[index,1]]\
+        #           + lon[trinodes[index,2]]) / 3.0
+        #latweight = (lat[trinodes[index,0]]\
+        #           + lat[trinodes[index,1]]\
+        #           + lat[trinodes[index,2]]) / 3.0
+        #TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
+        #pt_y = TPI * (pt_lat - latweight)
+        #dx_sph = pt_lon - lonweight
+        #if (dx_sph > 180.0):
+        #    dx_sph=dx_sph-360.0
+        #elif (dx_sph < -180.0):
+        #    dx_sph =dx_sph+360.0
+        #pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
+        if debug:print "x: ", pt_x, "y: ", pt_y
         #change in function of the data you dealing with
-        if any(i == self._grid.nnode for i in var.shape):
+        if var.shape[-1]== self._grid.nnode:
             if debug:
                 start = time.time() 
             varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
@@ -502,11 +527,22 @@ class FunctionsFvcom:
                 print "Processing time: ", (end - start) 
         else:
             triele = self._grid.triele[:]
+            indexE = closest_point(pt_lon, pt_lat, lon, lat,
+                                  lonc, latc, triele, debug=debug)
             if debug:
-                start = time.time() 
-            varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                      trinodes, self._grid.a1u[:], self._grid.a2u[:],
+                start = time.time()
+            if not np.isnan(indexE):
+                varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
+                                      self._grid.a1u[:], self._grid.a2u[:],
                                       debug=debug)
+            else:
+                #Too slow
+                #varInterp = interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=debug)
+                if len(var.shape)==2:
+                    varInterp = np.squeeze(var[:,index])
+                else:
+                    varInterp = np.squeeze(var[:,:,index])
+                print "---This is the nearest value point---"
             if debug:
                 end = time.time()
                 print "Processing time: ", (end - start)         
@@ -824,9 +860,11 @@ class FunctionsFvcom:
 
         #Finding index
         if index==[]:      
-            index = closest_point([pt_lon], [pt_lat],
-                                  self._grid.lonc[:],
-                                  self._grid.latc[:], debug=debug)[0]
+            index = closest_point(pt_lon, pt_lat,
+                                  self._grid.lon,
+                                  self._grid.lat,
+                                  self._grid.lonc,
+                                  self._grid.latc, trinodes, debug=debug)
 
         if not hasattr(self._grid, 'depth2D'):
             #Compute depth
@@ -1008,9 +1046,11 @@ class FunctionsFvcom:
         '''
         debug = (debug or self._debug)
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc[:],
-                              self._grid.latc[:], debug=debug)[0]
+        index = closest_point(pt_lon, pt_lat,
+                              self._grid.lon,
+                              self._grid.lat,
+                              self._grid.lonc,
+                              self._grid.latc, trinodes, debug=debug)
         argtime = []
         if not time_ind==[]:
             argtime = time_ind
