@@ -115,6 +115,7 @@ class _load_validation:
                             #TR_comment: is surface vertical indice -1 or 0?
                             uSim = np.squeeze(self.sim.u[self._C,0,:])
                             vSim = np.squeeze(self.sim.v[self._C,0,:])
+                            self.sim._3D = False
                             lock=False
                         elif type(userInp) == float:
                             if userInp > 0.0: userInp = userInp*-1.0
