@@ -536,13 +536,12 @@ class FunctionsFvcom:
                                       self._grid.a1u[:], self._grid.a2u[:],
                                       debug=debug)
             else:
-                #Too slow
-                #varInterp = interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=debug)
-                if len(var.shape)==2:
-                    varInterp = np.squeeze(var[:,index])
-                else:
-                    varInterp = np.squeeze(var[:,:,index])
-                print "---This is the nearest value point---"
+                varInterp = interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=debug)
+                #if len(var.shape)==2:
+                #    varInterp = np.squeeze(var[:,index])
+                #else:
+                #    varInterp = np.squeeze(var[:,:,index])
+                #print "---This is the nearest value point---"
             if debug:
                 end = time.time()
                 print "Processing time: ", (end - start)         
