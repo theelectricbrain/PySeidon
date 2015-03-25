@@ -120,7 +120,7 @@ Notes:
                         try:
                             self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
                             #due to mmap not coping with big array > 4Gib
-                        except (OverflowError, TypeError) as e:
+                        except (OverflowError, TypeError, ValueError) as e:
                             self.Data = nc.Dataset(data['Origin'], 'r',
                                        format='NETCDF4_CLASSIC') 
                     else:
@@ -145,7 +145,7 @@ Notes:
                 try:
                     self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
                     #due to mmap not coping with big array > 4Gib
-                except (OverflowError, TypeError) as e: 
+                except (OverflowError, TypeError, ValueError) as e: 
                     self.Data = nc.Dataset(filename, 'r', format='NETCDF4_CLASSIC')
             text = 'Created from ' + filename
             self._origin_file = filename

@@ -380,8 +380,11 @@ Some others shall be generated as methods are being called, ex:
             # get time and adjust it to matlab datenum
             try:
                 self.julianTime = data.variables['time'].data
-            except KeyError: #exeception due to Save_as(netcdf)
-                self.julianTime = data.variables['julianTime'] 
+            except (KeyError, AttributeError) as e: 
+                #exeception due to Save_as(netcdf)
+                if e==KeyError: self.julianTime=data.variables['julianTime'] 
+                #exception for nc.dataset type data
+                if e==AttributeError: self.julianTime = data.variables['time'][:]
             self.matlabTime = self.julianTime[:] + 678942.0
             #-Append message to History field
             start = mattime_to_datetime(self.matlabTime[0])
@@ -677,14 +680,20 @@ Some others shall be generated as methods are being called, ex:
             except AttributeError: #exception for nc.dataset type data
                 setattr(self, 'trinodes', data.variables['trinodes'])#[:])
         else:
-            self.trinodes = np.transpose(data.variables['nv'].data) - 1
+            try:
+                self.trinodes = np.transpose(data.variables['nv'].data) - 1
+            except AttributeError: #exception for nc.dataset type data
+                self.trinodes = np.transpose(data.variables['nv'][:]) - 1
         if "triele" in datavar:
             try:
                 setattr(self, 'triele', data.variables['triele'].data)
             except AttributeError: #exception for nc.dataset type data
                 setattr(self, 'triele', data.variables['triele'])#[:])
         else:
-            self.triele = np.transpose(data.variables['nbe'].data) - 1
+            try:
+                self.triele = np.transpose(data.variables['nbe'].data) - 1
+            except AttributeError: #exception for nc.dataset type data
+                self.triele = np.transpose(data.variables['nbe'][:]) - 1
         #special treatment for depth2D & depth due to Save_as(netcdf)
         if "depth2D" in datavar:
             setattr(self, "depth2D", data.variables["depth2D"])#[:])

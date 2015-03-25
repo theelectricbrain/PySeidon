@@ -105,9 +105,7 @@ class _load_validation:
                 if self.sim._3D:
                     lock=True
                     while lock:
-                        userInp = input("Compare to depth averaged flow ('daf'),\
-                                         surface flow ('sf') or \
-                                         interp. at given depth (float): ")
+                        userInp = input("Compare to depth averaged flow ('daf'), surface flow ('sf') or interp. at given depth (float): ")
                         if userInp == 'daf':
                             uSim = np.squeeze(self.sim.ua[self._C,:])
                             vSim = np.squeeze(self.sim.va[self._C,:])
