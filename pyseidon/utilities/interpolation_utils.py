@@ -398,43 +398,28 @@ def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
         triIndex[2] = np.argmin(closest_dist, axis=1)[0]
         trif = trig.get_trifinder()
         test = -1 * trif.__call__(pt_x, pt_y)
-        if test: closest_dist[:,triIndex[1]]=np.inf
-
-    triIndex.sort()#due to new version of netCDF4
-    tri = Tri.Triangulation(xc[triIndex], yc[triIndex], np.array([[0,1,2]]))
-
-    trif = tri.get_trifinder()
-    trif.__call__(pt_x, pt_y)
-    if debug:
-        if len(var.shape)==1:
-            averEl = var[triIndex]
-            print 'Var', averEl
-            inter = Tri.LinearTriInterpolator(tri, averEl)
-            zi = inter(pt_x, pt_y)
-            print 'zi', zi
-
-    #Choose the right interpolation depending on the variable
+        if test: closest_dist[:,triIndex[2]]=np.inf
+    #new scheme
+    #linear equation
+    x1 = xc[triIndex[0]]; x2 = xc[triIndex[1]]; x3 = xc[triIndex[2]]
+    y1 = xc[triIndex[0]]; y2 = yc[triIndex[1]]; y3 = yc[triIndex[2]]
     if len(var.shape)==1:
-        triVar = np.zeros(3)
-        triVar = var[triIndex]
-        inter = Tri.LinearTriInterpolator(tri, triVar[:])
-        varInterp = inter(pt_x, pt_y)      
+        z1 = var[triIndex[0]]
+        z2 = var[triIndex[1]]
+        z3 = var[triIndex[2]]
     elif len(var.shape)==2:
-        triVar = np.zeros((var.shape[0], 3))
-        triVar = var[:, triIndex]
-        varInterp = np.ones(triVar.shape[0])
-        for i in range(triVar.shape[0]):
-            inter = Tri.LinearTriInterpolator(tri, triVar[i,:])
-            varInterp[i] = inter(pt_x, pt_y)       
+        z1 = var[:,triIndex[0]]
+        z2 = var[:,triIndex[1]]
+        z3 = var[:,triIndex[2]]
     else:
-        triVar = np.zeros((var.shape[0], var.shape[1], 3))
-        triVar = var[:, :, triIndex]
-        varInterp = np.ones(triVar.shape[:-1])
-        for i in range(triVar.shape[0]):
-           for j in range(triVar.shape[1]):
-               inter = Tri.LinearTriInterpolator(tri, triVar[i,j,:])
-               varInterp[i,j] = inter(pt_x, pt_y)
-
+        z1 = var[:,:,triIndex[0]]
+        z2 = var[:,:,triIndex[1]]
+        z3 = var[:,:,triIndex[2]]
+    a = np.array([[x2-x1,x3-x1],[y2-y1,y3-y1]])
+    b = np.array([pt_x-x1,pt_y-y1])
+    A, B = np.linalg.solve(a, b)
+    varInterp = z1 + A * (z2 - z1) + B * (z3 - z1) 
+    #end new scheme
     if debug:
         print '...Passed'
 
