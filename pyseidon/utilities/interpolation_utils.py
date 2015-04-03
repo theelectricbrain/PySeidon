@@ -400,9 +400,13 @@ def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
         test = -1 * trif.__call__(pt_x, pt_y)
         if test: closest_dist[:,triIndex[2]]=np.inf
     #new scheme
-    #linear equation
+    #linear equation based on plane equation
     x1 = xc[triIndex[0]]; x2 = xc[triIndex[1]]; x3 = xc[triIndex[2]]
     y1 = xc[triIndex[0]]; y2 = yc[triIndex[1]]; y3 = yc[triIndex[2]]
+    a = np.array([[x2-x1,x3-x1],[y2-y1,y3-y1]])
+    b = np.array([pt_x-x1,pt_y-y1])
+    A, B = np.linalg.solve(a, b)
+    #applying weights
     if len(var.shape)==1:
         z1 = var[triIndex[0]]
         z2 = var[triIndex[1]]
@@ -415,9 +419,6 @@ def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
         z1 = var[:,:,triIndex[0]]
         z2 = var[:,:,triIndex[1]]
         z3 = var[:,:,triIndex[2]]
-    a = np.array([[x2-x1,x3-x1],[y2-y1,y3-y1]])
-    b = np.array([pt_x-x1,pt_y-y1])
-    A, B = np.linalg.solve(a, b)
     varInterp = z1 + A * (z2 - z1) + B * (z3 - z1) 
     #end new scheme
     if debug:
