@@ -67,7 +67,7 @@ class _load_validation:
         if simulated.__module__=='pyseidon.stationClass.stationClass':
             self._simtype = 'station'
             #Find closest point to ADCP
-            ind = closest_point([self.obs.lon], [self.obs.lat],
+            ind = closest_points([self.obs.lon], [self.obs.lat],
                                 simulated.Grid.lon[:],
                                 simulated.Grid.lat[:])
             nameSite = ''.join(simulated.Grid.name[ind,:][0,:])
