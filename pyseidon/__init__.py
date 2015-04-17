@@ -15,13 +15,13 @@ sys.path.append(os.path.join(local,'validationClass'))
 sys.path.append(os.path.join(local,'utilities'))
 
 #Local import
-from fvcomClass import *
+from utilities import *
 from adcpClass import *
 from drifterClass import *
 from tidegaugeClass import *
-from validationClass import *
 from stationClass import *
-from utilities import *
+from fvcomClass import *
+from validationClass import *
 
 #Permission info for OpenDap server
 #print "OpenDap server connexion info:"
