@@ -1,0 +1,2305 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to PySeidon’s documentation! &mdash; PySeidon 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PySeidon 2.0 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">PySeidon 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-pyseidon-s-documentation">
+<h1>Welcome to PySeidon&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyseidon-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+<div class="section" id="simulation-classes">
+<h1>Simulation classes<a class="headerlink" href="#simulation-classes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyseidon">
+<span id="fvcom-class"></span><h2>FVCOM Class<a class="headerlink" href="#module-pyseidon" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.FVCOM">
+<em class="property">class </em><tt class="descclassname">pyseidon.</tt><tt class="descname">FVCOM</tt><big>(</big><em>filename</em>, <em>ax=[]</em>, <em>tx=[]</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.FVCOM" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A class/structure for FVCOM data.
+Functionality structured as follows:</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div>_Data. = raw netcdf file data</div></blockquote>
+<p><a href="#id1"><span class="problematic" id="id2">|</span></a>_Variables. = fvcom variables and quantities
+<a href="#id3"><span class="problematic" id="id4">|</span></a>_Grid. = fvcom grid data
+<a href="#id5"><span class="problematic" id="id6">|</span></a>_History = Quality Control metadata</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>FVCOM._|_Utils2D. = set of useful functions and methods for 2D and 3D runs</dt>
+<dd><a href="#id7"><span class="problematic" id="id8">|</span></a>_Utils3D. = set of useful functions and methods for 3D runs
+<a href="#id9"><span class="problematic" id="id10">|</span></a>_Plots. = plotting functions
+<a href="#id11"><span class="problematic" id="id12">|</span></a>_Save_as = &#8220;save as&#8221; methods</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>filename = path to file, string, </dt>
+<dd><p class="first last">ex: testFvcom=FVCOM(&#8216;./path_to_FVOM_output_file/filename&#8217;).
+Note that the file can be a pickle file (i.e. <a href="#id13"><span class="problematic" id="id14">*</span></a>.p)
+or a netcdf file (i.e. <a href="#id15"><span class="problematic" id="id16">*</span></a>.nc).
+Additionally, either a file path or a OpenDap url could be used.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>ax = defines for a specific spatial region to work with, as such:</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt>ax = [minimun longitude, maximun longitude,</dt>
+<dd><p class="first last">minimun latitude, maximum latitude]</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>or use one of the following pre-defined region:</dt>
+<dd><p class="first last">ax = &#8216;GP&#8217;, &#8216;PP&#8217;, &#8216;DG&#8217; or &#8216;MP&#8217;</p>
+</dd>
+</dl>
+<p class="last">Note that this option permits to extract partial data from the overall file
+and therefore reduce memory and cpu use.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>tx = defines for a specific temporal period to work with, as such:</dt>
+<dd><blockquote class="first">
+<div><p>tx = [&#8216;2012-11-07T12:00:00&#8217;,&#8216;2012.11.09T12:00:00&#8217;],</p>
+</div></blockquote>
+<p class="last">string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;.
+Note that this option permits to extract partial data from the overall file
+and therefore reduce memory and cpu use.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><p>Throughout the package, the following conventions apply:
+- Date = string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;
+- Coordinates = decimal degrees East and North
+- Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
+<blockquote>
+<div>+/-180=West, -90=South</div></blockquote>
+<ul class="simple">
+<li>Depth = 0m is the free surface and depth is negative</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="pyseidon.FVCOM.save_as">
+<tt class="descname">save_as</tt><big>(</big><em>filename</em>, <em>fileformat='netcdf'</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.FVCOM.save_as" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This method saves the current FVCOM structure as:</dt>
+<dd><ul class="first last simple">
+<li><a href="#id17"><span class="problematic" id="id18">*</span></a>.nc, i.e. netcdf file</li>
+<li><a href="#id19"><span class="problematic" id="id20">*</span></a>.p, i.e. python file</li>
+<li><a href="#id21"><span class="problematic" id="id22">*</span></a>.mat, i.e. Matlab file</li>
+</ul>
+</dd>
+</dl>
+<blockquote>
+<div><ul class="simple">
+<li>filename = path + name of the file to be saved, string</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>fileformat = format of the file to be saved, i.e. &#8216;pickle&#8217;, .netcdf. or &#8216;matlab&#8217;</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="module-functionsFvcom">
+<span id="util2d"></span><h3>Util2D<a class="headerlink" href="#module-functionsFvcom" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="functionsFvcom.FunctionsFvcom">
+<em class="property">class </em><tt class="descclassname">functionsFvcom.</tt><tt class="descname">FunctionsFvcom</tt><big>(</big><em>variable</em>, <em>grid</em>, <em>plot</em>, <em>History</em>, <em>debug</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Util2D&#8217; subset of FVCOM class gathers
+useful functions and methods for 2D and 3D runs</p>
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.Harmonic_analysis_at_point">
+<tt class="descname">Harmonic_analysis_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>time_ind=[]</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>debug=False</em>, <em>**kwarg</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.Harmonic_analysis_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.Harmonic_analysis_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function performs a harmonic analysis on the sea surface elevation
+time series or the velocity components timeseries.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East, float number</li>
+<li>pt_lat = latitude in decimal degrees North, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>harmo = harmonic coefficients, dictionary</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">elevation=True means that ut_solv will be done for elevation.</p>
+</li>
+<li><p class="first">velocity=True means that ut_solv will be done for velocity.</p>
+</li>
+</ul>
+</div></blockquote>
+<p>Options are the same as for ut_solv, which are shown below with
+their default values:</p>
+<blockquote>
+<div>conf_int=True; cnstit=&#8217;auto&#8217;; notrend=0; prefilt=[]; nodsatlint=0;
+nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
+rmin=1; method=&#8217;cauchy&#8217;; tunrdn=1; linci=0; white=0; nrlzn=200;
+lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
+ordercnstit=[]; runtimedisp=&#8217;yyy&#8217;</div></blockquote>
+<p>For more detailed information about ut_solv, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.Harmonic_reconstruction">
+<tt class="descname">Harmonic_reconstruction</tt><big>(</big><em>harmo</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reconstructs the velocity components or the surface elevation
+from harmonic coefficients.
+Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
+(ut_solv) has already been executed.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Harmo = harmonic coefficient from harmo_analysis</li>
+<li>elevation =True means that ut_reconstr will be done for elevation.</li>
+<li>velocity =True means that ut_reconst will be done for velocity.</li>
+<li>time_ind = time indices to process, list of integers</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Reconstruct = reconstructed signal, dictionary</li>
+</ul>
+</div></blockquote>
+<p>Options are the same as for ut_reconstr, which are shown below with
+their default values:</p>
+<blockquote>
+<div>cnstit = [], minsnr = 2, minpe = 0</div></blockquote>
+<p>For more detailed information about ut_reconstr, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.bidirectionality">
+<tt class="descname">bidirectionality</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.bidirectionality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.bidirectionality" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8221;
+This function computes the depth averaged bidirectionality (deg.)</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East of the reference point, float number</li>
+<li>pt_lat = latitude in decimal degrees North of the reference point, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>bidir = 1D array of depth averaged bidirectionality, (nele)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>bidirectionality between 0 and 90 deg., i.e. 0=perfect alignment,
+90 = perpendicular abb and flood</li>
+<li>bidirectionality is weighted by the flow speed to filter out slack water</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.depth">
+<tt class="descname">depth</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates a new grid variable: &#8216;depth2D&#8217; (m)
+-&gt; FVCOM.Grid.depth2D</p>
+<blockquote>
+<div><ul class="simple">
+<li>depth convention: 0 = free surface</li>
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.depth_at_point">
+<tt class="descname">depth_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>index=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.depth_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.depth_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes the depth at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East, float number</li>
+<li>pt_lat = latitude in decimal degrees North, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>dep = depth, 2D array (ntime, nlevel)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>index = element index, interger</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>depth convention: 0 = free surface</li>
+<li>index is used in case one knows already at which
+element depth is requested</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.depth_averaged_power_assessment">
+<tt class="descname">depth_averaged_power_assessment</tt><big>(</big><em>power_mat</em>, <em>rated_speed</em>, <em>cut_in=1.0</em>, <em>cut_out=4.5</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.depth_averaged_power_assessment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.depth_averaged_power_assessment" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates a new variable: &#8216;depth averaged power assessment&#8217; (W/m2)
+-&gt; FVCOM.Variables.depth_av_power_assessment</p>
+<p>This function performs tidal turbine power assessment by accounting for
+cut-in and cut-out speed, power curve/function (pc):</p>
+<blockquote>
+<div><blockquote>
+<div>Cp = pc(u)</div></blockquote>
+<p>(where u is the flow speed)</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>The power density (pd) is then calculated as follows:</dt>
+<dd>pd = Cp*(1/2)*1025*(u**3)</dd>
+</dl>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>power_mat = power matrix (u,Ct(u)), 2D array (2,n),</dt>
+<dd><p class="first last">u being power_mat[0,:] and Ct(u) being power_mat[1,:]</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">rated_speed = rated speed speed in m/s, float number</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>cut_in = cut-in speed in m/s, float number</li>
+<li>cut_out = cut-out speed in m/s, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>This may take some time to compute depending on the size
+of the data set</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.depth_averaged_power_density">
+<tt class="descname">depth_averaged_power_density</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.depth_averaged_power_density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.depth_averaged_power_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates a new variable: &#8216;depth averaged power density&#8217; (W/m2)
+-&gt; FVCOM.Variables.depth_av_power_density</p>
+<dl class="docutils">
+<dt>The power density (pd) is then calculated as follows:</dt>
+<dd>pd = 0.5*1025*(u**3)</dd>
+</dl>
+<blockquote>
+<div><ul class="simple">
+<li>This may take some time to compute depending on the size
+of the data set</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.ebb_flood_split_at_point">
+<tt class="descname">ebb_flood_split_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.ebb_flood_split_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.ebb_flood_split_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This functions computes time indices for ebb and flood but also the 
+principal flow directions and associated variances
+at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East to find, float number</li>
+<li>pt_lat = latitude in decimal degrees North to find,float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>floodIndex = flood time index, 1D array of integers</li>
+<li>ebbIndex = ebb time index, 1D array of integers</li>
+<li>pr_axis = principal flow ax1s, float number in degrees</li>
+<li>pr_ax_var = associated variance, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, 1D array of integers</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>may take time to compute if time period too long</li>
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>use time_ind or t_start and t_end, not both</li>
+<li>assume that flood is aligned with principal direction</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.exceedance">
+<tt class="descname">exceedance</tt><big>(</big><em>var</em>, <em>pt_lon=[]</em>, <em>pt_lat=[]</em>, <em>graph=True</em>, <em>dump=False</em>, <em>debug=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.exceedance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.exceedance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the excedence curve of a var(time)
+at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>pt_lon, pt_lat = coordinates, float numbers.</dt>
+<dd><p class="first last">Necessary if var = 2D (i.e. [time, nnode or nele]</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">graph: True-&gt;plots curve; False-&gt;does not</p>
+</li>
+<li><p class="first">dump = boolean, dump graph data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Exceedance = list of % of occurences, 1D array</li>
+<li>Ranges = list of signal amplitude bins, 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>This method is not suitable for SSE</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.flow_dir">
+<tt class="descname">flow_dir</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.flow_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.flow_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8221;
+This method create new variable &#8216;depth averaged flow directions&#8217; (deg.)
+-&gt; FVCOM.Variables.depth_av_flow_dir</p>
+<blockquote>
+<div><ul class="simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.flow_dir_at_point">
+<tt class="descname">flow_dir_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>graph=True</em>, <em>exceedance=False</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.flow_dir_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.flow_dir_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes flow directions and associated norm
+at any give location.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East to find, float number</li>
+<li>pt_lat = latitude in decimal degrees North to find, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>flowDir = flowDir at (pt_lon, pt_lat), 1D array</li>
+<li>norm = velocity norm at (pt_lon, pt_lat), 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">excedance = True, compute associated exceedance curve</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.hori_velo_norm">
+<tt class="descname">hori_velo_norm</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.hori_velo_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.hori_velo_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes  a new variable: &#8216;horizontal velocity norm&#8217; (m/s)
+-&gt; FVCOM.Variables.hori_velo_norm</p>
+<blockquote>
+<div><ul class="simple">
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.interpolation_at_point">
+<tt class="descname">interpolation_at_point</tt><big>(</big><em>var</em>, <em>pt_lon</em>, <em>pt_lat</em>, <em>index=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.interpolation_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.interpolation_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function interpolates any given variables at any give location.</p>
+<blockquote>
+<div><ul class="simple">
+<li>var = any FVCOM grid data or variable, numpy array</li>
+<li>pt_lon = longitude in decimal degrees East to find, float number</li>
+<li>pt_lat = latitude in decimal degrees North to find, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>varInterp = var interpolated at (pt_lon, pt_lat)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>index = element index, integer. Use only if closest element index</dt>
+<dd><p class="first last">is already known</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>use index if closest element already known</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.speed_histogram">
+<tt class="descname">speed_histogram</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>debug=False</em>, <em>dump=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.speed_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.speed_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the histogram of occurrences for the signed
+flow speed at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East to find, float number</li>
+<li>pt_lat = latitude in decimal degrees North to find,float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, 1D array of integers</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.vorticity">
+<tt class="descname">vorticity</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.vorticity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.vorticity" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates a new variable: &#8216;depth averaged vorticity (1/s)&#8217;
+-&gt; FVCOM.Variables.depth_av_vorticity</p>
+<blockquote>
+<div><ul class="simple">
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcom.FunctionsFvcom.vorticity_over_period">
+<tt class="descname">vorticity_over_period</tt><big>(</big><em>time_ind=[]</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcom.html#FunctionsFvcom.vorticity_over_period"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcom.FunctionsFvcom.vorticity_over_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes the depth averaged vorticity for a time period.</p>
+<blockquote>
+<div><ul class="simple">
+<li>vort = horizontal vorticity (1/s), 2D array (time, nele)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-functionsFvcomThreeD">
+<span id="util3d"></span><h3>Util3D<a class="headerlink" href="#module-functionsFvcomThreeD" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD">
+<em class="property">class </em><tt class="descclassname">functionsFvcomThreeD.</tt><tt class="descname">FunctionsFvcomThreeD</tt><big>(</big><em>variable</em>, <em>grid</em>, <em>plot</em>, <em>util</em>, <em>History</em>, <em>debug</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Utils3D&#8217; subset of FVCOM class gathers
+useful methods and functions for 3D runs</p>
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.depth">
+<tt class="descname">depth</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes new grid variable: &#8216;depth&#8217; (m)
+-&gt; FVCOM.Grid.depth</p>
+<blockquote>
+<div><ul class="simple">
+<li>depth convention: 0 = free surface</li>
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.depth_at_point">
+<tt class="descname">depth_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>index=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.depth_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.depth_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes depth at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East, float number</li>
+<li>pt_lat = latitude in decimal degrees North, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>dep = depth, 2D array (ntime, nlevel)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>index = element index, interger. Use only if closest element</dt>
+<dd><p class="first last">index is already known</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>depth convention: 0 = free surface</li>
+<li>index is used in case one knows already at which
+element depth is requested</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.flow_dir">
+<tt class="descname">flow_dir</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.flow_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.flow_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8221;
+This method computes a new variable: &#8216;flow directions&#8217; (deg.)
+-&gt; FVCOM.Variables.flow_dir</p>
+<blockquote>
+<div><ul class="simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.flow_dir_at_point">
+<tt class="descname">flow_dir_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>vertical=True</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.flow_dir_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.flow_dir_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes flow directions and associated norm
+at any given location.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East to find</li>
+<li>pt_lat = latitude in decimal degrees North to find</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
+<li>norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">vertical = True, compute flowDir for each vertical level</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.interp_at_depth">
+<tt class="descname">interp_at_depth</tt><big>(</big><em>var</em>, <em>depth</em>, <em>ind=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.interp_at_depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.interp_at_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function interpolates any given FVCOM.Variables field
+onto a specified depth plan</p>
+<blockquote>
+<div><ul>
+<li><p class="first">var = 3 dimensional (time, sigma level, element) variable, array</p>
+</li>
+<li><dl class="first docutils">
+<dt>depth = interpolation depth (float in meters), negative from</dt>
+<dd><p class="first last">water column top downwards</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>ind = array of closest indexes to depth, 2D array (ntime, nele)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>interpVar = 2 dimensional (time, element) variable, masked array</li>
+<li>ind = array of closest indexes to depth, 2D array (ntime, nele)</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.power_assessment_at_depth">
+<tt class="descname">power_assessment_at_depth</tt><big>(</big><em>depth</em>, <em>power_mat</em>, <em>rated_speed</em>, <em>cut_in=1.0</em>, <em>cut_out=4.5</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.power_assessment_at_depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.power_assessment_at_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes power assessment (W/m2) at given depth.</p>
+<p>This function performs tidal turbine power assessment by accounting for
+cut-in and cut-out speed, power curve/function (pc):</p>
+<blockquote>
+<div><blockquote>
+<div>Cp = pc(u)</div></blockquote>
+<p>(where u is the flow speed)</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>The power density (pd) is then calculated as follows:</dt>
+<dd>pd = Cp*(1/2)*1025*(u**3)</dd>
+</dl>
+<blockquote>
+<div><ul>
+<li><p class="first">depth = given depth from the surface, float</p>
+</li>
+<li><dl class="first docutils">
+<dt>power_mat = power matrix (u,Cp(u)), 2D array (2,n),</dt>
+<dd><p class="first last">u being power_mat[0,:] and Ct(u) being power_mat[1,:]</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">rated_speed = rated speed speed in m/s, float number</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>pa = power assessment in (W/m2), 2D masked array (ntime, nele)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>cut_in = cut-in speed in m/s, float number</li>
+<li>cut_out = cut-out speed in m/s, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>This may take some time to compute depending on the size
+of the data set</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.power_density">
+<tt class="descname">power_density</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.power_density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.power_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates a new variable: &#8216;power density&#8217; (W/m2)
+-&gt; FVCOM.Variables.power_density</p>
+<dl class="docutils">
+<dt>The power density (pd) is then calculated as follows:</dt>
+<dd>pd = 0.5*1025*(u**3)</dd>
+</dl>
+<blockquote>
+<div><ul class="simple">
+<li>This may take some time to compute depending on the size
+of the data set</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.velo_norm">
+<tt class="descname">velo_norm</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.velo_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.velo_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes a new variable: &#8216;velocity norm&#8217; (m/s)
+-&gt; FVCOM.Variables.velo_norm</p>
+<blockquote>
+<div>-Can take time over the full domain</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.velo_norm_at_point">
+<tt class="descname">velo_norm_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>graph=True</em>, <em>dump=False</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.velo_norm_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.velo_norm_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes the velocity norm at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East, float number</li>
+<li>pt_lat = latitude in decimal degrees North, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>velo_norm = velocity norm, 2D array (time, level)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">graph = boolean, plots or not veritcal profile</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.verti_shear">
+<tt class="descname">verti_shear</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.verti_shear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.verti_shear" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes a new variable: &#8216;vertical shear&#8217; (1/s)
+-&gt; FVCOM.Variables.verti_shear</p>
+<blockquote>
+<div><ul class="simple">
+<li>Can take time over the full doma</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.verti_shear_at_point">
+<tt class="descname">verti_shear_at_point</tt><big>(</big><em>pt_lon</em>, <em>pt_lat</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>bot_lvl=[]</em>, <em>top_lvl=[]</em>, <em>graph=True</em>, <em>dump=False</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.verti_shear_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.verti_shear_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes vertical shear at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>pt_lon = longitude in decimal degrees East, float number</li>
+<li>pt_lat = latitude in decimal degrees North, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">bot_lvl = index of the bottom level to consider, integer</p>
+</li>
+<li><p class="first">top_lvl = index of the top level to consider, integer</p>
+</li>
+<li><p class="first">graph = plots graph if True</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.vorticity">
+<tt class="descname">vorticity</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.vorticity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.vorticity" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates a new variable: &#8216;depth averaged vorticity&#8217; (1/s)
+-&gt; FVCOM.Variables.vorticity</p>
+<blockquote>
+<div><ul class="simple">
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsFvcomThreeD.FunctionsFvcomThreeD.vorticity_over_period">
+<tt class="descname">vorticity_over_period</tt><big>(</big><em>time_ind=[]</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsFvcomThreeD.html#FunctionsFvcomThreeD.vorticity_over_period"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsFvcomThreeD.FunctionsFvcomThreeD.vorticity_over_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes the vorticity for a time period.</p>
+<blockquote>
+<div><ul class="simple">
+<li>vort = horizontal vorticity (1/s), 2D array (time, nele)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Can take time over the full domain</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-plotsFvcom">
+<span id="plots"></span><h3>Plots<a class="headerlink" href="#module-plotsFvcom" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="plotsFvcom.PlotsFvcom">
+<em class="property">class </em><tt class="descclassname">plotsFvcom.</tt><tt class="descname">PlotsFvcom</tt><big>(</big><em>variable</em>, <em>grid</em>, <em>debug</em><big>)</big><a class="reference internal" href="_modules/plotsFvcom.html#PlotsFvcom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsFvcom.PlotsFvcom" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Plots&#8217; subset of FVCOM class gathers plotting functions</p>
+<dl class="method">
+<dt id="plotsFvcom.PlotsFvcom.Histogram">
+<tt class="descname">Histogram</tt><big>(</big><em>y</em>, <em>title=' '</em>, <em>xLabel=' '</em>, <em>yLabel=' '</em>, <em>dump=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/plotsFvcom.html#PlotsFvcom.Histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsFvcom.PlotsFvcom.Histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Histogram plot</p>
+<blockquote>
+<div><ul class="simple">
+<li>bins = list of bin edges</li>
+<li>y = 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">title = plot title, string</p>
+</li>
+<li><p class="first">xLabel = title of the x-axis, string</p>
+</li>
+<li><p class="first">yLabel = title of the y-axis, string</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="plotsFvcom.PlotsFvcom.add_points">
+<tt class="descname">add_points</tt><big>(</big><em>x</em>, <em>y</em>, <em>label=' '</em>, <em>color='black'</em><big>)</big><a class="reference internal" href="_modules/plotsFvcom.html#PlotsFvcom.add_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsFvcom.PlotsFvcom.add_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds scattered points (x,y) on current figure,
+where x and y are 1D arrays of the same lengths.</p>
+<blockquote>
+<div><ul class="simple">
+<li>x = float number or list of float numbers</li>
+<li>y = float number or list of float numbers</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Label = a string</li>
+<li>Color = a string, &#8216;red&#8217;, &#8216;green&#8217;, etc. or gray shades like &#8216;0.5&#8217;</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="plotsFvcom.PlotsFvcom.colormap_var">
+<tt class="descname">colormap_var</tt><big>(</big><em>var</em>, <em>title=' '</em>, <em>cmin=[]</em>, <em>cmax=[]</em>, <em>cmap=[]</em>, <em>degree=True</em>, <em>mesh=True</em>, <em>dump=False</em>, <em>debug=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/plotsFvcom.html#PlotsFvcom.colormap_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsFvcom.PlotsFvcom.colormap_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>2D xy colormap plot of any given variable and mesh.</p>
+<blockquote>
+<div><ul class="simple">
+<li>var = gridded variable, 1 D numpy array (nele or nnode)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">title = plot title, string</p>
+</li>
+<li><p class="first">cmin = minimum limit colorbar</p>
+</li>
+<li><p class="first">cmax = maximum limit colorbar</p>
+</li>
+<li><p class="first">cmap = matplolib colormap</p>
+</li>
+<li><p class="first">mesh = True, with mesh; False, without mesh</p>
+</li>
+<li><p class="first">degree = boolean, coordinates in degrees (True) or meters (False)</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="plotsFvcom.PlotsFvcom.plot_xy">
+<tt class="descname">plot_xy</tt><big>(</big><em>x</em>, <em>y</em>, <em>xerror=[]</em>, <em>yerror=[]</em>, <em>title=' '</em>, <em>xLabel=' '</em>, <em>yLabel=' '</em>, <em>dump=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/plotsFvcom.html#PlotsFvcom.plot_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsFvcom.PlotsFvcom.plot_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple X vs Y plot</p>
+<blockquote>
+<div><ul class="simple">
+<li>x = 1D array</li>
+<li>y = 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">xerror = error on &#8216;x&#8217;, 1D array</p>
+</li>
+<li><p class="first">yerror = error on &#8216;y&#8217;, 1D array</p>
+</li>
+<li><p class="first">title = plot title, string</p>
+</li>
+<li><p class="first">xLabel = title of the x-axis, string</p>
+</li>
+<li><p class="first">yLabel = title of the y-axis, string</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="plotsFvcom.PlotsFvcom.rose_diagram">
+<tt class="descname">rose_diagram</tt><big>(</big><em>direction</em>, <em>norm</em><big>)</big><a class="reference internal" href="_modules/plotsFvcom.html#PlotsFvcom.rose_diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsFvcom.PlotsFvcom.rose_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots rose diagram</p>
+<blockquote>
+<div><ul class="simple">
+<li>direction = 1D array</li>
+<li>norm = 1D array</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-pyseidon">
+<span id="station-class"></span><h2>Station Class<a class="headerlink" href="#module-pyseidon" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.Station">
+<em class="property">class </em><tt class="descclassname">pyseidon.</tt><tt class="descname">Station</tt><big>(</big><em>filename</em>, <em>elements=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.Station" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A class/structure for Station data.
+Functionality structured as follows:</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div>_Data. = raw netcdf file data</div></blockquote>
+<p><a href="#id23"><span class="problematic" id="id24">|</span></a>_Variables. = fvcom station variables and quantities
+<a href="#id25"><span class="problematic" id="id26">|</span></a>_Grid. = fvcom station grid data
+<a href="#id27"><span class="problematic" id="id28">|</span></a>_History = Quality Control metadata</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>testFvcom._|_Utils2D. = set of useful functions for 2D and 3D station</dt>
+<dd><a href="#id29"><span class="problematic" id="id30">|</span></a>_Utils3D. = set of useful functions for 3D station
+<a href="#id31"><span class="problematic" id="id32">|</span></a>_Plots. = plotting functions
+<a href="#id33"><span class="problematic" id="id34">|</span></a>_Harmonic_analysis = harmonic analysis based UTide package
+<a href="#id35"><span class="problematic" id="id36">|</span></a>_Harmonic_reconstruction = harmonic reconstruction based UTide package</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>filename = path to netcdf file or folder, string, </dt>
+<dd><dl class="first last docutils">
+<dt>ex: testFvcom=Station(&#8216;./path_to_FVOM_output_file/filename&#8217;)</dt>
+<dd><p class="first last">testFvcom=Station(&#8216;./path_to_FVOM_output_file/folder/&#8217;)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Note that if the path point to a folder all the similar netCDF station files
+will be stack together.
+Note that the file can be a pickle file (i.e. <a href="#id37"><span class="problematic" id="id38">*</span></a>.p) or a netcdf file 
+(i.e. <a href="#id39"><span class="problematic" id="id40">*</span></a>.nc).</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>elements = indices to extract, list of integers</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><p>Throughout the package, the following conventions aplly:
+- Date = string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;
+- Coordinates = decimal degrees East and North
+- Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
+<blockquote>
+<div>+/-180=West, -90=South</div></blockquote>
+<ul class="simple">
+<li>Depth = 0m is the free surface and depth is negative</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="pyseidon.Station.Save_as">
+<tt class="descname">Save_as</tt><big>(</big><em>filename</em>, <em>fileformat='pickle'</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.Station.Save_as" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Save the current Station structure as:</dt>
+<dd><ul class="first last simple">
+<li><a href="#id41"><span class="problematic" id="id42">*</span></a>.p, i.e. python file</li>
+<li><a href="#id43"><span class="problematic" id="id44">*</span></a>.mat, i.e. Matlab file</li>
+</ul>
+</dd>
+</dl>
+<blockquote>
+<div><ul class="simple">
+<li>filename = path + name of the file to be saved, string</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>fileformat = format of the file to be saved, i.e. &#8216;pickle&#8217; or &#8216;matlab&#8217;</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="id45">
+<h3>Util2D<a class="headerlink" href="#id45" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-functionsStation"></span><dl class="class">
+<dt id="functionsStation.FunctionsStation">
+<em class="property">class </em><tt class="descclassname">functionsStation.</tt><tt class="descname">FunctionsStation</tt><big>(</big><em>variable</em>, <em>grid</em>, <em>plot</em>, <em>History</em>, <em>debug</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Util2D&#8217; subset of Station class gathers
+useful functions for 2D and 3D runs</p>
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.Harmonic_analysis_at_point">
+<tt class="descname">Harmonic_analysis_at_point</tt><big>(</big><em>station</em>, <em>time_ind=[]</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>debug=False</em>, <em>**kwarg</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.Harmonic_analysis_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.Harmonic_analysis_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function performs a harmonic analysis on the sea surface elevation
+time series or the velocity components timeseries.</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>harmo = harmonic coefficients, dictionary</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">elevation=True means that ut_solv will be done for elevation.</p>
+</li>
+<li><p class="first">velocity=True means that ut_solv will be done for velocity.</p>
+</li>
+</ul>
+</div></blockquote>
+<p>Options are the same as for ut_solv, which are shown below with
+their default values:</p>
+<blockquote>
+<div>conf_int=True; cnstit=&#8217;auto&#8217;; notrend=0; prefilt=[]; nodsatlint=0;
+nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
+rmin=1; method=&#8217;cauchy&#8217;; tunrdn=1; linci=0; white=0; nrlzn=200;
+lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
+ordercnstit=[]; runtimedisp=&#8217;yyy&#8217;</div></blockquote>
+<p>For more detailed information about ut_solv, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.Harmonic_reconstruction">
+<tt class="descname">Harmonic_reconstruction</tt><big>(</big><em>harmo</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reconstructs the velocity components or the surface elevation
+from harmonic coefficients.
+Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
+(ut_solv) has already been executed.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Harmo = harmonic coefficient from harmo_analysis</li>
+<li>elevation =True means that ut_reconstr will be done for elevation.</li>
+<li>velocity =True means that ut_reconst will be done for velocity.</li>
+<li>time_ind = time indices to process, list of integers</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Reconstruct = reconstructed signal, dictionary</li>
+</ul>
+</div></blockquote>
+<p>Options are the same as for ut_reconstr, which are shown below with
+their default values:</p>
+<blockquote>
+<div>cnstit = [], minsnr = 2, minpe = 0</div></blockquote>
+<p>For more detailed information about ut_reconstr, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.depth">
+<tt class="descname">depth</tt><big>(</big><em>station</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute depth at given point</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>dep = depth, 2D array (ntime, nlevel)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>depth convention: 0 = free surface</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.ebb_flood_split">
+<tt class="descname">ebb_flood_split</tt><big>(</big><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.ebb_flood_split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.ebb_flood_split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute time indices for ebb and flood but also the 
+principal flow directions and associated variances for (lon, lat) point</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>floodIndex = flood time index, 1D array of integers</li>
+<li>ebbIndex = ebb time index, 1D array of integers</li>
+<li>pr_axis = principal flow ax1s, float number in degrees</li>
+<li>pr_ax_var = associated variance, float number</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, 1D array of integers</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>may take time to compute if time period too long</li>
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>use time_ind or t_start and t_end, not both</li>
+<li>assume that flood is aligned with principal direction</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.exceedance">
+<tt class="descname">exceedance</tt><big>(</big><em>var</em>, <em>station=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.exceedance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.exceedance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculate the excedence curve of a var(time).</p>
+<blockquote>
+<div><ul class="simple">
+<li>var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>station = either station index (interger) or name (string)</dt>
+<dd><p class="first last">Necessary if var = 2D (i.e. [time, nnode or nele]</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">graph: True-&gt;plots curve; False-&gt;does not</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Exceedance = list of % of occurences, 1D array</li>
+<li>Ranges = list of signal amplitude bins, 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>This method is not suitable for SSE</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.flow_dir">
+<tt class="descname">flow_dir</tt><big>(</big><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>exceedance=False</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.flow_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.flow_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flow directions and associated norm at any give location.</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>flowDir = flowDir at station, 1D array</li>
+<li>norm = velocity norm at station, 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">excedance = True, compute associated exceedance curve</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.search_index">
+<tt class="descname">search_index</tt><big>(</big><em>station</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.search_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.search_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the station index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStation.FunctionsStation.speed_histogram">
+<tt class="descname">speed_histogram</tt><big>(</big><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStation.html#FunctionsStation.speed_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStation.FunctionsStation.speed_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the histogram of occurrences for the signed
+flow speed at any given point.</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, 1D array of integers</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="id46">
+<h3>Util3D<a class="headerlink" href="#id46" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-functionsStationThreeD"></span><dl class="class">
+<dt id="functionsStationThreeD.FunctionsStationThreeD">
+<em class="property">class </em><tt class="descclassname">functionsStationThreeD.</tt><tt class="descname">FunctionsStationThreeD</tt><big>(</big><em>variable</em>, <em>grid</em>, <em>plot</em>, <em>History</em>, <em>debug</em><big>)</big><a class="reference internal" href="_modules/functionsStationThreeD.html#FunctionsStationThreeD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStationThreeD.FunctionsStationThreeD" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Utils3D&#8217; subset of Station class gathers
+useful functions for 3D runs</p>
+<dl class="method">
+<dt id="functionsStationThreeD.FunctionsStationThreeD.depth">
+<tt class="descname">depth</tt><big>(</big><em>station</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStationThreeD.html#FunctionsStationThreeD.depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStationThreeD.FunctionsStationThreeD.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute depth at given point</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>dep = depth, 2D array (ntime, nlevel)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>depth convention: 0 = free surface</li>
+<li>index is used in case one knows already at which
+element depth is requested</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStationThreeD.FunctionsStationThreeD.flow_dir">
+<tt class="descname">flow_dir</tt><big>(</big><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>vertical=True</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStationThreeD.html#FunctionsStationThreeD.flow_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStationThreeD.FunctionsStationThreeD.flow_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute flow directions and associated norm at any given location.</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
+<li>norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">vertical = True, compute flowDir for each vertical level</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStationThreeD.FunctionsStationThreeD.search_index">
+<tt class="descname">search_index</tt><big>(</big><em>station</em><big>)</big><a class="reference internal" href="_modules/functionsStationThreeD.html#FunctionsStationThreeD.search_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStationThreeD.FunctionsStationThreeD.search_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the station index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStationThreeD.FunctionsStationThreeD.velo_norm">
+<tt class="descname">velo_norm</tt><big>(</big><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>graph=True</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStationThreeD.html#FunctionsStationThreeD.velo_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStationThreeD.FunctionsStationThreeD.velo_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the velocity norm at any given location</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>velo_norm = velocity norm, 2D array (time, level)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">graph = plots vertical profile averaged over time if True</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsStationThreeD.FunctionsStationThreeD.verti_shear">
+<tt class="descname">verti_shear</tt><big>(</big><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>bot_lvl=[]</em>, <em>top_lvl=[]</em>, <em>graph=True</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsStationThreeD.html#FunctionsStationThreeD.verti_shear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsStationThreeD.FunctionsStationThreeD.verti_shear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute vertical shear at any given location</p>
+<blockquote>
+<div><ul class="simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;),</dt>
+<dd><p class="first last">or time index as an integer</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">time_ind = time indices to work in, list of integers</p>
+</li>
+<li><p class="first">bot_lvl = index of the bottom level to consider, integer</p>
+</li>
+<li><p class="first">top_lvl = index of the top level to consider, integer</p>
+</li>
+<li><p class="first">graph = plots graph if True</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="id47">
+<h3>Plots<a class="headerlink" href="#id47" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-plotsStation"></span><dl class="class">
+<dt id="plotsStation.PlotsStation">
+<em class="property">class </em><tt class="descclassname">plotsStation.</tt><tt class="descname">PlotsStation</tt><big>(</big><em>variable</em>, <em>grid</em>, <em>debug</em><big>)</big><a class="reference internal" href="_modules/plotsStation.html#PlotsStation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsStation.PlotsStation" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Plots&#8217; subset of Station class gathers plotting functions</p>
+<dl class="method">
+<dt id="plotsStation.PlotsStation.Histogram">
+<tt class="descname">Histogram</tt><big>(</big><em>y</em>, <em>title=' '</em>, <em>xLabel=' '</em>, <em>yLabel=' '</em><big>)</big><a class="reference internal" href="_modules/plotsStation.html#PlotsStation.Histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsStation.PlotsStation.Histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Histogram plot</p>
+<blockquote>
+<div><ul class="simple">
+<li>bins = list of bin edges</li>
+<li>y = 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>title = plot title, string</li>
+<li>xLabel = title of the x-axis, string</li>
+<li>yLabel = title of the y-axis, string</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="plotsStation.PlotsStation.add_points">
+<tt class="descname">add_points</tt><big>(</big><em>x</em>, <em>y</em>, <em>label=' '</em>, <em>color='black'</em><big>)</big><a class="reference internal" href="_modules/plotsStation.html#PlotsStation.add_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsStation.PlotsStation.add_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add scattered points (x,y) on current figure,
+where x and y are 1D arrays of the same lengths.</p>
+<blockquote>
+<div><ul class="simple">
+<li>x = float number</li>
+<li>y = float numbe</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Label = a string</li>
+<li>Color = a string, &#8216;red&#8217;, &#8216;green&#8217;, etc. or gray shades like &#8216;0.5&#8217;</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="plotsStation.PlotsStation.plot_xy">
+<tt class="descname">plot_xy</tt><big>(</big><em>x</em>, <em>y</em>, <em>xerror=[]</em>, <em>yerror=[]</em>, <em>title=' '</em>, <em>xLabel=' '</em>, <em>yLabel=' '</em>, <em>dump=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/plotsStation.html#PlotsStation.plot_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsStation.PlotsStation.plot_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple X vs Y plot</p>
+<blockquote>
+<div><ul class="simple">
+<li>x = 1D array</li>
+<li>y = 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">xerror = error on &#8216;x&#8217;, 1D array</p>
+</li>
+<li><p class="first">yerror = error on &#8216;y&#8217;, 1D array</p>
+</li>
+<li><p class="first">title = plot title, string</p>
+</li>
+<li><p class="first">xLabel = title of the x-axis, string</p>
+</li>
+<li><p class="first">yLabel = title of the y-axis, string</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="plotsStation.PlotsStation.rose_diagram">
+<tt class="descname">rose_diagram</tt><big>(</big><em>direction</em>, <em>norm</em><big>)</big><a class="reference internal" href="_modules/plotsStation.html#PlotsStation.rose_diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsStation.PlotsStation.rose_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot rose diagram</p>
+<blockquote>
+<div><ul class="simple">
+<li>direction = 1D array</li>
+<li>norm = 1D array</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="measurement-classes">
+<h1>Measurement classes<a class="headerlink" href="#measurement-classes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyseidon">
+<span id="adcp-class"></span><h2>ADCP Class<a class="headerlink" href="#module-pyseidon" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.ADCP">
+<em class="property">class </em><tt class="descclassname">pyseidon.</tt><tt class="descname">ADCP</tt><big>(</big><em>filename</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.ADCP" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A class/structure for ADCP data.
+Functionality structured as follows:</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div>_Data. = raw matlab file data</div></blockquote>
+<p><a href="#id48"><span class="problematic" id="id49">|</span></a>_Variables. = useable adcp variables and quantities
+<a href="#id50"><span class="problematic" id="id51">|</span></a>_History = Quality Control metadata</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>testAdcp._|_Utils. = set of useful functions</dt>
+<dd><a href="#id52"><span class="problematic" id="id53">|</span></a>_Plots. = plotting functions
+<a href="#id54"><span class="problematic" id="id55">|</span></a>_method_1
+| ...      = methods and analysis techniques intrinsic to ADCPs
+<a href="#id56"><span class="problematic" id="id57">|</span></a>_method_n</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<blockquote>
+<div>Only takes a file name as input, ex: testAdcp=ADCP(&#8216;./path_to_matlab_file/filename&#8217;)</div></blockquote>
+<blockquote>
+<div><p>Only handle fully processed ADCP matlab data previously quality-controlled as well
+as formatted through &#8220;EnsembleData_FlowFile&#8221; matlab script at the mo.</p>
+<p>Throughout the package, the following conventions apply:
+- Coordinates = decimal degrees East and North
+- Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
+<blockquote>
+<div>+/-180=West, -90=South</div></blockquote>
+<ul class="simple">
+<li>Depth = 0m is the free surface and depth is negative</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<div class="section" id="utils">
+<h3>Utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="id58">
+<h3>Plots<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="module-pyseidon">
+<span id="tidegauge-class"></span><h2>TideGauge Class<a class="headerlink" href="#module-pyseidon" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.TideGauge">
+<em class="property">class </em><tt class="descclassname">pyseidon.</tt><tt class="descname">TideGauge</tt><big>(</big><em>filename</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.TideGauge" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A class/structure for tide gauge data.
+Functionality structured as follows:</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div>_Data. = raw matlab file data</div></blockquote>
+<p><a href="#id59"><span class="problematic" id="id60">|</span></a>_Variables. = useable tide gauge variables and quantities</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>TideGauge._|_History = Quality Control metadata</dt>
+<dd><a href="#id61"><span class="problematic" id="id62">|</span></a>_Utils. = set of useful functions
+<a href="#id63"><span class="problematic" id="id64">|</span></a>_Plots. = plotting functions</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<blockquote>
+<div>Only takes a file name as input, ex: testTG=TideGauge(&#8216;./path_to_matlab_file/filename&#8217;)</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Only handle fully processed tide gauge matlab data at the mo.</li>
+</ul>
+<p>Throughout the package, the following conventions apply:
+- Coordinates = decimal degrees East and North
+- Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
+<blockquote>
+<div>+/-180=West, -90=South</div></blockquote>
+<ul class="simple">
+<li>Depth = 0m is the free surface and depth is negative</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<div class="section" id="id65">
+<h3>Utils<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-functionsTidegauge"></span><dl class="class">
+<dt id="functionsTidegauge.FunctionsTidegauge">
+<em class="property">class </em><tt class="descclassname">functionsTidegauge.</tt><tt class="descname">FunctionsTidegauge</tt><big>(</big><em>variable</em>, <em>plot</em>, <em>History</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsTidegauge.html#FunctionsTidegauge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsTidegauge.FunctionsTidegauge" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Utils&#8217; subset of TideGauge class gathers useful functions&#8221;&#8220;&#8221;</p>
+<dl class="method">
+<dt id="functionsTidegauge.FunctionsTidegauge.harmonics">
+<tt class="descname">harmonics</tt><big>(</big><em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>**kwarg</em><big>)</big><a class="reference internal" href="_modules/functionsTidegauge.html#FunctionsTidegauge.harmonics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsTidegauge.FunctionsTidegauge.harmonics" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function performs a harmonic analysis on the sea surface elevation
+time series or the velocity components timeseries.</p>
+<blockquote>
+<div><ul class="simple">
+<li>harmo = harmonic coefficients, dictionary</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>time_ind = time indices to work in, list of integers</li>
+</ul>
+</div></blockquote>
+<p>Options are the same as for ut_solv, which are shown below with
+their default values:</p>
+<blockquote>
+<div>conf_int=True; cnstit=&#8217;auto&#8217;; notrend=0; prefilt=[]; nodsatlint=0;
+nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
+rmin=1; method=&#8217;cauchy&#8217;; tunrdn=1; linci=0; white=0; nrlzn=200;
+lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
+ordercnstit=[]; runtimedisp=&#8217;yyy&#8217;</div></blockquote>
+<p>For more detailed information about ut_solv, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsTidegauge.FunctionsTidegauge.mattime2datetime">
+<tt class="descname">mattime2datetime</tt><big>(</big><em>mattime</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/functionsTidegauge.html#FunctionsTidegauge.mattime2datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsTidegauge.FunctionsTidegauge.mattime2datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output the time (yyyy-mm-dd, hh:mm:ss) corresponding to
+a given matlab time</p>
+<blockquote>
+<div><ul class="simple">
+<li>mattime = matlab time (floats)</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="functionsTidegauge.FunctionsTidegauge.reconstr">
+<tt class="descname">reconstr</tt><big>(</big><em>harmo</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>**kwarg</em><big>)</big><a class="reference internal" href="_modules/functionsTidegauge.html#FunctionsTidegauge.reconstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsTidegauge.FunctionsTidegauge.reconstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reconstructs the velocity components or the surface elevation
+from harmonic coefficients.
+Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
+(ut_solv) has already been executed.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Harmo = harmonic coefficient from harmo_analysis</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>Reconstruct = reconstructed signal, dictionary</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>time_ind = time indices to process, list of integers</li>
+</ul>
+</div></blockquote>
+<p>Options are the same as for ut_reconstr, which are shown below with
+their default values:</p>
+<blockquote>
+<div>cnstit = [], minsnr = 2, minpe = 0</div></blockquote>
+<p>For more detailed information about ut_reconstr, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="id66">
+<h3>Plots<a class="headerlink" href="#id66" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-plotsTidegauge"></span><dl class="class">
+<dt id="plotsTidegauge.PlotsTidegauge">
+<em class="property">class </em><tt class="descclassname">plotsTidegauge.</tt><tt class="descname">PlotsTidegauge</tt><big>(</big><em>variable</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/plotsTidegauge.html#PlotsTidegauge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsTidegauge.PlotsTidegauge" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Plots&#8217; subset of Tidegauge class gathers plotting functions</p>
+<dl class="method">
+<dt id="plotsTidegauge.PlotsTidegauge.plot_xy">
+<tt class="descname">plot_xy</tt><big>(</big><em>x</em>, <em>y</em>, <em>xerror=[]</em>, <em>yerror=[]</em>, <em>title=' '</em>, <em>xLabel=' '</em>, <em>yLabel=' '</em>, <em>dump=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/plotsTidegauge.html#PlotsTidegauge.plot_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsTidegauge.PlotsTidegauge.plot_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple X vs Y plot</p>
+<blockquote>
+<div><ul class="simple">
+<li>x = 1D array</li>
+<li>y = 1D array</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul>
+<li><p class="first">xerror = error on &#8216;x&#8217;, 1D array</p>
+</li>
+<li><p class="first">yerror = error on &#8216;y&#8217;, 1D array</p>
+</li>
+<li><p class="first">title = plot title, string</p>
+</li>
+<li><p class="first">xLabel = title of the x-axis, string</p>
+</li>
+<li><p class="first">yLabel = title of the y-axis, string</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-pyseidon">
+<span id="drifter-class"></span><h2>Drifter Class<a class="headerlink" href="#module-pyseidon" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.Drifter">
+<em class="property">class </em><tt class="descclassname">pyseidon.</tt><tt class="descname">Drifter</tt><big>(</big><em>filename</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.Drifter" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A class/structure for Drifter data.
+Functionality structured as follows:</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div>_Data. = raw matlab file data</div></blockquote>
+<p><a href="#id67"><span class="problematic" id="id68">|</span></a>_Variables. = useable drifter variables and quantities
+<a href="#id69"><span class="problematic" id="id70">|</span></a>_History = Quality Control metadata</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>testAdcp._|_Utils. = set of useful functions</dt>
+<dd><a href="#id71"><span class="problematic" id="id72">|</span></a>_Plots. = plotting functions
+<a href="#id73"><span class="problematic" id="id74">|</span></a>_method_1
+| ...      = methods and analysis techniques intrinsic to drifters
+<a href="#id75"><span class="problematic" id="id76">|</span></a>_method_n</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<blockquote>
+<div>Only takes a file name as input, ex: testDrifter=Drifter(&#8216;./path_to_matlab_file/filename&#8217;)</div></blockquote>
+<blockquote>
+<div><p>Only handle fully processed drifter matlab data previously quality-controlled
+at the mo.</p>
+<p>Throughout the package, the following conventions apply:
+- Coordinates = decimal degrees East and North
+- Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
+<blockquote>
+<div>+/-180=West, -90=South</div></blockquote>
+<ul class="simple">
+<li>Depth = 0m is the free surface and depth is negative</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<div class="section" id="id77">
+<h3>Utils<a class="headerlink" href="#id77" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-functionsDrifter"></span><dl class="class">
+<dt id="functionsDrifter.FunctionsDrifter">
+<em class="property">class </em><tt class="descclassname">functionsDrifter.</tt><tt class="descname">FunctionsDrifter</tt><big>(</big><em>cls</em><big>)</big><a class="reference internal" href="_modules/functionsDrifter.html#FunctionsDrifter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#functionsDrifter.FunctionsDrifter" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Utils&#8217; subset of Tidegauge class gathers useful functions&#8221;&#8220;&#8221;</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id78">
+<h3>Plots<a class="headerlink" href="#id78" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-plotsDrifter"></span><dl class="class">
+<dt id="plotsDrifter.PlotsDrifter">
+<em class="property">class </em><tt class="descclassname">plotsDrifter.</tt><tt class="descname">PlotsDrifter</tt><big>(</big><em>variable</em>, <em>debug</em><big>)</big><a class="reference internal" href="_modules/plotsDrifter.html#PlotsDrifter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsDrifter.PlotsDrifter" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Plots&#8217; subset of Drifter class gathers plotting functions</p>
+<dl class="method">
+<dt id="plotsDrifter.PlotsDrifter.trajectories">
+<tt class="descname">trajectories</tt><big>(</big><em>title='Drifter trajectories &amp; speed (m/s)'</em>, <em>cmin=[]</em>, <em>cmax=[]</em>, <em>debug=False</em>, <em>dump=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/plotsDrifter.html#PlotsDrifter.trajectories"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plotsDrifter.PlotsDrifter.trajectories" title="Permalink to this definition">¶</a></dt>
+<dd><p>2D xy colormap plot of all the trajectories.
+Colors represent the drifter velocity</p>
+<blockquote>
+<div><ul>
+<li><p class="first">title = plot title, string</p>
+</li>
+<li><p class="first">cmin = minimum limit colorbar</p>
+</li>
+<li><p class="first">cmax = maximum limit colorbar</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="module-pyseidon">
+<span id="validation-class"></span><h1>Validation Class:<a class="headerlink" href="#module-pyseidon" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyseidon.Validation">
+<em class="property">class </em><tt class="descclassname">pyseidon.</tt><tt class="descname">Validation</tt><big>(</big><em>observed</em>, <em>simulated</em>, <em>debug=False</em>, <em>debug_plot=False</em><big>)</big><a class="headerlink" href="#pyseidon.Validation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validation class/structure.
+Functionality structured as follows:</p>
+<blockquote>
+<div><blockquote>
+<div>_History = Quality Control metadata</div></blockquote>
+<p><a href="#id79"><span class="problematic" id="id80">|</span></a>_Variables. = observed and simulated variables and quantities
+<a href="#id81"><span class="problematic" id="id82">|</span></a>_validate_data = validation method/function against timeseries</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>Validation._|_validate_harmonics = validation method/function against </dt>
+<dd><div class="first line-block">
+<div class="line">harmonic coefficients</div>
+</div>
+<p class="last"><a href="#id83"><span class="problematic" id="id84">|</span></a>_Save_as = &#8220;save as&#8221; function</p>
+</dd>
+</dl>
+<blockquote>
+<div><ul class="simple">
+<li>observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)</li>
+<li>simulated = any PySeidon simulation object (i.e. FVCOM or Station)</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="pyseidon.Validation.Save_as">
+<tt class="descname">Save_as</tt><big>(</big><em>filename</em>, <em>fileformat='pickle'</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#pyseidon.Validation.Save_as" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This method saves the current FVCOM structure as:</dt>
+<dd><ul class="first last simple">
+<li><a href="#id85"><span class="problematic" id="id86">*</span></a>.p, i.e. python file</li>
+<li><a href="#id87"><span class="problematic" id="id88">*</span></a>.mat, i.e. Matlab file</li>
+</ul>
+</dd>
+</dl>
+<blockquote>
+<div><ul class="simple">
+<li>filename = path + name of the file to be saved, string</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><ul class="simple">
+<li>fileformat = format of the file to be saved, i.e. &#8216;pickle&#8217; or &#8216;matlab&#8217;</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.Validation.validate_data">
+<tt class="descname">validate_data</tt><big>(</big><em>filename=[]</em>, <em>depth=[]</em>, <em>plot=False</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><big>)</big><a class="headerlink" href="#pyseidon.Validation.validate_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes series of standard validation benchmarks.</p>
+<blockquote>
+<div><ul>
+<li><p class="first">filename: file name of the .csv file to be saved, string.</p>
+</li>
+<li><dl class="first docutils">
+<dt>depth: depth at which the validation will be performed, float.</dt>
+<dd><p class="first last">Only applicable for 3D simulations.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">plot: plot series of valiudation graphs, boolean.</p>
+</li>
+<li><dl class="first docutils">
+<dt>save_csv: will save both observed and modeled interpolated</dt>
+<dd><p class="first last">timeseries into <a href="#id89"><span class="problematic" id="id90">*</span></a>.csv file</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li>NOAA. NOS standards for evaluating operational nowcast and
+forecast hydrodynamic model systems, 2003.</li>
+<li>K. Gunn, C. Stock-Williams. On validating numerical hydrodynamic
+models of complex tidal flow, International Journal of Marine Energy, 2013</li>
+<li>N. Georgas, A. Blumberg. Establishing Confidence in Marine Forecast
+Systems: The design and skill assessment of the New York Harbor Observation
+and Prediction System, version 3 (NYHOPS v3), 2009</li>
+<li>Liu, Y., P. MacCready, B. M. Hickey, E. P. Dever, P. M. Kosro, and
+N. S. Banas (2009), Evaluation of a coastal ocean circulation model for
+the Columbia River plume in summer 2004, J. Geophys. Res., 114</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.Validation.validate_harmonics">
+<tt class="descname">validate_harmonics</tt><big>(</big><em>filename=[]</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><big>)</big><a class="headerlink" href="#pyseidon.Validation.validate_harmonics" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes and store in a csv file the error in %
+for each component of the harmonic analysis (i.e. <a href="#id91"><span class="problematic" id="id92">*</span></a>_error.csv).</p>
+<blockquote>
+<div><ul>
+<li><p class="first">filename: file name of the .csv file to be saved, string.</p>
+</li>
+<li><dl class="first docutils">
+<dt>save_csv: will save both observed and modeled harmonic</dt>
+<dd><p class="first last">coefficients into <a href="#id93"><span class="problematic" id="id94">*</span></a>.csv files (i.e. <a href="#id95"><span class="problematic" id="id96">*</span></a>_harmo_coef.csv)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to PySeidon&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#simulation-classes">Simulation classes</a><ul>
+<li><a class="reference internal" href="#module-pyseidon">FVCOM Class</a><ul>
+<li><a class="reference internal" href="#module-functionsFvcom">Util2D</a></li>
+<li><a class="reference internal" href="#module-functionsFvcomThreeD">Util3D</a></li>
+<li><a class="reference internal" href="#module-plotsFvcom">Plots</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pyseidon">Station Class</a><ul>
+<li><a class="reference internal" href="#id45">Util2D</a></li>
+<li><a class="reference internal" href="#id46">Util3D</a></li>
+<li><a class="reference internal" href="#id47">Plots</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#measurement-classes">Measurement classes</a><ul>
+<li><a class="reference internal" href="#module-pyseidon">ADCP Class</a><ul>
+<li><a class="reference internal" href="#utils">Utils</a></li>
+<li><a class="reference internal" href="#id58">Plots</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pyseidon">TideGauge Class</a><ul>
+<li><a class="reference internal" href="#id65">Utils</a></li>
+<li><a class="reference internal" href="#id66">Plots</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pyseidon">Drifter Class</a><ul>
+<li><a class="reference internal" href="#id77">Utils</a></li>
+<li><a class="reference internal" href="#id78">Plots</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pyseidon">Validation Class:</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">PySeidon 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Dr. Thomas Roc &amp; co..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

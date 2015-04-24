@@ -1,0 +1,624 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>functionsStation &mdash; PySeidon 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="PySeidon 2.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PySeidon 2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for functionsStation</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">LA</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numexpr</span> <span class="kn">as</span> <span class="nn">ne</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">miscellaneous</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">BP_tools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">utide</span> <span class="kn">import</span> <span class="n">ut_solv</span><span class="p">,</span> <span class="n">ut_reconstr</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="FunctionsStation"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation">[docs]</a><span class="k">class</span> <span class="nc">FunctionsStation</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Description:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    &#39;Util2D&#39; subset of Station class gathers</span>
+<span class="sd">    useful functions for 2D and 3D runs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">plot</span><span class="p">,</span> <span class="n">History</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span> <span class="o">=</span> <span class="n">grid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="n">plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_History</span> <span class="o">=</span> <span class="n">History</span>
+        <span class="c">#Create pointer to FVCOM class</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span>
+        <span class="n">History</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_History</span>
+
+<div class="viewcode-block" id="FunctionsStation.search_index"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.search_index">[docs]</a>    <span class="k">def</span> <span class="nf">search_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Search for the station index&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">station</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;ndarray&#39;</span><span class="p">]:</span>
+            <span class="n">station</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">nele</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">station</span><span class="o">==</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="mi">1</span><span class="p">,:])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+                   <span class="n">index</span><span class="o">=</span><span class="n">i</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;---Wrong station input---&quot;</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span> 
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;index&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">():</span>
+            <span class="k">print</span> <span class="s">&quot;---Wrong station input---&quot;</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">index</span>
+</div>
+<div class="viewcode-block" id="FunctionsStation.flow_dir"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.flow_dir">[docs]</a>    <span class="k">def</span> <span class="nf">flow_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">station</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span> <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">exceedance</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flow directions and associated norm at any give location.</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">           - flowDir = flowDir at station, 1D array</span>
+<span class="sd">           - norm = velocity norm at station, 1D array</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - t_start = start time, as string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                      or time index as an integer</span>
+<span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                    or time index as an integer</span>
+<span class="sd">          - time_ind = time indices to work in, list of integers</span>
+<span class="sd">          - excedance = True, compute associated exceedance curve</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - directions between -180 and 180 deg., i.e. 0=East, 90=North,</span>
+<span class="sd">            +/-180=West, -90=South</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Computing flow directions at point...&#39;</span>
+
+        <span class="c"># Find time interval to work in</span>
+        <span class="n">argtime</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_ind</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="c">#Choose the right pair of velocity components</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">ua</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">va</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">ua</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">va</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+   
+        <span class="c">#Compute directions</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Computing arctan2 and norm...&#39;</span>
+        <span class="n">dirFlow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">U</span><span class="p">))</span>
+
+        <span class="c">#Compute velocity norm</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;...Passed&#39;</span>
+        <span class="c">#Rose diagram</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">rose_diagram</span><span class="p">(</span><span class="n">dirFlow</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exceedance</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exceedance</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dirFlow</span><span class="p">,</span> <span class="n">norm</span>
+</div>
+<div class="viewcode-block" id="FunctionsStation.ebb_flood_split"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.ebb_flood_split">[docs]</a>    <span class="k">def</span> <span class="nf">ebb_flood_split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span>
+                        <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span> <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute time indices for ebb and flood but also the </span>
+<span class="sd">        principal flow directions and associated variances for (lon, lat) point</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - floodIndex = flood time index, 1D array of integers</span>
+<span class="sd">          - ebbIndex = ebb time index, 1D array of integers</span>
+<span class="sd">          - pr_axis = principal flow ax1s, float number in degrees</span>
+<span class="sd">          - pr_ax_var = associated variance, float number</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - t_start = start time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                      or time index as an integer</span>
+<span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                    or time index as an integer</span>
+<span class="sd">          - time_ind = time indices to work in, 1D array of integers </span>
+<span class="sd">        </span>
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - may take time to compute if time period too long</span>
+<span class="sd">          - directions between -180 and 180 deg., i.e. 0=East, 90=North,</span>
+<span class="sd">            +/-180=West, -90=South</span>
+<span class="sd">          - use time_ind or t_start and t_end, not both</span>
+<span class="sd">          - assume that flood is aligned with principal direction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">print</span> <span class="s">&#39;Computing principal flow directions...&#39;</span>
+
+        <span class="c"># Find time interval to work in</span>
+        <span class="n">argtime</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_ind</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span>
+                                        <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="c">#Choose the right pair of velocity components</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">ua</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">va</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">ua</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">va</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="c">#WB version of BP&#39;s principal axis</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Computin principal axis at point...&#39;</span>
+        <span class="n">pr_axis</span><span class="p">,</span> <span class="n">pr_ax_var</span> <span class="o">=</span> <span class="n">principal_axis</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+
+        <span class="c">#ebb/flood split</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Splitting ebb and flood at point...&#39;</span>
+        <span class="c">###TR: version 1</span>
+        <span class="c">## reverse 0-360 deg convention</span>
+        <span class="c">#ra = (-pr_axis - 90.0) * np.pi /180.0</span>
+        <span class="c">#if ra&gt;np.pi:</span>
+        <span class="c">#    ra = ra - (2.0*np.pi)</span>
+        <span class="c">#elif ra&lt;-np.pi:</span>
+        <span class="c">#    ra = ra + (2.0*np.pi)    </span>
+        <span class="c">#dirFlow = np.arctan2(V,U)</span>
+        <span class="c">##Define bins of angles</span>
+        <span class="c">#if ra == 0.0:</span>
+        <span class="c">#    binP = [0.0, np.pi/2.0]</span>
+        <span class="c">#    binP = [0.0, -np.pi/2.0]</span>
+        <span class="c">#elif ra &gt; 0.0:</span>
+        <span class="c">#    if ra == np.pi:</span>
+        <span class="c">#        binP = [np.pi/2.0 , np.pi]</span>
+        <span class="c">#        binM = [-np.pi, -np.pi/2.0 ]        </span>
+        <span class="c">#    elif ra &lt; (np.pi/2.0):</span>
+        <span class="c">#        binP = [0.0, ra + (np.pi/2.0)]</span>
+        <span class="c">#        binM = [-((np.pi/2.0)-ra), 0.0]</span>
+        <span class="c">#    else:</span>
+        <span class="c">#        binP = [ra - (np.pi/2.0), np.pi]</span>
+        <span class="c">#        binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]</span>
+        <span class="c">#else:</span>
+        <span class="c">#    if ra == -np.pi:</span>
+        <span class="c">#        binP = [np.pi/2.0 , np.pi]</span>
+        <span class="c">#        binM = [-np.pi, -np.pi/2.0]</span>
+        <span class="c">#    elif ra &gt; -(np.pi/2.0):</span>
+        <span class="c">#        binP = [0.0, ra + (np.pi/2.0)]</span>
+        <span class="c">#        binM = [ ((-np.pi/2.0)+ra), 0.0]</span>
+        <span class="c">#    else:</span>
+        <span class="c">#        binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]</span>
+        <span class="c">#        binM = [-np.pi, ra + (np.pi/2.0)]</span>
+        <span class="c">#                        </span>
+        <span class="c">#test = (((dirFlow &gt; binP[0]) * (dirFlow &lt; binP[1])) +</span>
+        <span class="c">#        ((dirFlow &gt; binM[0]) * (dirFlow &lt; binM[1])))</span>
+        <span class="c">#floodIndex = np.where(test == True)[0]</span>
+        <span class="c">#ebbIndex = np.where(test == False)[0]</span>
+
+        <span class="c">#Defines interval</span>
+        <span class="n">flood_heading</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span> <span class="o">+</span> <span class="n">pr_axis</span>
+        <span class="n">dir_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">U</span><span class="p">))</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dir_all</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">dir_all</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">dir_all</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">+</span> <span class="mi">360</span>     
+
+        <span class="c"># sign speed - eliminating wrap-around</span>
+        <span class="n">dir_PA</span> <span class="o">=</span> <span class="n">dir_all</span> <span class="o">-</span> <span class="n">pr_axis</span>
+        <span class="n">dir_PA</span><span class="p">[</span><span class="n">dir_PA</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">90</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">360</span>
+        <span class="n">dir_PA</span><span class="p">[</span><span class="n">dir_PA</span> <span class="o">&gt;</span> <span class="mi">270</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">360</span>
+
+        <span class="c">#general direction of flood passed as input argument</span>
+        <span class="n">floodIndex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">dir_PA</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">90</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dir_PA</span><span class="o">&lt;</span><span class="mi">90</span><span class="p">))</span>
+        <span class="n">ebbIndex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dir_PA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ebbIndex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ebbIndex</span><span class="p">,</span><span class="n">floodIndex</span><span class="p">[:])</span> 
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">print</span> <span class="s">&quot;...processing time: &quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">floodIndex</span><span class="p">,</span> <span class="n">ebbIndex</span><span class="p">,</span> <span class="n">pr_axis</span><span class="p">,</span> <span class="n">pr_ax_var</span>
+</div>
+<div class="viewcode-block" id="FunctionsStation.exceedance"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.exceedance">[docs]</a>    <span class="k">def</span> <span class="nf">exceedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">station</span><span class="o">=</span><span class="p">[],</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function calculate the excedence curve of a var(time).</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+<span class="sd">                      Necessary if var = 2D (i.e. [time, nnode or nele]</span>
+<span class="sd">          - graph: True-&gt;plots curve; False-&gt;does not</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - Exceedance = list of % of occurences, 1D array</span>
+<span class="sd">          - Ranges = list of signal amplitude bins, 1D array</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - This method is not suitable for SSE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="p">(</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Computing exceedance...&#39;</span>
+
+        <span class="c">#Distinguish between 1D and 2D var</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">station</span><span class="o">==</span><span class="p">[]:</span>
+                <span class="k">print</span> <span class="s">&#39;Lon, lat coordinates are needed&#39;</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+            <span class="c">#Search for the station</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+            <span class="n">signal</span> <span class="o">=</span> <span class="n">var</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">signal</span><span class="o">=</span><span class="n">var</span>
+        
+        <span class="n">Max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>	
+        <span class="n">dy</span> <span class="o">=</span> <span class="p">(</span><span class="n">Max</span><span class="o">/</span><span class="mf">30.0</span><span class="p">)</span>
+        <span class="n">Ranges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,(</span><span class="n">Max</span> <span class="o">+</span> <span class="n">dy</span><span class="p">),</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">Exceedance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Ranges</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dt</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">secondTime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">secondTime</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">Period</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dt</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Period</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Ranges</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">Ranges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">signal</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">r</span><span class="p">:</span>
+                    <span class="n">Exceedance</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Exceedance</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">time</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">time</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+
+        <span class="n">Exceedance</span> <span class="o">=</span> <span class="p">(</span><span class="n">Exceedance</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="n">Period</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;...Passed&#39;</span>
+       
+        <span class="c">#Plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">plot_xy</span><span class="p">(</span><span class="n">Exceedance</span><span class="p">,</span> <span class="n">Ranges</span><span class="p">,</span> <span class="n">yLabel</span><span class="o">=</span><span class="s">&#39;Amplitudes&#39;</span><span class="p">,</span>
+                           <span class="n">xLabel</span><span class="o">=</span><span class="s">&#39;Exceedance probability in %&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Exceedance</span><span class="p">,</span> <span class="n">Ranges</span>
+</div>
+<div class="viewcode-block" id="FunctionsStation.depth"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.depth">[docs]</a>    <span class="k">def</span> <span class="nf">depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute depth at given point</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - dep = depth, 2D array (ntime, nlevel)</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - depth convention: 0 = free surface</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Computing depth...&quot;</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="c">#Compute depth</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">h</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">dep</span> <span class="o">=</span> <span class="n">el</span> <span class="o">+</span> <span class="n">h</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">print</span> <span class="s">&quot;Computation time in (s): &quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dep</span>
+</div>
+<div class="viewcode-block" id="FunctionsStation.speed_histogram"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.speed_histogram">[docs]</a>    <span class="k">def</span> <span class="nf">speed_histogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span> <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function plots the histogram of occurrences for the signed</span>
+<span class="sd">        flow speed at any given point.</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - t_start = start time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                      or time index as an integer</span>
+<span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                    or time index as an integer</span>
+<span class="sd">          - time_ind = time indices to work in, 1D array of integers </span>
+<span class="sd">        </span>
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - use time_ind or t_start and t_end, not both</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">print</span> <span class="s">&#39;Computing speed histogram...&#39;</span>
+
+        <span class="n">pI</span><span class="p">,</span> <span class="n">nI</span><span class="p">,</span> <span class="n">pa</span><span class="p">,</span> <span class="n">pav</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebb_flood_split</span><span class="p">(</span><span class="n">station</span><span class="p">,</span>
+                          <span class="n">t_start</span><span class="o">=</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="o">=</span><span class="n">t_end</span><span class="p">,</span> <span class="n">time_ind</span><span class="o">=</span><span class="n">time_ind</span><span class="p">,</span>
+                          <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+        <span class="n">dirFlow</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_dir</span><span class="p">(</span><span class="n">station</span><span class="p">,</span>
+                          <span class="n">t_start</span><span class="o">=</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="o">=</span><span class="n">t_end</span><span class="p">,</span> <span class="n">time_ind</span><span class="o">=</span><span class="n">time_ind</span><span class="p">,</span>
+                          <span class="n">exceedance</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+        <span class="n">norm</span><span class="p">[</span><span class="n">nI</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">norm</span><span class="p">[</span><span class="n">nI</span><span class="p">]</span>
+
+        <span class="c">#compute bins</span>
+        <span class="c">#minBound = norm.min()</span>
+        <span class="c">#maxBound = norm.max()</span>
+        <span class="c">#step = round((maxBound-minBound/51.0),1)</span>
+        <span class="c">#bins = np.arange(minBound,maxBound,step)</span>
+
+        <span class="c">#plot histogram</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span>
+                             <span class="n">xLabel</span><span class="o">=</span><span class="s">&#39;Signed flow speed (m/s)&#39;</span><span class="p">,</span>
+                             <span class="n">yLabel</span><span class="o">=</span><span class="s">&#39;Occurrences (%)&#39;</span><span class="p">)</span>
+   
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">print</span> <span class="s">&quot;...processing time: &quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="FunctionsStation.Harmonic_analysis_at_point"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.Harmonic_analysis_at_point">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_analysis_at_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span>
+                                   <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span>
+                                   <span class="n">elevation</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Description:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        This function performs a harmonic analysis on the sea surface elevation</span>
+<span class="sd">        time series or the velocity components timeseries.</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - harmo = harmonic coefficients, dictionary</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - time_ind = time indices to work in, list of integers</span>
+<span class="sd">          - t_start = start time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                     or time index as an integer</span>
+<span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                    or time index as an integer</span>
+<span class="sd">          - elevation=True means that ut_solv will be done for elevation.</span>
+<span class="sd">          - velocity=True means that ut_solv will be done for velocity.</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">        -------</span>
+<span class="sd">        Options are the same as for ut_solv, which are shown below with</span>
+<span class="sd">        their default values:</span>
+<span class="sd">            conf_int=True; cnstit=&#39;auto&#39;; notrend=0; prefilt=[]; nodsatlint=0;</span>
+<span class="sd">            nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;</span>
+<span class="sd">            rmin=1; method=&#39;cauchy&#39;; tunrdn=1; linci=0; white=0; nrlzn=200;</span>
+<span class="sd">            lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;</span>
+<span class="sd">            ordercnstit=[]; runtimedisp=&#39;yyy&#39;</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">        For more detailed information about ut_solv, please see</span>
+<span class="sd">        https://github.com/wesleybowman/UTide</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="p">(</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="n">argtime</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_ind</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span>
+                                        <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">ua</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">va</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
+                <span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
+
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
+            <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
+                <span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
+                <span class="n">el</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
+
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+            <span class="c">#Write meta-data only if computed over all the elements</span>
+
+            <span class="k">return</span> <span class="n">harmo</span>
+</div>
+<div class="viewcode-block" id="FunctionsStation.Harmonic_reconstruction"><a class="viewcode-back" href="../index.html#functionsStation.FunctionsStation.Harmonic_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Description:</span>
+<span class="sd">        ----------</span>
+<span class="sd">        This function reconstructs the velocity components or the surface elevation</span>
+<span class="sd">        from harmonic coefficients.</span>
+<span class="sd">        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics</span>
+<span class="sd">        (ut_solv) has already been executed.</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - Harmo = harmonic coefficient from harmo_analysis</span>
+<span class="sd">          - elevation =True means that ut_reconstr will be done for elevation.</span>
+<span class="sd">          - velocity =True means that ut_reconst will be done for velocity.</span>
+<span class="sd">          - time_ind = time indices to process, list of integers</span>
+<span class="sd">        </span>
+<span class="sd">        Output:</span>
+<span class="sd">        ------         </span>
+<span class="sd">          - Reconstruct = reconstructed signal, dictionary</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">        -------</span>
+<span class="sd">        Options are the same as for ut_reconstr, which are shown below with</span>
+<span class="sd">        their default values:</span>
+<span class="sd">            cnstit = [], minsnr = 2, minpe = 0</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">        For more detailed information about ut_reconstr, please see</span>
+<span class="sd">        https://github.com/wesleybowman/UTide</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="p">(</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[</span><span class="n">time_ind</span><span class="p">]</span>
+        <span class="c">#TR_comments: Add debug flag in Utide: debug=self._debug</span>
+        <span class="n">Reconstruct</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
+            <span class="n">U_recon</span><span class="p">,</span> <span class="n">V_recon</span> <span class="o">=</span> <span class="n">ut_reconstr</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
+            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;U&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">U_recon</span>
+            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V_recon</span>
+        <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
+            <span class="n">elev_recon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ut_reconstr</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
+            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;el&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elev_recon</span>
+        <span class="k">return</span> <span class="n">Reconstruct</span>  </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PySeidon 2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Dr. Thomas Roc &amp; co..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

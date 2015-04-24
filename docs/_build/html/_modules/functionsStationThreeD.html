@@ -1,0 +1,423 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>functionsStationThreeD &mdash; PySeidon 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="PySeidon 2.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PySeidon 2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for functionsStationThreeD</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numexpr</span> <span class="kn">as</span> <span class="nn">ne</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">miscellaneous</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">BP_tools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="FunctionsStationThreeD"><a class="viewcode-back" href="../index.html#functionsStationThreeD.FunctionsStationThreeD">[docs]</a><span class="k">class</span> <span class="nc">FunctionsStationThreeD</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Description:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    &#39;Utils3D&#39; subset of Station class gathers</span>
+<span class="sd">    useful functions for 3D runs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">plot</span><span class="p">,</span> <span class="n">History</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
+        <span class="c">#Inheritance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span> <span class="o">=</span> <span class="n">grid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="n">plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_History</span> <span class="o">=</span> <span class="n">History</span>
+
+        <span class="c">#Create pointer to FVCOM class</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span>
+        <span class="n">History</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_History</span>
+
+<div class="viewcode-block" id="FunctionsStationThreeD.search_index"><a class="viewcode-back" href="../index.html#functionsStationThreeD.FunctionsStationThreeD.search_index">[docs]</a>    <span class="k">def</span> <span class="nf">search_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Search for the station index&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">station</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;ndarray&#39;</span><span class="p">]:</span>
+            <span class="n">station</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">nele</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">station</span><span class="o">==</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="mi">1</span><span class="p">,:])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+                   <span class="n">index</span><span class="o">=</span><span class="n">i</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;---Wrong station input---&quot;</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span> 
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;index&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">():</span>
+            <span class="k">print</span> <span class="s">&quot;---Wrong station input---&quot;</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">index</span>
+</div>
+<div class="viewcode-block" id="FunctionsStationThreeD.depth"><a class="viewcode-back" href="../index.html#functionsStationThreeD.FunctionsStationThreeD.depth">[docs]</a>    <span class="k">def</span> <span class="nf">depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute depth at given point</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - dep = depth, 2D array (ntime, nlevel)</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - depth convention: 0 = free surface</span>
+<span class="sd">          - index is used in case one knows already at which</span>
+<span class="sd">            element depth is requested</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Computing depth...&quot;</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="c">#Compute depth</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">h</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">zeta</span> <span class="o">=</span> <span class="n">el</span> <span class="o">+</span> <span class="n">h</span>
+        <span class="n">siglay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">siglay</span><span class="p">[:,</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">dep</span> <span class="o">=</span> <span class="n">zeta</span><span class="p">[:,</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="n">siglay</span><span class="p">[</span><span class="bp">None</span><span class="p">,:]</span>
+     
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">print</span> <span class="s">&quot;Computation time in (s): &quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dep</span>
+</div>
+<div class="viewcode-block" id="FunctionsStationThreeD.verti_shear"><a class="viewcode-back" href="../index.html#functionsStationThreeD.FunctionsStationThreeD.verti_shear">[docs]</a>    <span class="k">def</span> <span class="nf">verti_shear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span>  <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span>
+                    <span class="n">bot_lvl</span><span class="o">=</span><span class="p">[],</span> <span class="n">top_lvl</span><span class="o">=</span><span class="p">[],</span> <span class="n">graph</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute vertical shear at any given location</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - t_start = start time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                      or time index as an integer</span>
+<span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                    or time index as an integer</span>
+<span class="sd">          - time_ind = time indices to work in, list of integers</span>
+<span class="sd">          - bot_lvl = index of the bottom level to consider, integer</span>
+<span class="sd">          - top_lvl = index of the top level to consider, integer</span>
+<span class="sd">          - graph = plots graph if True</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - use time_ind or t_start and t_end, not both</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Computing vertical shear at point...&#39;</span>
+
+        <span class="c"># Find time interval to work in</span>
+        <span class="n">argtime</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_ind</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span> 
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="c">#Compute depth</span>
+        <span class="n">dep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="n">dep</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="n">dep</span>
+
+        <span class="c">#Sigma levels to consider</span>
+        <span class="k">if</span> <span class="n">top_lvl</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">top_lvl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">nlevel</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">bot_lvl</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">bot_lvl</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">sLvl</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">bot_lvl</span><span class="p">,</span> <span class="n">top_lvl</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+           
+        <span class="c">#Extracting velocity at point</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:,</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:,</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">u</span><span class="p">[:,:,</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">v</span><span class="p">[:,:,</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>     
+
+        <span class="c"># Compute shear</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="n">depth</span><span class="p">[:,</span><span class="n">sLvl</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">-</span> <span class="n">depth</span><span class="p">[:,</span><span class="n">sLvl</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">dvel</span> <span class="o">=</span> <span class="n">norm</span><span class="p">[:,</span><span class="n">sLvl</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">-</span> <span class="n">norm</span><span class="p">[:,</span><span class="n">sLvl</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>           
+        <span class="n">dveldz</span> <span class="o">=</span> <span class="n">dvel</span> <span class="o">/</span> <span class="n">dz</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;...Passed&#39;</span>
+
+        <span class="c">#Plot mean values</span>
+        <span class="k">if</span> <span class="n">graph</span><span class="p">:</span>
+            <span class="n">mean_depth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">depth</span><span class="p">[:,</span><span class="n">sLvl</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+                       <span class="o">+</span> <span class="n">depth</span><span class="p">[:,</span><span class="n">sLvl</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">mean_dveldz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dveldz</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">dveldz</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">plot_xy</span><span class="p">(</span><span class="n">mean_dveldz</span><span class="p">,</span> <span class="n">mean_depth</span><span class="p">,</span> <span class="n">xerror</span><span class="o">=</span><span class="n">error</span><span class="p">[:],</span>
+                               <span class="n">title</span><span class="o">=</span><span class="s">&#39;Shear profile &#39;</span><span class="p">,</span>
+                               <span class="n">xLabel</span><span class="o">=</span><span class="s">&#39;Shear (1/s) &#39;</span><span class="p">,</span> <span class="n">yLabel</span><span class="o">=</span><span class="s">&#39;Depth (m) &#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dveldz</span>             
+</div>
+<div class="viewcode-block" id="FunctionsStationThreeD.velo_norm"><a class="viewcode-back" href="../index.html#functionsStationThreeD.FunctionsStationThreeD.velo_norm">[docs]</a>    <span class="k">def</span> <span class="nf">velo_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span> <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span>
+                  <span class="n">graph</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the velocity norm at any given location</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - velo_norm = velocity norm, 2D array (time, level)</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - t_start = start time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                      or time index as an integer</span>
+<span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                    or time index as an integer</span>
+<span class="sd">          - time_ind = time indices to work in, list of integers</span>
+<span class="sd">          - graph = plots vertical profile averaged over time if True</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - use time_ind or t_start and t_end, not both</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Computing velocity norm at point...&#39;</span>
+       
+        <span class="c"># Find time interval to work in</span>
+        <span class="n">argtime</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_ind</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="c">#Computing velocity norm</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>          
+                <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">W</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2 + W**2)&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>            
+                <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">u</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">v</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">W</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">w</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2 + W**2)&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>          
+                <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>            
+                <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">u</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">v</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span>
+                <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;...passed&#39;</span>
+
+        <span class="c">#Plot mean values</span>
+        <span class="k">if</span> <span class="n">graph</span><span class="p">:</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">(</span><span class="n">station</span><span class="p">),</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">velo_norm</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">velo_norm</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">plot_xy</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">xerror</span><span class="o">=</span><span class="n">error</span><span class="p">[:],</span>
+                               <span class="n">title</span><span class="o">=</span><span class="s">&#39;Velocity norm profile &#39;</span><span class="p">,</span>
+                               <span class="n">xLabel</span><span class="o">=</span><span class="s">&#39;Velocity (m/s) &#39;</span><span class="p">,</span> <span class="n">yLabel</span><span class="o">=</span><span class="s">&#39;Depth (m) &#39;</span><span class="p">)</span>
+      
+
+        <span class="k">return</span> <span class="n">velo_norm</span> 
+</div>
+<div class="viewcode-block" id="FunctionsStationThreeD.flow_dir"><a class="viewcode-back" href="../index.html#functionsStationThreeD.FunctionsStationThreeD.flow_dir">[docs]</a>    <span class="k">def</span> <span class="nf">flow_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span> <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span> 
+                          <span class="n">vertical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute flow directions and associated norm at any given location.</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - station = either station index (interger) or name (string)</span>
+
+<span class="sd">        Outputs:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)</span>
+<span class="sd">          - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        -------</span>
+<span class="sd">          - t_start = start time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                      or time index as an integer</span>
+<span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
+<span class="sd">                    or time index as an integer</span>
+<span class="sd">          - time_ind = time indices to work in, list of integers</span>
+<span class="sd">          - vertical = True, compute flowDir for each vertical level</span>
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          - directions between -180 and 180 deg., i.e. 0=East, 90=North,</span>
+<span class="sd">            +/-180=West, -90=South</span>
+<span class="sd">          - use time_ind or t_start and t_end, not both</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Computing flow directions at point...&#39;</span>
+
+        <span class="c">#Search for the station</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+
+        <span class="c"># Find time interval to work in</span>
+        <span class="n">argtime</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_ind</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+        
+        <span class="c">#Choose the right pair of velocity components</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">_3D</span> <span class="ow">and</span> <span class="n">vertical</span><span class="p">:</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:,</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:,</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">ua</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">va</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span><span class="n">index</span><span class="p">]</span>    
+
+        <span class="c">#Compute directions</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Computing arctan2 and norm...&#39;</span>
+        <span class="n">dirFlow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">U</span><span class="p">))</span>
+       
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;...Passed&#39;</span>
+
+        <span class="k">return</span> <span class="n">dirFlow</span><span class="p">,</span> <span class="n">norm</span>
+
+
+<span class="c">#TR_comments: templates</span>
+<span class="c">#    def whatever(self, debug=False):</span>
+<span class="c">#        if debug or self._debug:</span>
+<span class="c">#            print &#39;Start whatever...&#39;</span>
+<span class="c">#</span>
+<span class="c">#        if debug or self._debug:</span>
+<span class="c">#            print &#39;...Passed&#39;</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PySeidon 2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Dr. Thomas Roc &amp; co..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

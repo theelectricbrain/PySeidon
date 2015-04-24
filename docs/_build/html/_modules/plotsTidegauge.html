@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>plotsTidegauge &mdash; PySeidon 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="PySeidon 2.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PySeidon 2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for plotsTidegauge</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.tri</span> <span class="kn">as</span> <span class="nn">Tri</span>
+<span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="kn">as</span> <span class="nn">ticker</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="kn">as</span> <span class="nn">mpatches</span>
+<span class="kn">import</span> <span class="nn">seaborn</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="PlotsTidegauge"><a class="viewcode-back" href="../index.html#plotsTidegauge.PlotsTidegauge">[docs]</a><span class="k">class</span> <span class="nc">PlotsTidegauge</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;&#39;Plots&#39; subset of Tidegauge class gathers plotting functions&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">variable</span>
+
+    <span class="k">def</span> <span class="nf">_def_fig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Defines figure window&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">&#39;font&#39;</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="s">&#39;22&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PlotsTidegauge.plot_xy"><a class="viewcode-back" href="../index.html#plotsTidegauge.PlotsTidegauge.plot_xy">[docs]</a>    <span class="k">def</span> <span class="nf">plot_xy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">xerror</span><span class="o">=</span><span class="p">[],</span> <span class="n">yerror</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">title</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">xLabel</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">yLabel</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">dump</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Simple X vs Y plot</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - x = 1D array</span>
+<span class="sd">          - y = 1D array</span>
+
+<span class="sd">        Keywords:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - xerror = error on &#39;x&#39;, 1D array</span>
+<span class="sd">          - yerror = error on &#39;y&#39;, 1D array</span>
+<span class="sd">          - title = plot title, string</span>
+<span class="sd">          - xLabel = title of the x-axis, string</span>
+<span class="sd">          - yLabel = title of the y-axis, string</span>
+<span class="sd">          - dump = boolean, dump profile data in csv file</span>
+<span class="sd">          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</span>
+<span class="sd">                     sep, header, na_rep, index,...etc</span>
+<span class="sd">                     Check doc. of &quot;to_csv&quot; for complete list of options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#fig = plt.figure(figsize=(18,10))</span>
+        <span class="c">#plt.rc(&#39;font&#39;,size=&#39;22&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_def_fig</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>         
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">yLabel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xLabel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">ticker</span><span class="o">.</span><span class="n">AutoMinorLocator</span><span class="p">())</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">ticker</span><span class="o">.</span><span class="n">AutoMinorLocator</span><span class="p">())</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s">&#39;major&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s">&#39;minor&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">yerror</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">-</span><span class="n">yerror</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="n">yerror</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s">&#39;#1B2ACC&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s">&#39;#089FFF&#39;</span><span class="p">,</span> <span class="n">antialiased</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">xerror</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ax</span><span class="o">.</span><span class="n">fill_betweenx</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="o">-</span><span class="n">xerror</span><span class="p">,</span> <span class="n">x</span><span class="o">+</span><span class="n">xerror</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s">&#39;#1B2ACC&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s">&#39;#089FFF&#39;</span><span class="p">,</span> <span class="n">antialiased</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">xerror</span><span class="o">==</span><span class="p">[])</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">yerror</span><span class="o">==</span><span class="p">[]):</span> 
+            <span class="n">blue_patch</span> <span class="o">=</span> <span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;#089FFF&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s">&#39;Standard deviation&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">blue_patch</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+            <span class="c">#plt.legend([blue_patch],loc=1, fontsize=12)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">dump</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dump_profile_data_as_csv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span><span class="n">xerror</span><span class="o">=</span><span class="n">xerror</span><span class="p">,</span> <span class="n">yerror</span><span class="o">=</span><span class="n">yerror</span><span class="p">,</span>
+                                                <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">xLabel</span><span class="o">=</span><span class="n">xLabel</span><span class="p">,</span>
+                                                <span class="n">yLabel</span><span class="o">=</span><span class="n">yLabel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>     
+</div>
+    <span class="k">def</span> <span class="nf">_dump_profile_data_as_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">xerror</span><span class="o">=</span><span class="p">[],</span> <span class="n">yerror</span><span class="o">=</span><span class="p">[],</span>
+                                 <span class="n">title</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">xLabel</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">yLabel</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dumps profile data in csv file</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">        ------</span>
+<span class="sd">          - x = 1D array</span>
+<span class="sd">          - y = 1D array</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">        --------</span>
+<span class="sd">          - xerror = error on &#39;x&#39;, 1D array</span>
+<span class="sd">          - yerror = error on &#39;y&#39;, 1D array</span>
+<span class="sd">          - title = file name, string</span>
+<span class="sd">          - xLabel = name of the x-data, string</span>
+<span class="sd">          - yLabel = name of the y-data, string</span>
+<span class="sd">          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</span>
+<span class="sd">                     sep, header, na_rep, index,...etc</span>
+<span class="sd">                     Check doc. of &quot;to_csv&quot; for complete list of options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span> <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;dump_profile_data&#39;</span>
+        <span class="n">filename</span><span class="o">=</span><span class="n">title</span> <span class="o">+</span> <span class="s">&#39;.csv&#39;</span>
+        <span class="k">if</span> <span class="n">xLabel</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span> <span class="n">xLabel</span> <span class="o">=</span> <span class="s">&#39;X&#39;</span>
+        <span class="k">if</span> <span class="n">yLabel</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span> <span class="n">yLabel</span> <span class="o">=</span> <span class="s">&#39;Y&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">xerror</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">xLabel</span><span class="p">:</span><span class="n">x</span><span class="p">[:],</span> <span class="n">yLabel</span><span class="p">:</span><span class="n">y</span><span class="p">[:],</span> <span class="s">&#39;error&#39;</span><span class="p">:</span> <span class="n">xerror</span><span class="p">[:]})</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">yerror</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">xLabel</span><span class="p">:</span><span class="n">x</span><span class="p">[:],</span> <span class="n">yLabel</span><span class="p">:</span><span class="n">y</span><span class="p">[:],</span> <span class="s">&#39;error&#39;</span><span class="p">:</span> <span class="n">yerror</span><span class="p">[:]})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">xLabel</span><span class="p">:</span><span class="n">x</span><span class="p">[:],</span> <span class="n">yLabel</span><span class="p">:</span><span class="n">y</span><span class="p">[:]})</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>    
+
+<span class="c">#TR_comments: templates</span>
+<span class="c">#    def whatever(self, debug=False):</span>
+<span class="c">#        if debug or self._debug:</span>
+<span class="c">#            print &#39;Start whatever...&#39;</span>
+<span class="c">#</span>
+<span class="c">#        if debug or self._debug:</span>
+<span class="c">#            print &#39;...Passed&#39;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">PySeidon 2.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Dr. Thomas Roc &amp; co..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
