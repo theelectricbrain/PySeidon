@@ -207,7 +207,8 @@ class FunctionsFvcom:
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+                              self._grid.latc,
+                              self._grid.trinodes, debug=debug)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -353,7 +354,8 @@ class FunctionsFvcom:
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+                              self._grid.latc,
+                              self._grid.trinodes, debug=debug)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -863,7 +865,8 @@ class FunctionsFvcom:
                                   self._grid.lon,
                                   self._grid.lat,
                                   self._grid.lonc,
-                                  self._grid.latc, trinodes, debug=debug)
+                                  self._grid.latc,
+                                  self._grid.trinodes, debug=debug)
 
         if not hasattr(self._grid, 'depth2D'):
             #Compute depth
@@ -1049,7 +1052,8 @@ class FunctionsFvcom:
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+                              self._grid.latc,
+                              self._grid.trinodes, debug=debug)
         argtime = []
         if not time_ind==[]:
             argtime = time_ind
