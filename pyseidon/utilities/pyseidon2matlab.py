@@ -44,7 +44,7 @@ def pyseidon_to_matlab(fvcom, filename, debug):
             Var[key] = Var[key][:]
         #keyV = key + '-var'
         #data[keyV] = Var[key]
-        data[key] = Var[key]
+        data[key] = np.float64(Var[key].copy())
     #Unpickleable objects
     Grd.pop("triangle", None)
     for key in Grd:
@@ -55,7 +55,7 @@ def pyseidon_to_matlab(fvcom, filename, debug):
             Grd[key] = Grd[key][:]
         #keyG = key + '-grd'
         #data[keyG] = Grd[key]
-        data[key] = Grd[key]
+        data[key] = np.float64(Grd[key].copy())
 
     #Save in mat file file
     if debug:
