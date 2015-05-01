@@ -53,6 +53,8 @@ Up-dating:
 Recommendations:
 * The tutorials and package functioning have been designed for use in IPython shell: One can download IPython from [here](http://ipython.org/)
 
+### Documentation ###
+Package's documentation can be found [here](http://grumpynounours.github.io/PySeidon/index.html)
 
 ### Contribution guidelines ###
 * [Tutorial 0: First steps](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_0.ipynb)
