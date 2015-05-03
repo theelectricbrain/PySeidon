@@ -60,4 +60,4 @@ def pyseidon_to_matlab(fvcom, filename, debug):
     #Save in mat file file
     if debug:
         print 'Dumping in matlab file...'
-    savemat(filename, data, oned_as='column') 
+    savemat(filename, data, oned_as='column')

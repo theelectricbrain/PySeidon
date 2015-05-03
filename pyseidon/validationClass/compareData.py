@@ -106,10 +106,20 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                    debug=debug, debug_plot=debug_plot)
 
 	# velocity i.e. signed speed
+	##chose the component with the biggest variance as sign reference
+	if np.var(mod_v) > np.var(mod_u):
+            mod_signed = np.sign(mod_v)
+            obs_signed = np.sign(obs_v)
+	else:
+            mod_signed = np.sign(mod_u)
+            obs_signed = np.sign(obs_u)
+
 	(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = \
-	    smooth(mod_spd * np.sign(mod_v), mod_dt, 
-		   obs_spd * np.sign(obs_v), obs_dt,
+	    smooth(mod_spd * mod_signed, mod_dt, 
+		   obs_spd * obs_signed, obs_dt,
                    debug=debug, debug_plot=debug_plot)
+	
+	# cubic velocity
 
     if debug: print "...separate into ebb and flow..."
     
