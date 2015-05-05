@@ -88,41 +88,30 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     else:
         if debug: print "...interpolate the data onto a common time step for each data type..."
+
         # elevation
-        (mod_el_int, obs_el_int, step_el_int, start_el_int) = \
-            smooth(mod_el, mod_dt, obs_el, obs_dt,
-                   debug=debug, debug_plot=debug_plot)
-
+        (mod_el_int, obs_el_int, step_el_int, start_el_int) = smooth(mod_el, mod_dt, obs_el, obs_dt,
+                                                                     debug=debug, debug_plot=debug_plot)
         # speed
-        (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = \
-            smooth(mod_spd, mod_dt, obs_spd, obs_dt,
-                   debug=debug, debug_plot=debug_plot)
-
+        (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = smooth(mod_spd, mod_dt, obs_spd, obs_dt,
+                                                                     debug=debug, debug_plot=debug_plot)
         # direction
-        (mod_dr_int, obs_dr_int, step_dr_int, start_dr_int) = \
-            smooth(mod_dir, mod_dt, obs_dir, obs_dt,
-                   debug=debug, debug_plot=debug_plot)
-
+        (mod_dr_int, obs_dr_int, step_dr_int, start_dr_int) = smooth(mod_dir, mod_dt, obs_dir, obs_dt,
+                                                                     debug=debug, debug_plot=debug_plot)
         # u velocity
-	    (mod_u_int, obs_u_int, step_u_int, start_u_int) = \
-            smooth(mod_u, mod_dt, obs_u, obs_dt,
-                   debug=debug, debug_plot=debug_plot)
-
+        (mod_u_int, obs_u_int, step_u_int, start_u_int) = smooth(mod_u, mod_dt, obs_u, obs_dt,
+                                                                 debug=debug, debug_plot=debug_plot)
         # v velocity
-	    (mod_v_int, obs_v_int, step_v_int, start_v_int) = \
-            smooth(mod_v, mod_dt, obs_v, obs_dt,
-                   debug=debug, debug_plot=debug_plot)
-
+        (mod_v_int, obs_v_int, step_v_int, start_v_int) = smooth(mod_v, mod_dt, obs_v, obs_dt,
+                                                                 debug=debug, debug_plot=debug_plot)
         # velocity i.e. signed speed
-        (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = \
-            smooth(mod_spd * mod_signed, mod_dt, obs_spd * obs_signed, obs_dt,
-                   debug=debug, debug_plot=debug_plot)
-
+        (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = smooth(mod_spd * mod_signed, mod_dt,
+                                                                     obs_spd * obs_signed, obs_dt,
+                                                                     debug=debug, debug_plot=debug_plot)
         # cubic speed
-        (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = \
-            smooth(mod_spd ^ 3.0, mod_dt, obs_spd ^ 3.0, obs_dt,
-                   debug=debug, debug_plot=debug_plot)
-
+        (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_spd ^ 3.0, mod_dt,
+                                                                             obs_spd ^ 3.0, obs_dt,
+                                                                             debug=debug, debug_plot=debug_plot)
 
     if debug: print "...separate into ebb and flow..."
     
