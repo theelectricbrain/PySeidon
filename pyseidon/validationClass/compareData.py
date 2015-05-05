@@ -5,7 +5,9 @@ import sys
 from tidalStats import TidalStats
 from customTidalStats import CustomTidalStats
 #from interpolate import interpol
-from smooth import smooth
+# Trying new smooth script from J.Smith
+#from smooth import smooth
+from new_smooth import smooth
 from datetime import datetime, timedelta
 from utide import ut_reconstr
 from depthInterp import depthFromSurf
