@@ -581,6 +581,8 @@ class CustomTidalStats:
                 ax.set_ylabel('V velocity (m/s)')
             if self.type == 'velocity':
                 ax.set_ylabel('Signed flow speed (m/s)')
+            if self.type == 'cubic speed':
+                ax.set_ylabel('Signed flow speed (m/s)')
 
             fig.suptitle('Predicted and Observed {}'.format(self.type))
             ax.legend(shadow=True)

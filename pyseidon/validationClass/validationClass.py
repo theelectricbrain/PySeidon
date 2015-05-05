@@ -121,7 +121,7 @@ class Validation:
             vars.append('v')
             vars.append('vel')
             # custom var
-            vars.append('cubic speed')
+            vars.append('cubic_speed')
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
@@ -178,7 +178,7 @@ class Validation:
             vars.append('v')
             vars.append('vel')
             # custom var
-            vars.append('cubic speed')
+            vars.append('cubic_speed')
 
         else:
             print "-This type of measurements is not supported yet-"
