@@ -67,8 +67,7 @@ class TidalStats:
             for j, jj in enumerate(self.times):
                 timestamps[j] = time.mktime(jj.timetuple())
 
-            if debug:
-                print "...uses linear interpolation to eliminate any NaNs in the data..."
+            if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
             if (True in np.isnan(self.observed)):
                 obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
@@ -84,7 +83,7 @@ class TidalStats:
             self.step = time_step #needed for getMDPO, getMDNO, getPhase & altPhase
             pass
 
-        
+
         # Error attributes
         self.error = self.observed - self.model
         self.length = self.error.size
