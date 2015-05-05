@@ -288,7 +288,7 @@ class TidalStats:
         #  	  plt.title('Shifted Data vs. Original Data')
         #     plt.show()
         # if debug or self._debug: print "...getPhase done."
-    return phase_minutes
+        return phase_minutes
 
     def altPhase(self, debug=False):
         """

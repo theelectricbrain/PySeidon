@@ -244,117 +244,115 @@ class CustomTidalStats:
         return skill
 
     def getPhase(self, max_phase=timedelta(hours=3), debug=False):
-	'''
-	Attempts to find the phase shift between the model data and the
-	observed data.
+        '''
+        Attempts to find the phase shift between the model data and the
+        observed data.
 
-	Iteratively tests different phase shifts, and calculates the RMSE
-	for each one. The shift with the smallest RMSE is returned.
+        Iteratively tests different phase shifts, and calculates the RMSE
+        for each one. The shift with the smallest RMSE is returned.
 
-	Argument max_phase is the span of time across which the phase shifts
-	will be tested. If debug is set to True, a plot of the RMSE for each
-	phase shift will be shown.
-	'''
+        Argument max_phase is the span of time across which the phase shifts
+        will be tested. If debug is set to True, a plot of the RMSE for each
+        phase shift will be shown.
+        '''
         if debug or self._debug: print "getPhase..."
-	# grab the length of the timesteps in seconds
-	max_phase_sec = max_phase.seconds
+        # grab the length of the timesteps in seconds
+        max_phase_sec = max_phase.seconds
         try: #Fix for Drifter's data
-	    step_sec = self.step.seconds
+            step_sec = self.step.seconds
         except AttributeError:
             step_sec = self.step / 60
 
-	num_steps = max_phase_sec / step_sec
+        num_steps = max_phase_sec / step_sec
 
-	if debug or self._debug: print "...iterate through the phase shifts and check RMSE..."
-	errors = []
-	phases = np.arange(-num_steps, num_steps)
-	for i in phases:
-	    
-	    # create shifted data
-	    if (i < 0):
-		# left shift
-		shift_mod = self.model[-i:]
-		shift_obs = self.observed[:self.length + i]
-	    if (i > 0):
-		# right shift
-		shift_mod = self.model[:self.length - i]
-		shift_obs = self.observed[i:]
-	    if (i == 0):
-		# no shift
-		shift_mod = self.model
-		shift_obs = self.observed
+        if debug or self._debug: print "...iterate through the phase shifts and check RMSE..."
+        errors = []
+        phases = np.arange(-num_steps, num_steps)
+        for i in phases:
+            # create shifted data
+            if (i < 0):
+                # left shift
+                shift_mod = self.model[-i:]
+                shift_obs = self.observed[:self.length + i]
+            if (i > 0):
+                # right shift
+                shift_mod = self.model[:self.length - i]
+                shift_obs = self.observed[i:]
+            if (i == 0):
+                # no shift
+                shift_mod = self.model
+                shift_obs = self.observed
 
-	    start = self.times[abs(i)]
-	    step = self.times[1] - self.times[0]
-	
-	    # create TidalStats class for shifted data and get the RMSE
-	    stats = TidalStats(shift_mod, shift_obs, step, start, type='Phase')
-	    rms_error = stats.getRMSE()
-	    errors.append(rms_error)
-	    
-	if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
-	min_index = errors.index(min(errors))
-	best_phase = phases[min_index]
-	phase_minutes = best_phase * step_sec / 60
+            start = self.times[abs(i)]
+            step = self.times[1] - self.times[0]
 
-	# plot RMSE vs. the phase shift to ensure we're getting the right one
-	#if self._debug_plot:
-	#    plt.plot(phases, errors, label='Phase Shift vs. RMSE')
-	#    plt.vlines(best_phase, min(errors), max(errors))
-	#    plt.xlabel('Timesteps of Shift')
-	#    plt.ylabel('Root Mean Squared Error')
-	#    plt.show()
+        # create TidalStats class for shifted data and get the RMSE
+        stats = TidalStats(shift_mod, shift_obs, step, start, type='Phase')
+        rms_error = stats.getRMSE()
+        errors.append(rms_error)
 
-	#    # plot data on top of shifted data
-	#    if (best_phase < 0):
-	#	plt.plot(self.times[-best_phase:],
-	#		 self.model[-best_phase:])
-	#	plt.plot(self.times[-best_phase:],
-	#		 self.model[:self.length + best_phase], color='k')
-	#	plt.plot(self.times[-best_phase:],
-	#		 self.observed[:self.length + best_phase],
-	#		 color='r')
-	#	plt.xlabel('Times')
-	#	plt.ylabel('Values')
-	#	plt.title('Shifted Data vs. Original Data')
-	#	plt.show()
-        #if debug or self._debug: print "...getPhase done."
-	return phase_minutes
+        if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
+        min_index = errors.index(min(errors))
+        best_phase = phases[min_index]
+        phase_minutes = best_phase * step_sec / 60
+
+        # plot RMSE vs. the phase shift to ensure we're getting the right one
+        # if self._debug_plot:
+        #     plt.plot(phases, errors, label='Phase Shift vs. RMSE')
+        #     plt.vlines(best_phase, min(errors), max(errors))
+        #     plt.xlabel('Timesteps of Shift')
+        #     plt.ylabel('Root Mean Squared Error')
+        #     plt.show()
+        #     # plot data on top of shifted data
+        #     if (best_phase < 0):
+        #	  plt.plot(self.times[-best_phase:],
+        #              self.model[-best_phase:])
+        #	  plt.plot(self.times[-best_phase:],
+        #	           self.model[:self.length + best_phase], color='k')
+        #	  plt.plot(self.times[-best_phase:],
+        #	           self.observed[:self.length + best_phase],
+        #		       color='r')
+        #	  plt.xlabel('Times')
+        #	  plt.ylabel('Values')
+        #  	  plt.title('Shifted Data vs. Original Data')
+        #     plt.show()
+        # if debug or self._debug: print "...getPhase done."
+        return phase_minutes
 
     def altPhase(self, debug=False):
-	'''
-	Alternate version of lag detection using scipy's cross correlation
-	function.
-	'''
+        """
+        Alternate version of lag detection using scipy's cross correlation
+        function.
+        """
         if debug or self._debug: print "altPhase..."
-	# normalize arrays
-	mod = self.model
-	mod -= self.model.mean()
-	mod /= mod.std()
-	obs = self.observed
-	obs -= self.observed.mean()
-	obs /= obs.std()
+        # normalize arrays
+        mod = self.model
+        mod -= self.model.mean()
+        mod /= mod.std()
+        obs = self.observed
+        obs -= self.observed.mean()
+        obs /= obs.std()
 
-	if debug or self._debug: print "...get cross correlation and find number of timesteps of shift..."
-	xcorr = correlate(mod, obs)
-	samples = np.arange(1 - self.length, self.length)
-	time_shift = samples[xcorr.argmax()]
+        if debug or self._debug: print "...get cross correlation and find number of timesteps of shift..."
+        xcorr = correlate(mod, obs)
+        samples = np.arange(1 - self.length, self.length)
+        time_shift = samples[xcorr.argmax()]
 
-	# find number of minutes in time shift
+        # find number of minutes in time shift
         try: #Fix for Drifter's data
-	    step_sec = self.step.seconds
+            step_sec = self.step.seconds
         except AttributeError:
-	    step_sec = self.step
-	lag = time_shift * step_sec / 60
+            step_sec = self.step
+        lag = time_shift * step_sec / 60
 
         if debug or self._debug: print "...altPhase done."
 
-	return lag
+        return lag
 
     def getStats(self, debug=False):
-        '''
+        """
         Returns each of the statistics in a dictionary.
-        '''
+        """
 
         stats = {}
         stats['RMSE'] = self.getRMSE()
@@ -366,9 +364,9 @@ class CustomTidalStats:
         stats['MDNO'] = self.getMDNO()
         stats['skill'] = self.getWillmott()
         try: #Fix for Drifter's data
-	    stats['phase'] = self.getPhase(debug=debug)
+            stats['phase'] = self.getPhase(debug=debug)
         except:
-	    stats['phase'] = 0.0
+            stats['phase'] = 0.0
 
         if debug or self._debug: print "...getStats..."
 
@@ -381,12 +379,12 @@ class CustomTidalStats:
         Gives a 100(1-alpha)% confidence interval for the slope
         '''
         if debug or self._debug: print "linReg..."
-	# set stuff up to make the code cleaner
-	obs = self.observed
-	mod = self.model
+        # set stuff up to make the code cleaner
+        obs = self.observed
+        mod = self.model
         obs_mean = np.mean(obs)
-	mod_mean = np.mean(mod)
-	n = mod.size
+        mod_mean = np.mean(mod)
+        n = mod.size
         df = n - 2
 
         # calculate square sums
@@ -441,8 +439,8 @@ class CustomTidalStats:
         set, and uses the results to attempt to predict the missing datum.
         '''
         if debug or self._debug: print "crossVal..."
-        cross_error = np.zeroes(self.model.size)
-        cross_pred = np.zeroes(self.model.size)
+        cross_error = np.zeros(self.model.size)
+        cross_pred = np.zeros(self.model.size)
         model_orig = self.model
         obs_orig = self.observed
         time_orig = self.time
@@ -480,12 +478,12 @@ class CustomTidalStats:
         return data
 
     def plotRegression(self, lr, save=False, out_f='', debug=False):
-        '''
+        """
         Plots a visualization of the output from linear regression,
         including confidence intervals for predictands and slope.
 
-	If save is set to True, exports the plot as an image file to out_f.
-        '''
+        If save is set to True, exports the plot as an image file to out_f.
+        """
         df = pd.DataFrame(data={'model': self.model.flatten(),
                                 'observed':self.observed.flatten()})
         #define figure frame
@@ -497,71 +495,67 @@ class CustomTidalStats:
 
         ## plot regression line
         mod_max = np.amax(self.model)
-	mod_min = np.amin(self.model)
+        mod_min = np.amin(self.model)
         upper_intercept = lr['intercept'] + lr['pred_CI_width']
         lower_intercept = lr['intercept'] - lr['pred_CI_width']
         ax.plot([mod_min, mod_max], [mod_min * lr['slope'] + lr['intercept'],
-				      mod_max * lr['slope'] + lr['intercept']],
-                 color='k', linestyle='-', linewidth=2, label='Linear fit')
+                mod_max * lr['slope'] + lr['intercept']],
+                color='k', linestyle='-', linewidth=2, label='Linear fit')
 
         ## plot CI's for slope
-        ax.plot([mod_min, mod_max],
-		 [mod_min * lr['slope_CI'][0] + lr['intercept_CI'][0],
-		  mod_max * lr['slope_CI'][0] + lr['intercept_CI'][0]],
+        ax.plot([mod_min, mod_max], [mod_min * lr['slope_CI'][0] + lr['intercept_CI'][0],
+                                     mod_max * lr['slope_CI'][0] + lr['intercept_CI'][0]],
                  color='r', linestyle='--', linewidth=2)
-        ax.plot([mod_min, mod_max],
-		 [mod_min * lr['slope_CI'][1] + lr['intercept_CI'][1],
-                  mod_max * lr['slope_CI'][1] + lr['intercept_CI'][1]],
+        ax.plot([mod_min, mod_max], [mod_min * lr['slope_CI'][1] + lr['intercept_CI'][1],
+                                     mod_max * lr['slope_CI'][1] + lr['intercept_CI'][1]],
                  color='r', linestyle='--', linewidth=2, label='Slope CI')
 
         ## plot CI's for predictands
-        ax.plot([mod_min, mod_max],
-		 [mod_min * lr['slope'] + upper_intercept,
-                  mod_max * lr['slope'] + upper_intercept],
+        ax.plot([mod_min, mod_max], [mod_min * lr['slope'] + upper_intercept,
+                                     mod_max * lr['slope'] + upper_intercept],
                  color='g', linestyle='--', linewidth=2)
-        ax.plot([mod_min, mod_max],
-		 [mod_min * lr['slope'] + lower_intercept,
-                  mod_max * lr['slope'] + lower_intercept],
+        ax.plot([mod_min, mod_max], [mod_min * lr['slope'] + lower_intercept,
+                                     mod_max * lr['slope'] + lower_intercept],
                  color='g', linestyle='--', linewidth=2, label='Predictand CI')
 
         ax.set_xlabel('Modeled Data')
         ax.set_ylabel('Observed Data')
         fig.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
-	plt.legend(loc='lower right', shadow=True)
+        plt.legend(loc='lower right', shadow=True)
 
-	r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
-	plt.title(r_string)
+        r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
+        plt.title(r_string)
 
-        #Pretty plot
+        # Pretty plot
         seaborn.set(style="darkgrid")
         color = seaborn.color_palette()[2]
         g = seaborn.jointplot("model", "observed", data=df, kind="reg",
                               xlim=(df.model.min(), df.model.max()),
                               ylim=(df.observed.min(), df.observed.max()),
-                              color=color, size=7)   
+                              color=color, size=7)
         plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 
-	if save:
-	    fig.savefig(out_f)
-	else:
-	    fig.show()
+        if save:
+            fig.savefig(out_f)
+        else:
+            fig.show()
 
     def plotData(self, graph='time', save=False, out_f='', debug=False):
-        '''
+        """
         Provides a visualization of the data.
 
         Takes an option which determines the type of graph to be made.
         time: plots the model data against the observed data over time
         scatter : plots the model data vs. observed data
 
-	If save is set to True, saves the image file in out_f.
-        '''
-        if (graph == 'time'):
-            #define figure frame
-            fig = plt.figure(figsize=(18,10))
-            plt.rc('font',size='22')
-            ax = fig.add_subplot(111)
+        If save is set to True, saves the image file in out_f.
+        """
+        #define figure frame
+        fig = plt.figure(figsize=(18,10))
+        plt.rc('font',size='22')
+        ax = fig.add_subplot(111)
 
+        if (graph == 'time'):
             ax.plot(self.times, self.model, label='Model Predictions')
             ax.plot(self.times, self.observed, color='r',
                      label='Observed Data')
@@ -580,7 +574,7 @@ class CustomTidalStats:
                 ax.set_ylabel('Signed flow speed (m/s)')
 
             fig.suptitle('Predicted and Observed {}'.format(self.type))
-	    ax.legend(shadow=True)
+            ax.legend(shadow=True)
 
         if (graph == 'scatter'):
             ax.scatter(self.model, self.observed, c='b', alpha=0.5)
@@ -588,13 +582,14 @@ class CustomTidalStats:
             ax.set_ylabel('Observed Height')
             fig.suptitle('Predicted vs. Observed {}'.format(self.type))
 
-	if save:
-	    fig.savefig(out_f)
-	else:
-	    fig.show()	
+        if save:
+            fig.savefig(out_f)
+        else:
+            fig.show()
 
     def save_data(self):
             df = pd.DataFrame(data={'time': self.times.flatten(),
                                     'observed':self.observed.flatten(),
                                     'modeled':self.model.flatten() })
             df.to_csv(str(self.type)+'.csv')
+
