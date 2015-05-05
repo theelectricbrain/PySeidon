@@ -42,7 +42,7 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
     steps = int(length / step_sec) + 1
 
     # sort times into bins then identify bin indices
-    series_1, series_2 = np.zeros(steps), np.zeroes(steps)
+    series_1, series_2 = np.zeros(steps), np.zeros(steps)
     time_bins = np.arange(steps) * step_sec + start
     inds_1 = np.digitize(times_1, time_bins)
     inds_2 = np.digitize(times_2, time_bins)
