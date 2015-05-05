@@ -225,8 +225,8 @@ def customTidalSuite(model, observed, step, start,
     '''
     if debug: print "tidalSuite..."
     stats = CustomTidalStats(model, observed, step, start,
-                             model_time, observed_time,
                              model_u, observed_u, model_v, observed_v,
+                             model_time, observed_time,
                              type=type, debug=debug, debug_plot=debug_plot)
     stats_suite = stats.getStats()
     stats_suite['r_squared'] = stats.linReg()['r_2']
