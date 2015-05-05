@@ -109,8 +109,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                                                                      obs_spd * obs_signed, obs_dt,
                                                                      debug=debug, debug_plot=debug_plot)
         # cubic speed
-        (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_spd ^ 3.0, mod_dt,
-                                                                             obs_spd ^ 3.0, obs_dt,
+        mod_cspd = mod_spd**3.0
+        obs_cspd = obs_spd**3.0
+        (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_cspd, mod_dt, obs_cspd, obs_dt,
                                                                              debug=debug, debug_plot=debug_plot)
 
     if debug: print "...separate into ebb and flow..."
@@ -265,9 +266,9 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     # convert times and grab values
     obs_time, mod_time = [], []
     for i, v in enumerate(obs_datenums):
-	obs_time.append(dn2dt(v))
+        obs_time.append(dn2dt(v))
     for j, w in enumerate(mod_datenums):
-	mod_time.append(dn2dt(w))
+        mod_time.append(dn2dt(w))
 
     if debug: print "...check if they line up in the time domain..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
@@ -281,13 +282,13 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
             smooth(mod_elev, mod_time, obs_elev, obs_time,
                    debug=debug, debug_plot=debug_plot)
 
-    if debug: print "...get validation statistics..."
-    stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='elevation',
-                       debug=debug, debug_plot=debug_plot)
+    # if debug: print "...get validation statistics..."
+    # stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, type='elevation',
+    #                    debug=debug, debug_plot=debug_plot)
 
 
     elev_suite = tidalSuite(mod_elev_int, obs_elev_int, step_int, start_int,
-			    type='elevation', plot=plot, save_csv=save_csv,
+                            type='elevation', plot=plot, save_csv=save_csv,
                             debug=debug, debug_plot=debug_plot)
 
     if debug: print "...CompareTG done."
