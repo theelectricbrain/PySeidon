@@ -102,7 +102,7 @@ class Validation:
 
         if self.Variables.struct['type'] == 'ADCP':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
-             vel_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
+             vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
                                     plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
@@ -111,6 +111,8 @@ class Validation:
             self.Variables.struct['u_val'] = u_suite
             self.Variables.struct['v_val'] = v_suite
             self.Variables.struct['vel_val'] = vel_suite
+            # custom benchmark
+            self.Variables.struct['cubic_speed_val'] = csp_suite
             # Variable to processed
             vars.append('elev')
             vars.append('speed')
@@ -118,6 +120,8 @@ class Validation:
             vars.append('u')
             vars.append('v')
             vars.append('vel')
+            # custom var
+            vars.append('cubic speed')
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
@@ -165,12 +169,16 @@ class Validation:
             self.Variables.struct['u_val'] = u_suite
             self.Variables.struct['v_val'] = v_suite
             self.Variables.struct['vel_val'] = vel_suite
+            # custom benchmark
+            self.Variables.struct['cubic_speed_val'] = csp_suite
             #Variable to processed
             vars.append('speed')
             vars.append('dir')
             vars.append('u')
             vars.append('v')
             vars.append('vel')
+            # custom var
+            vars.append('cubic speed')
 
         else:
             print "-This type of measurements is not supported yet-"

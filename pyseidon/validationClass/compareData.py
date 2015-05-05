@@ -175,7 +175,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     if debug: print "...CompareUV done."
 
-    return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite)
+    return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite, csp_suite)
 
 def tidalSuite(model, observed, step, start, type='', plot=False,
                save_csv=False, debug=False, debug_plot=False):
