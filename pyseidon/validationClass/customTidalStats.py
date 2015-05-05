@@ -110,8 +110,8 @@ class CustomTidalStats:
         if type == 'velocity':
             self.error = self.observed - self.model
         elif type == 'cubic speed':
-            self.error = ((self.model_u ^ 2.0 + self.observed_u^2.0) ^ (3.0/2.0)) - \
-                         ((self.model_v ^ 2.0 + self.observed_v ^ 2.0) ^ (3.0/2.0))
+            self.error = ((self.model_u**2.0 + self.observed_u**2.0)**(3.0/2.0)) - \
+                         ((self.model_v**2.0 + self.observed_v**2.0)**(3.0/2.0))
         else:
             print "---Data type not supported---"
             exit()
