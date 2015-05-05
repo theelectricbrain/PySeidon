@@ -31,6 +31,7 @@ class CustomTidalStats:
     """
     def __init__(self, model_data, observed_data, time_step, start_time,
                  model_u, observed_u, model_v, observed_v,
+                 model_time, observed_time,
                  type='', debug=False, debug_plot=False):
         if debug: print "TidalStats initialisation..."
         self._debug = debug
@@ -39,17 +40,14 @@ class CustomTidalStats:
         self.model = self.model.astype(np.float64)
         self.observed = np.asarray(observed_data)
         self.observed = self.observed.astype(np.float64)
-        # Error attributes
-        if type == 'velocity':
-            self.error = self.observed - self.model
-        elif type == 'cubic speed':
-            self.error = ((model_u ^ 2.0 + observed_u^2.0) ^ (3.0/2.0)) - \
-                         ((model_v ^ 2.0 + observed_v ^ 2.0) ^ (3.0/2.0))
-        else:
-            print "---Data type not supported---"
-            exit()
-
-        self.length = self.error.size
+        self.model_u = np.asarray(model_u)
+        self.model_u = self.model_u.astype(np.float64)
+        self.observed_u = np.asarray(observed_u)
+        self.observed_u = self.observed_u.astype(np.float64)
+        self.model_v = np.asarray(model_v)
+        self.model_v = self.model_v.astype(np.float64)
+        self.observed_v = np.asarray(observed_v)
+        self.observed_v = self.observed_v.astype(np.float64)
         self.type = type
 
         # TR: pass this step if dealing with Drifter's data
@@ -83,32 +81,47 @@ class CustomTidalStats:
             for j, jj in enumerate(self.times):
                 timestamps[j] = time.mktime(jj.timetuple())
 
-        if debug:
+            if debug:
                 print "...uses linear interpolation to eliminate any NaNs in the data..."
-        if (True in np.isnan(self.observed)):
-            obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
-            time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
-            func = interp1d(time_nonan, obs_nonan)
-            self.observed = func(timestamps)
-        if (True in np.isnan(self.model)):
-            mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
-            time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
-            func = interp1d(time_nonan, mod_nonan)
-            self.model = func(timestamps)
+            if (True in np.isnan(self.observed)):
+                obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
+                time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
+                func = interp1d(time_nonan, obs_nonan)
+                self.observed = func(timestamps)
+                func_u = interp1d(observed_time, observed_u)
+                self.observed_u = func_u(timestamps)
+                func_v = interp1d(observed_time, observed_v)
+                self.observed_v = func_v(timestamps)
+            if (True in np.isnan(self.model)):
+                mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
+                time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
+                func = interp1d(time_nonan, mod_nonan)
+                self.model = func(timestamps)
+                func_u = interp1d(model_time, model_u)
+                self.model_u = func_u(timestamps)
+                func_v = interp1d(model_time, model_v)
+                self.model_v = func_v(timestamps)
         # TR: pass this step if dealing with Drifter's data
         except AttributeError:
             self.step = time_step #needed for getMDPO, getMDNO, getPhase & altPhase
             pass
 
+        # Error attributes
+        if type == 'velocity':
+            self.error = self.observed - self.model
+        elif type == 'cubic speed':
+            self.error = ((self.model_u ^ 2.0 + self.observed_u^2.0) ^ (3.0/2.0)) - \
+                         ((self.model_v ^ 2.0 + self.observed_v ^ 2.0) ^ (3.0/2.0))
+        else:
+            print "---Data type not supported---"
+            exit()
+        self.length = self.error.size
+
         if debug: print "...establish limits as defined by NOAA standard..."
-        if (type == 'speed' or type == 'velocity'):
+        if type == 'velocity':
             self.ERROR_BOUND = 0.26
-        elif (type == 'elevation'):
-            self.ERROR_BOUND = 0.15
-        elif (type == 'direction' or type == 'ebb' or type == 'flow'):
-            self.ERROR_BOUND = 22.5
-        elif (type == 'u velocity' or type == 'v velocity'):
-            self.ERROR_BOUND = 0.35
+        elif type == 'cubic speed':
+            self.ERROR_BOUND = 0.26**3.0
         else:
             self.ERROR_BOUND = 0.5
 
@@ -119,7 +132,12 @@ class CustomTidalStats:
         Returns the root mean squared error of the data.
         '''
         if debug or self._debug: print "...getRMSE..."
-        return np.sqrt(np.mean(self.error**2))
+        # Special definition of rmse - R.Karsten
+        if type == 'velocity':
+            rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
+        else:
+            rmse = np.sqrt(np.mean(self.error**2))
+        return rmse
 
     def getSD(self, debug=False):
         '''

@@ -114,7 +114,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                    debug=debug, debug_plot=debug_plot)
 
         # velocity i.e. signed speed
-	    (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = \
+        (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = \
             smooth(mod_spd * mod_signed, mod_dt, obs_spd * obs_signed, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
@@ -171,11 +171,13 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     # TODO develop and call custom TidalSuites
     # TODO verify if u, v, spd and cspd are shape compatible
     vel_suite = customTidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
-                           mod_u_int, obs_u_int, mod_v_int, obs_v_int,
+                           mod_u, obs_u, mod_v, obs_v,
+                           mod_time, obs_time,
                            type='velocity', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
     csp_suite = customTidalSuite(mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
-                           mod_u_int, obs_u_int, mod_v_int, obs_v_int,
+                           mod_u, obs_u, mod_v, obs_v,
+                           mod_time, obs_time,
                            type='cubic speed', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
 
@@ -220,6 +222,7 @@ def tidalSuite(model, observed, step, start, type='', plot=False,
 # TODO finir portage
 def customTidalSuite(model, observed, step, start,
                      model_u, observed_u, model_v, observed_v,
+                     model_time, observed_time,
                      type='', plot=False, save_csv=False, debug=False, debug_plot=False):
     '''
     Create stats classes for a given tidal variable.
@@ -231,9 +234,10 @@ def customTidalSuite(model, observed, step, start,
     Returns a dictionary containing all the stats.
     '''
     if debug: print "tidalSuite..."
-    stats = SignedVeloTidalStats(model, observed, step, start,
-                       model_u, observed_u, model_v, observed_v,
-                       type=type, debug=debug, debug_plot=debug_plot)
+    stats = CustomTidalStats(model, observed, step, start,
+                             model_time, observed_time,
+                             model_u, observed_u, model_v, observed_v,
+                             type=type, debug=debug, debug_plot=debug_plot)
     stats_suite = stats.getStats()
     stats_suite['r_squared'] = stats.linReg()['r_2']
     try: #Fix for Drifter's data

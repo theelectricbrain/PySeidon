@@ -26,8 +26,8 @@ class TidalStats:
     Functions are used to calculate statistics and to output
     visualizations and tables.
     '''
-    def __init__(self, model_data, observed_data, time_step, start_time, type='',
-                 debug=False, debug_plot=False):
+    def __init__(self, model_data, observed_data, time_step, start_time,
+                 type='', debug=False, debug_plot=False):
         if debug: print "TidalStats initialisation..."
         self._debug = debug
         self._debug_plot = debug_plot
@@ -35,10 +35,6 @@ class TidalStats:
         self.model = self.model.astype(np.float64)
         self.observed = np.asarray(observed_data)
         self.observed = self.observed.astype(np.float64)
-        # Error attributes
-        self.error = self.observed - self.model
-        self.length = self.error.size
-        self.type = type
 
         # TR: pass this step if dealing with Drifter's data
         try:
@@ -71,22 +67,28 @@ class TidalStats:
             for j, jj in enumerate(self.times):
                 timestamps[j] = time.mktime(jj.timetuple())
 
-        if debug:
+            if debug:
                 print "...uses linear interpolation to eliminate any NaNs in the data..."
-        if (True in np.isnan(self.observed)):
-            obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
-            time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
-            func = interp1d(time_nonan, obs_nonan)
-            self.observed = func(timestamps)
-        if (True in np.isnan(self.model)):
-            mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
-            time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
-            func = interp1d(time_nonan, mod_nonan)
-            self.model = func(timestamps)
+            if (True in np.isnan(self.observed)):
+                obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
+                time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
+                func = interp1d(time_nonan, obs_nonan)
+                self.observed = func(timestamps)
+            if (True in np.isnan(self.model)):
+                mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
+                time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
+                func = interp1d(time_nonan, mod_nonan)
+                self.model = func(timestamps)
         # TR: pass this step if dealing with Drifter's data
         except AttributeError:
             self.step = time_step #needed for getMDPO, getMDNO, getPhase & altPhase
             pass
+
+        
+        # Error attributes
+        self.error = self.observed - self.model
+        self.length = self.error.size
+        self.type = type
 
         if debug: print "...establish limits as defined by NOAA standard..."
         if (type == 'speed' or type == 'velocity'):

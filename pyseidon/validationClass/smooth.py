@@ -40,25 +40,25 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
         start_buf = start + step_sec * i
         end_buf = start + step_sec * (i + 1)
 
-	buf_1 = np.where((times_1 >= start_buf) & (times_1 < end_buf))[0]
-	buf_2 = np.where((times_2 >= start_buf) & (times_2 < end_buf))[0]	
+        buf_1 = np.where((times_1 >= start_buf) & (times_1 < end_buf))[0]
+        buf_2 = np.where((times_2 >= start_buf) & (times_2 < end_buf))[0]
 
-	data_buf_1 = data_1[buf_1]
-	data_buf_2 = data_2[buf_2]
+        data_buf_1 = data_1[buf_1]
+        data_buf_2 = data_2[buf_2]
 
-	# communicate progress
-	#if (i % 1000 == 0):
-	#    print 'Currently smoothing at step {} / {}'.format(i, steps)
+        # communicate progress
+        #if (i % 1000 == 0):
+        #    print 'Currently smoothing at step {} / {}'.format(i, steps)
 
         # calculate mean of data subsets (in the buffers)
-	if (len(data_buf_1) != 0):
+        if (len(data_buf_1) != 0):
             series_1[i] = np.mean(data_buf_1)
-	else:
-	    series_1[i] = np.nan
-	if (len(data_buf_2) != 0):
+        else:
+            series_1[i] = np.nan
+        if (len(data_buf_2) != 0):
             series_2[i] = np.mean(data_buf_2)
-	else:
-	    series_2[i] = np.nan
+        else:
+            series_2[i] = np.nan
 
     if debug: print "...smooth done."
     return (series_1, series_2, time_step, dt_start)
