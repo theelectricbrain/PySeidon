@@ -3,6 +3,7 @@
 import numpy as np
 import sys
 from tidalStats import TidalStats
+from customTidalStats import CustomTidalStats
 #from interpolate import interpol
 from smooth import smooth
 from datetime import datetime, timedelta
@@ -36,7 +37,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     mod_el = data['mod_timeseries']['elev']
     obs_el = data['obs_timeseries']['elev']
 
-    #Check if 3D simulation
+    # Check if 3D simulation
     if threeDim:
         obs_u_all = data['obs_timeseries']['u']
         obs_v_all = data['obs_timeseries']['v']
@@ -47,7 +48,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
         # use depth interpolation to get a single timeseries
         mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
         (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
-				       obs_u_all, obs_el, bins, depth=depth,
+                                       obs_u_all, obs_el, bins, depth=depth,
                                        debug=debug, debug_plot=debug_plot)
         (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
                                        obs_v_all, obs_el, bins, depth=depth,
@@ -62,9 +63,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     if debug: print "...convert times to datetime..."
     mod_dt, obs_dt = [], []
     for i in mod_time:
-	mod_dt.append(dn2dt(i))
+        mod_dt.append(dn2dt(i))
     for j in obs_time:
-	obs_dt.append(dn2dt(j))
+        obs_dt.append(dn2dt(j))
 
     if debug: print "...put data into a useful format..."
     mod_spd = np.sqrt(mod_u**2.0 + mod_v**2.0)
@@ -72,6 +73,13 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
     obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
     obs_el = obs_el - np.mean(obs_el[~np.isnan(obs_el)])
+    # Chose the component with the biggest variance as sign reference
+    if np.var(mod_v) > np.var(mod_u):
+            mod_signed = np.sign(mod_v)
+            obs_signed = np.sign(obs_v)
+    else:
+            mod_signed = np.sign(mod_u)
+            obs_signed = np.sign(obs_u)
 
     if debug: print "...check if the modeled data lines up with the observed data..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
@@ -80,46 +88,41 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     else:
         if debug: print "...interpolate the data onto a common time step for each data type..."
-	# elevation
+        # elevation
         (mod_el_int, obs_el_int, step_el_int, start_el_int) = \
-	    smooth(mod_el, mod_dt, obs_el, obs_dt,
+            smooth(mod_el, mod_dt, obs_el, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
-	# speed
+        # speed
         (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = \
             smooth(mod_spd, mod_dt, obs_spd, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
-	# direction
+        # direction
         (mod_dr_int, obs_dr_int, step_dr_int, start_dr_int) = \
             smooth(mod_dir, mod_dt, obs_dir, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
-	# u velocity
-	(mod_u_int, obs_u_int, step_u_int, start_u_int) = \
-	    smooth(mod_u, mod_dt, obs_u, obs_dt,
+        # u velocity
+	    (mod_u_int, obs_u_int, step_u_int, start_u_int) = \
+            smooth(mod_u, mod_dt, obs_u, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
-	# v velocity
-	(mod_v_int, obs_v_int, step_v_int, start_v_int) = \
-	    smooth(mod_v, mod_dt, obs_v, obs_dt,
+        # v velocity
+	    (mod_v_int, obs_v_int, step_v_int, start_v_int) = \
+            smooth(mod_v, mod_dt, obs_v, obs_dt,
                    debug=debug, debug_plot=debug_plot)
 
-	# velocity i.e. signed speed
-	##chose the component with the biggest variance as sign reference
-	if np.var(mod_v) > np.var(mod_u):
-            mod_signed = np.sign(mod_v)
-            obs_signed = np.sign(obs_v)
-	else:
-            mod_signed = np.sign(mod_u)
-            obs_signed = np.sign(obs_u)
-
-	(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = \
-	    smooth(mod_spd * mod_signed, mod_dt, 
-		   obs_spd * obs_signed, obs_dt,
+        # velocity i.e. signed speed
+	    (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = \
+            smooth(mod_spd * mod_signed, mod_dt, obs_spd * obs_signed, obs_dt,
                    debug=debug, debug_plot=debug_plot)
-	
-	# cubic velocity
+
+        # cubic speed
+        (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = \
+            smooth(mod_spd ^ 3.0, mod_dt, obs_spd ^ 3.0, obs_dt,
+                   debug=debug, debug_plot=debug_plot)
+
 
     if debug: print "...separate into ebb and flow..."
     
@@ -136,43 +139,53 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     if debug: print "...remove directions where velocities are small..."
     MIN_VEL = 0.1
     for i in np.arange(obs_sp_int.size):
- 	if (obs_sp_int[i] < MIN_VEL):
-	    obs_dr_int[i] = np.nan
-	if (mod_sp_int[i] < MIN_VEL):
-	    mod_dr_int[i] = np.nan
+        if (obs_sp_int[i] < MIN_VEL):
+            obs_dr_int[i] = np.nan
+        if (mod_sp_int[i] < MIN_VEL):
+            mod_dr_int[i] = np.nan
 
     if debug: print "...get stats for each tidal variable..."
     elev_suite = tidalSuite(mod_el_int, obs_el_int, step_el_int, start_el_int,
-			    type='elevation', plot=plot, save_csv=save_csv, 
+                            type='elevation', plot=plot, save_csv=save_csv,
                             debug=debug, debug_plot=debug_plot)
     speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
-			    type='speed', plot=plot, save_csv=save_csv, 
-                            debug=debug, debug_plot=debug_plot)
+                             type='speed', plot=plot, save_csv=save_csv,
+                             debug=debug, debug_plot=debug_plot)
     dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
-			   type='direction', plot=plot, save_csv=save_csv, 
+                           type='direction', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
     u_suite = tidalSuite(mod_u_int, obs_u_int, step_u_int, start_u_int,
-			 type='u velocity', plot=plot, save_csv=save_csv, 
+                         type='u velocity', plot=plot, save_csv=save_csv,
                          debug=debug, debug_plot=debug_plot)
     v_suite = tidalSuite(mod_v_int, obs_v_int, step_v_int, start_v_int,
-			 type='v velocity', plot=plot, save_csv=save_csv, 
+                         type='v velocity', plot=plot, save_csv=save_csv,
                          debug=debug, debug_plot=debug_plot)
-    vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
-			   type='velocity', plot=plot, save_csv=save_csv, 
-                           debug=debug, debug_plot=debug_plot)
     #ebb_suite = tidalSuite(mod_ebb, obs_ebb, step_ebb_int, start_ebb_int,
-    #     		    type='ebb', plot=True, save_csv=save_csv, 
+    #     		    type='ebb', plot=True, save_csv=save_csv,
     #                       debug=debug, debug_plot=debug_plot)
     #flo_suite = tidalSuite(mod_flo, obs_flo, step_flo_int, start_flo_int,
-    #	         	    type='flow', plot=True, save_csv=save_csv, 
+    #	         	    type='flow', plot=True, save_csv=save_csv,
     #                        debug=debug, debug_plot=debug_plot)
+
+    # TR: requires special treatments from here on
+    # TODO develop and call custom TidalSuites
+    # TODO verify if u, v, spd and cspd are shape compatible
+    vel_suite = customTidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
+                           mod_u_int, obs_u_int, mod_v_int, obs_v_int,
+                           type='velocity', plot=plot, save_csv=save_csv,
+                           debug=debug, debug_plot=debug_plot)
+    csp_suite = customTidalSuite(mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
+                           mod_u_int, obs_u_int, mod_v_int, obs_v_int,
+                           type='cubic speed', plot=plot, save_csv=save_csv,
+                           debug=debug, debug_plot=debug_plot)
+
     # output statistics in useful format
 
     if debug: print "...CompareUV done."
 
     return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite)
 
-def tidalSuite(model, observed, step, start, type, plot=False,
+def tidalSuite(model, observed, step, start, type='', plot=False,
                save_csv=False, debug=False, debug_plot=False):
     '''
     Create stats classes for a given tidal variable.
@@ -189,7 +202,7 @@ def tidalSuite(model, observed, step, start, type, plot=False,
     stats_suite = stats.getStats()
     stats_suite['r_squared'] = stats.linReg()['r_2']
     try: #Fix for Drifter's data
-	stats_suite['phase'] = stats.getPhase(debug=debug)
+        stats_suite['phase'] = stats.getPhase(debug=debug)
     except:
         stats_suite['phase'] = 0.0
 
@@ -199,6 +212,41 @@ def tidalSuite(model, observed, step, start, type, plot=False,
 
     if save_csv:
         stats.save_data()    
+
+    if debug: print "...tidalSuite done."
+
+    return stats_suite
+
+# TODO finir portage
+def customTidalSuite(model, observed, step, start,
+                     model_u, observed_u, model_v, observed_v,
+                     type='', plot=False, save_csv=False, debug=False, debug_plot=False):
+    '''
+    Create stats classes for a given tidal variable.
+
+    Accepts interpolated model and observed data, the timestep, and start
+    time. Type is a string representing the type of data. If plot is set
+    to true, a time plot and regression plot will be produced.
+
+    Returns a dictionary containing all the stats.
+    '''
+    if debug: print "tidalSuite..."
+    stats = SignedVeloTidalStats(model, observed, step, start,
+                       model_u, observed_u, model_v, observed_v,
+                       type=type, debug=debug, debug_plot=debug_plot)
+    stats_suite = stats.getStats()
+    stats_suite['r_squared'] = stats.linReg()['r_2']
+    try: #Fix for Drifter's data
+        stats_suite['phase'] = stats.getPhase(debug=debug)
+    except:
+        stats_suite['phase'] = 0.0
+
+    if plot or debug_plot:
+        stats.plotData()
+	stats.plotRegression(stats.linReg())
+
+    if save_csv:
+        stats.save_data()
 
     if debug: print "...tidalSuite done."
 
