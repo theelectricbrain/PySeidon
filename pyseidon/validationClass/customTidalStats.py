@@ -103,15 +103,22 @@ class CustomTidalStats:
         if type == 'velocity':
             self.error = self.observed - self.model
         elif type == 'cubic speed':
-            func_u = interp1d(model_time, model_u)
+            # interpolate cubic speed, u and v on same time steps
+            model_timestamps = np.zeros(len(model_time))
+            for j, jj in enumerate(model_time):
+                model_timestamps[j] = time.mktime(jj.timetuple())
+            obs_timestamps = np.zeros(len(observed_time))
+            for j, jj in enumerate(observed_time):
+                obs_timestamps[j] = time.mktime(jj.timetuple())
+            func_u = interp1d(model_timestamps, model_u)
             self.model_u = func_u(timestamps)
-            func_v = interp1d(model_time, model_v)
+            func_v = interp1d(model_timestamps, model_v)
             self.model_v = func_v(timestamps)
-            func_u = interp1d(observed_time, observed_u)
+            func_u = interp1d(obs_timestamps, observed_u)
             self.observed_u = func_u(timestamps)
-            func_v = interp1d(observed_time, observed_v)
+            func_v = interp1d(obs_timestamps, observed_v)
             self.observed_v = func_v(timestamps)
-            
+
             self.error = ((self.model_u**2.0 + self.observed_u**2.0)**(3.0/2.0)) - \
                          ((self.model_v**2.0 + self.observed_v**2.0)**(3.0/2.0))
         else:

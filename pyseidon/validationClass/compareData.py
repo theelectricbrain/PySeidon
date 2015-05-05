@@ -162,12 +162,12 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     # TODO verify if u, v, spd and cspd are shape compatible
     vel_suite = customTidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
                            mod_u, obs_u, mod_v, obs_v,
-                           mod_time, obs_time,
+                           mod_dt, obs_dt,
                            type='velocity', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
     csp_suite = customTidalSuite(mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
                            mod_u, obs_u, mod_v, obs_v,
-                           mod_time, obs_time,
+                           mod_dt, obs_dt,
                            type='cubic speed', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
 
