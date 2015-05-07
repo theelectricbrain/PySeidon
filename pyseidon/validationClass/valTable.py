@@ -15,18 +15,18 @@ def valTable(struct, filename, vars, debug=False, debug_plot=False):
     '''
     # initialize  lists
     val_dict = {}
-    type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
+    type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
     [], [], [], [], [], [], [], [], [], [], [], [], []
     num_tg = 1
 
     # append to the lists the stats from each site for each variable
     for var in vars:
-        (type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
+        (type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
         = siteStats(struct, var, type, name,ovORuv, RMSE, CF, SD, POF,
                     NOF, MDPO, MDNO, skill, r2, phase, debug=False, debug_plot=False)
 
     # put stats into dict and create dataframe
-    val_dict = {'Type':type, 'ovORuv':ovORuv, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
+    val_dict = {'Type':type, 'ovORun':ovORun, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
                 'NOF':NOF, 'MDPO':MDPO, 'MDNO':MDNO,  'skill':skill, 'r2':r2, 'phase':phase}
 
     table = pd.DataFrame(data=val_dict, index=name, columns=val_dict.keys())
@@ -36,7 +36,7 @@ def valTable(struct, filename, vars, debug=False, debug_plot=False):
     table.to_csv(out_file)
     return table
 
-def siteStats(site, variable, type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO,
+def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO,
               skill, r2, phase, debug=False, debug_plot=False):
     '''
     Takes in the run (an array of dictionaries) and the type of the run (a
@@ -60,7 +60,7 @@ def siteStats(site, variable, type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, 
         sys.exit()
    
     # add the statistics to the list, round to 2 decimal places
-    ovORuv.append(stats['ovORuv'])
+    ovORun.append(stats['ovORuv'])
     RMSE.append(round(stats['RMSE'], 2))
     CF.append(round(stats['CF'], 2))
     SD.append(round(stats['SD'], 2))
