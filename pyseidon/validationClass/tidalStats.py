@@ -103,6 +103,21 @@ class TidalStats:
 
         if debug: print "...TidalStats initialisation done."
 
+    def getOverUnder(self, debug=False):
+        """
+        Determines if model over or under estimate the reference
+
+        Returns:
+        -------
+          - ovORun = character, '+' if overestimation and '-' if underestimation
+        """
+        if debug or self._debug: print "...getOverUnder..."
+        if np.var(self.model) > np.var(self.observed[:]):
+            ovORun = '+'
+        else:
+            ovORun = '-'
+        return ovORun
+
     def getRMSE(self, debug=False):
         '''
         Returns the root mean squared error of the data.
@@ -326,6 +341,7 @@ class TidalStats:
         """
 
         stats = {}
+        stats['ovORun'] = self.getOverUnder()
         stats['RMSE'] = self.getRMSE()
         stats['CF'] = self.getCF()
         stats['SD'] = self.getSD()

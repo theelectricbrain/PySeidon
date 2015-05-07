@@ -15,31 +15,29 @@ def valTable(struct, filename, vars, debug=False, debug_plot=False):
     '''
     # initialize  lists
     val_dict = {}
-    type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
-    [], [], [], [], [], [], [], [], [], [], [], []
+    type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
+    [], [], [], [], [], [], [], [], [], [], [], [], []
     num_tg = 1
 
     # append to the lists the stats from each site for each variable
     for var in vars:
-        (type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
+        (type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
         = siteStats(struct, var, type, name, RMSE, CF, SD, POF,
                     NOF, MDPO, MDNO, skill, r2, phase, debug=False, debug_plot=False)
 
     # put stats into dict and create dataframe
-    val_dict = {'Type':type, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
-    	        'NOF':NOF, 'MDPO':MDPO, 'MDNO':MDNO,  'skill':skill,
-	        'r2':r2, 'phase':phase}
+    val_dict = {'Type':type, 'ovORuv':ovORuv, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
+                'NOF':NOF, 'MDPO':MDPO, 'MDNO':MDNO,  'skill':skill, 'r2':r2, 'phase':phase}
 
-    table = pd.DataFrame(data=val_dict, index=name,
-   		         columns=val_dict.keys())
+    table = pd.DataFrame(data=val_dict, index=name, columns=val_dict.keys())
 
     # export as .csv file
     out_file = '{}_val.csv'.format(filename)
     table.to_csv(out_file)
     return table
 
-def siteStats(site, variable, type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, 
-	      skill, r2, phase, debug=False, debug_plot=False):
+def siteStats(site, variable, type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO,
+              skill, r2, phase, debug=False, debug_plot=False):
     '''
     Takes in the run (an array of dictionaries) and the type of the run (a
     string). Also takes in the list representing each statistic.
@@ -61,7 +59,8 @@ def siteStats(site, variable, type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO,
         print "---The variable tg is missing---"
         sys.exit()
    
-    # add the statistics to the list, round to 2 decimal places 
+    # add the statistics to the list, round to 2 decimal places
+    ovORuv.append(stats['ovORuv'])
     RMSE.append(round(stats['RMSE'], 2))
     CF.append(round(stats['CF'], 2))
     SD.append(round(stats['SD'], 2))
@@ -75,4 +74,4 @@ def siteStats(site, variable, type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO,
 
     if debug: print "...siteStats done."
 
-    return (type, name, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase)
+    return (type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase)

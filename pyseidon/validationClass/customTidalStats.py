@@ -118,7 +118,7 @@ class CustomTidalStats:
             self.observed_u = func_u(timestamps)
             func_v = interp1d(obs_timestamps, observed_v)
             self.observed_v = func_v(timestamps)
-
+            # R.Karsten formula
             self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
                          ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
         else:
@@ -136,13 +136,28 @@ class CustomTidalStats:
 
         if debug: print "...TidalStats initialisation done."
 
+    def getOverUnder(self, debug=False):
+        """
+        Determines if model over or under estimate the reference
+
+        Returns:
+        -------
+          - ovORun = character, '+' if overestimation and '-' if underestimation
+        """
+        if debug or self._debug: print "...getOverUnder..."
+        if np.var(self.model) > np.var(self.observed[:]):
+            ovORun = '+'
+        else:
+            ovORun = '-'
+        return ovORun
+
     def getRMSE(self, debug=False):
         '''
         Returns the root mean squared error of the data.
         '''
         if debug or self._debug: print "...getRMSE..."
-        # Special definition of rmse - R.Karsten
         if type == 'velocity':
+            # Special definition of rmse - R.Karsten
             rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
         else:
             rmse = np.sqrt(np.mean(self.error**2))
@@ -364,6 +379,7 @@ class CustomTidalStats:
         """
 
         stats = {}
+        stats['ovORun'] = self.getOverUnder()
         stats['RMSE'] = self.getRMSE()
         stats['CF'] = self.getCF()
         stats['SD'] = self.getSD()
