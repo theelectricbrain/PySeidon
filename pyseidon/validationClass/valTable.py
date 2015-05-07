@@ -22,7 +22,7 @@ def valTable(struct, filename, vars, debug=False, debug_plot=False):
     # append to the lists the stats from each site for each variable
     for var in vars:
         (type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
-        = siteStats(struct, var, type, name, RMSE, CF, SD, POF,
+        = siteStats(struct, var, type, name,ovORuv, RMSE, CF, SD, POF,
                     NOF, MDPO, MDNO, skill, r2, phase, debug=False, debug_plot=False)
 
     # put stats into dict and create dataframe
