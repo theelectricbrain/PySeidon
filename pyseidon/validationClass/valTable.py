@@ -60,7 +60,7 @@ def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, 
         sys.exit()
    
     # add the statistics to the list, round to 2 decimal places
-    ovORun.append(stats['ovORuv'])
+    ovORun.append(stats['ovORun'])
     RMSE.append(round(stats['RMSE'], 2))
     CF.append(round(stats['CF'], 2))
     SD.append(round(stats['SD'], 2))
