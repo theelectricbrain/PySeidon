@@ -74,4 +74,4 @@ def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, 
 
     if debug: print "...siteStats done."
 
-    return (type, name, ovORuv, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase)
+    return (type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase)
