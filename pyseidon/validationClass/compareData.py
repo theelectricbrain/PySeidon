@@ -143,12 +143,12 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                          debug=debug, debug_plot=debug_plot)
 
     # TR: requires special treatments from here on
-    vel_suite = customTidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
+    vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            type='velocity', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
-    csp_suite = customTidalSuite(mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
+    csp_suite = tidalSuite(mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            type='cubic speed', plot=plot, save_csv=save_csv,
@@ -160,7 +160,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite, csp_suite)
 
-def TidalSuite(model, observed, step, start,
+def tidalSuite(model, observed, step, start,
                model_u, observed_u, model_v, observed_v,
                model_time, observed_time,
                type='', plot=False, save_csv=False, debug=False, debug_plot=False):
