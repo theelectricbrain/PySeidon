@@ -103,7 +103,7 @@ class Validation:
         if self.Variables.struct['type'] == 'ADCP':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
              vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
-                                    plot=plot, depth=depth, save_csv=save_csv,
+                                    plot=plot, depth=depth, #save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
             self.Variables.struct['speed_val'] = speed_suite
@@ -125,7 +125,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
-                                      plot=plot, save_csv=save_csv,
+                                      plot=plot, #save_csv=save_csv,
                                       debug=debug, debug_plot=debug_plot)
             self.Variables.struct['tg_val'] = elev_suite_dg
             #Variable to processed
@@ -150,19 +150,19 @@ class Validation:
                  - self.Variables.struct['mod_time'][0] 
             start = self.Variables.struct['mod_time'][0]
             speed_suite = tidalSuite(mod_spd, obs_spd, step, start,
-			  type='speed', plot=plot, save_csv=save_csv, 
+			  type='speed', plot=plot, #save_csv=save_csv,
                           debug=debug, debug_plot=debug_plot)
             dir_suite = tidalSuite(mod_dir, obs_dir, step, start,
-			type='direction', plot=plot, save_csv=save_csv, 
+			type='direction', plot=plot, #save_csv=save_csv,
                         debug=debug, debug_plot=debug_plot)
             u_suite = tidalSuite(mod_u, obs_u, step, start,
-	              type='u velocity', plot=plot, save_csv=save_csv, 
+	              type='u velocity', plot=plot, #save_csv=save_csv,
                       debug=debug, debug_plot=debug_plot)
             v_suite = tidalSuite(mod_v, obs_v, step, start,
-		      type='v velocity', plot=plot, save_csv=save_csv, 
+		      type='v velocity', plot=plot, #save_csv=save_csv,
                       debug=debug, debug_plot=debug_plot)
             vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
-			type='velocity', plot=plot, save_csv=save_csv, 
+			type='velocity', plot=plot, #save_csv=save_csv,
                         debug=debug, debug_plot=debug_plot)
             self.Variables.struct['speed_val'] = speed_suite
             self.Variables.struct['dir_val'] = dir_suite

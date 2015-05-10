@@ -9,9 +9,12 @@ from scipy.signal import correlate
 import time
 import seaborn
 import pandas as pd
+from sys import exit
+
+# TODO finir portage
 
 class TidalStats:
-    '''
+    """
     An object representing a set of statistics on tidal heights used
     to determine the skill of a model in comparison to observed data.
     Standards are from NOAA's Standard Suite of Statistics.
@@ -25,8 +28,10 @@ class TidalStats:
 
     Functions are used to calculate statistics and to output
     visualizations and tables.
-    '''
+    """
     def __init__(self, model_data, observed_data, time_step, start_time,
+                 model_u = [], observed_u = [], model_v= [], observed_v = [],
+                 model_time = [], observed_time = [],
                  type='', debug=False, debug_plot=False):
         if debug: print "TidalStats initialisation..."
         self._debug = debug
@@ -35,6 +40,15 @@ class TidalStats:
         self.model = self.model.astype(np.float64)
         self.observed = np.asarray(observed_data)
         self.observed = self.observed.astype(np.float64)
+        self.model_u = np.asarray(model_u)
+        self.model_u = self.model_u.astype(np.float64)
+        self.observed_u = np.asarray(observed_u)
+        self.observed_u = self.observed_u.astype(np.float64)
+        self.model_v = np.asarray(model_v)
+        self.model_v = self.model_v.astype(np.float64)
+        self.observed_v = np.asarray(observed_v)
+        self.observed_v = self.observed_v.astype(np.float64)
+        self.type = type
 
         # TR: pass this step if dealing with Drifter's data
         try:
@@ -68,6 +82,7 @@ class TidalStats:
                 timestamps[j] = time.mktime(jj.timetuple())
 
             if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
+
             if (True in np.isnan(self.observed)):
                 obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
@@ -78,26 +93,53 @@ class TidalStats:
                 time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
                 func = interp1d(time_nonan, mod_nonan)
                 self.model = func(timestamps)
+
         # TR: pass this step if dealing with Drifter's data
         except AttributeError:
             self.step = time_step #needed for getMDPO, getMDNO, getPhase & altPhase
             pass
 
-
         # Error attributes
-        self.error = self.observed - self.model
+        if type == 'cubic speed':
+            # interpolate cubic speed, u and v on same time steps
+            model_timestamps = np.zeros(len(model_time))
+            for j, jj in enumerate(model_time):
+                model_timestamps[j] = time.mktime(jj.timetuple())
+            obs_timestamps = np.zeros(len(observed_time))
+            for j, jj in enumerate(observed_time):
+                obs_timestamps[j] = time.mktime(jj.timetuple())
+            func_u = interp1d(model_timestamps, model_u)
+            self.model_u = func_u(timestamps)
+            func_v = interp1d(model_timestamps, model_v)
+            self.model_v = func_v(timestamps)
+            func_u = interp1d(obs_timestamps, observed_u)
+            self.observed_u = func_u(timestamps)
+            func_v = interp1d(obs_timestamps, observed_v)
+            self.observed_v = func_v(timestamps)
+            # R.Karsten formula
+            self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
+                         ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
+        elif type in ['speed', 'velocity', 'elevation', 'direction', 'u velocity', 'v velocity']:
+            self.error = self.observed - self.model
+        else:
+            print "---Data type not supported---"
+            exit()
         self.length = self.error.size
-        self.type = type
 
         if debug: print "...establish limits as defined by NOAA standard..."
-        if (type == 'speed' or type == 'velocity'):
+        if type == 'velocity':
+            self.ERROR_BOUND = 0.26
+        elif (type == 'speed' or type == 'velocity'):
             self.ERROR_BOUND = 0.26
         elif (type == 'elevation'):
             self.ERROR_BOUND = 0.15
-        elif (type == 'direction' or type == 'ebb' or type == 'flow'):
+        elif (type == 'direction'):
             self.ERROR_BOUND = 22.5
         elif (type == 'u velocity' or type == 'v velocity'):
             self.ERROR_BOUND = 0.35
+        else:
+        elif type == 'cubic speed':
+            self.ERROR_BOUND = 0.26**3.0
         else:
             self.ERROR_BOUND = 0.5
 
@@ -123,7 +165,12 @@ class TidalStats:
         Returns the root mean squared error of the data.
         '''
         if debug or self._debug: print "...getRMSE..."
-        return np.sqrt(np.mean(self.error**2))
+        if type == 'velocity':
+            # Special definition of rmse - R.Karsten
+            rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
+        else:
+            rmse = np.sqrt(np.mean(self.error**2))
+        return rmse
 
     def getSD(self, debug=False):
         '''
@@ -519,7 +566,7 @@ class TidalStats:
         g = seaborn.jointplot("model", "observed", data=df, kind="reg",
                               xlim=(df.model.min(), df.model.max()),
                               ylim=(df.observed.min(), df.observed.max()),
-                              color=color, size=7)   
+                              color=color, size=7)
         plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 
         if save:
@@ -559,6 +606,8 @@ class TidalStats:
                 ax.set_ylabel('V velocity (m/s)')
             if self.type == 'velocity':
                 ax.set_ylabel('Signed flow speed (m/s)')
+            if self.type == 'cubic speed':
+                ax.set_ylabel('Signed flow speed (m/s)')
 
             fig.suptitle('Predicted and Observed {}'.format(self.type))
             ax.legend(shadow=True)
@@ -579,3 +628,4 @@ class TidalStats:
                                     'observed':self.observed.flatten(),
                                     'modeled':self.model.flatten() })
             df.to_csv(str(self.type)+'.csv')
+

@@ -10,7 +10,6 @@ from utide import ut_solv, ut_reconstr
 import netCDF4 as nc
 from scipy.io import netcdf
 from scipy.io import savemat
-from scipy.io import loadmat
 from pydap.client import open_url
 import cPickle as pkl
 import pickle as Pkl
