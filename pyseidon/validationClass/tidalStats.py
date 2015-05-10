@@ -137,7 +137,6 @@ class TidalStats:
             self.ERROR_BOUND = 22.5
         elif (type == 'u velocity' or type == 'v velocity'):
             self.ERROR_BOUND = 0.35
-        else:
         elif type == 'cubic speed':
             self.ERROR_BOUND = 0.26**3.0
         else:
