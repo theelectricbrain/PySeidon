@@ -150,19 +150,19 @@ class Validation:
                  - self.Variables.struct['mod_time'][0] 
             start = self.Variables.struct['mod_time'][0]
             speed_suite = tidalSuite(mod_spd, obs_spd, step, start,
-			  type='speed', plot=plot, #save_csv=save_csv,
+			  kind='speed', plot=plot, #save_csv=save_csv,
                           debug=debug, debug_plot=debug_plot)
             dir_suite = tidalSuite(mod_dir, obs_dir, step, start,
-			type='direction', plot=plot, #save_csv=save_csv,
+			kind='direction', plot=plot, #save_csv=save_csv,
                         debug=debug, debug_plot=debug_plot)
             u_suite = tidalSuite(mod_u, obs_u, step, start,
-	              type='u velocity', plot=plot, #save_csv=save_csv,
+	              kind='u velocity', plot=plot, #save_csv=save_csv,
                       debug=debug, debug_plot=debug_plot)
             v_suite = tidalSuite(mod_v, obs_v, step, start,
-		      type='v velocity', plot=plot, #save_csv=save_csv,
+		      kind='v velocity', plot=plot, #save_csv=save_csv,
                       debug=debug, debug_plot=debug_plot)
             vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
-			type='velocity', plot=plot, #save_csv=save_csv,
+			kind='velocity', plot=plot, #save_csv=save_csv,
                         debug=debug, debug_plot=debug_plot)
             self.Variables.struct['speed_val'] = speed_suite
             self.Variables.struct['dir_val'] = dir_suite
@@ -181,7 +181,7 @@ class Validation:
             vars.append('cubic_speed')
 
         else:
-            print "-This type of measurements is not supported yet-"
+            print "-This kind of measurements is not supported yet-"
             sys.exit()
 
         #Make csv file
@@ -253,7 +253,7 @@ class Validation:
                                         #linci=True, ordercnstit='frq')
                                         linci=True, coef_int=True)
         else:
-            print "--This type of observations is not supported---"
+            print "--This kind of observations is not supported---"
             sys.exit()
 
         if self.Variables._simtype=='fvcom':

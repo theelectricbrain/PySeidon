@@ -11,8 +11,6 @@ import seaborn
 import pandas as pd
 from sys import exit
 
-# TODO finir portage
-
 class TidalStats:
     """
     An object representing a set of statistics on tidal heights used
@@ -32,7 +30,7 @@ class TidalStats:
     def __init__(self, model_data, observed_data, time_step, start_time,
                  model_u = [], observed_u = [], model_v= [], observed_v = [],
                  model_time = [], observed_time = [],
-                 type='', debug=False, debug_plot=False):
+                 kind='', debug=False, debug_plot=False):
         if debug: print "TidalStats initialisation..."
         self._debug = debug
         self._debug_plot = debug_plot
@@ -48,7 +46,7 @@ class TidalStats:
         self.model_v = self.model_v.astype(np.float64)
         self.observed_v = np.asarray(observed_v)
         self.observed_v = self.observed_v.astype(np.float64)
-        self.type = type
+        self.kind = kind
 
         # TR: pass this step if dealing with Drifter's data
         try:
@@ -100,7 +98,7 @@ class TidalStats:
             pass
 
         # Error attributes
-        if type == 'cubic speed':
+        if self.kind == 'cubic speed':
             # interpolate cubic speed, u and v on same time steps
             model_timestamps = np.zeros(len(model_time))
             for j, jj in enumerate(model_time):
@@ -119,25 +117,25 @@ class TidalStats:
             # R.Karsten formula
             self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
                          ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
-        elif type in ['speed', 'velocity', 'elevation', 'direction', 'u velocity', 'v velocity']:
+        elif self.kind in ['speed', 'velocity', 'elevation', 'direction', 'u velocity', 'v velocity', 'Phase']:
             self.error = self.observed - self.model
         else:
-            print "---Data type not supported---"
+            print "---Data kind not supported---"
             exit()
         self.length = self.error.size
 
         if debug: print "...establish limits as defined by NOAA standard..."
-        if type == 'velocity':
+        if self.kind == 'velocity':
             self.ERROR_BOUND = 0.26
-        elif (type == 'speed' or type == 'velocity'):
+        elif (self.kind == 'speed' or self.kind == 'velocity'):
             self.ERROR_BOUND = 0.26
-        elif (type == 'elevation'):
+        elif (self.kind == 'elevation'):
             self.ERROR_BOUND = 0.15
-        elif (type == 'direction'):
+        elif (self.kind == 'direction'):
             self.ERROR_BOUND = 22.5
-        elif (type == 'u velocity' or type == 'v velocity'):
+        elif (self.kind == 'u velocity' or self.kind == 'v velocity'):
             self.ERROR_BOUND = 0.35
-        elif type == 'cubic speed':
+        elif self.kind == 'cubic speed':
             self.ERROR_BOUND = 0.26**3.0
         else:
             self.ERROR_BOUND = 0.5
@@ -164,7 +162,7 @@ class TidalStats:
         Returns the root mean squared error of the data.
         '''
         if debug or self._debug: print "...getRMSE..."
-        if type == 'velocity':
+        if kind == 'velocity':
             # Special definition of rmse - R.Karsten
             rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
         else:
@@ -319,7 +317,7 @@ class TidalStats:
             step = self.times[1] - self.times[0]
 
         # create TidalStats class for shifted data and get the RMSE
-        stats = TidalStats(shift_mod, shift_obs, step, start, type='Phase')
+        stats = TidalStats(shift_mod, shift_obs, step, start, kind='Phase')
         rms_error = stats.getRMSE()
         errors.append(rms_error)
 
@@ -553,7 +551,7 @@ class TidalStats:
 
         ax.set_xlabel('Modeled Data')
         ax.set_ylabel('Observed Data')
-        fig.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
+        fig.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.kind))
         plt.legend(loc='lower right', shadow=True)
 
         r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
@@ -566,7 +564,7 @@ class TidalStats:
                               xlim=(df.model.min(), df.model.max()),
                               ylim=(df.observed.min(), df.observed.max()),
                               color=color, size=7)
-        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
+        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.kind))
 
         if save:
             fig.savefig(out_f)
@@ -577,7 +575,7 @@ class TidalStats:
         """
         Provides a visualization of the data.
 
-        Takes an option which determines the type of graph to be made.
+        Takes an option which determines the kind of graph to be made.
         time: plots the model data against the observed data over time
         scatter : plots the model data vs. observed data
 
@@ -593,29 +591,29 @@ class TidalStats:
             ax.plot(self.times, self.observed, color='r',
                      label='Observed Data')
             ax.set_xlabel('Time')
-            if self.type == 'elevation':
+            if self.kind == 'elevation':
                 ax.set_ylabel('Elevation (m)')
-            if self.type == 'speed':
+            if self.kind == 'speed':
                 ax.set_ylabel('Flow speed (m/s)')
-            if self.type == 'direction':
+            if self.kind == 'direction':
                 ax.set_ylabel('Flow direction (deg.)')
-            if self.type == 'u velocity':
+            if self.kind == 'u velocity':
                 ax.set_ylabel('U velocity (m/s)')
-            if self.type == 'v velocity':
+            if self.kind == 'v velocity':
                 ax.set_ylabel('V velocity (m/s)')
-            if self.type == 'velocity':
+            if self.kind == 'velocity':
                 ax.set_ylabel('Signed flow speed (m/s)')
-            if self.type == 'cubic speed':
+            if self.kind == 'cubic speed':
                 ax.set_ylabel('Signed flow speed (m/s)')
 
-            fig.suptitle('Predicted and Observed {}'.format(self.type))
+            fig.suptitle('Predicted and Observed {}'.format(self.kind))
             ax.legend(shadow=True)
 
         if (graph == 'scatter'):
             ax.scatter(self.model, self.observed, c='b', alpha=0.5)
             ax.set_xlabel('Predicted Height')
             ax.set_ylabel('Observed Height')
-            fig.suptitle('Predicted vs. Observed {}'.format(self.type))
+            fig.suptitle('Predicted vs. Observed {}'.format(self.kind))
 
         if save:
             fig.savefig(out_f)
@@ -626,5 +624,5 @@ class TidalStats:
             df = pd.DataFrame(data={'time': self.times.flatten(),
                                     'observed':self.observed.flatten(),
                                     'modeled':self.model.flatten() })
-            df.to_csv(str(self.type)+'.csv')
+            df.to_csv(str(self.kind)+'.csv')
 

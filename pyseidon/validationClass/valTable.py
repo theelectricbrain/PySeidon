@@ -15,18 +15,18 @@ def valTable(struct, filename, vars, save_csv=False, debug=False, debug_plot=Fal
     '''
     # initialize  lists
     val_dict = {}
-    type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
+    kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
     [], [], [], [], [], [], [], [], [], [], [], [], []
     num_tg = 1
 
     # append to the lists the stats from each site for each variable
     for var in vars:
-        (type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
-        = siteStats(struct, var, type, name,ovORun, RMSE, CF, SD, POF,
+        (kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase) \
+        = siteStats(struct, var, kind, name,ovORun, RMSE, CF, SD, POF,
                     NOF, MDPO, MDNO, skill, r2, phase, debug=False, debug_plot=False)
 
     # put stats into dict and create dataframe
-    val_dict = {'Type':type, 'ovORun':ovORun, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
+    val_dict = {'Type':kind, 'ovORun':ovORun, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
                 'NOF':NOF, 'MDPO':MDPO, 'MDNO':MDNO,  'skill':skill, 'r2':r2, 'phase':phase}
 
     table = pd.DataFrame(data=val_dict, index=name, columns=val_dict.keys())
