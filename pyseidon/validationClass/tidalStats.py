@@ -162,7 +162,7 @@ class TidalStats:
         Returns the root mean squared error of the data.
         '''
         if debug or self._debug: print "...getRMSE..."
-        if kind == 'velocity':
+        if self.kind == 'velocity':
             # Special definition of rmse - R.Karsten
             rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
         else:
