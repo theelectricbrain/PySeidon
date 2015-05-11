@@ -98,7 +98,7 @@ class TidalStats:
             pass
 
         # Error attributes
-        if self.kind == 'cubic speed':
+        if self.kind in ['cubic speed', 'velocity']:
             # interpolate cubic speed, u and v on same time steps
             model_timestamps = np.zeros(len(model_time))
             for j, jj in enumerate(model_time):
@@ -114,10 +114,13 @@ class TidalStats:
             self.observed_u = func_u(timestamps)
             func_v = interp1d(obs_timestamps, observed_v)
             self.observed_v = func_v(timestamps)
-            # R.Karsten formula
-            self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
-                         ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
-        elif self.kind in ['speed', 'velocity', 'elevation', 'direction', 'u velocity', 'v velocity', 'Phase']:
+            if self.kind == 'cubic speed':
+                # R.Karsten formula
+                self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
+                             ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
+            else:
+                self.error = self.observed - self.model
+        elif self.kind in ['speed', 'elevation', 'direction', 'u velocity', 'v velocity', 'Phase']:
             self.error = self.observed - self.model
         else:
             print "---Data kind not supported---"
