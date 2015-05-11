@@ -187,7 +187,7 @@ def tidalSuite(model, observed, step, start,
 
     if plot or debug_plot:
         stats.plotData()
-    stats.plotRegression(stats.linReg())
+        stats.plotRegression(stats.linReg())
 
     if save_csv:
         stats.save_data()
