@@ -186,7 +186,7 @@ class Validation:
 
         #Make csv file
         self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
-                                   debug=debug, debug_plot=debug_plot)
+                                   save_csv=save_csv, debug=debug, debug_plot=debug_plot)
         
         #Display csv
         #csvName = filename + '_val.csv'
