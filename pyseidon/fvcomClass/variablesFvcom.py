@@ -91,6 +91,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading hori data
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             try:
                                 setattr(self, aliaS, data.variables[key].data[ts:te,:])
@@ -107,6 +108,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading verti data
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             try:
                                 setattr(self, aliaS, data.variables[key].data[ts:te,:,:])
@@ -126,6 +128,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading hori data
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             if key=='zeta':
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
@@ -154,6 +157,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading verti data
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             if key in data.variables.keys():
                                 if aliaS == 'verti_shear':#exception for vertical shear
@@ -232,6 +236,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading hori data
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             H = 0 #local counter
                             for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
@@ -266,6 +271,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading verti data
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             H = 0 #local counter
                             for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
@@ -303,6 +309,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading hori data
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             if key=='zeta':
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
@@ -345,6 +352,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading verti data
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             if key in data.variables.keys():
                                 if aliaS == 'verti_shear':#exception for vertical shear
@@ -403,6 +411,7 @@ Some others shall be generated as methods are being called, ex:
                 #loading hori data
                 keyCount = 0
                 for key, aliaS in zip(kwl2D, al2D):
+                    if debug: print "loading " + str(aliaS) +"..."
                     try:
                         try:
                             setattr(self, aliaS, data.variables[key].data)
@@ -419,6 +428,7 @@ Some others shall be generated as methods are being called, ex:
                 #loading verti data
                 keyCount = 0
                 for key, aliaS in zip(kwl3D, al3D):
+                    if debug: print "loading " + str(aliaS) +"..."
                     try:
                         try:
                             setattr(self, aliaS, data.variables[key].data)
@@ -447,6 +457,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading hori data
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         #Special loading for zeta
                         H = 0 #local counter
                         if key == 'zeta':
@@ -505,6 +516,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading verti data
                     keyCount = 0
                     for key, aliaS in zip(kwl3D, al3D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             H = 0 #local counter
                             for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
@@ -542,6 +554,7 @@ Some others shall be generated as methods are being called, ex:
                     #loading hori data
                     keyCount = 0
                     for key, aliaS in zip(kwl2D, al2D):
+                        if debug: print "loading " + str(aliaS) +"..."
                         try:
                             if key=='zeta':
                                 setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
@@ -588,6 +601,7 @@ Some others shall be generated as methods are being called, ex:
                                 else:
                                     setattr(self, aliaS,
                                     np.zeros((grid.ntime,grid.nlevel, grid.nele)))
+                                if debug: print "loading " + str(aliaS) +"..."
                             for i in range(grid.ntime):
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
