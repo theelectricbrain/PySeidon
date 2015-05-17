@@ -157,7 +157,7 @@ class Validation:
 
             if debug: print "...convert times to datetime..."
             mod_dt, obs_dt = [], []
-            for i in self.Variables.struct['mod_time']:
+            for i in self.Variables.struct['mod_time'][:]:
                 mod_dt.append(dn2dt(i))
                 obs_dt.append(dn2dt(i))
 
@@ -177,10 +177,6 @@ class Validation:
                                  [], [], [], [], [], [],
                                  kind='v velocity', plot=plot, #save_csv=save_csv,
                                  debug=debug, debug_plot=debug_plot)
-            vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
-                                   [], [], [], [], [], [],
-                                   kind='velocity', plot=plot, #save_csv=save_csv,
-                                   debug=debug, debug_plot=debug_plot)
             # TR: requires special treatments from here on
             vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
                                    mod_u, obs_u, mod_v, obs_v,
