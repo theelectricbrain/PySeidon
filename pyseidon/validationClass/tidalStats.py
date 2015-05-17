@@ -96,9 +96,8 @@ class TidalStats:
         # TR: pass this step if dealing with Drifter's data
         else:
             self.step = time_step # needed for getMDPO, getMDNO, getPhase & altPhase
-            self.times = np.zeros(len(observed_time))
-            for j, jj in enumerate(observed_time):
-                self.times[j] = time.mktime(jj.timetuple())# needed for plots, en seconds
+            self.times = start_time + np.arange(self.model.size) * time_step # needed for plots, en seconds
+            #TR: those are not the real times though
 
         # Error attributes
         if self.kind in ['cubic speed', 'velocity']:
