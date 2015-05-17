@@ -27,13 +27,14 @@ class TidalStats:
     Functions are used to calculate statistics and to output
     visualizations and tables.
     """
-    def __init__(self, model_data, observed_data, time_step, start_time,
+    def __init__(self, gear, model_data, observed_data, time_step, start_time,
                  model_u = [], observed_u = [], model_v= [], observed_v = [],
                  model_time = [], observed_time = [],
                  kind='', debug=False, debug_plot=False):
         if debug: print "TidalStats initialisation..."
         self._debug = debug
         self._debug_plot = debug_plot
+        self.gear = gear # Type of measurement gear (drifter, adcp,...), str
         self.model = np.asarray(model_data)
         self.model = self.model.astype(np.float64)
         self.observed = np.asarray(observed_data)
@@ -49,7 +50,7 @@ class TidalStats:
         self.kind = kind
 
         # TR: pass this step if dealing with Drifter's data
-        try:
+        if not self.gear == 'Drifter':
             # TR: fix for interpolation pb when 0 index or -1 index array values = nan
             if debug: print "...trim nans at start and end of data.."
             start_index, end_index = 0, -1
@@ -93,27 +94,29 @@ class TidalStats:
                 self.model = func(timestamps)
 
         # TR: pass this step if dealing with Drifter's data
-        except AttributeError:
+        else:
             self.step = time_step #needed for getMDPO, getMDNO, getPhase & altPhase
-            pass
 
         # Error attributes
         if self.kind in ['cubic speed', 'velocity']:
+            # TR: pass this step if dealing with Drifter's data
+            if not self.gear == 'Drifter':
             # interpolate cubic speed, u and v on same time steps
-            model_timestamps = np.zeros(len(model_time))
-            for j, jj in enumerate(model_time):
-                model_timestamps[j] = time.mktime(jj.timetuple())
-            obs_timestamps = np.zeros(len(observed_time))
-            for j, jj in enumerate(observed_time):
-                obs_timestamps[j] = time.mktime(jj.timetuple())
-            func_u = interp1d(model_timestamps, model_u)
-            self.model_u = func_u(timestamps)
-            func_v = interp1d(model_timestamps, model_v)
-            self.model_v = func_v(timestamps)
-            func_u = interp1d(obs_timestamps, observed_u)
-            self.observed_u = func_u(timestamps)
-            func_v = interp1d(obs_timestamps, observed_v)
-            self.observed_v = func_v(timestamps)
+                model_timestamps = np.zeros(len(model_time))
+                for j, jj in enumerate(model_time):
+                    model_timestamps[j] = time.mktime(jj.timetuple())
+                obs_timestamps = np.zeros(len(observed_time))
+                for j, jj in enumerate(observed_time):
+                    obs_timestamps[j] = time.mktime(jj.timetuple())
+                func_u = interp1d(model_timestamps, model_u)
+                self.model_u = func_u(timestamps)
+                func_v = interp1d(model_timestamps, model_v)
+                self.model_v = func_v(timestamps)
+                func_u = interp1d(obs_timestamps, observed_u)
+                self.observed_u = func_u(timestamps)
+                func_v = interp1d(obs_timestamps, observed_v)
+                self.observed_v = func_v(timestamps)
+
             if self.kind == 'cubic speed':
                 # R.Karsten formula
                 self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \

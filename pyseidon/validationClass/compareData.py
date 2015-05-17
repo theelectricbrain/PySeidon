@@ -31,9 +31,14 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     if debug: print "CompareUV..."
     # take data from input dictionary
     mod_time = data['mod_time']
-    obs_time = data['obs_time']
-    mod_el = data['mod_timeseries']['elev']
-    obs_el = data['obs_timeseries']['elev']
+    if not data['type'] == 'Drifter':
+        obs_time = data['obs_time']
+
+        mod_el = data['mod_timeseries']['elev']
+        obs_el = data['obs_timeseries']['elev']
+    else:
+        obs_time = data['mod_time']
+
 
     # Check if 3D simulation
     if threeDim:
@@ -70,7 +75,8 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
     mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
     obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
-    obs_el = obs_el - np.mean(obs_el[~np.isnan(obs_el)])
+    if not data['type'] == 'Drifter':
+        obs_el = obs_el - np.mean(obs_el[~np.isnan(obs_el)])
     # Chose the component with the biggest variance as sign reference
     if np.var(mod_v) > np.var(mod_u):
             mod_signed = np.sign(mod_v)
@@ -86,31 +92,51 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     else:
         if debug: print "...interpolate the data onto a common time step for each data type..."
+        if not data['type'] == 'Drifter':
+            # elevation
+            (mod_el_int, obs_el_int, step_el_int, start_el_int) = smooth(mod_el, mod_dt, obs_el, obs_dt,
+                                                                         debug=debug, debug_plot=debug_plot)
+            # speed
+            (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = smooth(mod_spd, mod_dt, obs_spd, obs_dt,
+                                                                         debug=debug, debug_plot=debug_plot)
+            # direction
+            (mod_dr_int, obs_dr_int, step_dr_int, start_dr_int) = smooth(mod_dir, mod_dt, obs_dir, obs_dt,
+                                                                         debug=debug, debug_plot=debug_plot)
+            # u velocity
+            (mod_u_int, obs_u_int, step_u_int, start_u_int) = smooth(mod_u, mod_dt, obs_u, obs_dt,
+                                                                     debug=debug, debug_plot=debug_plot)
+            # v velocity
+            (mod_v_int, obs_v_int, step_v_int, start_v_int) = smooth(mod_v, mod_dt, obs_v, obs_dt,
+                                                                     debug=debug, debug_plot=debug_plot)
+            # velocity i.e. signed speed
+            (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = smooth(mod_spd * mod_signed, mod_dt,
+                                                                         obs_spd * obs_signed, obs_dt,
+                                                                         debug=debug, debug_plot=debug_plot)
+            # cubic speed
+            mod_cspd = mod_spd**3.0
+            obs_cspd = obs_spd**3.0
+            (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_cspd, mod_dt, obs_cspd, obs_dt,
+                                                                                 debug=debug, debug_plot=debug_plot)
+        else:
+            # Time steps
+            step = mod_time[1] - mod_time[0]
+            start = mod_time[0]
 
-        # elevation
-        (mod_el_int, obs_el_int, step_el_int, start_el_int) = smooth(mod_el, mod_dt, obs_el, obs_dt,
-                                                                     debug=debug, debug_plot=debug_plot)
-        # speed
-        (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = smooth(mod_spd, mod_dt, obs_spd, obs_dt,
-                                                                     debug=debug, debug_plot=debug_plot)
-        # direction
-        (mod_dr_int, obs_dr_int, step_dr_int, start_dr_int) = smooth(mod_dir, mod_dt, obs_dir, obs_dt,
-                                                                     debug=debug, debug_plot=debug_plot)
-        # u velocity
-        (mod_u_int, obs_u_int, step_u_int, start_u_int) = smooth(mod_u, mod_dt, obs_u, obs_dt,
-                                                                 debug=debug, debug_plot=debug_plot)
-        # v velocity
-        (mod_v_int, obs_v_int, step_v_int, start_v_int) = smooth(mod_v, mod_dt, obs_v, obs_dt,
-                                                                 debug=debug, debug_plot=debug_plot)
-        # velocity i.e. signed speed
-        (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = smooth(mod_spd * mod_signed, mod_dt,
-                                                                     obs_spd * obs_signed, obs_dt,
-                                                                     debug=debug, debug_plot=debug_plot)
-        # cubic speed
-        mod_cspd = mod_spd**3.0
-        obs_cspd = obs_spd**3.0
-        (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_cspd, mod_dt, obs_cspd, obs_dt,
-                                                                             debug=debug, debug_plot=debug_plot)
+            # Already interpolated, so no need to use smooth...
+            # speed
+            (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = (mod_spd, obs_spd, step, start)
+            # direction
+            (mod_dr_int, obs_dr_int, step_dr_int, start_dr_int) = (mod_dir, obs_dir, step, start)
+            # u velocity
+            (mod_u_int, obs_u_int, step_u_int, start_u_int) = (mod_u, obs_u, step, start)
+            # v velocity
+            (mod_v_int, obs_v_int, step_v_int, start_v_int) = (mod_v, obs_v, step, start)
+            # velocity i.e. signed speed
+            (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = (mod_spd, obs_spd, step, start)
+            # cubic speed
+            mod_cspd = mod_spd**3.0
+            obs_cspd = obs_spd**3.0
+            (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = (mod_cspd, obs_cspd, step, start)
     
     if debug: print "...remove directions where velocities are small..."
     MIN_VEL = 0.1
@@ -121,34 +147,38 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             mod_dr_int[i] = np.nan
 
     if debug: print "...get stats for each tidal variable..."
-    elev_suite = tidalSuite(mod_el_int, obs_el_int, step_el_int, start_el_int,
-                            [], [], [], [], [], [],
-                            kind='elevation', plot=plot, save_csv=save_csv,
-                            debug=debug, debug_plot=debug_plot)
-    speed_suite = tidalSuite(mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
+    gear = data['type'] # Type of measurement gear (drifter, adcp,...)
+    if not gear == 'Drifter':
+        elev_suite = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
+                                [], [], [], [], [], [],
+                                kind='elevation', plot=plot, save_csv=save_csv,
+                                debug=debug, debug_plot=debug_plot)
+    else:
+        elev_suite = []
+    speed_suite = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
                              [], [], [], [], [], [],
                              kind='speed', plot=plot, save_csv=save_csv,
                              debug=debug, debug_plot=debug_plot)
-    dir_suite = tidalSuite(mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
+    dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
                            [], [], [], [], [], [],
                            kind='direction', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
-    u_suite = tidalSuite(mod_u_int, obs_u_int, step_u_int, start_u_int,
+    u_suite = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
                          [], [], [], [], [], [],
                          kind='u velocity', plot=plot, save_csv=save_csv,
                          debug=debug, debug_plot=debug_plot)
-    v_suite = tidalSuite(mod_v_int, obs_v_int, step_v_int, start_v_int,
+    v_suite = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
                          [], [], [], [], [], [],
                          kind='v velocity', plot=plot, save_csv=save_csv,
                          debug=debug, debug_plot=debug_plot)
 
     # TR: requires special treatments from here on
-    vel_suite = tidalSuite(mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
+    vel_suite = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='velocity', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
-    csp_suite = tidalSuite(mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
+    csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='cubic speed', plot=plot, save_csv=save_csv,
@@ -160,7 +190,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite, csp_suite)
 
-def tidalSuite(model, observed, step, start,
+def tidalSuite(gear, model, observed, step, start,
                model_u, observed_u, model_v, observed_v,
                model_time, observed_time,
                kind='', plot=False, save_csv=False, debug=False, debug_plot=False):
@@ -174,7 +204,7 @@ def tidalSuite(model, observed, step, start,
     Returns a dictionary containing all the stats.
     '''
     if debug: print "tidalSuite..."
-    stats = TidalStats(model, observed, step, start,
+    stats = TidalStats(gear, model, observed, step, start,
                        model_u = model_u, observed_u = observed_u, model_v = model_v, observed_v = observed_v,
                        model_time = model_time, observed_time = observed_time,
                        kind=kind, debug=debug, debug_plot=debug_plot)
