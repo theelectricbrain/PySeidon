@@ -57,10 +57,16 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                                        obs_v_all, obs_el, bins, depth=depth,
                                        debug=debug, debug_plot=debug_plot)
     else:
-        obs_u = data['obs_timeseries']['ua']
-        obs_v = data['obs_timeseries']['va']
-        mod_u = data['mod_timeseries']['ua']
-        mod_v = data['mod_timeseries']['va']        
+        if not data['type'] == 'Drifter':
+            obs_u = data['obs_timeseries']['ua']
+            obs_v = data['obs_timeseries']['va']
+            mod_u = data['mod_timeseries']['ua']
+            mod_v = data['mod_timeseries']['va']
+        else:
+            obs_u = data['obs_timeseries']['u']
+            obs_v = data['obs_timeseries']['v']
+            mod_u = data['mod_timeseries']['u']
+            mod_v = data['mod_timeseries']['v']
 
 
     if debug: print "...convert times to datetime..."
