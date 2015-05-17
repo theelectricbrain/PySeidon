@@ -159,36 +159,64 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                                 [], [], [], [], [], [],
                                 kind='elevation', plot=plot, save_csv=save_csv,
                                 debug=debug, debug_plot=debug_plot)
+        speed_suite = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
+                                 [], [], [], [], [], [],
+                                 kind='speed', plot=plot, save_csv=save_csv,
+                                 debug=debug, debug_plot=debug_plot)
+        dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
+                               [], [], [], [], [], [],
+                               kind='direction', plot=plot, save_csv=save_csv,
+                               debug=debug, debug_plot=debug_plot)
+        u_suite = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
+                             [], [], [], [], [], [],
+                             kind='u velocity', plot=plot, save_csv=save_csv,
+                             debug=debug, debug_plot=debug_plot)
+        v_suite = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
+                             [], [], [], [], [], [],
+                             kind='v velocity', plot=plot, save_csv=save_csv,
+                             debug=debug, debug_plot=debug_plot)
+
+        # TR: requires special treatments from here on
+        vel_suite = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
+                               mod_u, obs_u, mod_v, obs_v,
+                               mod_dt, obs_dt,
+                               kind='velocity', plot=plot, save_csv=save_csv,
+                               debug=debug, debug_plot=debug_plot)
+        csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
+                               mod_u, obs_u, mod_v, obs_v,
+                               mod_dt, obs_dt,
+                               kind='cubic speed', plot=plot, save_csv=save_csv,
+                               debug=debug, debug_plot=debug_plot)
     else:
         elev_suite = []
-    speed_suite = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
-                             [], [], [], [], [], [],
-                             kind='speed', plot=plot, save_csv=save_csv,
+        speed_suite = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
+                                 [], [], [], [], [], obs_dt,
+                                 kind='speed', plot=plot, save_csv=save_csv,
+                                 debug=debug, debug_plot=debug_plot)
+        dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
+                               [], [], [], [], [], obs_dt,
+                               kind='direction', plot=plot, save_csv=save_csv,
+                               debug=debug, debug_plot=debug_plot)
+        u_suite = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
+                             [], [], [], [], [], obs_dt,
+                             kind='u velocity', plot=plot, save_csv=save_csv,
                              debug=debug, debug_plot=debug_plot)
-    dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
-                           [], [], [], [], [], [],
-                           kind='direction', plot=plot, save_csv=save_csv,
-                           debug=debug, debug_plot=debug_plot)
-    u_suite = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
-                         [], [], [], [], [], [],
-                         kind='u velocity', plot=plot, save_csv=save_csv,
-                         debug=debug, debug_plot=debug_plot)
-    v_suite = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
-                         [], [], [], [], [], [],
-                         kind='v velocity', plot=plot, save_csv=save_csv,
-                         debug=debug, debug_plot=debug_plot)
+        v_suite = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
+                             [], [], [], [], [], obs_dt,
+                             kind='v velocity', plot=plot, save_csv=save_csv,
+                             debug=debug, debug_plot=debug_plot)
 
-    # TR: requires special treatments from here on
-    vel_suite = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
-                           mod_u, obs_u, mod_v, obs_v,
-                           mod_dt, obs_dt,
-                           kind='velocity', plot=plot, save_csv=save_csv,
-                           debug=debug, debug_plot=debug_plot)
-    csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
-                           mod_u, obs_u, mod_v, obs_v,
-                           mod_dt, obs_dt,
-                           kind='cubic speed', plot=plot, save_csv=save_csv,
-                           debug=debug, debug_plot=debug_plot)
+        # TR: requires special treatments from here on
+        vel_suite = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
+                               mod_u, obs_u, mod_v, obs_v,
+                               mod_dt, obs_dt,
+                               kind='velocity', plot=plot, save_csv=save_csv,
+                               debug=debug, debug_plot=debug_plot)
+        csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
+                               mod_u, obs_u, mod_v, obs_v,
+                               mod_dt, obs_dt,
+                               kind='cubic speed', plot=plot, save_csv=save_csv,
+                               debug=debug, debug_plot=debug_plot)
 
     # output statistics in useful format
 

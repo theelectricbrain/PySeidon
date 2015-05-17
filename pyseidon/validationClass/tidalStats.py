@@ -96,6 +96,7 @@ class TidalStats:
         # TR: pass this step if dealing with Drifter's data
         else:
             self.step = time_step #needed for getMDPO, getMDNO, getPhase & altPhase
+            self.times = observed_time[:]
 
         # Error attributes
         if self.kind in ['cubic speed', 'velocity']:
