@@ -138,32 +138,62 @@ class Validation:
             mod_u = self.Variables.struct['mod_timeseries']['u']
             mod_v = self.Variables.struct['mod_timeseries']['v']
 
+            ## TR: this block is equivalent to a custom compareUV for drifters
+            # TODO move this custom block to compareData.py
             mod_spd = np.sqrt(mod_u**2.0 + mod_v**2.0)
             obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
             mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
             obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
             obs_ve = obs_spd * np.sign(obs_v)
             mod_ve = mod_spd * np.sign(mod_v)
+            # cubic speed
+            mod_cspd = mod_spd**3.0
+            obs_cspd = obs_spd**3.0
 
             #Compute validation benchmarks
             step = self.Variables.struct['mod_time'][1]\
-                 - self.Variables.struct['mod_time'][0] 
+                 - self.Variables.struct['mod_time'][0]
             start = self.Variables.struct['mod_time'][0]
+
+            if debug: print "...convert times to datetime..."
+            mod_dt, obs_dt = [], []
+            for i in mod_time:
+                mod_dt.append(dn2dt(i))
+            for j in obs_time:
+                obs_dt.append(dn2dt(j))
+
             speed_suite = tidalSuite(mod_spd, obs_spd, step, start,
-			  kind='speed', plot=plot, #save_csv=save_csv,
-                          debug=debug, debug_plot=debug_plot)
+                                     [], [], [], [], [], [],
+                                     kind='speed', plot=plot, #save_csv=save_csv,
+                                     debug=debug, debug_plot=debug_plot)
             dir_suite = tidalSuite(mod_dir, obs_dir, step, start,
-			kind='direction', plot=plot, #save_csv=save_csv,
-                        debug=debug, debug_plot=debug_plot)
+                                   [], [], [], [], [], [],
+                                   kind='direction', plot=plot, #save_csv=save_csv,
+                                   debug=debug, debug_plot=debug_plot)
             u_suite = tidalSuite(mod_u, obs_u, step, start,
-	              kind='u velocity', plot=plot, #save_csv=save_csv,
-                      debug=debug, debug_plot=debug_plot)
+                                 [], [], [], [], [], [],
+                                 kind='u velocity', plot=plot, #save_csv=save_csv,
+                                 debug=debug, debug_plot=debug_plot)
             v_suite = tidalSuite(mod_v, obs_v, step, start,
-		      kind='v velocity', plot=plot, #save_csv=save_csv,
-                      debug=debug, debug_plot=debug_plot)
+                                 [], [], [], [], [], [],
+                                 kind='v velocity', plot=plot, #save_csv=save_csv,
+                                 debug=debug, debug_plot=debug_plot)
             vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
-			kind='velocity', plot=plot, #save_csv=save_csv,
-                        debug=debug, debug_plot=debug_plot)
+                                   [], [], [], [], [], [],
+                                   kind='velocity', plot=plot, #save_csv=save_csv,
+                                   debug=debug, debug_plot=debug_plot)
+            # TR: requires special treatments from here on
+            vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
+                                   mod_u, obs_u, mod_v, obs_v,
+                           mod_dt, obs_dt,
+                           kind='velocity', plot=plot, save_csv=save_csv,
+                           debug=debug, debug_plot=debug_plot)
+            csp_suite = tidalSuite(mod_cspd, obs_cspd, step, start,
+                           mod_u, obs_u, mod_v, obs_v,
+                           mod_dt, obs_dt,
+                           kind='cubic speed', plot=plot, save_csv=save_csv,
+                           debug=debug, debug_plot=debug_plot)
+
             self.Variables.struct['speed_val'] = speed_suite
             self.Variables.struct['dir_val'] = dir_suite
             self.Variables.struct['u_val'] = u_suite
@@ -171,7 +201,7 @@ class Validation:
             self.Variables.struct['vel_val'] = vel_suite
             # custom benchmark
             self.Variables.struct['cubic_speed_val'] = csp_suite
-            #Variable to processed
+            # Variable to processed
             vars.append('speed')
             vars.append('dir')
             vars.append('u')
