@@ -177,25 +177,26 @@ class Validation:
                                  [], [], [], [], [], [],
                                  kind='v velocity', plot=plot, #save_csv=save_csv,
                                  debug=debug, debug_plot=debug_plot)
+            # TODO need to adapt this block to drifter's data
             # TR: requires special treatments from here on
-            vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
-                                   mod_u, obs_u, mod_v, obs_v,
-                           mod_dt, obs_dt,
-                           kind='velocity', plot=plot, save_csv=save_csv,
-                           debug=debug, debug_plot=debug_plot)
-            csp_suite = tidalSuite(mod_cspd, obs_cspd, step, start,
-                           mod_u, obs_u, mod_v, obs_v,
-                           mod_dt, obs_dt,
-                           kind='cubic speed', plot=plot, save_csv=save_csv,
-                           debug=debug, debug_plot=debug_plot)
+            # vel_suite = tidalSuite(mod_ve, obs_ve, step, start,
+            #                        mod_u, obs_u, mod_v, obs_v,
+            #                mod_dt, obs_dt,
+            #                kind='velocity', plot=plot, save_csv=save_csv,
+            #                debug=debug, debug_plot=debug_plot)
+            # csp_suite = tidalSuite(mod_cspd, obs_cspd, step, start,
+            #                mod_u, obs_u, mod_v, obs_v,
+            #                mod_dt, obs_dt,
+            #                kind='cubic speed', plot=plot, save_csv=save_csv,
+            #                debug=debug, debug_plot=debug_plot)
 
             self.Variables.struct['speed_val'] = speed_suite
             self.Variables.struct['dir_val'] = dir_suite
             self.Variables.struct['u_val'] = u_suite
             self.Variables.struct['v_val'] = v_suite
-            self.Variables.struct['vel_val'] = vel_suite
             # custom benchmark
-            self.Variables.struct['cubic_speed_val'] = csp_suite
+            #self.Variables.struct['vel_val'] = vel_suite
+            #self.Variables.struct['cubic_speed_val'] = csp_suite
             # Variable to processed
             vars.append('speed')
             vars.append('dir')
@@ -203,7 +204,8 @@ class Validation:
             vars.append('v')
             vars.append('vel')
             # custom var
-            vars.append('cubic_speed')
+            # vars.append('vel')
+            # vars.append('cubic_speed')
 
         else:
             print "-This kind of measurements is not supported yet-"
