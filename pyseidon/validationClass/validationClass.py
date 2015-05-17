@@ -157,10 +157,9 @@ class Validation:
 
             if debug: print "...convert times to datetime..."
             mod_dt, obs_dt = [], []
-            for i in mod_time:
+            for i in self.Variables.struct['mod_time']:
                 mod_dt.append(dn2dt(i))
-            for j in obs_time:
-                obs_dt.append(dn2dt(j))
+                obs_dt.append(dn2dt(i))
 
             speed_suite = tidalSuite(mod_spd, obs_spd, step, start,
                                      [], [], [], [], [], [],
