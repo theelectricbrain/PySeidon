@@ -63,8 +63,21 @@ Notes:
 
         #Store info in "History" field
         self.History = ['Created from' + filename]
-        for comment in self.Data['Comments'][:]:
-            self.History.append(str(comment))
+
+        # KC comment: for some reason, some drifter MATLAB files 
+        # have 'Comments' as a key in the variables structure,
+        # while others have 'comments' as a key.
+        if debug: print '-adding comments to History-'
+
+        if 'Comments' in self.Data:
+            for comment in self.Data['Comments'][:]:
+                self.History.append(str(comment))
+        elif 'comments' in self.Data:
+            for comment in self.Data['comments'][:]:
+                self.History.append(str(comment))
+        elif debug:
+            print '-no comments found-'
+
 
         #Initialize class structure
         self.Variables = _load_drifter(self, debug=self._debug)
