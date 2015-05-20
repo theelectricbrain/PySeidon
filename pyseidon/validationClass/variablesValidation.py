@@ -119,10 +119,10 @@ class _load_validation:
                             lock=False
                         elif type(userInp) == float:
                             if userInp > 0.0: userInp = userInp*-1.0
-                            uSim = interp_at_depth(self.sim.u[self._C,:,:],
-                                                   userInp, debug=debug)
-                            vSim = interp_at_depth(self.sim.v[self._C,:,:],
-                                                   userInp, debug=debug)
+                            uSim = simulated.Util3D.interp_at_depth(self.sim.u[self._C,:,:],
+                                                                    userInp, debug=debug)
+                            vSim = simulated.Util3D.interp_at_depth(self.sim.v[self._C,:,:],
+                                                                    userInp, debug=debug)
                             lock=False
                         else:
                             print "Answer by 'daf', 'sf' or a float number only!!!"
