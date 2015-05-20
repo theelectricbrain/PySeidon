@@ -28,7 +28,7 @@ class _load_validation:
 
                            _obs. = measurement/observational variables
     Validation.Variables._|_sim. = simulated variables
-                          |_struct. = dictionnary structure for validation purposes 
+                          |_struct. = dictionnary structure for validation purposes
     """
     def __init__(self, observed, simulated, debug=False, debug_plot=False):
         if debug: print "..variables.."
@@ -43,7 +43,7 @@ class _load_validation:
         simMin = self.sim.matlabTime.min()
         absMin = max(obsMin, simMin)
         absMax = min(obsMax, simMax)
-        A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist()) 
+        A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist())
         B = set(np.where(self.sim.matlabTime[:] <= absMax)[0].tolist())
         C = list(A.intersection(B))
         #-Correction by J.Culina 2014-
@@ -51,14 +51,14 @@ class _load_validation:
         #-end-
         self._C = C
 
-        a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist()) 
+        a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist())
         b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
         c = list(a.intersection(b))
         #-Correction by J.Culina 2014-
         c = sorted(c)
         #-end-
         self._c = c
-        
+
         if len(C) == 0:
            print "---Time between simulation and measurement does not match up---"
            sys.exit()
@@ -110,11 +110,14 @@ class _load_validation:
                             uSim = np.squeeze(self.sim.ua[self._C,:])
                             vSim = np.squeeze(self.sim.va[self._C,:])
                             lock=False
-                        elif userInp == 'sf':                     
+                        elif userInp == 'sf':
                             #Import only the surface velocities
                             #TR_comment: is surface vertical indice -1 or 0?
-                            uSim = np.squeeze(self.sim.u[self._C,0,:])
-                            vSim = np.squeeze(self.sim.v[self._C,0,:])
+                           # uSim = np.squeeze(self.sim.u[self._C,0,:])
+                           # vSim = np.squeeze(self.sim.v[self._C,0,:])
+                           # Layer 2
+                            uSim = np.squeeze(self.sim.u[self._C,1,:])
+                            vSim = np.squeeze(self.sim.v[self._C,1,:])
                             self.sim._3D = False
                             lock=False
                         elif type(userInp) == float:
@@ -152,7 +155,7 @@ class _load_validation:
                     vSimInterp=simulated.Util2D.interpolation_at_point(vSim,
                                                 self.obs.lon[indClosest[i]],
                                                 self.obs.lat[indClosest[i]])
-        
+
         else:
             print "-This type of simulations is not supported yet-"
             sys.exit()
@@ -164,7 +167,7 @@ class _load_validation:
             else:
                 sim_mod={'ua':ua[C],'va':va[C],'elev':el[C],'u':u[C,:],
                          'v':v[C,:],'siglay':sig[:]}
-             
+
 
             #Check what kind of observed data it is
             if observed.__module__=='pyseidon.adcpClass.adcpClass':
