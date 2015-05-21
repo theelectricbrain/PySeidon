@@ -160,15 +160,16 @@ Some others shall be generated as methods are being called, ex:
                 p.join()
 
         # Remaining vars
-        start = int(-1 * remainder)
-        processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
-                     for key, aliaS in zip(self._kwl2D[start:], self._al2D[start:])]
-        # Run processes
-        for p in processes:
-            p.start()
-        # Exit the completed processes
-        for p in processes:
-            p.join()
+        if remainder != 0:
+            start = int(-1 * remainder)
+            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+                         for key, aliaS in zip(self._kwl2D[start:], self._al2D[start:])]
+            # Run processes
+            for p in processes:
+                p.start()
+            # Exit the completed processes
+            for p in processes:
+                p.join()
 
         if debug: print "Parallel loading 3D vars..."
         for i in range(divisor):
@@ -184,15 +185,16 @@ Some others shall be generated as methods are being called, ex:
                 p.join()
 
         # Remaining vars
-        start = int(-1 * remainder)
-        processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
-                     for key, aliaS in zip(self._kwl3D[start:], self._al3D[start:])]
-        # Run processes
-        for p in processes:
-            p.start()
-        # Exit the completed processes
-        for p in processes:
-            p.join()
+        if remainder != 0:
+            start = int(-1 * remainder)
+            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+                         for key, aliaS in zip(self._kwl3D[start:], self._al3D[start:])]
+            # Run processes
+            for p in processes:
+                p.start()
+            # Exit the completed processes
+            for p in processes:
+                p.join()
         #-------end-------
 
         # # Loading 2D variables
@@ -295,10 +297,11 @@ Some others shall be generated as methods are being called, ex:
             else:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in self._region_time:
-                    if self._scipynetcdf:
-                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, :, region])
-                    else:
-                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, :, region])
+                    for j in range(vertiDim):
+                        if self._scipynetcdf:
+                            getattr(self, aliaS)[I,j,:] = np.transpose(data.variables[key].data[i, j, region])
+                        else:
+                            getattr(self, aliaS)[I,j,:] = (data.variables[key][i, j, region])
                     I += 1
 
 
@@ -366,10 +369,11 @@ Some others shall be generated as methods are being called, ex:
             else:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in range(grid.ntime):
-                    if self._scipynetcdf:
-                        getattr(self, aliaS)[i,:,:] = np.transpose(data.variables[key].data[i, :, region])
-                    else:
-                        getattr(self, aliaS)[i,:,:] = (data.variables[key][i, :, region])
+                    for j in range(vertiDim):
+                        if self._scipynetcdf:
+                            getattr(self, aliaS)[i,j,:] = np.transpose(data.variables[key].data[i, j, region])
+                        else:
+                            getattr(self, aliaS)[i,j,:] = (data.variables[key][i, j, region])
 
     def _load_partial_time_full_region(self, data, grid, key, aliaS, debug=False):
         """
@@ -431,10 +435,11 @@ Some others shall be generated as methods are being called, ex:
             else:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in self._region_time:
-                    if self._scipynetcdf:
-                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, :, :])
-                    else:
-                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, :, :])
+                    for j in range(vertiDim):
+                        if self._scipynetcdf:
+                            getattr(self, aliaS)[I,j,:] = np.transpose(data.variables[key].data[i, j, :])
+                        else:
+                            getattr(self, aliaS)[I,j,:] = (data.variables[key][i, j, :])
                     I += 1
 
     def _t_region(self, tx, debug=False):
