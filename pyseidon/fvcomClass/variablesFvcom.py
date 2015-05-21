@@ -297,11 +297,10 @@ Some others shall be generated as methods are being called, ex:
             else:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in self._region_time:
-                    for j in range(vertiDim):
-                        if self._scipynetcdf:
-                            getattr(self, aliaS)[I,j,:] = np.transpose(data.variables[key].data[i, j, region])
-                        else:
-                            getattr(self, aliaS)[I,j,:] = (data.variables[key][i, j, region])
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, :, region])
+                    else:
+                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, :, region])
                     I += 1
 
 
@@ -369,11 +368,10 @@ Some others shall be generated as methods are being called, ex:
             else:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in range(grid.ntime):
-                    for j in range(vertiDim):
-                        if self._scipynetcdf:
-                            getattr(self, aliaS)[i,j,:] = np.transpose(data.variables[key].data[i, j, region])
-                        else:
-                            getattr(self, aliaS)[i,j,:] = (data.variables[key][i, j, region])
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[i,:,:] = np.transpose(data.variables[key].data[i, :, region])
+                    else:
+                        getattr(self, aliaS)[i,:,:] = (data.variables[key][i, :, region])
 
     def _load_partial_time_full_region(self, data, grid, key, aliaS, debug=False):
         """
@@ -435,11 +433,10 @@ Some others shall be generated as methods are being called, ex:
             else:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in self._region_time:
-                    for j in range(vertiDim):
-                        if self._scipynetcdf:
-                            getattr(self, aliaS)[I,j,:] = np.transpose(data.variables[key].data[i, j, :])
-                        else:
-                            getattr(self, aliaS)[I,j,:] = (data.variables[key][i, j, :])
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, :, :])
+                    else:
+                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, :, :])
                     I += 1
 
     def _t_region(self, tx, debug=False):
