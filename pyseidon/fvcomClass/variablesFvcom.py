@@ -143,7 +143,7 @@ Some others shall be generated as methods are being called, ex:
         else:
             loadVar = self._load_full_time_partial_region
 
-        #Parallelize this loading block
+        #-------Parallelized loading block-------
         if debug: print "Parallel loading 2D vars..."
         divisor = len(self._kwl2D)//self._cpus
         remainder = len(self._kwl2D)%self._cpus
@@ -193,6 +193,7 @@ Some others shall be generated as methods are being called, ex:
         # Exit the completed processes
         for p in processes:
             p.join()
+        #-------end-------
 
         # # Loading 2D variables
         # for key, aliaS in zip(self._kwl2D, self._al2D):
@@ -295,9 +296,9 @@ Some others shall be generated as methods are being called, ex:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in self._region_time:
                     if self._scipynetcdf:
-                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, vertiDim, region])
+                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, :, region])
                     else:
-                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, vertiDim, region])
+                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, :, region])
                     I += 1
 
 
@@ -366,9 +367,9 @@ Some others shall be generated as methods are being called, ex:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in range(grid.ntime):
                     if self._scipynetcdf:
-                        getattr(self, aliaS)[i,:,:] = np.transpose(data.variables[key].data[i, vertiDim, region])
+                        getattr(self, aliaS)[i,:,:] = np.transpose(data.variables[key].data[i, :, region])
                     else:
-                        getattr(self, aliaS)[i,:,:] = (data.variables[key][i, vertiDim, region])
+                        getattr(self, aliaS)[i,:,:] = (data.variables[key][i, :, region])
 
     def _load_partial_time_full_region(self, data, grid, key, aliaS, debug=False):
         """
@@ -431,9 +432,9 @@ Some others shall be generated as methods are being called, ex:
                 setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
                 for i in self._region_time:
                     if self._scipynetcdf:
-                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, vertiDim, :])
+                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, :, :])
                     else:
-                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, vertiDim, :])
+                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, :, :])
                     I += 1
 
     def _t_region(self, tx, debug=False):
