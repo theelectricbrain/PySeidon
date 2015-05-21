@@ -9,6 +9,7 @@ from itertools import groupby
 from operator import itemgetter
 # Parallel computing
 import multiprocessing as mp
+import time
 #Local import
 from regioner import *
 from miscellaneous import time_to_index
@@ -144,9 +145,14 @@ Some others shall be generated as methods are being called, ex:
             loadVar = self._load_full_time_partial_region
 
         #-------Parallelized loading block-------
-        if debug: print "Parallel loading 2D vars..."
+        if debug: startT = time.time()
+
         divisor = len(self._kwl2D)//self._cpus
         remainder = len(self._kwl2D)%self._cpus
+
+        if debug: print "Parallel loading 2D vars..."
+        if debug: start2D = time.time()
+
         for i in range(divisor):
             start = self._cpus * i
             end = start + (self._cpus-1)
@@ -171,7 +177,12 @@ Some others shall be generated as methods are being called, ex:
             for p in processes:
                 p.join()
 
+        if debug: end2D = time.time()
+        if debug: print "...processing time: ", (end2D - start2D)
+
         if debug: print "Parallel loading 3D vars..."
+        if debug: start3D = time.time()
+
         for i in range(divisor):
             start = self._cpus * i
             end = start + (self._cpus-1)
@@ -195,6 +206,11 @@ Some others shall be generated as methods are being called, ex:
             # Exit the completed processes
             for p in processes:
                 p.join()
+
+        if debug: end3D = time.time()
+        if debug: endT = time.time()
+        if debug: print "...-loading 3D- processing time: ", (end3D - start3D)
+        if debug: print "...-loading 2D & 3D- processing time: ", (endT - startT)
         #-------end-------
 
         # # Loading 2D variables
