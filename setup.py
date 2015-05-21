@@ -12,7 +12,7 @@ option = option.lower()
 
 if option=='n':
     setup(name='PySeidon',
-      version='2.0',
+      version='2.1',
       description='Suite of tools for tidal-energy and FVCOM-user communities',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',
@@ -26,7 +26,7 @@ if option=='n':
       zip_safe=False)
 else:
     setup(name='PySeidon',
-      version='2.0',
+      version='2.1',
       description='Suite of tools for tidal-energy and FVCOM-user communities',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',

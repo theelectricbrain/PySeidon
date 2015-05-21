@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.tri as Tri
 from itertools import groupby
 from operator import itemgetter
+# Parallel computing
+import multiprocessing as mp
 #Local import
 from regioner import *
 from miscellaneous import time_to_index
@@ -43,9 +45,15 @@ Some others shall be generated as methods are being called, ex:
     """
     def __init__(self, data, grid, tx, History, debug=False):
         self._debug = debug
-        #Pointer to History
+        self._3D = False
+        self._opendap = type(data.variables).__name__=='DatasetType'
+
+        # Pointer to History
         self._History = History
         History = self._History
+
+        # Parallel computing attributs
+        self._cpus = mp.cpu_count()
 
         #List of keywords
         kwl2D = ['ua', 'va', 'zeta','depth_av_flow_dir', 'hori_velo_norm',
@@ -58,339 +66,41 @@ Some others shall be generated as methods are being called, ex:
                'depth_av_vorticity', 'depth_av_power_density',
                'depth_av_power_assessment']
         al3D = ['w', 'u', 'v', 'gls', 'tke', 'flow_dir', 'velo_norm',
-                 'verti_shear', 'vorticity', 'power_density'] 
+                 'verti_shear', 'vorticity', 'power_density']
 
-        #Check if time period defined
+        # Figure out which quantity to treat
+        self._kwl2D = []
+        self._al2D = []
+        for key, aliaS in zip(kwl2D, al2D):
+            if key in data.variables.keys():
+                self._kwl2D.append(key)
+                self._al2D.append(aliaS)
+            else:
+                if debug: print key, " is missing !"
+
+        self._kwl3D = []
+        self._al3D = []
+        for key, aliaS in zip(kwl3D, al3D):
+            if key in data.variables.keys():
+                self._kwl3D.append(key)
+                self._al3D.append(aliaS)
+            else:
+                if debug: print key, " is missing !"
+
+        if not len(self._kwl3D)==0: self._3D = True
+
+        #Loading time stamps
         try:
             self.julianTime = data.variables['time']
         except KeyError: #exeception due to Save_as(netcdf)
             self.julianTime = data.variables['julianTime']      
-        if not tx==[]:
-            #Time period           
-            region_t = self._t_region(tx, debug=debug)
-            #Quick reshape
-            #region_t = region_t.T[0,:]
-            self._region_time = region_t
-            # define time bounds
-            ts = region_t[0]
-            te = region_t[-1] + 1
-            # get time and adjust it to matlab datenum
-            self.julianTime = data.variables['time'][ts:te]
-            self.matlabTime = self.julianTime + 678942.0
-            #Add time dimension to grid variables
-            grid.ntime = self.julianTime.shape[0]
-            if debug: print "ntime: ", grid.ntime
-            if debug: print "region_t shape: ", region_t.shape
-
-            #Check if bounding box has been defined
-            if grid._ax==[]:
-                if debug:
-                    print 'Loading variables...'
-                #Check if OpenDap variables or not
-                if type(data.variables).__name__=='DatasetType':
-                    #loading hori data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl2D, al2D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            try:
-                                setattr(self, aliaS, data.variables[key].data[ts:te,:])
-                            except AttributeError: #exeception due nc.Dataset
-                                setattr(self, aliaS, data.variables[key][ts:te,:]) 
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Horizontal variables are missing---"
-                    self._3D = False 
-                    
-                    #loading verti data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl3D, al3D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            try:
-                                setattr(self, aliaS, data.variables[key].data[ts:te,:,:])
-                            except AttributeError: #exeception due nc.Dataset
-                                setattr(self, aliaS, data.variables[key][ts:te,:,:])
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Vertical variables are missing---"
-                    else:
-                        self._3D = True
-
-                #Not OpenDap
-                else:
-                    #loading hori data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl2D, al2D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            if key=='zeta':
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
-                            elif key in data.variables.keys():
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
-                            I = 0
-                            for i in region_t:
-                                #TR comment: looping on time indices is a trick from
-                                #            Mitchell to improve loading time
-                                #TR comment: no idea why I have to transpose here but
-                                #            I do !!
-                                try:
-                                    getattr(self, aliaS)[I,:] =\
-                                    np.transpose(data.variables[key].data[i,:])
-                                except AttributeError: #exeception due nc.Dataset
-                                    getattr(self, aliaS)[I,:] = data.variables[key][i,:]
-                                I += 1
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Horizontal variables are missing---"
-                    self._3D = False 
-                    
-                    #loading verti data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl3D, al3D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            if key in data.variables.keys():
-                                if aliaS == 'verti_shear':#exception for vertical shear
-                                    setattr(self, aliaS,
-                                    np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
-                                else:
-                                    setattr(self, aliaS,
-                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
-
-                            I = 0
-                            for i in region_t:
-                                #TR comment: looping on time indices is a trick from
-                                #            Mitchell to improve loading time
-                                #TR comment: no idea why I have to transpose here but
-                                #            I do !!
-                                try:
-                                    try:
-                                        getattr(self, aliaS)[I,:,:] =\
-                                        np.transpose(data.variables[key].data[i,:,:])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        getattr(self, aliaS)[I,:,:] =\
-                                        data.variables[key][i,:,:]
-                                except ValueError:
-                                    try:
-                                        getattr(self, aliaS)[I,:,:] =\
-                                        data.variables[key].data[i,:,:]
-                                    except AttributeError: #exeception due nc.Dataset
-                                        getattr(self, aliaS)[I,:,:] =\
-                                        data.variables[key][i,:,:]
-                                I += 1
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Vertical variables are missing---"
-                    else:
-                        self._3D = True 
-
-            #Time period defined and region defined           
-            else:
-                if debug:
-                    print 'Loading variables...'
-                #TR comment: very slow...gonna need optimisation down the line  
-                #Bounding box
-                region_e = grid._element_index
-                region_n = grid._node_index
-                #Redefine variables in bounding box & time period
-                #Check if OpenDap variables or not
-                if type(data.variables).__name__=='DatasetType':
-                    #Special loading for zeta
-                    H = 0 #local counter
-                    key = kwl2D.pop(2)
-                    aliaS = al2D.pop(2)
-                    for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
-                        ID = map(itemgetter(1), g)
-                        if debug: print 'Index bound: ' +\
-                            str(ID[0]) + '-' + str(ID[-1]+1)
-                        if H==0:
-                            try:
-                                setattr(self, aliaS,
-                                data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
-                            except AttributeError: #exeception due nc.Dataset
-                                setattr(self, aliaS,
-                                data.variables[key][ts:te,ID[0]:(ID[-1]+1)])
-                            H=1
-                        else:
-                            try:
-                                setattr(self, aliaS,
-                                np.hstack((getattr(self, aliaS),
-                                data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])))
-                            except AttributeError: #exeception due nc.Dataset
-                                setattr(self, aliaS,
-                                np.hstack((getattr(self, aliaS),
-                                data.variables[key][ts:te,ID[0]:(ID[-1]+1)])))
-                    #loading hori data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl2D, al2D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            H = 0 #local counter
-                            for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                                ID = map(itemgetter(1), g)
-                                if debug: print 'Index bound: ' +\
-                                          str(ID[0]) + '-' + str(ID[-1]+1)
-                                if H==0:
-                                    try:
-                                        setattr(self, aliaS,
-                                        data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS,
-                                        data.variables[key][ts:te,ID[0]:(ID[-1]+1)])
-                                    H=1
-                                else:
-                                    try:
-                                        setattr(self, aliaS,
-                                        np.hstack((getattr(self, aliaS),
-                                        data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)])))
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS,
-                                        np.hstack((getattr(self, aliaS),
-                                        data.variables[key][ts:te,ID[0]:(ID[-1]+1)])))
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Horizontal variables are missing---"
-                    self._3D = False 
-                    
-                    #loading verti data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl3D, al3D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            H = 0 #local counter
-                            for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                                ID = map(itemgetter(1), g)
-                                if debug: print 'Index bound: ' +\
-                                          str(ID[0]) + '-' + str(ID[-1]+1)
-                                if H==0:
-                                    try:
-                                        setattr(self, aliaS, data.variables[key].data\
-                                        [ts:te,:,ID[0]:(ID[-1]+1)])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS, data.variables[key]\
-                                        [ts:te,:,ID[0]:(ID[-1]+1)])
-                                    H=1
-                                else:
-                                    try:
-                                        setattr(self, aliaS,
-                                        np.dstack((getattr(self, aliaS),
-                                        data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)])))
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS,
-                                        np.dstack((getattr(self, aliaS),
-                                        data.variables[key][ts:te,:,ID[0]:(ID[-1]+1)])))
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Vertical variables are missing---"
-                    else:
-                         self._3D = True
-
-                #Not OpenDap
-                else:
-                    #loading hori data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl2D, al2D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            if key=='zeta':
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
-                                I = 0
-                                for i in region_t:
-                                    #TR comment: looping on time indices is a trick from
-                                    #            Mitchell to improve loading time
-                                    #TR comment: no idea why I have to transpose here but
-                                    #            I do !!
-                                    try:
-                                        getattr(self, aliaS)[I,:] =\
-                                        np.transpose(data.variables[key].data[i,region_n])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        getattr(self, aliaS)[I,:] =\
-                                        data.variables[key][i,region_n]
-                                    I += 1
-                            elif key in data.variables.keys():
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
-                                I = 0
-                                for i in region_t:
-                                    #TR comment: looping on time indices is a trick from
-                                    #            Mitchell to improve loading time
-                                    #TR comment: no idea why I have to transpose here but
-                                    #            I do !!
-                                    try:
-                                        getattr(self, aliaS)[I,:] =\
-                                        np.transpose(data.variables[key].data[i,region_e])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        getattr(self, aliaS)[I,:] =\
-                                        data.variables[key][i,region_e]
-                                    I += 1
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Horizontal variables are missing---"
-                    self._3D = False 
-                    
-                    #loading verti data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl3D, al3D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            if key in data.variables.keys():
-                                if aliaS == 'verti_shear':#exception for vertical shear
-                                    setattr(self, aliaS,
-                                    np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
-                                else:
-                                    setattr(self, aliaS,
-                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
-                            I=0
-                            for i in region_t:
-                                #TR comment: looping on time indices is a trick from
-                                #            Mitchell to improve loading time
-                                #TR comment: no idea why I have to transpose here but
-                                #            I do !!
-                                try:
-                                    getattr(self, aliaS)[I,:,:] =\
-                                    np.transpose(data.variables[key].data[i,:,region_e])
-                                except AttributeError: #exeception due nc.Dataset
-                                    getattr(self, aliaS)[I,:,:] =\
-                                    data.variables[key][i,:,region_e]
-                                I += 1
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Vertical variables are missing---"
-                    else:
-                        self._3D = True 
-  
-        #No time period define    
-        else:
+        if tx==[]:
             # get time and adjust it to matlab datenum
             try:
                 self.julianTime = data.variables['time'].data
-            except (KeyError, AttributeError) as e: 
+            except (KeyError, AttributeError) as e:
                 #exeception due to Save_as(netcdf)
-                if e==KeyError: self.julianTime=data.variables['julianTime'] 
+                if e==KeyError: self.julianTime=data.variables['julianTime']
                 #exception for nc.dataset type data
                 if e==AttributeError: self.julianTime = data.variables['time'][:]
             self.matlabTime = self.julianTime[:] + 678942.0
@@ -402,246 +112,342 @@ Some others shall be generated as methods are being called, ex:
             self._History.append(text)
             #Add time dimension to grid variables
             grid.ntime = self.julianTime.shape[0]
+            if debug: print 'Full temporal domain'
+        else:
+            #Time period           
+            region_t = self._t_region(tx, debug=debug)
+            self._region_time = region_t
+            ts = self._region_time[0]
+            te = self._region_time[-1] + 1
+            # get time and adjust it to matlab datenum
+            self.julianTime = data.variables['time'][ts:te]
+            self.matlabTime = self.julianTime + 678942.0
+            #-Append message to History field
+            start = mattime_to_datetime(self.matlabTime[0])
+            end = mattime_to_datetime(self.matlabTime[-1])
+            text = 'Temporal domain from ' + str(start) +\
+                   ' to ' + str(end)
+            self._History.append(text)
+            #Add time dimension to grid variables
+            grid.ntime = self.julianTime.shape[0]
+            if debug: print "ntime: ", grid.ntime
+            if debug: print "region_t shape: ", region_t.shape
 
-            #Check if bounding box has been defined
-            if grid._ax==[]:
-                if debug:
-                    print 'Linking variables...'
+        # Define which loading function to use
+        if grid._ax==[] and tx==[]:
+            loadVar = self._load_full_time_full_region
+        elif grid._ax!=[] and tx!=[]:
+            loadVar = self._load_partial_time_partial_region
+        elif grid._ax==[] and tx!=[]:
+            loadVar = self._load_partial_time_full_region
+        else:
+            loadVar = self._load_full_time_partial_region
 
-                #loading hori data
-                keyCount = 0
-                for key, aliaS in zip(kwl2D, al2D):
-                    if debug: print "loading " + str(aliaS) +"..."
-                    try:
-                        try:
-                            setattr(self, aliaS, data.variables[key].data)
-                        except AttributeError: #exeception due nc.Dataset
-                            setattr(self, aliaS, data.variables[key])#[:])
-                        keyCount +=1
-                    except KeyError:
-                        if debug: print key, " is missing !"
-                        continue
-                if keyCount==0:
-                    print "---Horizontal variables are missing---"
-                self._3D = False 
-                    
-                #loading verti data
-                keyCount = 0
-                for key, aliaS in zip(kwl3D, al3D):
-                    if debug: print "loading " + str(aliaS) +"..."
-                    try:
-                        try:
-                            setattr(self, aliaS, data.variables[key].data)
-                        except AttributeError: #exeception due nc.Dataset
-                            setattr(self, aliaS, data.variables[key])#[:])
-                        keyCount +=1
-                    except KeyError:
-                        if debug: print key, " is missing !"
-                        continue
-                if keyCount==0:
-                    print "---Vertical variables are missing---"
+        #Parallelize this loading block
+        if debug: print "Parallel loading 2D vars..."
+        divisor = len(self._kwl2D)//self._cpus
+        remainder = len(self._kwl2D)%self._cpus
+        for i in range(divisor):
+            start = self._cpus * i
+            end = start + (self._cpus-1)
+            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+                         for key, aliaS in zip(self._kwl2D[start:end], self._al2D[start:end])]
+            # Run processes
+            for p in processes:
+                p.start()
+            # Exit the completed processes
+            for p in processes:
+                p.join()
+
+        # Remaining vars
+        start = int(-1 * remainder)
+        processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+                     for key, aliaS in zip(self._kwl2D[start:], self._al2D[start:])]
+        # Run processes
+        for p in processes:
+            p.start()
+        # Exit the completed processes
+        for p in processes:
+            p.join()
+
+        if debug: print "Parallel loading 3D vars..."
+        for i in range(divisor):
+            start = self._cpus * i
+            end = start + (self._cpus-1)
+            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+                         for key, aliaS in zip(self._kwl3D[start:end], self._al3D[start:end])]
+            # Run processes
+            for p in processes:
+                p.start()
+            # Exit the completed processes
+            for p in processes:
+                p.join()
+
+        # Remaining vars
+        start = int(-1 * remainder)
+        processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+                     for key, aliaS in zip(self._kwl3D[start:], self._al3D[start:])]
+        # Run processes
+        for p in processes:
+            p.start()
+        # Exit the completed processes
+        for p in processes:
+            p.join()
+
+        # # Loading 2D variables
+        # for key, aliaS in zip(self._kwl2D, self._al2D):
+        #     loadVar(data, grid, key, aliaS, debug=debug)
+        #
+        # # Loading 3D variables
+        # for key, aliaS in zip(self._kwl3D, self._al3D):
+        #     loadVar(data, grid, key, aliaS, debug=debug)
+
+        if debug: print '...Passed'
+
+    def _load_full_time_full_region(self, data, grid, key, aliaS, debug=False):
+        """
+        loading variables for full time and space domains
+
+        Inputs:
+        ------
+          - key = FVCOM variable name, str
+          - aliaS = PySeidon variable alias, str
+        Options:
+        -------
+          - debug = debug flag, boolean
+        """
+        if debug: print "loading " + str(aliaS) +"..."
+        try:
+            setattr(self, aliaS, data.variables[key].data)
+        except AttributeError: #exeception due nc.Dataset
+            setattr(self, aliaS, data.variables[key])
+
+    def _load_partial_time_partial_region(self, data, grid, key, aliaS, debug=False):
+        """
+        loading variables for partial time and space domains
+
+        Inputs:
+        ------
+          - key = FVCOM variable name, str
+          - aliaS = PySeidon variable alias, str
+        Options:
+        -------
+          - debug = debug flag, boolean
+        """
+        if debug: print "loading " + str(aliaS) +"..."
+
+        # define time bounds
+        ts = self._region_time[0]
+        te = self._region_time[-1] + 1
+
+        if key == 'zeta':
+            region = grid._node_index
+            horiDim = grid.nnode
+        else:
+            region = grid._element_index
+            horiDim = grid.nele
+
+        if key == 'verti_shear':
+            vertiDim = grid.nlevel-1
+        else:
+            vertiDim = grid.nlevel
+
+        # Find out if using netCDF4 or scipy
+        try:
+            Test = data.variables[key].data
+            self._scipynetcdf = True
+        except AttributeError: # exeception due nc.Dataset
+            self._scipynetcdf = False
+
+        if self._opendap:
+        # loop over contiguous indexes for opendap
+            for k, g in groupby(enumerate(region), lambda (i,x):i-x):
+                ID = map(itemgetter(1), g)
+                #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
+                if key in self._kwl2D:
+                    if self._scipynetcdf:
+                        #TR : Don't I need to transpose here?
+                        var = data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)]
+                    else:
+                        var = data.variables[key][ts:te,ID[0]:(ID[-1]+1)]
                 else:
-                    self._3D = True
-
-            #No time period defined but region defined
+                    if self._scipynetcdf:
+                        #TR : Don't I need to transpose here?
+                        var = data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)]
+                    else:
+                        var = data.variables[key][ts:te,:,ID[0]:(ID[-1]+1)]
+                if k == 0:
+                    setattr(self, aliaS,var)
+                else:
+                    setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
+        # TR comment: looping on time indices is a trick from Mitchell O'Flaherty-Sproul to improve loading time
+        else:
+            I = 0
+            if key in self._kwl2D:
+                setattr(self, aliaS, np.zeros((grid.ntime, horiDim)))
+                for i in self._region_time:
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[I,:] = np.transpose(data.variables[key].data[i, region])
+                    else:
+                        getattr(self, aliaS)[I,:] = (data.variables[key][i, region])
+                    I += 1
             else:
-                if debug:
-                    print 'Loading variables...'
-                #TR comment: very slow...gonna need optimisation down the line   
-                #Bounding box
-                region_e = grid._element_index
-                region_n = grid._node_index
-                #Redefine variables in bounding box
-                #Check if OpenDap variables or not
-                if type(data.variables).__name__=='DatasetType':
-                    #loading hori data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl2D, al2D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        #Special loading for zeta
-                        H = 0 #local counter
-                        if key == 'zeta':
-                            for k, g in groupby(enumerate(region_n), lambda (i,x):i-x):
-                                ID = map(itemgetter(1), g)
-                                if debug: print 'Index bound: ' +\
-                                    str(ID[0]) + '-' + str(ID[-1]+1)
-                                if H==0:
-                                    try:
-                                        setattr(self, aliaS,
-                                        data.variables[key].data[:,ID[0]:(ID[-1]+1)])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS,
-                                        data.variables[key][:,ID[0]:(ID[-1]+1)])
-                                    H=1
-                                else:
-                                    try:
-                                        setattr(self, aliaS,
-                                        np.hstack((getattr(self, aliaS),
-                                        data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS,
-                                        np.hstack((getattr(self, aliaS),
-                                        data.variables[key][:,ID[0]:(ID[-1]+1)])))
-                        else:
-                            try:                        
-                                for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                                    ID = map(itemgetter(1), g)
-                                    if debug: print 'Index bound: ' +\
-                                              str(ID[0]) + '-' + str(ID[-1]+1)
-                                    if H==0:
-                                        try:
-                                            setattr(self, aliaS,
-                                            data.variables[key].data[:,ID[0]:(ID[-1]+1)])
-                                        except AttributeError: #exeception due nc.Dataset
-                                            setattr(self, aliaS,
-                                            data.variables[key][:,ID[0]:(ID[-1]+1)])
-                                        H=1
-                                    else:
-                                        try:
-                                            setattr(self, aliaS,
-                                            np.hstack((getattr(self, aliaS),
-                                            data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
-                                        except AttributeError: #exeception due nc.Dataset
-                                            setattr(self, aliaS,
-                                            np.hstack((getattr(self, aliaS),
-                                            data.variables[key][:,ID[0]:(ID[-1]+1)])))
-                                    keyCount +=1
-                            except KeyError:
-                                if debug: print key, " is missing !"
-                                continue
-                    if keyCount==0:
-                        print "---Horizontal variables are missing---"
-                    self._3D = False 
-                    
-                    #loading verti data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl3D, al3D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            H = 0 #local counter
-                            for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
-                                ID = map(itemgetter(1), g)
-                                if debug: print 'Index bound: ' +\
-                                          str(ID[0]) + '-' + str(ID[-1]+1)
-                                if H==0:
-                                    try:
-                                        setattr(self, aliaS,
-                                        data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS,
-                                        data.variables[key][:,:,ID[0]:(ID[-1]+1)])
-                                    H=1
-                                else:
-                                    try:
-                                        setattr(self, aliaS,
-                                        np.dstack((getattr(self, aliaS),
-                                        data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])))
-                                    except AttributeError: #exeception due nc.Dataset
-                                        setattr(self, aliaS,
-                                        np.dstack((getattr(self, aliaS),
-                                        data.variables[key][:,:,ID[0]:(ID[-1]+1)])))
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Vertical variables are missing---"
+                setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
+                for i in self._region_time:
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, vertiDim, region])
                     else:
-                        self._3D = True
+                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, vertiDim, region])
+                    I += 1
 
-                #Not OpenDap
-                else:
-                    #loading hori data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl2D, al2D):
-                        if debug: print "loading " + str(aliaS) +"..."
-                        try:
-                            if key=='zeta':
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
-                                for i in range(grid.ntime):
-                                    #TR comment: looping on time indices is a trick from
-                                    #            Mitchell to improve loading time
-                                    #TR comment: no idea why I have to transpose here but
-                                    #            I do !!
-                                    try:
-                                        getattr(self, aliaS)[i,:] =\
-                                        np.transpose(data.variables[key].data[i,region_n])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        getattr(self, aliaS)[i,:] =\
-                                        data.variables[key][i,region_n]
-                            elif key in data.variables.keys():
-                                setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
-                                for i in range(grid.ntime):
-                                    #TR comment: looping on time indices is a trick from
-                                    #            Mitchell to improve loading time
-                                    #TR comment: no idea why I have to transpose here but
-                                    #            I do !!
-                                    try:
-                                        getattr(self, aliaS)[i,:] =\
-                                        np.transpose(data.variables[key].data[i,region_e])
-                                    except AttributeError: #exeception due nc.Dataset
-                                        getattr(self, aliaS)[i,:] =\
-                                        data.variables[key][i,region_e]
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Horizontal variables are missing---"
-                    self._3D = False 
-                    
-                    #loading verti data
-                    keyCount = 0
-                    for key, aliaS in zip(kwl3D, al3D):
-                        try:
-                            if key in data.variables.keys():
-                                if aliaS == 'verti_shear':#exception for vertical shear
-                                    setattr(self, aliaS,
-                                    np.zeros((grid.ntime,grid.nlevel-1,grid.nele)))
-                                else:
-                                    setattr(self, aliaS,
-                                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
-                                if debug: print "loading " + str(aliaS) +"..."
-                            for i in range(grid.ntime):
-                                #TR comment: looping on time indices is a trick from
-                                #            Mitchell to improve loading time
-                                #TR comment: no idea why I have to transpose here but
-                                #            I do !!
-                                try:
-                                    getattr(self, aliaS)[i,:,:] =\
-                                    np.transpose(data.variables[key].data[i,:,region_e])
-                                except AttributeError: #exeception due nc.Dataset
-                                    getattr(self, aliaS)[i,:,:] =\
-                                    data.variables[key][i,:,region_e]
-                            keyCount +=1
-                        except KeyError:
-                            if debug: print key, " is missing !"
-                            continue
-                    if keyCount==0:
-                        print "---Vertical variables are missing---"
+
+    def _load_full_time_partial_region(self, data, grid, key, aliaS, debug=False):
+        """
+        loading variables for full time domain and partial space domain
+
+        Inputs:
+        ------
+          - key = FVCOM variable name, str
+          - aliaS = PySeidon variable alias, str
+        Options:
+        -------
+          - debug = debug flag, boolean
+        """
+        if debug: print "loading " + str(aliaS) +"..."
+        if key == 'zeta':
+            region = grid._node_index
+            horiDim = grid.nnode
+        else:
+            region = grid._element_index
+            horiDim = grid.nele
+
+        if key == 'verti_shear':
+            vertiDim = grid.nlevel-1
+        else:
+            vertiDim = grid.nlevel
+
+        # Find out if using netCDF4 or scipy
+        try:
+            Test = data.variables[key].data
+            self._scipynetcdf = True
+        except AttributeError: # exeception due nc.Dataset
+            self._scipynetcdf = False
+
+        if self._opendap:
+        # loop over contiguous indexes for opendap
+            for k, g in groupby(enumerate(region), lambda (i,x):i-x):
+                ID = map(itemgetter(1), g)
+                #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
+                if key in self._kwl2D:
+                    if self._scipynetcdf:
+                        #TR : Don't I need to transpose here?
+                        var = data.variables[key].data[:,ID[0]:(ID[-1]+1)]
                     else:
-                        self._3D = True 
-        if debug:
-            print '...Passed'
+                        var = data.variables[key][:,ID[0]:(ID[-1]+1)]
+                else:
+                    if self._scipynetcdf:
+                        #TR : Don't I need to transpose here?
+                        var = data.variables[key].data[:,:,ID[0]:(ID[-1]+1)]
+                    else:
+                        var = data.variables[key][:,:,ID[0]:(ID[-1]+1)]
+                if k == 0:
+                    setattr(self, aliaS,var)
+                else:
+                    setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
+        else:
+            if key in self._kwl2D:
+                setattr(self, aliaS, np.zeros((grid.ntime, horiDim)))
+                for i in range(grid.ntime):
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[i,:] = np.transpose(data.variables[key].data[i, region])
+                    else:
+                        getattr(self, aliaS)[i,:] = (data.variables[key][i, region])
+            else:
+                setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
+                for i in range(grid.ntime):
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[i,:,:] = np.transpose(data.variables[key].data[i, vertiDim, region])
+                    else:
+                        getattr(self, aliaS)[i,:,:] = (data.variables[key][i, vertiDim, region])
+
+    def _load_partial_time_full_region(self, data, grid, key, aliaS, debug=False):
+        """
+        loading variables for partial time domain and full space domain
+
+        Inputs:
+        ------
+          - key = FVCOM variable name, str
+          - aliaS = PySeidon variable alias, str
+        Options:
+        -------
+          - debug = debug flag, boolean
+        """
+        if debug: print "loading " + str(aliaS) +"..."
+
+        # define time bounds
+        ts = self._region_time[0]
+        te = self._region_time[-1] + 1
+
+        if key == 'zeta':
+            horiDim = grid.nnode
+        else:
+            horiDim = grid.nele
+
+        if key == 'verti_shear':
+            vertiDim = grid.nlevel-1
+        else:
+            vertiDim = grid.nlevel
+
+        # Find out if using netCDF4 or scipy
+        try:
+            Test = data.variables[key].data
+            self._scipynetcdf = True
+        except AttributeError: # exeception due nc.Dataset
+            self._scipynetcdf = False
+
+        if self._opendap:
+            if key in self._kwl2D:
+                if self._scipynetcdf:
+                    var = data.variables[key].data[ts:te,:]
+                else:
+                    var = data.variables[key][ts:te,:]
+            else:
+                if self._scipynetcdf:
+                    var = data.variables[key].data[ts:te,:,:]
+                else:
+                    var = data.variables[key][ts:te,:,:]
+            setattr(self, aliaS,var)
+        else:
+            I = 0
+            if key in self._kwl2D:
+                setattr(self, aliaS, np.zeros((grid.ntime, horiDim)))
+                for i in self._region_time:
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[I,:] = np.transpose(data.variables[key].data[i, :])
+                    else:
+                        getattr(self, aliaS)[I,:] = (data.variables[key][i, :])
+                    I += 1
+            else:
+                setattr(self, aliaS, np.zeros((grid.ntime, vertiDim, horiDim)))
+                for i in self._region_time:
+                    if self._scipynetcdf:
+                        getattr(self, aliaS)[I,:,:] = np.transpose(data.variables[key].data[i, vertiDim, :])
+                    else:
+                        getattr(self, aliaS)[I,:,:] = (data.variables[key][i, vertiDim, :])
+                    I += 1
 
     def _t_region(self, tx, debug=False):
-        '''Return time indices included in time period, aka tx'''
+        """Return time indices included in time period, aka tx"""
         debug = debug or self._debug      
-        if debug:
-            print 'Computing region_t...'
+        if debug: print 'Computing region_t...'
         region_t = time_to_index(tx[0], tx[1],
                    (self.julianTime[:] + 678942.0), debug=debug)       
-        if debug:
-            print '...Passed'
-        # Add metadata entry
-        text = 'Time period =' + str(tx)
-        self._History.append(text)
+        if debug: print '...Passed'
         print '-Now working in time box-'
-
         return region_t
 
 class _load_grid:
-    '''
+    """
 'Grid' subset in FVCOM class contains grid related quantities:
 -------------------------------------------------------------
 Some grid data are directly passed on from FVCOM output:
@@ -649,11 +455,11 @@ Some grid data are directly passed on from FVCOM output:
              |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
              |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
              |_latc = latitudes at elements (deg.), 2D array (ntime, nele)   
- FVCOM.Grid._|_x = x coordinates at nodes (m), 2D array (ntime, nnode)
+             |_x = x coordinates at nodes (m), 2D array (ntime, nnode)
              |_xc = x coordinates at elements (m), 2D array (ntime, nele)
              |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
              |_yc = y coordinates at nodes (m), 2D array (ntime, nele)
-             |_h = bathymetry (m), 2D array (ntime, nnode)
+ FVCOM.Grid._|_h = bathymetry (m), 2D array (ntime, nnode)
              |_nele = element dimension, integer
              |_nnode = node dimension, integer
              |_nlevel = vertical level dimension, integer
@@ -669,7 +475,7 @@ Some grid data are directly passed on from FVCOM output:
 Some others shall be generated as methods are being called, ex:
              ...
              |_triangle = triangulation object for plotting purposes    
-    '''
+    """
     def __init__(self, data, ax, History, debug=False):
         self._debug = debug   
         if debug:
@@ -727,13 +533,6 @@ Some others shall be generated as methods are being called, ex:
             self.nlevel = self.siglay.shape[0]
             self.nele = self.lonc.shape[0]
             self.nnode = self.lon.shape[0]
-            #try:
-            #    self.nele = data.dimensions['nele']
-            #    self.nnode = data.dimensions['node']
-            #except AttributeError:
-            #    #TR: bug due to difference in Pydap's data sturcture
-            #    self.nele = self.lonc.shape[0]
-            #    self.nnode = self.lon.shape[0]
         else:
             #Checking for pre-defined regions
             if ax=='GP':
@@ -768,8 +567,7 @@ Some others shall be generated as methods are being called, ex:
                 H=0
                 for k, g in groupby(enumerate(self._node_index), lambda (i,x):i-x):
                     ID = map(itemgetter(1), g)
-                    if debug: print 'Index bound: ' +\
-                        str(ID[0]) + '-' + str(ID[-1]+1)
+                    #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
                     if H==0:
                         try:
                             self.h = data.variables['h'].data[ID[0]:(ID[-1]+1)]
