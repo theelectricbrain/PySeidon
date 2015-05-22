@@ -36,7 +36,7 @@ from plotsFvcom import *
 class FVCOM:
     '''
 Description:
-----------
+------------
   A class/structure for FVCOM data.
   Functionality structured as follows:
             _Data. = raw netcdf file data
@@ -49,7 +49,7 @@ Description:
            |_Save_as = "save as" methods
 
 Inputs:
-------
+-------
   - filename = path to file, string, 
                ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename').
                Note that the file can be a pickle file (i.e. *.p)
