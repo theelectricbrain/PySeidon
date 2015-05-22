@@ -137,93 +137,99 @@ Some others shall be generated as methods are being called, ex:
         # Define which loading function to use
         if grid._ax==[] and tx==[]:
             loadVar = self._load_full_time_full_region
-        elif grid._ax!=[] and tx!=[]:
-            loadVar = self._load_partial_time_partial_region
-        elif grid._ax==[] and tx!=[]:
-            loadVar = self._load_partial_time_full_region
+            for key, aliaS in zip(self._kwl2D, self._al2D):
+                loadVar(data, key, aliaS, debug=debug)
+            for key, aliaS in zip(self._kwl3D, self._al3D):
+                loadVar(data, key, aliaS, debug=debug)
         else:
-            loadVar = self._load_full_time_partial_region
 
-        #-------Parallelized loading block-------
-        if debug: startT = time.time()
+            if grid._ax!=[] and tx!=[]:
+                loadVar = self._load_partial_time_partial_region
+            elif grid._ax==[] and tx!=[]:
+                loadVar = self._load_partial_time_full_region
+            else:
+                loadVar = self._load_full_time_partial_region
+                
+            # Loading 2D variables
+            for key, aliaS in zip(self._kwl2D, self._al2D):
+                loadVar(data, grid, key, aliaS, debug=debug)
 
-        divisor = len(self._kwl2D)//self._cpus
-        remainder = len(self._kwl2D)%self._cpus
+            # Loading 3D variables
+            for key, aliaS in zip(self._kwl3D, self._al3D):
+                loadVar(data, grid, key, aliaS, debug=debug)
 
-        if debug: print "Parallel loading 2D vars..."
-        if debug: start2D = time.time()
-
-        for i in range(divisor):
-            start = self._cpus * i
-            end = start + (self._cpus-1)
-            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
-                         for key, aliaS in zip(self._kwl2D[start:end], self._al2D[start:end])]
-            # Run processes
-            for p in processes:
-                p.start()
-            # Exit the completed processes
-            for p in processes:
-                p.join()
-
-        # Remaining vars
-        if remainder != 0:
-            start = int(-1 * remainder)
-            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
-                         for key, aliaS in zip(self._kwl2D[start:], self._al2D[start:])]
-            # Run processes
-            for p in processes:
-                p.start()
-            # Exit the completed processes
-            for p in processes:
-                p.join()
-
-        if debug: end2D = time.time()
-        if debug: print "...processing time: ", (end2D - start2D)
-
-        if debug: print "Parallel loading 3D vars..."
-        if debug: start3D = time.time()
-
-        for i in range(divisor):
-            start = self._cpus * i
-            end = start + (self._cpus-1)
-            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
-                         for key, aliaS in zip(self._kwl3D[start:end], self._al3D[start:end])]
-            # Run processes
-            for p in processes:
-                p.start()
-            # Exit the completed processes
-            for p in processes:
-                p.join()
-
-        # Remaining vars
-        if remainder != 0:
-            start = int(-1 * remainder)
-            processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
-                         for key, aliaS in zip(self._kwl3D[start:], self._al3D[start:])]
-            # Run processes
-            for p in processes:
-                p.start()
-            # Exit the completed processes
-            for p in processes:
-                p.join()
-
-        if debug: end3D = time.time()
-        if debug: endT = time.time()
-        if debug: print "...-loading 3D- processing time: ", (end3D - start3D)
-        if debug: print "...-loading 2D & 3D- processing time: ", (endT - startT)
-        #-------end-------
-
-        # # Loading 2D variables
-        # for key, aliaS in zip(self._kwl2D, self._al2D):
-        #     loadVar(data, grid, key, aliaS, debug=debug)
-        #
-        # # Loading 3D variables
-        # for key, aliaS in zip(self._kwl3D, self._al3D):
-        #     loadVar(data, grid, key, aliaS, debug=debug)
+            ##-------Parallelized loading block-------
+            # if debug: startT = time.time()
+            #
+            # divisor = len(self._kwl2D)//self._cpus
+            # remainder = len(self._kwl2D)%self._cpus
+            #
+            # if debug: print "Parallel loading 2D vars..."
+            # if debug: start2D = time.time()
+            #
+            # for i in range(divisor):
+            #     start = self._cpus * i
+            #     end = start + (self._cpus-1)
+            #     processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+            #                  for key, aliaS in zip(self._kwl2D[start:end], self._al2D[start:end])]
+            #     # Run processes
+            #     for p in processes:
+            #         p.start()
+            #     # Exit the completed processes
+            #     for p in processes:
+            #         p.join()
+            #
+            # # Remaining vars
+            # if remainder != 0:
+            #     start = int(-1 * remainder)
+            #     processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+            #                  for key, aliaS in zip(self._kwl2D[start:], self._al2D[start:])]
+            #     # Run processes
+            #     for p in processes:
+            #         p.start()
+            #     # Exit the completed processes
+            #     for p in processes:
+            #         p.join()
+            #
+            # if debug: end2D = time.time()
+            # if debug: print "...processing time: ", (end2D - start2D)
+            #
+            # if debug: print "Parallel loading 3D vars..."
+            # if debug: start3D = time.time()
+            #
+            # for i in range(divisor):
+            #     start = self._cpus * i
+            #     end = start + (self._cpus-1)
+            #     processes = [mp.Process(target=loadVar, args=(data, grid,key, aliaS, debug))\
+            #                  for key, aliaS in zip(self._kwl3D[start:end], self._al3D[start:end])]
+            #     # Run processes
+            #     for p in processes:
+            #         p.start()
+            #     # Exit the completed processes
+            #     for p in processes:
+            #         p.join()
+            #
+            # # Remaining vars
+            # if remainder != 0:
+            #     start = int(-1 * remainder)
+            #     processes = [mp.Process(target=loadVar, args=(data, grid, key, aliaS, debug))\
+            #                  for key, aliaS in zip(self._kwl3D[start:], self._al3D[start:])]
+            #     # Run processes
+            #     for p in processes:
+            #         p.start()
+            #     # Exit the completed processes
+            #     for p in processes:
+            #         p.join()
+            #
+            # if debug: end3D = time.time()
+            # if debug: endT = time.time()
+            # if debug: print "...-loading 3D- processing time: ", (end3D - start3D)
+            # if debug: print "...-loading 2D & 3D- processing time: ", (endT - startT)
+            # #-------end-------
 
         if debug: print '...Passed'
 
-    def _load_full_time_full_region(self, data, grid, key, aliaS, debug=False):
+    def _load_full_time_full_region(self, data, key, aliaS, debug=False):
         """
         loading variables for full time and space domains
 
@@ -241,7 +247,7 @@ Some others shall be generated as methods are being called, ex:
         except AttributeError: #exeception due nc.Dataset
             setattr(self, aliaS, data.variables[key])
 
-    def _load_partial_time_partial_region(self, data, grid, key, aliaS, debug=False):
+    def _load_partial_time_partial_region(self, data, grid, pos, key, aliaS, debug=False):
         """
         loading variables for partial time and space domains
 

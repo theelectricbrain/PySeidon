@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+from math import atan2
 #from rawADCPclass import rawADCP
 from datetime import datetime
 from datetime import timedelta
@@ -96,7 +97,8 @@ def get_DirFromN(u,v):
     #   v: northward component
     '''
 
-    theta = np.arctan2(u,v) * 180 / np.pi
+    #theta = np.arctan2(u,v) * 180 / np.pi
+    theta = atan2(u,v) * 180 / np.pi
 
     ind = np.where(theta<0)
     theta[ind] = theta[ind] + 360
@@ -171,7 +173,8 @@ def principal_axis(u, v):
     V = V[:, ilamb]
 
     #rotation angle of major axis in radians relative to cartesian coordiantes
-    ra = np.arctan2(V[0,1], V[1,1])
+    #ra = np.arctan2(V[0,1], V[1,1])
+    ra = atan2(V[0,1], V[1,1])
     #express principal axis in compass coordinates
     #PA = -ra * 180 / np.pi + 90
     #TR: still not sure here

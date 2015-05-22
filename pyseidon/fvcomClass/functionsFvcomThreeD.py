@@ -663,7 +663,7 @@ class FunctionsFvcomThreeD:
         if debug:
             print 'Computing arctan2...'
         dirFlow = np.rad2deg(np.arctan2(V,U))
-       
+
         if debug: print '...Passed'
         #use only the time indices of interest
         if not argtime==[]:

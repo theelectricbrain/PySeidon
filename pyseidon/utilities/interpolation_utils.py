@@ -221,11 +221,9 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
     n1 = int(triele[index,0])
     n2 = int(triele[index,1])
     n3 = int(triele[index,2])
-    #change end bound indices 
-    #test = triele.shape[0]
-    #if n1==test: n1 = 0
-    #if n2==test: n2 = 0
-    #if n3==test: n3 = 0
+
+    #Test for ghost points
+    test = triele.shape[0]
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
@@ -235,45 +233,78 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
 
     x0 = pt_x - xc[index]
     y0 = pt_y - yc[index]
-    #due to Mitchell's alternative, conversion made in functionsFvcom.py
-    #x0 = pt_x
-    #y0 = pt_y
 
     if len(var.shape)==1:
-        #Ghost point treatment
-        Var=np.hstack((var, 0.0))
-        dvardx = (a1u[0,index] * Var[index]) \
-               + (a1u[1,index] * Var[n1]) \
-               + (a1u[2,index] * Var[n2]) \
-               + (a1u[3,index] * Var[n3])
-        dvardy = (a2u[0,index] * Var[index]) \
-               + (a2u[1,index] * Var[n1]) \
-               + (a2u[2,index] * Var[n2]) \
-               + (a2u[3,index] * Var[n3])
+        # Treatment of ghost points
+        if n1==test:
+            V1 = 0.0
+        else:
+            V1 = var[n1]
+        if n2==test:
+            V2 = 0.0
+        else:
+            V2 = var[n2]
+        if n3==test:
+            V3 = 0.0
+        else:
+            V3 = var[n3]
+
+        dvardx = (a1u[0,index] * var[index]) \
+               + (a1u[1,index] * V1) \
+               + (a1u[2,index] * V2) \
+               + (a1u[3,index] * V3)
+        dvardy = (a2u[0,index] * var[index]) \
+               + (a2u[1,index] * V1) \
+               + (a2u[2,index] * V2) \
+               + (a2u[3,index] * V3)
         varPt = var[index] + (dvardx * x0) + (dvardy * y0)
     elif len(var.shape)==2:
-        #Ghost point treatment        
-        Var=np.concatenate((var,np.zeros((var.shape[0],1))), axis=1)
-        dvardx = (a1u[0,index] * Var[:,index]) \
-               + (a1u[1,index] * Var[:,n1]) \
-               + (a1u[2,index] * Var[:,n2]) \
-               + (a1u[3,index] * Var[:,n3])
-        dvardy = (a2u[0,index] * Var[:,index]) \
-               + (a2u[1,index] * Var[:,n1]) \
-               + (a2u[2,index] * Var[:,n2]) \
-               + (a2u[3,index] * Var[:,n3])
+        # Treatment of ghost points
+        if n1==test:
+            V1 = np.zeros(var.shape[0])
+        else:
+            V1 = var[:,n1]
+        if n2==test:
+            V2 = np.zeros(var.shape[0])
+        else:
+            V2 = var[:,n2]
+        if n3==test:
+            V3 = np.zeros(var.shape[0])
+        else:
+            V3 = var[:,n3]
+
+        dvardx = (a1u[0,index] * var[:,index]) \
+               + (a1u[1,index] * V1) \
+               + (a1u[2,index] * V2) \
+               + (a1u[3,index] * V3)
+        dvardy = (a2u[0,index] * var[:,index]) \
+               + (a2u[1,index] * V1) \
+               + (a2u[2,index] * V2) \
+               + (a2u[3,index] * V3)
         varPt = var[:,index] + (dvardx * x0) + (dvardy * y0)
     else:
-        #Ghost point treatment
-        Var=np.concatenate((var,np.zeros((var.shape[0],var.shape[1],1))), axis=2)
-        dvardx = (a1u[0,index] * Var[:,:,index]) \
-               + (a1u[1,index] * Var[:,:,n1]) \
-               + (a1u[2,index] * Var[:,:,n2]) \
-               + (a1u[3,index] * Var[:,:,n3])
-        dvardy = (a2u[0,index] * Var[:,:,index]) \
-               + (a2u[1,index] * Var[:,:,n1]) \
-               + (a2u[2,index] * Var[:,:,n2]) \
-               + (a2u[3,index] * Var[:,:,n3])
+                # Treatment of ghost points
+        if n1==test:
+            V1 = np.zeros((var.shape[0], var.shape[1]))
+        else:
+            V1 = var[:,:,n1]
+        if n2==test:
+            V2 = np.zeros((var.shape[0], var.shape[1]))
+        else:
+            V2 = var[:,:,n2]
+        if n3==test:
+            V3 = np.zeros((var.shape[0], var.shape[1]))
+        else:
+            V3 = var[:,:,n3]
+
+        dvardx = (a1u[0,index] * var[:,:,index]) \
+               + (a1u[1,index] * V1) \
+               + (a1u[2,index] * V2) \
+               + (a1u[3,index] * V3)
+        dvardy = (a2u[0,index] * var[:,:,index]) \
+               + (a2u[1,index] * V1) \
+               + (a2u[2,index] * V2) \
+               + (a2u[3,index] * V3)
         varPt = var[:,:,index] + (dvardx * x0) + (dvardy * y0)
 
     if debug:
@@ -329,19 +360,19 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     #Choose the right interpolation depending on the variable
     if len(var.shape)==1:
         triVar = np.zeros(triIndex.shape)
-        triVar = var[triIndex]
+        triVar[:] = var[triIndex]
         inter = Tri.LinearTriInterpolator(tri, triVar[:])
         varInterp = inter(pt_lon, pt_lat)      
     elif len(var.shape)==2:
         triVar = np.zeros((var.shape[0], triIndex.shape[0]))
-        triVar = var[:, triIndex]
+        triVar[:] = var[:, triIndex]
         varInterp = np.ones(triVar.shape[0])
         for i in range(triVar.shape[0]):
             inter = Tri.LinearTriInterpolator(tri, triVar[i,:])
             varInterp[i] = inter(pt_lon, pt_lat)       
     else:
         triVar = np.zeros((var.shape[0], var.shape[1], triIndex.shape[0]))
-        triVar = var[:, :, triIndex]
+        triVar[:] = var[:, :, triIndex]
         varInterp = np.ones(triVar.shape[:-1])
         for i in range(triVar.shape[0]):
            for j in range(triVar.shape[1]):
@@ -356,7 +387,7 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
 
 def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
     """
-    Interpol any given variables at any give location.
+    Interpol at awkward locations.
 
     Inputs:
     ------
@@ -371,7 +402,7 @@ def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:
-        print 'Interpolating at point...'
+        print 'Interpolating at awkward point...'
     #Finding the right indexes
     points = np.array([[pt_x], [pt_y]]).T
     point_list = np.array([xc[:], yc[:]]).T
