@@ -466,5 +466,16 @@ class Validation:
                 print 'Dumping in matlab file...'
             savemat(filename, data, oned_as='column')       
         else:
-            print "---Wrong file format---"
-            
+            print "---Wrong file format---"              
+
+
+    def plotSpatialMap(title=' ', save_as_png=False, mesh=False, debug=False):
+    """
+    Plots a trajectory of a drifter against a spatial representation of 
+    the mean flood/ebb velocity norm in a specific region. The preset
+    regions and their centres are:
+        GP    ::    [-66.33906, 44.26899]
+        DG    ::    [-65.76000, 44.67751]
+        PP    ::    [-66.20692, 44.38937]
+    """
+        fI, eI, pa, pav = 
