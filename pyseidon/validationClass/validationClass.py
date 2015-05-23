@@ -41,7 +41,6 @@ class Validation:
                 |_Save_as = "save as" function 
 
     Inputs:
-    ------
       - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
     """
@@ -61,7 +60,6 @@ class Validation:
         This method computes series of standard validation benchmarks.
 
         Options:
-        ------
           - filename: file name of the .csv file to be saved, string.
           - depth: depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
@@ -70,7 +68,6 @@ class Validation:
                       timeseries into *.csv file  
 
         References:
-        ----------
         - NOAA. NOS standards for evaluating operational nowcast and
           forecast hydrodynamic model systems, 2003.
 
@@ -184,7 +181,6 @@ class Validation:
         for each component of the harmonic analysis (i.e. *_error.csv).     
 
         Options:
-        ------
           - filename: file name of the .csv file to be saved, string.
           - save_csv: will save both observed and modeled harmonic
                       coefficients into *.csv files (i.e. *_harmo_coef.csv) 
@@ -395,11 +391,9 @@ class Validation:
            - *.mat, i.e. Matlab file
 
         Inputs:
-        ------
           - filename = path + name of the file to be saved, string
 
         Keywords:
-        --------
           - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
         """
         debug = debug or self._debug

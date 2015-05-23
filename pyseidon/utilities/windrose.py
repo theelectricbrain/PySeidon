@@ -513,10 +513,10 @@ def wrbar(dir, var, **kwargs):
     return ax
 
 def clean(dir, var):
-    '''
+    """
     Remove masked values in the two arrays, where if a direction data is masked,
     the var data will also be removed in the cleaning process (and vice-versa)
-    '''
+    """
     dirmask = dir.mask==False
     varmask = var.mask==False
     ind = dirmask*varmask

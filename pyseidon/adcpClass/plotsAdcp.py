@@ -29,12 +29,10 @@ class PlotsAdcp:
         Simple X vs Y plot
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Keywords:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -77,12 +75,10 @@ class PlotsAdcp:
         Histogram plot
 
         Inputs:
-        ------
           - bins = list of bin edges
           - y = 1D array
 
         Keywords:
-        --------
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
@@ -119,7 +115,6 @@ class PlotsAdcp:
         Plot rose diagram
 
         Inputs:
-        ------
           - direction = 1D array
           - norm = 1D array
         """
@@ -147,12 +142,10 @@ class PlotsAdcp:
         Dumps profile data in csv file
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Options:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = file name, string

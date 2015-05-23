@@ -30,9 +30,8 @@ from functionsStationThreeD import *
 from plotsStation import *
 
 class Station:
-    '''
+    """
 Description:
-----------
   A class/structure for Station data.
   Functionality structured as follows:
                 _Data. = raw netcdf file data
@@ -46,7 +45,6 @@ Description:
                |_Harmonic_reconstruction = harmonic reconstruction based UTide package
 
 Inputs:
-------
   - filename = path to netcdf file or folder, string, 
                ex: testFvcom=Station('./path_to_FVOM_output_file/filename')
                    testFvcom=Station('./path_to_FVOM_output_file/folder/')
@@ -57,19 +55,16 @@ Inputs:
     (i.e. *.nc).           
 
 Options:
--------
   - elements = indices to extract, list of integers
-   
 
 Notes:
------
   Throughout the package, the following conventions aplly:
   - Date = string of 'yyyy-mm-ddThh:mm:ss'
   - Coordinates = decimal degrees East and North
   - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
                  +/-180=West, -90=South
   - Depth = 0m is the free surface and depth is negative
-    '''
+    """
     def __init__(self, filename, elements=slice(None), debug=False):
         #Class attributs
         self._debug = debug
@@ -216,7 +211,6 @@ Notes:
           station1 += station2
 
         Notes:
-        -----
           - station1 and station2 have to cover the exact
             same spatial domain
           - last time step of station1 must be <= to the 
@@ -315,11 +309,9 @@ Notes:
            - *.mat, i.e. Matlab file
 
         Inputs:
-        ------
           - filename = path + name of the file to be saved, string
 
         Keywords:
-        --------
           - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
         """
         debug = debug or self._debug

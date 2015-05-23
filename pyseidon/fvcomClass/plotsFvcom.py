@@ -16,7 +16,6 @@ from interpolation_utils import *
 class PlotsFvcom:
     """
     Description:
-    -----------
     'Plots' subset of FVCOM class gathers plotting functions
     """
     def __init__(self, variable, grid, debug):
@@ -39,7 +38,6 @@ class PlotsFvcom:
         2D xy colormap plot of any given variable and mesh.
 
         Input:
-        -----
           - var = gridded variable, 1 D numpy array (nele or nnode)
 
         Keywords:
@@ -171,7 +169,6 @@ class PlotsFvcom:
         Plots rose diagram
 
         Inputs:
-        ------
           - direction = 1D array
           - norm = 1D array
         """
@@ -201,12 +198,10 @@ class PlotsFvcom:
         Simple X vs Y plot
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Keywords:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -251,12 +246,10 @@ class PlotsFvcom:
         Histogram plot
 
         Inputs:
-        ------
           - bins = list of bin edges
           - y = 1D array
 
         Keywords:
-        --------
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
@@ -296,12 +289,10 @@ class PlotsFvcom:
         where x and y are 1D arrays of the same lengths.
 
         Inputs:
-        ------
           - x = float number or list of float numbers
           - y = float number or list of float numbers
 
         Keywords:
-        --------
           - Label = a string
           - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """
@@ -318,12 +309,10 @@ class PlotsFvcom:
         Dumps profile data in csv file
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Options:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = file name, string
@@ -351,13 +340,11 @@ class PlotsFvcom:
         Dumps map data in csv file
 
         Inputs:
-        ------
           - var = gridded variable, 1 D numpy array (nele or nnode)
           - x = coordinates, 1 D numpy array (nele or nnode)
           - y = coordinates, 1 D numpy array (nele or nnode)
 
         Options:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = file name, string
@@ -375,4 +362,3 @@ class PlotsFvcom:
         df = pd.DataFrame({xLabel:x[:], yLabel:y[:], varLabel: var[:]})
 
         df.to_csv(filename, encoding='utf-8', **kwargs)
-                                

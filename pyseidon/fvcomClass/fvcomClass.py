@@ -36,7 +36,6 @@ from plotsFvcom import *
 class FVCOM:
     '''
 Description:
-------------
   A class/structure for FVCOM data.
   Functionality structured as follows:
             _Data. = raw netcdf file data
@@ -49,7 +48,6 @@ Description:
            |_Save_as = "save as" methods
 
 Inputs:
--------
   - filename = path to file, string, 
                ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename').
                Note that the file can be a pickle file (i.e. *.p)
@@ -57,7 +55,6 @@ Inputs:
                Additionally, either a file path or a OpenDap url could be used. 
 
 Options:
--------
   - ax = defines for a specific spatial region to work with, as such:
              ax = [minimun longitude, maximun longitude,
                  minimun latitude, maximum latitude]
@@ -73,7 +70,6 @@ Options:
          and therefore reduce memory and cpu use.
 
 Notes:
------
   Throughout the package, the following conventions apply:
   - Date = string of 'yyyy-mm-ddThh:mm:ss'
   - Coordinates = decimal degrees East and North
@@ -232,7 +228,6 @@ Notes:
           fvcom1 += fvcom2
 
         Notes:
-        -----
           - fvcom1 and fvcom2 have to cover the exact
             same spatial domain
           - last time step of fvcom1 must be <= to the 
@@ -308,11 +303,9 @@ Notes:
            - *.mat, i.e. Matlab file
 
         Inputs:
-        ------
           - filename = path + name of the file to be saved, string
 
         Keywords:
-        --------
           - fileformat = format of the file to be saved, i.e. 'pickle', .netcdf. or 'matlab'
         """
         debug = debug or self._debug

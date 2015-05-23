@@ -18,7 +18,7 @@ from miscellaneous import mattime_to_datetime
 class _load_var:
     """
 'Variables' subset in FVCOM class contains the numpy arrays:
------------------------------------------------------------
+
 Some variables are directly passed on from FVCOM output:
                    _el = elevation (m), 2D array (ntime, nnode)
                   |_julianTime = julian date, 1D array (ntime)
@@ -234,11 +234,10 @@ Some others shall be generated as methods are being called, ex:
         loading variables for full time and space domains
 
         Inputs:
-        ------
           - key = FVCOM variable name, str
           - aliaS = PySeidon variable alias, str
+
         Options:
-        -------
           - debug = debug flag, boolean
         """
         if debug: print "loading " + str(aliaS) +"..."
@@ -252,11 +251,10 @@ Some others shall be generated as methods are being called, ex:
         loading variables for partial time and space domains
 
         Inputs:
-        ------
           - key = FVCOM variable name, str
           - aliaS = PySeidon variable alias, str
+
         Options:
-        -------
           - debug = debug flag, boolean
         """
         if debug: print "loading " + str(aliaS) +"..."
@@ -331,11 +329,10 @@ Some others shall be generated as methods are being called, ex:
         loading variables for full time domain and partial space domain
 
         Inputs:
-        ------
           - key = FVCOM variable name, str
           - aliaS = PySeidon variable alias, str
+
         Options:
-        -------
           - debug = debug flag, boolean
         """
         if debug: print "loading " + str(aliaS) +"..."
@@ -401,11 +398,10 @@ Some others shall be generated as methods are being called, ex:
         loading variables for partial time domain and full space domain
 
         Inputs:
-        ------
           - key = FVCOM variable name, str
           - aliaS = PySeidon variable alias, str
+
         Options:
-        -------
           - debug = debug flag, boolean
         """
         if debug: print "loading " + str(aliaS) +"..."
@@ -476,7 +472,7 @@ Some others shall be generated as methods are being called, ex:
 class _load_grid:
     """
 'Grid' subset in FVCOM class contains grid related quantities:
--------------------------------------------------------------
+
 Some grid data are directly passed on from FVCOM output:
               _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
              |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
