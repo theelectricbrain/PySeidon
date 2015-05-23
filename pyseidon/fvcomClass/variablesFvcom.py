@@ -149,7 +149,7 @@ Some others shall be generated as methods are being called, ex:
                 loadVar = self._load_partial_time_full_region
             else:
                 loadVar = self._load_full_time_partial_region
-                
+
             # Loading 2D variables
             for key, aliaS in zip(self._kwl2D, self._al2D):
                 loadVar(data, grid, key, aliaS, debug=debug)
@@ -380,6 +380,7 @@ Some others shall be generated as methods are being called, ex:
                 else:
                     setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
         else:
+            # TR comment: looping on time indices is a trick from Mitchell O'Flaherty-Sproul to improve loading time
             if key in self._kwl2D:
                 setattr(self, aliaS, np.zeros((grid.ntime, horiDim)))
                 for i in range(grid.ntime):
@@ -444,6 +445,7 @@ Some others shall be generated as methods are being called, ex:
             setattr(self, aliaS,var)
         else:
             I = 0
+            # TR comment: looping on time indices is a trick from Mitchell O'Flaherty-Sproul to improve loading time
             if key in self._kwl2D:
                 setattr(self, aliaS, np.zeros((grid.ntime, horiDim)))
                 for i in self._region_time:
