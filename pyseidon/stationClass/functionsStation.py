@@ -16,7 +16,6 @@ import time
 class FunctionsStation:
     """
     Description:
-    -----------
     'Util2D' subset of Station class gathers
     useful functions for 2D and 3D runs
     """
@@ -55,16 +54,13 @@ class FunctionsStation:
         Flow directions and associated norm at any give location.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
            - flowDir = flowDir at station, 1D array
            - norm = velocity norm at station, 1D array
 
         Keywords:
-        --------
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -73,7 +69,6 @@ class FunctionsStation:
           - excedance = True, compute associated exceedance curve
 
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -125,18 +120,15 @@ class FunctionsStation:
         principal flow directions and associated variances for (lon, lat) point
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - floodIndex = flood time index, 1D array of integers
           - ebbIndex = ebb time index, 1D array of integers
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -144,7 +136,6 @@ class FunctionsStation:
           - time_ind = time indices to work in, 1D array of integers 
         
         Notes:
-        -----
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -250,22 +241,18 @@ class FunctionsStation:
         This function calculate the excedence curve of a var(time).
 
         Inputs:
-        ------
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
 
         Keywords:
-        --------
           - station = either station index (interger) or name (string)
                       Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
 
         Outputs:
-        -------
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
         Notes:
-        -----
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -318,15 +305,12 @@ class FunctionsStation:
         Compute depth at given point
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
         Notes:
-        -----
           - depth convention: 0 = free surface
         """
         debug = debug or self._debug
@@ -354,11 +338,9 @@ class FunctionsStation:
         flow speed at any given point.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -366,7 +348,6 @@ class FunctionsStation:
           - time_ind = time indices to work in, 1D array of integers 
         
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -404,20 +385,16 @@ class FunctionsStation:
                                    debug=False, **kwarg):
         '''
         Description:
-        -----------
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - harmo = harmonic coefficients, dictionary
 
         Keywords:
-        --------
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
@@ -427,7 +404,6 @@ class FunctionsStation:
           - velocity=True means that ut_solv will be done for velocity.
 
         Options:
-        -------
         Options are the same as for ut_solv, which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
@@ -437,7 +413,6 @@ class FunctionsStation:
             ordercnstit=[]; runtimedisp='yyy'
 
         Notes:
-        -----
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
 
@@ -489,31 +464,26 @@ class FunctionsStation:
                                 time_ind=slice(None), debug=False, **kwarg):
         '''
         Description:
-        ----------
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
         (ut_solv) has already been executed.
 
         Inputs:
-        ------
           - Harmo = harmonic coefficient from harmo_analysis
           - elevation =True means that ut_reconstr will be done for elevation.
           - velocity =True means that ut_reconst will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
-        ------         
           - Reconstruct = reconstructed signal, dictionary
 
         Options:
-        -------
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
         Notes:
-        -----
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
 

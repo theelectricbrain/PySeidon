@@ -14,7 +14,6 @@ import time
 class FunctionsStationThreeD:
     """
     Description:
-    -----------
     'Utils3D' subset of Station class gathers
     useful functions for 3D runs
     """
@@ -54,15 +53,12 @@ class FunctionsStationThreeD:
         Compute depth at given point
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -94,15 +90,12 @@ class FunctionsStationThreeD:
         Compute vertical shear at any given location
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -113,7 +106,6 @@ class FunctionsStationThreeD:
           - graph = plots graph if True
 
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -184,15 +176,12 @@ class FunctionsStationThreeD:
         Compute the velocity norm at any given location
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - velo_norm = velocity norm, 2D array (time, level)
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -201,7 +190,6 @@ class FunctionsStationThreeD:
           - graph = plots vertical profile averaged over time if True
 
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -264,24 +252,21 @@ class FunctionsStationThreeD:
         Compute flow directions and associated norm at any given location.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
           - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
 
         Keywords:
-        -------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - vertical = True, compute flowDir for each vertical level
+
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both

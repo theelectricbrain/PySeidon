@@ -30,12 +30,10 @@ class FunctionsAdcp:
         Flow directions and associated norm
 
         Outputs:
-        -------
            - flowDir = flowDir at station, 1D array
            - norm = velocity norm at station, 1D array
 
         Keywords:
-        --------
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -44,7 +42,6 @@ class FunctionsAdcp:
           - excedance = True, compute associated exceedance curve
 
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -92,14 +89,12 @@ class FunctionsAdcp:
         principal flow directions and associated variances for (lon, lat) point
 
         Outputs:
-        -------
           - floodIndex = flood time index, 1D array of integers
           - ebbIndex = ebb time index, 1D array of integers
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -107,7 +102,6 @@ class FunctionsAdcp:
           - time_ind = time indices to work in, 1D array of integers 
         
         Notes:
-        -----
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -213,11 +207,9 @@ class FunctionsAdcp:
         This function calculate the excedence curve of a var(time).
 
         Inputs:
-        ------
           - var = given quantity, 1 array of n elements
 
         Keywords:
-        --------
           - graph: True->plots curve; False->does not
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
@@ -225,7 +217,6 @@ class FunctionsAdcp:
                      Check doc. of "to_csv" for complete list of options
 
         Outputs:
-        -------
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
@@ -276,7 +267,6 @@ class FunctionsAdcp:
         flow speed.
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -288,7 +278,6 @@ class FunctionsAdcp:
                      Check doc. of "to_csv" for complete list of options
         
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -325,16 +314,13 @@ class FunctionsAdcp:
                           debug=False, **kwargs):
         '''
         Description:
-        -----------
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Outputs:
-        -------
           - harmo = harmonic coefficients, dictionary
 
         Keywords:
-        --------
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
@@ -344,7 +330,6 @@ class FunctionsAdcp:
           - velocity=True means that ut_solv will be done for velocity.
 
         Options:
-        -------
         Options are the same as for ut_solv, which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
@@ -354,7 +339,6 @@ class FunctionsAdcp:
             ordercnstit=[]; runtimedisp='yyy'
 
         Notes:
-        -----
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
 
@@ -401,37 +385,31 @@ class FunctionsAdcp:
 
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
                                 time_ind=slice(None), debug=False, **kwargs):
-        '''
+        """
         Description:
-        ----------
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
         (ut_solv) has already been executed.
 
         Inputs:
-        ------
           - Harmo = harmonic coefficient from harmo_analysis
           - elevation =True means that ut_reconstr will be done for elevation.
           - velocity =True means that ut_reconst will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
-        ------         
           - Reconstruct = reconstructed signal, dictionary
 
         Options:
-        -------
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
         Notes:
-        -----
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
-
-        '''
+        """
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug
@@ -451,11 +429,9 @@ class FunctionsAdcp:
         Compute vertical shear
 
         Outputs:
-        -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -468,7 +444,6 @@ class FunctionsAdcp:
                      Check doc. of "to_csv" for complete list of options
 
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -525,11 +500,9 @@ class FunctionsAdcp:
         Compute the velocity norm
 
         Outputs:
-        -------
           - velo_norm = velocity norm, 2D array (time, level)
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -542,7 +515,6 @@ class FunctionsAdcp:
                      Check doc. of "to_csv" for complete list of options
 
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -589,12 +561,10 @@ class FunctionsAdcp:
     def mattime2datetime(self, mattime, debug=False):
         """
         Description:
-        ----------
         Output the time (yyyy-mm-dd, hh:mm:ss) corresponding to
         a given matlab time
 
         Inputs:
-        ------
           - mattime = matlab time (floats)
         """  
         time = mattime_to_datetime(mattime, debug=debug)   

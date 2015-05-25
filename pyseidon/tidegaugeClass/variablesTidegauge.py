@@ -7,7 +7,6 @@ import numpy as np
 class _load_tidegauge:
     """
 'Variables' subset in TideGauge class contains the following numpy arrays:
------------------------------------------------------------
 
                        _lat = latitude, float, decimal degrees
                       |_lon = lontitude, float, decimal degrees

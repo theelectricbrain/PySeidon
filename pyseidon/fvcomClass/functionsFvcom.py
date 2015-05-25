@@ -20,7 +20,6 @@ from pydap.exceptions import ServerError
 class FunctionsFvcom:
     """
     Description:
-    -----------
     'Util2D' subset of FVCOM class gathers
     useful functions and methods for 2D and 3D runs
     """
@@ -42,7 +41,6 @@ class FunctionsFvcom:
         -> FVCOM.Grid.hc, elc
 
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = debug or self._debug
@@ -78,7 +76,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.hori_velo_norm
 
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = debug or self._debug
@@ -115,7 +112,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_flow_dir
 
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - Can take time over the full domain
@@ -155,17 +151,14 @@ class FunctionsFvcom:
         at any give location.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find, float number 
 
         Outputs:
-        -------
            - flowDir = flowDir at (pt_lon, pt_lat), 1D array
            - norm = velocity norm at (pt_lon, pt_lat), 1D array
 
         Keywords:
-        --------
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -174,7 +167,6 @@ class FunctionsFvcom:
           - excedance = True, compute associated exceedance curve
 
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -244,16 +236,13 @@ class FunctionsFvcom:
         This function computes the depth averaged bidirectionality (deg.)
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East of the reference point, float number 
           - pt_lat = latitude in decimal degrees North of the reference point, float number
 
         Outputs:
-        -------
           - bidir = 1D array of depth averaged bidirectionality, (nele)
 
         Notes:
-        -----
           - bidirectionality between 0 and 90 deg., i.e. 0=perfect alignment,
             90 = perpendicular abb and flood
           - bidirectionality is weighted by the flow speed to filter out slack water
@@ -296,19 +285,16 @@ class FunctionsFvcom:
         at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find,float number 
 
         Outputs:
-        -------
           - floodIndex = flood time index, 1D array of integers
           - ebbIndex = ebb time index, 1D array of integers
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -316,7 +302,6 @@ class FunctionsFvcom:
           - time_ind = time indices to work in, 1D array of integers 
         
         Notes:
-        -----
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -405,12 +390,10 @@ class FunctionsFvcom:
         flow speed at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find,float number 
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -422,7 +405,6 @@ class FunctionsFvcom:
                      Check doc. of "to_csv" for complete list of options
         
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -460,22 +442,18 @@ class FunctionsFvcom:
         This function interpolates any given variables at any give location.
 
         Inputs:
-        ------
           - var = any FVCOM grid data or variable, numpy array
           - pt_lon = longitude in decimal degrees East to find, float number
           - pt_lat = latitude in decimal degrees North to find, float number
 
         Outputs:
-        -------
            - varInterp = var interpolated at (pt_lon, pt_lat)
 
         Keywords:
-        --------
           - index = element index, integer. Use only if closest element index
                     is already known
 
         Notes:
-        -----
           - use index if closest element already known
         """
         debug = (debug or self._debug)
@@ -569,11 +547,9 @@ class FunctionsFvcom:
         at any given point.
 
         Inputs:
-        ------
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
 
         Keywords:
-        --------
           - pt_lon, pt_lat = coordinates, float numbers.
                              Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
@@ -583,12 +559,10 @@ class FunctionsFvcom:
                      Check doc. of "to_csv" for complete list of options
 
         Outputs:
-        -------
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
         Notes:
-        -----
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -643,7 +617,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_vorticity
      
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -712,18 +685,15 @@ class FunctionsFvcom:
         This function computes the depth averaged vorticity for a time period.
      
         Outputs:
-        -------
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
 
         Keywords:
-        -------
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -805,7 +775,6 @@ class FunctionsFvcom:
         -> FVCOM.Grid.depth2D
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - Can take time over the full domain
         """
@@ -848,20 +817,16 @@ class FunctionsFvcom:
         This function computes the depth at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
         Keywords:
-        --------
           - index = element index, interger
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -911,12 +876,10 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_power_density
     
         Description:
-        -----------
         The power density (pd) is then calculated as follows:
             pd = 0.5*1025*(u**3)
     
         Notes:
-        -----
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -942,7 +905,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_power_assessment
 
         Description:
-        -----------
         This function performs tidal turbine power assessment by accounting for
         cut-in and cut-out speed, power curve/function (pc):
             Cp = pc(u)
@@ -952,13 +914,11 @@ class FunctionsFvcom:
             pd = Cp*(1/2)*1025*(u**3)
 
         Inputs:
-        ------
           - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
                         u being power_mat[0,:] and Ct(u) being power_mat[1,:]
           - rated_speed = rated speed speed in m/s, float number
 
         Keywords:
-        --------
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
 
@@ -1017,23 +977,19 @@ class FunctionsFvcom:
                                    time_ind=[], t_start=[], t_end=[],
                                    elevation=True, velocity=False,
                                    debug=False, **kwarg):
-        '''
+        """
         Description:
-        -----------
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - harmo = harmonic coefficients, dictionary
 
         Keywords:
-        --------
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
@@ -1043,7 +999,6 @@ class FunctionsFvcom:
           - velocity=True means that ut_solv will be done for velocity.
 
         Options:
-        -------
         Options are the same as for ut_solv, which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
@@ -1053,11 +1008,10 @@ class FunctionsFvcom:
             ordercnstit=[]; runtimedisp='yyy'
 
         Notes:
-        -----
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
         #TR_comments: Add debug flag in Utide: debug=self._debug
         index = closest_point(pt_lon, pt_lat,
@@ -1117,37 +1071,32 @@ class FunctionsFvcom:
 
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
                                 time_ind=slice(None), debug=False, **kwarg):
-        '''
+        """
         Description:
-        ----------
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
         (ut_solv) has already been executed.
 
         Inputs:
-        ------
           - Harmo = harmonic coefficient from harmo_analysis
           - elevation =True means that ut_reconstr will be done for elevation.
           - velocity =True means that ut_reconst will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
-        ------         
           - Reconstruct = reconstructed signal, dictionary
 
         Options:
-        -------
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
         Notes:
-        -----
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug

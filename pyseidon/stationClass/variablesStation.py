@@ -10,9 +10,9 @@ from miscellaneous import time_to_index
 from miscellaneous import mattime_to_datetime
 
 class _load_grid:
-    '''
+    """
 'Grid' subset in Station class contains grid related quantities:
--------------------------------------------------------------
+
 Some grid data are directly passed on from Station output:
                 _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
                |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
@@ -31,7 +31,7 @@ Some grid data are directly passed on from Station output:
 Some others shall be generated as methods are being called, ex:
              ...
              |_triangle = triangulation object for plotting purposes    
-    '''
+    """
     def __init__(self, data, elements, History, debug=False):  
         if debug:
             print 'Loading grid...'
@@ -67,7 +67,7 @@ Some others shall be generated as methods are being called, ex:
 class _load_var:
     """
 'Variables' subset in Station class contains the numpy arrays:
------------------------------------------------------------
+
 Some variables are directly passed on from Station output:
                      _el = elevation (m), 2D array (ntime, nnode)
                     |_julianTime = julian date, 1D array (ntime)

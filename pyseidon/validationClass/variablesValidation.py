@@ -24,7 +24,6 @@ from tidegaugeClass import TideGauge
 class _load_validation:
     """
 'Variables' subset in Validation class contains the following items:
------------------------------------------------------------
 
                            _obs. = measurement/observational variables
     Validation.Variables._|_sim. = simulated variables

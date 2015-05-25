@@ -27,12 +27,10 @@ class PlotsTidegauge:
         Simple X vs Y plot
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Keywords:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -78,12 +76,10 @@ class PlotsTidegauge:
         Dumps profile data in csv file
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Options:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = file name, string

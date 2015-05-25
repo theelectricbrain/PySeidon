@@ -11,7 +11,6 @@ import pandas as pd
 class PlotsDrifter:
     """
     Description:
-    -----------
     'Plots' subset of Drifter class gathers plotting functions
     """
     def __init__(self, variable, debug):
@@ -25,12 +24,11 @@ class PlotsDrifter:
 
     def trajectories(self, title='Drifter trajectories & speed (m/s)',
                      cmin=[], cmax=[], debug=False, dump=False, **kwargs):
-        '''
+        """
         2D xy colormap plot of all the trajectories.
         Colors represent the drifter velocity
 
         Keywords:
-        --------
           - title = plot title, string
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
@@ -38,7 +36,7 @@ class PlotsDrifter:
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
-        '''   
+        """
         debug = debug or self._debug
         if debug: print "Plotting drifter's trajectories..."
         lon = self._var.lon
@@ -94,7 +92,6 @@ class PlotsDrifter:
         Dumps map data in csv file
 
         Inputs:
-        ------
           - var1 = 1 D numpy array oh n elements
           - var2 = 1 D numpy array oh n elements
           - var3 = 1 D numpy array oh n elements
@@ -102,7 +99,6 @@ class PlotsDrifter:
           - y = coordinates, 1 D numpy array (nele or nnode)
 
         Options:
-        --------
           - title = file name, string
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc

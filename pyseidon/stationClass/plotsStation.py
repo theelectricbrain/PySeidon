@@ -15,7 +15,6 @@ from interpolation_utils import *
 class PlotsStation:
     """
     Description:
-    -----------
     'Plots' subset of Station class gathers plotting functions
     """
     def __init__(self, variable, grid, debug):
@@ -37,7 +36,6 @@ class PlotsStation:
         Plot rose diagram
 
         Inputs:
-        ------
           - direction = 1D array
           - norm = 1D array
         """
@@ -65,12 +63,10 @@ class PlotsStation:
         Simple X vs Y plot
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Keywords:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -113,12 +109,10 @@ class PlotsStation:
         Histogram plot
 
         Inputs:
-        ------
           - bins = list of bin edges
           - y = 1D array
 
         Keywords:
-        --------
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
@@ -144,12 +138,10 @@ class PlotsStation:
         where x and y are 1D arrays of the same lengths.
 
         Inputs:
-        ------
           - x = float number
           - y = float numbe
 
         Keywords:
-        --------
           - Label = a string
           - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """
@@ -165,7 +157,6 @@ class PlotsStation:
         Plot rose diagram
 
         Inputs:
-        ------
           - direction = 1D array
           - norm = 1D array
         """
@@ -195,12 +186,10 @@ class PlotsStation:
         Dumps profile data in csv file
 
         Inputs:
-        ------
           - x = 1D array
           - y = 1D array
 
         Options:
-        --------
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = file name, string

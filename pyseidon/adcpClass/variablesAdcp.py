@@ -9,7 +9,6 @@ import h5py
 class _load_adcp:
     """
 'Variables' subset in ADCP class contains the following numpy arrays:
------------------------------------------------------------
 
                   _bins = depth of measurement bins, 1D array, shape=(bins)
                  |_depth = depth of measurement bins, 1D array, shape=(bins)

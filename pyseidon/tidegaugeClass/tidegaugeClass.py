@@ -16,9 +16,8 @@ from functionsTidegauge import *
 from plotsTidegauge import *
 
 class TideGauge:
-    ''' 
+    """
 Description:
------------
   A class/structure for tide gauge data.
   Functionality structured as follows:
                 _Data. = raw matlab file data
@@ -28,18 +27,16 @@ Description:
                |_Plots. = plotting functions
 
 Inputs:
-------
   Only takes a file name as input, ex: testTG=TideGauge('./path_to_matlab_file/filename')
 
 Notes:
------
   - Only handle fully processed tide gauge matlab data at the mo.
   Throughout the package, the following conventions apply:
   - Coordinates = decimal degrees East and North
   - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
                  +/-180=West, -90=South
   - Depth = 0m is the free surface and depth is negative
-    '''
+    """
     def __init__(self, filename, debug=False):
         self._debug = debug
         if debug: print '-Debug mode on-'

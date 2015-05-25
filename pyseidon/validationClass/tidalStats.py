@@ -155,7 +155,6 @@ class TidalStats:
         Determines if model over or under estimate the reference
 
         Returns:
-        -------
           - ovORun = character, '+' if overestimation and '-' if underestimation
         """
         if debug or self._debug: print "...getOverUnder..."

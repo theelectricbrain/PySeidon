@@ -17,6 +17,7 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
     time_step = timedelta(minutes=10)
 
     # create POSIX timestamp array corresponding to each dataset
+<<<<<<< HEAD
     '''
     times_1, times_2 = np.zeros(len(dt_1)), np.zeros(len(dt_2))
     for i in np.arange(times_1.size):
@@ -25,6 +26,8 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
         times_2[i] = time.mktime(dt_2[i].timetuple())
     '''
 
+=======
+>>>>>>> upstream/development
     make_posix = lambda x: time.mktime(x.timetuple())
     times_1 = map(make_posix, dt_1)
     times_2 = map(make_posix, dt_2)
@@ -53,6 +56,7 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
     first_hit_2 = np.searchsorted(inds_2, np.arange(1, steps + 1))
     for j in xrange(steps - 1):
         series_2[j] = np.nanmean(data_2[first_hit_2[j]:first_hit_2[j + 1]])
+<<<<<<< HEAD
 
     '''
     # take averages at each step, create output data
@@ -77,6 +81,8 @@ def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
 	else:
 	    series_2[i] = np.nan
     '''
+=======
+>>>>>>> upstream/development
 
     if debug: print "...smooth done."
     return (series_1, series_2, time_step, dt_start)
