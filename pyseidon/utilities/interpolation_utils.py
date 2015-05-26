@@ -223,7 +223,7 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
     n3 = int(triele[index,2])
 
     #Test for ghost points
-    test = [-1, triele.shape[0]]
+    test = [-1, var.shape[-1]]
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
@@ -336,7 +336,7 @@ def interpE(var, xc, yc, triele,
     n3 = [int(number) for number in triele[:,0]]
 
     #Test for ghost points
-    test = [-1, triele.shape[0]]
+    test = [-1, var.shape[-1]]
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
