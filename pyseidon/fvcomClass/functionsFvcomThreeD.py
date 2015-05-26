@@ -13,6 +13,7 @@ from miscellaneous import *
 from BP_tools import *
 from shortest_element_path import *
 import time
+import matplotlib.pyplot as plt
 import seaborn
 from pydap.exceptions import ServerError
 
@@ -352,7 +353,7 @@ class FunctionsFvcomThreeD:
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+                              self._grid.latc, self._grid.trinodes, debug=debug)
         #Compute depth
         depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)       
 
@@ -499,7 +500,7 @@ class FunctionsFvcomThreeD:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         try:
             if not hasattr(self._var, 'velo_norm'):
@@ -532,7 +533,7 @@ class FunctionsFvcomThreeD:
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+                              self._grid.latc, self._grid.trinodes, debug=debug)
 
         #Computing horizontal velocity norm
         if debug:
@@ -608,7 +609,7 @@ class FunctionsFvcomThreeD:
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+                              self._grid.latc, self._grid.trinodes, debug=debug)
 
         # Find time interval to work in
         argtime = []
@@ -619,7 +620,7 @@ class FunctionsFvcomThreeD:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
         
         #Choose the right pair of velocity components
         if self._var._3D and vertical:
@@ -800,9 +801,9 @@ class FunctionsFvcomThreeD:
             if type(t_start)==str:
                 t = time_to_index(t_start, t_end, self._var.matlabTime[:], debug=debug)
             else:
-                t = arange(t_start, t_end)
+                t = np.arange(t_start, t_end)
         else:
-            t = arange(self._grid.ntime)  
+            t = np.arange(self._grid.ntime)
 
         #Checking if vorticity already computed
         if not hasattr(self._var, 'vorticity'): 
@@ -999,7 +1000,7 @@ class FunctionsFvcomThreeD:
                                   self._grid.lon,
                                   self._grid.lat,
                                   self._grid.lonc,
-                                  self._grid.latc, trinodes, debug=debug)
+                                  self._grid.latc, self._grid.trinodes, debug=debug)
     
             #Finding the shortest path between start and end points
             if debug : print "Computing shortest path..."
@@ -1009,7 +1010,7 @@ class FunctionsFvcomThreeD:
                                                self._grid.lat[:],
                                                self._grid.trinodes[:],
                                                self._grid.h[:], debug=debug)
-            el, _ = short_path.getTargets([ind])           
+            el, _ = short_path.getTargets([index])
             # Plot shortest path
             short_path.graphGrid(plot=True)
 
@@ -1022,7 +1023,7 @@ class FunctionsFvcomThreeD:
                     argtime = time_to_index(t_start, t_end,
                                             self._var.matlabTime, debug=debug)
                 else:
-                    argtime = arange(t_start, t_end)
+                    argtime = np.arange(t_start, t_end)
  
             #Extract along line
             ele=np.asarray(el[:])[0,:]
