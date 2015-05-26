@@ -214,42 +214,42 @@ def interpN(var, xc, yc, trinodes,aw0, awx, awy, debug=False):
     n1 = [int(number) for number in trinodes[:,0]]
     n2 = [int(number) for number in trinodes[:,1]]
     n3 = [int(number) for number in trinodes[:,0]]
-    x0 = xc[index]
-    y0 = yc[index]
+    x0 = xc[:]
+    y0 = yc[:]
     #due to Mitchell's alternative, conversion made in functionsFvcom.py
     #x0 = pt_x
     #y0 = pt_y
 
     if len(var.shape)==1:
-        var0 = (aw0[0,index] * var[n1]) \
-             + (aw0[1,index] * var[n2]) \
-             + (aw0[2,index] * var[n3])
-        varX = (awx[0,index] * var[n1]) \
-             + (awx[1,index] * var[n2]) \
-             + (awx[2,index] * var[n3])
-        varY = (awy[0,index] * var[n1]) \
-             + (awy[1,index] * var[n2]) \
-             + (awy[2,index] * var[n3])
+        var0 = (aw0[0,:] * var[n1]) \
+             + (aw0[1,:] * var[n2]) \
+             + (aw0[2,:] * var[n3])
+        varX = (awx[0,:] * var[n1]) \
+             + (awx[1,:] * var[n2]) \
+             + (awx[2,:] * var[n3])
+        varY = (awy[0,:] * var[n1]) \
+             + (awy[1,:] * var[n2]) \
+             + (awy[2,:] * var[n3])
     elif len(var.shape)==2:
-        var0 = (aw0[0,index] * var[:,n1]) \
-             + (aw0[1,index] * var[:,n2]) \
-             + (aw0[2,index] * var[:,n3])
-        varX = (awx[0,index] * var[:,n1]) \
-             + (awx[1,index] * var[:,n2]) \
-             + (awx[2,index] * var[:,n3])
-        varY = (awy[0,index] * var[:,n1]) \
-             + (awy[1,index] * var[:,n2]) \
-             + (awy[2,index] * var[:,n3])
+        var0 = (aw0[0,:] * var[:,n1]) \
+             + (aw0[1,:] * var[:,n2]) \
+             + (aw0[2,:] * var[:,n3])
+        varX = (awx[0,:] * var[:,n1]) \
+             + (awx[1,:] * var[:,n2]) \
+             + (awx[2,:] * var[:,n3])
+        varY = (awy[0,:] * var[:,n1]) \
+             + (awy[1,:] * var[:,n2]) \
+             + (awy[2,:] * var[:,n3])
     else:
-        var0 = (aw0[0,index] * var[:,:,n1]) \
-             + (aw0[1,index] * var[:,:,n2]) \
-             + (aw0[2,index] * var[:,:,n3])
-        varX = (awx[0,index] * var[:,:,n1]) \
-             + (awx[1,index] * var[:,:,n2]) \
-             + (awx[2,index] * var[:,:,n3])
-        varY = (awy[0,index] * var[:,:,n1]) \
-             + (awy[1,index] * var[:,:,n2]) \
-             + (awy[2,index] * var[:,:,n3])
+        var0 = (aw0[0,:] * var[:,:,n1]) \
+             + (aw0[1,:] * var[:,:,n2]) \
+             + (aw0[2,:] * var[:,:,n3])
+        varX = (awx[0,:] * var[:,:,n1]) \
+             + (awx[1,:] * var[:,:,n2]) \
+             + (awx[2,:] * var[:,:,n3])
+        varY = (awy[0,:] * var[:,:,n1]) \
+             + (awy[1,:] * var[:,:,n2]) \
+             + (awy[2,:] * var[:,:,n3])
     varPt = var0 + (varX * x0) + (varY * y0)
 
     if debug: print '...Passed'
