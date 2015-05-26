@@ -209,7 +209,7 @@ def interpN(var, xc, yc, trinodes,aw0, awx, awy, debug=False):
       - varInterp = var interpolated
     """
     if debug:
-        print 'Interpolating at node...'
+        print 'Interpolating at nodes...'
 
     n1 = [int(number) for number in trinodes[:,0]]
     n2 = [int(number) for number in trinodes[:,1]]

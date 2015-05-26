@@ -150,14 +150,14 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
         if grd in ['a1u', 'a2u']:
             try:
                 if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'i', ('four','nele'))
+                    tmp_var = f.createVariable(grd, 'float', ('four','nele'))
                     tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except (AttributeError, IndexError) as e:
                 pass
         if grd in ['aw0', 'awy', 'awx']:
             try:
                 if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'i', ('three','nele'))
+                    tmp_var = f.createVariable(grd, 'float', ('three','nele'))
                     tmp_var[:] = getattr(fvcom.Grid, grd)[:]
             except (AttributeError, IndexError) as e:
                 pass
