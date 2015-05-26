@@ -534,9 +534,9 @@ class FunctionsFvcom:
             if len(var.shape)==1:
                 varInterp = np.nan
             elif len(var.shape)==2:
-                varInterp = np.ones(var.shape[0])
+                varInterp = np.ones(var.shape[0]) * np.nan
             else:
-                varInterp = np.ones((var.shape[0], var.shape[1]))
+                varInterp = np.ones((var.shape[0], var.shape[1])) * np.nan
 
         return varInterp
 

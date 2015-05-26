@@ -62,7 +62,8 @@ class FunctionsFvcomThreeD:
         # TR: need to find vectorized alternative
         dep = np.zeros((size1, size2, size))
         for ind in range(size):
-            dep[:, :, ind] = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
+            d = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
+            dep[:, :, ind] = d[:,:]
 
         # TR: does not work with netCDF4 lib
         # elc = np.zeros((size1, size))
@@ -124,7 +125,7 @@ class FunctionsFvcomThreeD:
                                   self._grid.lon,
                                   self._grid.lat,
                                   self._grid.lonc,
-                                  self._grid.latc, self._grid.trinodes, debug=debug)
+                                  self._grid.latc, self._grid.triele, debug=debug)
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
