@@ -64,7 +64,7 @@ class FunctionsFvcomThreeD:
             zeta = elc[:,:] + hc[None,:]
             dep = zeta[:,None,:]*siglay[None,:,:]
 
-         except MemoryError:
+        except MemoryError:
              print '---Data too large for machine memory---'
              print 'Tip: use ax or tx during class initialisation'
              print '---  to use partial data'
