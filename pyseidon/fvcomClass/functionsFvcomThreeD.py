@@ -59,9 +59,9 @@ class FunctionsFvcomThreeD:
         size2 = self._grid.nlevel
 
         # TR: need to find vectorized alternative
-        dep = np.zeros((size1, size))
+        dep = np.zeros((size1, size2, size))
         for ind in range(size):
-            dep[:, ind] = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
+            dep[:, :, ind] = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
 
         # TR: does not work with netCDF4 lib
         # elc = np.zeros((size1, size))
