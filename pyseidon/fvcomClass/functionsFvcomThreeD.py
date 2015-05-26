@@ -65,13 +65,6 @@ class FunctionsFvcomThreeD:
             siglay = interpN(self._grid.siglay[:], self._grid.xc[:], self._grid.yc[:],
                              self._grid.trinodes[:], self._grid.aw0[:], self._grid.awx[:], self._grid.awy[:],
                              debug=debug)
-
-            # elc = interpE(self._var.el[:], self._grid.xc[:], self._grid.yc[:],
-            #               self._grid.triele[:], self._grid.a1u[:], self._grid.a2u[:],
-            #               debug=debug)
-            # hc = interpE(self._grid.h[:], self._grid.xc[:], self._grid.yc[:],
-            #              self._grid.triele[:], self._grid.a1u[:], self._grid.a2u[:],
-            #               debug=debug)
             zeta = elc[:,:] + hc[None,:]
             dep = zeta[:,None,:]*siglay[None,:,:]
 

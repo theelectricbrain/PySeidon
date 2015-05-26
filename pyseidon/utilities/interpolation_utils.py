@@ -213,7 +213,7 @@ def interpN(var, xc, yc, trinodes,aw0, awx, awy, debug=False):
 
     n1 = [int(number) for number in trinodes[:,0]]
     n2 = [int(number) for number in trinodes[:,1]]
-    n3 = [int(number) for number in trinodes[:,0]]
+    n3 = [int(number) for number in trinodes[:,2]]
     x0 = xc[:]
     y0 = yc[:]
     #due to Mitchell's alternative, conversion made in functionsFvcom.py
