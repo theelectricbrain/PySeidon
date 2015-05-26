@@ -331,18 +331,15 @@ def interpE(var, xc, yc, triele,
     if debug:
         print 'Interpolating at element...'
 
-    n1 = int(triele[:,0])
-    n2 = int(triele[:,1])
-    n3 = int(triele[:,2])
+    n1 = [int(number) for number in triele[:,0]]
+    n2 = [int(number) for number in triele[:,1]]
+    n3 = [int(number) for number in triele[:,0]]
 
     #Test for ghost points
     test = triele.shape[0]
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
-    n1 = int(n1)
-    n2 = int(n2)
-    n3 = int(n3)
 
     x0 = xc[:]
     y0 = yc[:]

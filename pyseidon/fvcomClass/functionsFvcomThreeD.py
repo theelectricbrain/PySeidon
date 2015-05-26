@@ -142,11 +142,11 @@ class FunctionsFvcomThreeD:
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
-            h = self.interpolation_at_point(self._grid.h[:], pt_lon, pt_lat,
+            h = self.interpolation_at_point(self._grid.h, pt_lon, pt_lat,
                                             index=index, debug=debug)
-            el = self.interpolation_at_point(self._var.el[:], pt_lon, pt_lat,
+            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
                                              index=index, debug=debug)
-            siglay = self.interpolation_at_point(self._grid.siglay[:], pt_lon, pt_lat,
+            siglay = self.interpolation_at_point(self._grid.siglay, pt_lon, pt_lat,
                                                  index=index, debug=debug)
             zeta = el + h
             dep = zeta[:,None]*siglay[None,:]
@@ -363,7 +363,7 @@ class FunctionsFvcomThreeD:
                 argtime = np.arange(t_start, t_end) 
 
         # Finding closest point
-        ind = closest_points(pt_lon, pt_lat,
+        ind = closest_point(pt_lon, pt_lat,
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
@@ -571,7 +571,7 @@ class FunctionsFvcomThreeD:
 
         #use only the time indices of interest
         if not argtime==[]:
-            velo_norm = velo_norm[argtime[:],:]
+            velo_norm = velo_norm[argtime[:],:,:]
 
         #Plot mean values
         if graph:
