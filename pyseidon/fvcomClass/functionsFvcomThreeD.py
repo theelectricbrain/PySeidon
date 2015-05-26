@@ -57,24 +57,31 @@ class FunctionsFvcomThreeD:
         size = self._grid.nele
         size1 = self._grid.ntime
         size2 = self._grid.nlevel
-        elc = np.zeros((size1, size))
-        hc = np.zeros((size))
-        siglay = np.zeros((size2, size))
 
-        try:
-            for ind, value in enumerate(self._grid.trinodes[:]):
-                elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
-                hc[ind] = np.mean(self._grid.h[value])
-                siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
+        # TR: need to find vectorized alternative
+        dep = np.zeros((size1, size))
+        for ind in range(size):
+            dep[:, ind] = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
 
-            #zeta = self._var.el[:,:] + self._grid.h[None,:]
-            zeta = elc[:,:] + hc[None,:]
-            dep = zeta[:,None,:]*siglay[None,:,:]
-        except MemoryError:
-            print '---Data too large for machine memory---'
-            print 'Tip: use ax or tx during class initialisation'
-            print '---  to use partial data'
-            raise
+        # TR: does not work with netCDF4 lib
+        # elc = np.zeros((size1, size))
+        # hc = np.zeros((size))
+        # siglay = np.zeros((size2, size))
+        #
+        # try:
+        #     for ind, value in enumerate(self._grid.trinodes[:]):
+        #         elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
+        #         hc[ind] = np.mean(self._grid.h[value])
+        #         siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
+        #
+        #     #zeta = self._var.el[:,:] + self._grid.h[None,:]
+        #     zeta = elc[:,:] + hc[None,:]
+        #     dep = zeta[:,None,:]*siglay[None,:,:]
+        # except MemoryError:
+        #     print '---Data too large for machine memory---'
+        #     print 'Tip: use ax or tx during class initialisation'
+        #     print '---  to use partial data'
+        #     raise
 
         if debug:
             end = time.time()
