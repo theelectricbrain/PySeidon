@@ -197,6 +197,65 @@ def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
 
     #TR comment: squeeze seems to resolve my problem with pydap
     return varPt.squeeze()
+
+def interpN(var, xc, yc, trinodes,aw0, awx, awy, debug=False):
+    """
+    Interpol node variable at elements.
+    Inputs:
+      - var = variable, numpy array, dim=(node) or (time, node) or (time, level, node)
+      - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
+      - aw0, awx, awy = grid parameters
+    Outputs:
+      - varInterp = var interpolated
+    """
+    if debug:
+        print 'Interpolating at node...'
+
+    n1 = [int(number) for number in trinodes[:,0]]
+    n2 = [int(number) for number in trinodes[:,1]]
+    n3 = [int(number) for number in trinodes[:,0]]
+    x0 = xc[index]
+    y0 = yc[index]
+    #due to Mitchell's alternative, conversion made in functionsFvcom.py
+    #x0 = pt_x
+    #y0 = pt_y
+
+    if len(var.shape)==1:
+        var0 = (aw0[0,index] * var[n1]) \
+             + (aw0[1,index] * var[n2]) \
+             + (aw0[2,index] * var[n3])
+        varX = (awx[0,index] * var[n1]) \
+             + (awx[1,index] * var[n2]) \
+             + (awx[2,index] * var[n3])
+        varY = (awy[0,index] * var[n1]) \
+             + (awy[1,index] * var[n2]) \
+             + (awy[2,index] * var[n3])
+    elif len(var.shape)==2:
+        var0 = (aw0[0,index] * var[:,n1]) \
+             + (aw0[1,index] * var[:,n2]) \
+             + (aw0[2,index] * var[:,n3])
+        varX = (awx[0,index] * var[:,n1]) \
+             + (awx[1,index] * var[:,n2]) \
+             + (awx[2,index] * var[:,n3])
+        varY = (awy[0,index] * var[:,n1]) \
+             + (awy[1,index] * var[:,n2]) \
+             + (awy[2,index] * var[:,n3])
+    else:
+        var0 = (aw0[0,index] * var[:,:,n1]) \
+             + (aw0[1,index] * var[:,:,n2]) \
+             + (aw0[2,index] * var[:,:,n3])
+        varX = (awx[0,index] * var[:,:,n1]) \
+             + (awx[1,index] * var[:,:,n2]) \
+             + (awx[2,index] * var[:,:,n3])
+        varY = (awy[0,index] * var[:,:,n1]) \
+             + (awy[1,index] * var[:,:,n2]) \
+             + (awy[2,index] * var[:,:,n3])
+    varPt = var0 + (varX * x0) + (varY * y0)
+
+    if debug: print '...Passed'
+
+    #TR comment: squeeze seems to resolve my problem with pydap
+    return varPt.squeeze()
     
 def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
                   a1u, a2u, debug=False):
@@ -209,7 +268,6 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
       - xc = list of x coordinates of var, numpy array, dim= nele
       - yc = list of y coordinates of var, numpy array, dim= nele
       - triele = FVCOM triele, numpy array, dim=(3,nele)
-      - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
       - index = index of the nearest element
       - a1u, a2u = grid parameters
     Outputs:
@@ -335,9 +393,6 @@ def interpE(var, xc, yc, triele,
     n2 = [int(number) for number in triele[:,1]]
     n3 = [int(number) for number in triele[:,0]]
 
-    #Test for ghost points
-    test = [-1, var.shape[-1]]
-
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
 
@@ -346,18 +401,10 @@ def interpE(var, xc, yc, triele,
 
     if len(var.shape)==1:
         # Treatment of ghost points
-        if n1 in test:
-            V1 = 0.0
-        else:
-            V1 = var[n1]
-        if n2 in test:
-            V2 = 0.0
-        else:
-            V2 = var[n2]
-        if n3 in test:
-            V3 = 0.0
-        else:
-            V3 = var[n3]
+        Var = np.hstack((var,0))
+        V1 = Var[n1]
+        V2 = Var[n2]
+        V3 = Var[n3]
 
         dvardx = (a1u[0,:] * var[:]) \
                + (a1u[1,:] * V1) \
@@ -370,18 +417,11 @@ def interpE(var, xc, yc, triele,
         varPt = var[:] + (dvardx * x0) + (dvardy * y0)
     elif len(var.shape)==2:
         # Treatment of ghost points
-        if n1 in test:
-            V1 = np.zeros(var.shape[0])
-        else:
-            V1 = var[:,n1]
-        if n2 in test:
-            V2 = np.zeros(var.shape[0])
-        else:
-            V2 = var[:,n2]
-        if n3 in test:
-            V3 = np.zeros(var.shape[0])
-        else:
-            V3 = var[:,n3]
+        Var = np.zeros((var.shape[0], var.shape[1]+1))
+        Var[:,:-1] = var[:]
+        V1 = Var[:,n1]
+        V2 = Var[:,n2]
+        V3 = Var[:,n3]
 
         dvardx = (a1u[0,:] * var[:,:]) \
                + (a1u[1,:] * V1) \
@@ -393,19 +433,12 @@ def interpE(var, xc, yc, triele,
                + (a2u[3,:] * V3)
         varPt = var[:,:] + (dvardx * x0) + (dvardy * y0)
     else:
-                # Treatment of ghost points
-        if n1 in test:
-            V1 = np.zeros((var.shape[0], var.shape[1]))
-        else:
-            V1 = var[:,:,n1]
-        if n2 in test:
-            V2 = np.zeros((var.shape[0], var.shape[1]))
-        else:
-            V2 = var[:,:,n2]
-        if n3 in test:
-            V3 = np.zeros((var.shape[0], var.shape[1]))
-        else:
-            V3 = var[:,:,n3]
+        # Treatment of ghost points
+        Var = np.zeros((var.shape[0], var.shape[1], var.shape[2]+1))
+        Var[:,:,:-1] = var[:]
+        V1 = Var[:,:,n1]
+        V2 = Var[:,:,n2]
+        V3 = Var[:,:,n3]
 
         dvardx = (a1u[0,:] * var[:,:,:]) \
                + (a1u[1,:] * V1) \
