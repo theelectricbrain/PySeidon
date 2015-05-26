@@ -466,11 +466,17 @@ class FunctionsFvcom:
         lon = self._grid.lon[:]
         lat = self._grid.lat[:]
         trinodes = self._grid.trinodes[:]
+        triele = self._grid.triele[:]
 
         if index==[]:
             # Find indices of the closest element
-            index = closest_point(pt_lon, pt_lat, lon, lat,
+            #change in function of the data you dealing with
+            if var.shape[-1]== self._grid.nnode:
+                index = closest_point(pt_lon, pt_lat, lon, lat,
                                   lonc, latc, trinodes, debug=debug)
+            else:
+                index = closest_point(pt_lon, pt_lat, lon, lat,
+                                  lonc, latc, triele, debug=debug)
             if debug: print "index: ", index
 
         #TR: bug discovered by Kody and due to drifter out of domain
@@ -481,8 +487,7 @@ class FunctionsFvcom:
                                    index, trinodes, debug=debug)
             pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
                                    index, trinodes, debug=debug)
-            #Mitchell's method to convert deg. coordinates to
-            # relative coordinates in meters
+            #Mitchell's method to convert deg. coordinates to relative coordinates in meters
             #lonweight = (lon[trinodes[index,0]]\
             #           + lon[trinodes[index,1]]\
             #           + lon[trinodes[index,2]]) / 3.0
@@ -509,15 +514,14 @@ class FunctionsFvcom:
                     end = time.time()
                     print "Processing time: ", (end - start)
             else:
-                triele = self._grid.triele[:]
                 indexE = closest_point(pt_lon, pt_lat, lon, lat,
-                                      lonc, latc, triele, debug=debug)
+                                       lonc, latc, triele, debug=debug)
                 if debug:
                     start = time.time()
                 if not np.isnan(indexE):
                     varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                          self._grid.a1u[:], self._grid.a2u[:],
-                                          debug=debug)
+                                              self._grid.a1u[:], self._grid.a2u[:],
+                                              debug=debug)
                 else:
                     varInterp = interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=debug)
                     #if len(var.shape)==2:

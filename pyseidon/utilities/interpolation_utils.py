@@ -223,7 +223,7 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
     n3 = int(triele[index,2])
 
     #Test for ghost points
-    test = triele.shape[0]
+    test = -1
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
@@ -306,6 +306,119 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
                + (a2u[2,index] * V2) \
                + (a2u[3,index] * V3)
         varPt = var[:,:,index] + (dvardx * x0) + (dvardy * y0)
+
+    if debug:
+        if len(var.shape)==1:
+            zi = varPt
+            print 'Varpt: ', zi
+        print '...Passed'
+    #TR comment: squeeze seems to resolve my problem with pydap
+    return varPt.squeeze()
+
+def interpE(var, xc, yc, triele,
+            a1u, a2u, debug=False):
+    """
+    Interpol element variable at node locations.
+    Inputs:
+      - var = variable, numpy array, dim=(nele) or (time, nele) or (time, level, nele)
+      - xc = list of x coordinates of var, numpy array, dim= nele
+      - yc = list of y coordinates of var, numpy array, dim= nele
+      - triele = FVCOM triele, numpy array, dim=(3,nele)
+      - a1u, a2u = grid parameters
+    Outputs:
+      - varInterp = var interpolate at (pt_lon, pt_lat)
+    """
+    if debug:
+        print 'Interpolating at element...'
+
+    n1 = int(triele[:,0])
+    n2 = int(triele[:,1])
+    n3 = int(triele[:,2])
+
+    #Test for ghost points
+    test = triele.shape[0]
+
+    #TR quick fix: due to error with pydap.proxy.ArrayProxy
+    #              not able to cop with numpy.int
+    n1 = int(n1)
+    n2 = int(n2)
+    n3 = int(n3)
+
+    x0 = xc[:]
+    y0 = yc[:]
+
+    if len(var.shape)==1:
+        # Treatment of ghost points
+        if n1==test:
+            V1 = 0.0
+        else:
+            V1 = var[n1]
+        if n2==test:
+            V2 = 0.0
+        else:
+            V2 = var[n2]
+        if n3==test:
+            V3 = 0.0
+        else:
+            V3 = var[n3]
+
+        dvardx = (a1u[0,:] * var[:]) \
+               + (a1u[1,:] * V1) \
+               + (a1u[2,:] * V2) \
+               + (a1u[3,:] * V3)
+        dvardy = (a2u[0,:] * var[:]) \
+               + (a2u[1,:] * V1) \
+               + (a2u[2,:] * V2) \
+               + (a2u[3,:] * V3)
+        varPt = var[:] + (dvardx * x0) + (dvardy * y0)
+    elif len(var.shape)==2:
+        # Treatment of ghost points
+        if n1==test:
+            V1 = np.zeros(var.shape[0])
+        else:
+            V1 = var[:,n1]
+        if n2==test:
+            V2 = np.zeros(var.shape[0])
+        else:
+            V2 = var[:,n2]
+        if n3==test:
+            V3 = np.zeros(var.shape[0])
+        else:
+            V3 = var[:,n3]
+
+        dvardx = (a1u[0,:] * var[:,:]) \
+               + (a1u[1,:] * V1) \
+               + (a1u[2,:] * V2) \
+               + (a1u[3,:] * V3)
+        dvardy = (a2u[0,:] * var[:,:]) \
+               + (a2u[1,:] * V1) \
+               + (a2u[2,:] * V2) \
+               + (a2u[3,:] * V3)
+        varPt = var[:,:] + (dvardx * x0) + (dvardy * y0)
+    else:
+                # Treatment of ghost points
+        if n1==test:
+            V1 = np.zeros((var.shape[0], var.shape[1]))
+        else:
+            V1 = var[:,:,n1]
+        if n2==test:
+            V2 = np.zeros((var.shape[0], var.shape[1]))
+        else:
+            V2 = var[:,:,n2]
+        if n3==test:
+            V3 = np.zeros((var.shape[0], var.shape[1]))
+        else:
+            V3 = var[:,:,n3]
+
+        dvardx = (a1u[0,:] * var[:,:,:]) \
+               + (a1u[1,:] * V1) \
+               + (a1u[2,:] * V2) \
+               + (a1u[3,:] * V3)
+        dvardy = (a2u[0,:] * var[:,:,:]) \
+               + (a2u[1,:] * V1) \
+               + (a2u[2,:] * V2) \
+               + (a2u[3,:] * V3)
+        varPt = var[:,:,:] + (dvardx * x0) + (dvardy * y0)
 
     if debug:
         if len(var.shape)==1:

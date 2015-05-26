@@ -54,16 +54,38 @@ class FunctionsFvcomThreeD:
             start = time.time()
             print "Computing depth..."
 
-        #Compute depth      
-        size = self._grid.nele
-        size1 = self._grid.ntime
-        size2 = self._grid.nlevel
+        siglay = self._grid.siglay[:]
+
+        try:
+            elc = interpE(self._var.el, self._grid.xc, self._grid.yc, self._grid.triele, self._grid.a1u, self._grid.a2u,
+                          debug=debug)
+            hc = interpE(self._grid.h, self._grid.xc, self._grid.yc, self._grid.triele, self._grid.a1u, self._grid.a2u,
+                          debug=debug)
+            zeta = elc[:,:] + hc[None,:]
+            dep = zeta[:,None,:]*siglay[None,:,:]
+
+         except MemoryError:
+             print '---Data too large for machine memory---'
+             print 'Tip: use ax or tx during class initialisation'
+             print '---  to use partial data'
+             raise
+
+        if debug:
+            end = time.time()
+            print "Computation time in (s): ", (end - start)
 
         # TR: need to find vectorized alternative
-        dep = np.zeros((size1, size2, size))
-        for ind in range(size):
-            d = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
-            dep[:, :, ind] = d[:,:]
+        #Compute depth
+        # size = self._grid.nele
+        # size1 = self._grid.ntime
+        # size2 = self._grid.nlevel
+        #
+        # elc = np.zeros((size1, size))
+        # hc = np.zeros((size)
+        # dep = np.zeros((size1, size2, size))
+        # for ind in range(size):
+        #     d = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
+        #     dep[:, :, ind] = d[:,:]
 
         # TR: does not work with netCDF4 lib
         # elc = np.zeros((size1, size))
@@ -79,15 +101,6 @@ class FunctionsFvcomThreeD:
         #     #zeta = self._var.el[:,:] + self._grid.h[None,:]
         #     zeta = elc[:,:] + hc[None,:]
         #     dep = zeta[:,None,:]*siglay[None,:,:]
-        # except MemoryError:
-        #     print '---Data too large for machine memory---'
-        #     print 'Tip: use ax or tx during class initialisation'
-        #     print '---  to use partial data'
-        #     raise
-
-        if debug:
-            end = time.time()
-            print "Computation time in (s): ", (end - start)
 
         # Add metadata entry
         self._grid.depth = dep
@@ -125,7 +138,7 @@ class FunctionsFvcomThreeD:
                                   self._grid.lon,
                                   self._grid.lat,
                                   self._grid.lonc,
-                                  self._grid.latc, self._grid.triele, debug=debug)
+                                  self._grid.latc, self._grid.trinodes, debug=debug)
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
