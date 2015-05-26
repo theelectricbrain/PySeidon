@@ -223,7 +223,7 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
     n3 = int(triele[index,2])
 
     #Test for ghost points
-    test = -1
+    test = [-1, triele.shape[0]]
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
@@ -236,15 +236,15 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
 
     if len(var.shape)==1:
         # Treatment of ghost points
-        if n1==test:
+        if n1 in test:
             V1 = 0.0
         else:
             V1 = var[n1]
-        if n2==test:
+        if n2 in test:
             V2 = 0.0
         else:
             V2 = var[n2]
-        if n3==test:
+        if n3 in test:
             V3 = 0.0
         else:
             V3 = var[n3]
@@ -260,15 +260,15 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
         varPt = var[index] + (dvardx * x0) + (dvardy * y0)
     elif len(var.shape)==2:
         # Treatment of ghost points
-        if n1==test:
+        if n1 in test:
             V1 = np.zeros(var.shape[0])
         else:
             V1 = var[:,n1]
-        if n2==test:
+        if n2 in test:
             V2 = np.zeros(var.shape[0])
         else:
             V2 = var[:,n2]
-        if n3==test:
+        if n3 in test:
             V3 = np.zeros(var.shape[0])
         else:
             V3 = var[:,n3]
@@ -284,15 +284,15 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
         varPt = var[:,index] + (dvardx * x0) + (dvardy * y0)
     else:
                 # Treatment of ghost points
-        if n1==test:
+        if n1 in test:
             V1 = np.zeros((var.shape[0], var.shape[1]))
         else:
             V1 = var[:,:,n1]
-        if n2==test:
+        if n2 in test:
             V2 = np.zeros((var.shape[0], var.shape[1]))
         else:
             V2 = var[:,:,n2]
-        if n3==test:
+        if n3 in test:
             V3 = np.zeros((var.shape[0], var.shape[1]))
         else:
             V3 = var[:,:,n3]
@@ -336,7 +336,7 @@ def interpE(var, xc, yc, triele,
     n3 = [int(number) for number in triele[:,0]]
 
     #Test for ghost points
-    test = triele.shape[0]
+    test = [-1, triele.shape[0]]
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
@@ -346,15 +346,15 @@ def interpE(var, xc, yc, triele,
 
     if len(var.shape)==1:
         # Treatment of ghost points
-        if n1==test:
+        if n1 in test:
             V1 = 0.0
         else:
             V1 = var[n1]
-        if n2==test:
+        if n2 in test:
             V2 = 0.0
         else:
             V2 = var[n2]
-        if n3==test:
+        if n3 in test:
             V3 = 0.0
         else:
             V3 = var[n3]
@@ -370,15 +370,15 @@ def interpE(var, xc, yc, triele,
         varPt = var[:] + (dvardx * x0) + (dvardy * y0)
     elif len(var.shape)==2:
         # Treatment of ghost points
-        if n1==test:
+        if n1 in test:
             V1 = np.zeros(var.shape[0])
         else:
             V1 = var[:,n1]
-        if n2==test:
+        if n2 in test:
             V2 = np.zeros(var.shape[0])
         else:
             V2 = var[:,n2]
-        if n3==test:
+        if n3 in test:
             V3 = np.zeros(var.shape[0])
         else:
             V3 = var[:,n3]
@@ -394,15 +394,15 @@ def interpE(var, xc, yc, triele,
         varPt = var[:,:] + (dvardx * x0) + (dvardy * y0)
     else:
                 # Treatment of ghost points
-        if n1==test:
+        if n1 in test:
             V1 = np.zeros((var.shape[0], var.shape[1]))
         else:
             V1 = var[:,:,n1]
-        if n2==test:
+        if n2 in test:
             V2 = np.zeros((var.shape[0], var.shape[1]))
         else:
             V2 = var[:,:,n2]
-        if n3==test:
+        if n3 in test:
             V3 = np.zeros((var.shape[0], var.shape[1]))
         else:
             V3 = var[:,:,n3]
