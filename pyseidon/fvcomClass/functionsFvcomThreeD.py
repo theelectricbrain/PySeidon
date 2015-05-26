@@ -123,7 +123,7 @@ class FunctionsFvcomThreeD:
                                   self._grid.lon,
                                   self._grid.lat,
                                   self._grid.lonc,
-                                  self._grid.latc, trinodes, debug=debug)
+                                  self._grid.latc, self._grid.trinodes, debug=debug)
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
