@@ -132,8 +132,6 @@ class FunctionsFvcomThreeD:
         #Finding index
         if index==[]:      
             index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
 
@@ -361,8 +359,6 @@ class FunctionsFvcomThreeD:
 
         # Finding closest point
         index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
         #Compute depth
@@ -541,8 +537,6 @@ class FunctionsFvcomThreeD:
 
         # Finding closest point
         index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
 
@@ -617,8 +611,6 @@ class FunctionsFvcomThreeD:
 
         # Finding closest point
         index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
 
@@ -1008,8 +1000,6 @@ class FunctionsFvcomThreeD:
             lats = [start_pt[1], end_pt[1]]
             #Finding the closest elements to start and end points
             index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
     

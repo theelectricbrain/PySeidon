@@ -196,8 +196,6 @@ class FunctionsFvcom:
         #Extraction at point
         # Finding closest point
         index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
         if debug:
@@ -335,8 +333,6 @@ class FunctionsFvcom:
         #Extraction at point
         # Finding closest point
         index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
         if debug:
@@ -469,8 +465,6 @@ class FunctionsFvcom:
         if debug: start = time.time()
 
         index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
         #Mitchell's method to convert deg. coordinates to relative coordinates in meters
@@ -837,8 +831,6 @@ class FunctionsFvcom:
         #Finding index
         if index==[]:      
             index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
 
@@ -1012,8 +1004,6 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         #TR_comments: Add debug flag in Utide: debug=self._debug
         index = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
         argtime = []
