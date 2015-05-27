@@ -154,11 +154,11 @@ def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
     n1 = int(trinodes[index,0])
     n2 = int(trinodes[index,1])
     n3 = int(trinodes[index,2])
-    x0 = pt_x - xc[index]
-    y0 = pt_y - yc[index]
+    # x0 = pt_x - xc[index]
+    # y0 = pt_y - yc[index]
     #due to Mitchell's alternative, conversion made in functionsFvcom.py
-    #x0 = pt_x
-    #y0 = pt_y
+    x0 = pt_x
+    y0 = pt_y
 
     if len(var.shape)==1:
         var0 = (aw0[0,index] * var[n1]) \
@@ -269,8 +269,11 @@ def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
     n2 = int(n2)
     n3 = int(n3)
 
-    x0 = pt_x - xc[index]
-    y0 = pt_y - yc[index]
+    # x0 = pt_x - xc[index]
+    # y0 = pt_y - yc[index]
+    #due to Mitchell's alternative, conversion made in functionsFvcom.py
+    x0 = pt_x
+    y0 = pt_y
 
     if len(var.shape)==1:
         # Treatment of ghost points

@@ -453,20 +453,33 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         if debug:
             print 'Interpolaling at point...'
-        lonc = self._grid.lonc[:]
-        latc = self._grid.latc[:]
-        xc = self._grid.xc[:]
-        yc = self._grid.yc[:]
+        if debug: start = time.time()
         lon = self._grid.lon[:]
         lat = self._grid.lat[:]
+        if index == []:
+            # Checking if point in domain
+            if not hasattr(self._grid, 'triangleLL'):
+                # Mesh triangle
+                if debug:
+                    print "Computing triangulation..."
+                trinodes = self._grid.trinodes[:]
+                tri = Tri.Triangulation(lon, lat, triangles=trinodes)
+                self._grid.triangleLL = tri
+                finder = self._grid.triangleLL.get_trifinder()
+            else:
+                finder = self._grid.triangleLL.get_trifinder()
+            index = int(finder(pt_lon,pt_lat))
+            if index == -1:
+                varInterp = np.ones(var.shape[:-1]) * np.nan
+                return varInterp
+
+        xc = self._grid.xc[:]
+        yc = self._grid.yc[:]
         trinodes = self._grid.trinodes[:]
         triele = self._grid.triele[:]
 
-        if debug: start = time.time()
-
-        index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+        if type(index)==list:
+            index = index[0]
         #Mitchell's method to convert deg. coordinates to relative coordinates in meters
         lonweight = (lon[trinodes[index,0]]\
                    + lon[trinodes[index,1]]\
