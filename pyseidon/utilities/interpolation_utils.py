@@ -198,7 +198,7 @@ def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
     #TR comment: squeeze seems to resolve my problem with pydap
     return varPt.squeeze()
 
-def interpN(var, xc, yc, trinodes,aw0, awx, awy, debug=False):
+def interpN(var,trinodes,aw0,debug=False):
     """
     Interpol node variable at elements.
     Inputs:
@@ -214,41 +214,19 @@ def interpN(var, xc, yc, trinodes,aw0, awx, awy, debug=False):
     n1 = [int(number) for number in trinodes[:,0]]
     n2 = [int(number) for number in trinodes[:,1]]
     n3 = [int(number) for number in trinodes[:,2]]
-    # x0 = xc[:]
-    # y0 = yc[:]
 
     if len(var.shape)==1:
         var0 = (aw0[0,:] * var[n1]) \
              + (aw0[1,:] * var[n2]) \
              + (aw0[2,:] * var[n3])
-        # varX = (awx[0,:] * var[n1]) \
-        #      + (awx[1,:] * var[n2]) \
-        #      + (awx[2,:] * var[n3])
-        # varY = (awy[0,:] * var[n1]) \
-        #      + (awy[1,:] * var[n2]) \
-        #      + (awy[2,:] * var[n3])
     elif len(var.shape)==2:
         var0 = (aw0[0,:] * var[:,n1]) \
              + (aw0[1,:] * var[:,n2]) \
              + (aw0[2,:] * var[:,n3])
-        # varX = (awx[0,:] * var[:,n1]) \
-        #      + (awx[1,:] * var[:,n2]) \
-        #      + (awx[2,:] * var[:,n3])
-        # varY = (awy[0,:] * var[:,n1]) \
-        #      + (awy[1,:] * var[:,n2]) \
-        #      + (awy[2,:] * var[:,n3])
     else:
         var0 = (aw0[0,:] * var[:,:,n1]) \
              + (aw0[1,:] * var[:,:,n2]) \
              + (aw0[2,:] * var[:,:,n3])
-    #     varX = (awx[0,:] * var[:,:,n1]) \
-    #          + (awx[1,:] * var[:,:,n2]) \
-    #          + (awx[2,:] * var[:,:,n3])
-    #     varY = (awy[0,:] * var[:,:,n1]) \
-    #          + (awy[1,:] * var[:,:,n2]) \
-    #          + (awy[2,:] * var[:,:,n3])
-    # varPt = var0 + (varX * x0) + (varY * y0)
-
     varPt = var0
 
     if debug: print '...Passed'

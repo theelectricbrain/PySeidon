@@ -468,15 +468,10 @@ class FunctionsFvcom:
         trinodes = self._grid.trinodes[:]
         triele = self._grid.triele[:]
 
-        if index==[]:
+        if index in [[], np.nan]:
             # Find indices of the closest element
-            #change in function of the data you dealing with
-            if var.shape[-1]== self._grid.nnode:
-                index = closest_point(pt_lon, pt_lat, lon, lat,
+            index = closest_point(pt_lon, pt_lat, lon, lat,
                                   lonc, latc, trinodes, debug=debug)
-            else:
-                index = closest_point(pt_lon, pt_lat, lon, lat,
-                                  lonc, latc, triele, debug=debug)
             if debug: print "index: ", index
 
         #TR: bug discovered by Kody and due to drifter out of domain
@@ -514,11 +509,11 @@ class FunctionsFvcom:
                     end = time.time()
                     print "Processing time: ", (end - start)
             else:
-                indexE = closest_point(pt_lon, pt_lat, lon, lat,
-                                       lonc, latc, triele, debug=debug)
+                index = closest_point(pt_lon, pt_lat, lon, lat,
+                                      lonc, latc, triele, debug=debug)
                 if debug:
                     start = time.time()
-                if not np.isnan(indexE):
+                if not np.isnan(index):
                     varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
                                               self._grid.a1u[:], self._grid.a2u[:],
                                               debug=debug)
@@ -534,7 +529,8 @@ class FunctionsFvcom:
                     print "Processing time: ", (end - start)
 
         #TR: bug discovered by Kody and due to drifter out of domain
-        except IndexError:
+        except MemoryError: #IndexError:
+            if debug: print "Index problem"
             if len(var.shape)==1:
                 varInterp = np.nan
             elif len(var.shape)==2:

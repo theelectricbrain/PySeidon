@@ -55,16 +55,9 @@ class FunctionsFvcomThreeD:
             print "Computing depth..."
 
         try:
-            elc = interpN(self._var.el[:], self._grid.xc[:], self._grid.yc[:],
-                          self._grid.trinodes[:], self._grid.aw0[:], self._grid.awx[:], self._grid.awy[:],
-                          debug=debug)
-            hc = interpN(self._grid.h[:], self._grid.xc[:], self._grid.yc[:],
-                         self._grid.trinodes[:], self._grid.aw0[:], self._grid.awx[:], self._grid.awy[:],
-                         debug=debug)
-
-            siglay = interpN(self._grid.siglay[:], self._grid.xc[:], self._grid.yc[:],
-                             self._grid.trinodes[:], self._grid.aw0[:], self._grid.awx[:], self._grid.awy[:],
-                             debug=debug)
+            elc = interpN(self._var.el[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
+            hc = interpN(self._grid.h[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
+            siglay = interpN(self._grid.siglay[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
             zeta = elc[:,:] + hc[None,:]
             dep = zeta[:,None,:]*siglay[None,:,:]
 
