@@ -505,17 +505,17 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     #TR comment: squeeze seems to resolve my problem with pydap
     return varInterp.squeeze()
 
-def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
+def interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=False):
     """
     Interpol at awkward locations.
 
     Inputs:
     ------
-      - var = variable, numpy array, dim=(time, nele or node)
-      - pt_x = longitude in meters to find
-      - pt_y = latitude in meters to find
-      - xc = list of longitudes of var, numpy array, dim=(nele or node)
-      - yc = list of latitudes of var, numpy array, dim=(nele or node)
+      - var = variable, numpy array, dim=(time, nele)
+      - pt_lon = longitude to find
+      - pt_lat = latitude to find
+      - lonc = list of longitudes of var, numpy array, dim=(nele)
+      - lonc = list of latitudes of var, numpy array, dim=(nele)
 
     Outputs:
     -------
@@ -524,8 +524,8 @@ def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
     if debug:
         print 'Interpolating at awkward point...'
     #Finding the right indexes
-    points = np.array([[pt_x], [pt_y]]).T
-    point_list = np.array([xc[:], yc[:]]).T
+    points = np.array([[pt_lon], [pt_lat]]).T
+    point_list = np.array([lonc[:], latc[:]]).T
     point_list0 = point_list[:, 0]
     points0 = points[:, 0, None]
     point_list1 = point_list[:, 1]
@@ -545,17 +545,17 @@ def interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=False):
     #test if inside triangle
     test=1
     while test:
-        trig = Tri.Triangulation(xc[triIndex], yc[triIndex], np.array([[0,1,2]]))
+        trig = Tri.Triangulation(lonc[triIndex], latc[triIndex], np.array([[0,1,2]]))
         triIndex[2] = np.argmin(closest_dist, axis=1)[0]
         trif = trig.get_trifinder()
-        test = -1 * trif.__call__(pt_x, pt_y)
+        test = -1 * trif.__call__(pt_lon, pt_lat)
         if test: closest_dist[:,triIndex[2]]=np.inf
     #new scheme
     #linear equation based on plane equation
-    x1 = xc[triIndex[0]]; x2 = xc[triIndex[1]]; x3 = xc[triIndex[2]]
-    y1 = xc[triIndex[0]]; y2 = yc[triIndex[1]]; y3 = yc[triIndex[2]]
+    x1 = lonc[triIndex[0]]; x2 = lonc[triIndex[1]]; x3 = lonc[triIndex[2]]
+    y1 = latc[triIndex[0]]; y2 = latc[triIndex[1]]; y3 = latc[triIndex[2]]
     a = np.array([[x2-x1,x3-x1],[y2-y1,y3-y1]])
-    b = np.array([pt_x-x1,pt_y-y1])
+    b = np.array([pt_lon-x1,pt_lat-y1])
     A, B = np.linalg.solve(a, b)
     #applying weights
     if len(var.shape)==1:

@@ -475,7 +475,7 @@ class FunctionsFvcom:
             if debug: print "index: ", index
 
         #TR: bug discovered by Kody and due to drifter out of domain
-        try:
+        if not np.isnan(index):
             #TR comment: sometimes, for el and h, this index is not valid!!!
             # Conversion (lon, lat) to (x, y)
             pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
@@ -497,46 +497,36 @@ class FunctionsFvcom:
             #elif (dx_sph < -180.0):
             #    dx_sph =dx_sph+360.0
             #pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
-            if debug:print "x: ", pt_x, "y: ", pt_y
+            if debug: print "x: ", pt_x, "y: ", pt_y
             #change in function of the data you dealing with
-            if var.shape[-1]== self._grid.nnode:
-                if debug:
-                    start = time.time()
+            if debug: start = time.time()
+            if var.shape[-1] == self._grid.nnode:
                 varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
                                           self._grid.aw0[:], self._grid.awx[:],
                                           self._grid.awy[:], debug=debug)
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start)
             else:
-                index = closest_point(pt_lon, pt_lat, lon, lat,
-                                      lonc, latc, triele, debug=debug)
-                if debug:
-                    start = time.time()
-                if not np.isnan(index):
-                    varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
+                varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
                                               self._grid.a1u[:], self._grid.a2u[:],
                                               debug=debug)
-                else:
-                    varInterp = interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=debug)
-                    #if len(var.shape)==2:
-                    #    varInterp = np.squeeze(var[:,index])
-                    #else:
-                    #    varInterp = np.squeeze(var[:,:,index])
-                    #print "---This is the nearest value point---"
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start)
+            if debug:
+                end = time.time()
+                print "Processing time: ", (end - start)
+        else:
+            if debug: start = time.time()
+            varInterp = interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=debug)
+            if debug:
+                end = time.time()
+                print "Processing time: ", (end - start)
 
-        #TR: bug discovered by Kody and due to drifter out of domain
-        except MemoryError: #IndexError:
-            if debug: print "Index problem"
-            if len(var.shape)==1:
-                varInterp = np.nan
-            elif len(var.shape)==2:
-                varInterp = np.ones(var.shape[0]) * np.nan
-            else:
-                varInterp = np.ones((var.shape[0], var.shape[1])) * np.nan
+        # #TR: bug discovered by Kody and due to drifter out of domain
+        # except IndexError:
+        #     if debug: print "Index problem"
+        #     if len(var.shape)==1:
+        #         varInterp = np.nan
+        #     elif len(var.shape)==2:
+        #         varInterp = np.ones(var.shape[0]) * np.nan
+        #     else:
+        #         varInterp = np.ones((var.shape[0], var.shape[1])) * np.nan
 
         return varInterp
 
