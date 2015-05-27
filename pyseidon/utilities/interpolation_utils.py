@@ -92,7 +92,10 @@ def closest_points( pt_lon, pt_lat, lon, lat, debug=False):
 
     lonc=lon[:]
     latc=lat[:]
-    points = np.array([pt_lon, pt_lat]).T
+    if not type(pt_lon)==list:
+        points = np.array([[pt_lon], [pt_lat]]).T
+    else:
+        points = np.array([pt_lon, pt_lat]).T
     point_list = np.array([lonc, latc]).T
 
     #closest_dist = (np.square((point_list[:, 0] - points[:, 0, None])) +

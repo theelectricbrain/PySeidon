@@ -999,7 +999,7 @@ class FunctionsFvcomThreeD:
             lons = [start_pt[0], end_pt[0]]
             lats = [start_pt[1], end_pt[1]]
             #Finding the closest elements to start and end points
-            index = closest_points(pt_lon, pt_lat,
+            index = closest_points(lons, lats,
                               self._grid.lonc,
                               self._grid.latc, debug=debug)
     
