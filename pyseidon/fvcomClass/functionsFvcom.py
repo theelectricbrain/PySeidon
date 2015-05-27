@@ -183,7 +183,7 @@ class FunctionsFvcom:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib
@@ -195,12 +195,11 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
+        index = closest_points(pt_lon, pt_lat,
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc,
-                              self._grid.trinodes, debug=debug)
+                              self._grid.latc, debug=debug)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -323,7 +322,7 @@ class FunctionsFvcom:
                                         self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib
@@ -335,12 +334,11 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
+        index = closest_points(pt_lon, pt_lat,
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc,
-                              self._grid.trinodes, debug=debug)
+                              self._grid.latc, debug=debug)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -468,65 +466,75 @@ class FunctionsFvcom:
         trinodes = self._grid.trinodes[:]
         triele = self._grid.triele[:]
 
-        if index in [[], np.nan]:
-            # Find indices of the closest element
-            index = closest_point(pt_lon, pt_lat, lon, lat,
-                                  lonc, latc, trinodes, debug=debug)
-            if debug: print "index: ", index
+        if debug: start = time.time()
 
-        #TR: bug discovered by Kody and due to drifter out of domain
-        if not np.isnan(index):
-            #TR comment: sometimes, for el and h, this index is not valid!!!
-            # Conversion (lon, lat) to (x, y)
-            pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
-                                   index, trinodes, debug=debug)
-            pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
-                                   index, trinodes, debug=debug)
-            #Mitchell's method to convert deg. coordinates to relative coordinates in meters
-            #lonweight = (lon[trinodes[index,0]]\
-            #           + lon[trinodes[index,1]]\
-            #           + lon[trinodes[index,2]]) / 3.0
-            #latweight = (lat[trinodes[index,0]]\
-            #           + lat[trinodes[index,1]]\
-            #           + lat[trinodes[index,2]]) / 3.0
-            #TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
-            #pt_y = TPI * (pt_lat - latweight)
-            #dx_sph = pt_lon - lonweight
-            #if (dx_sph > 180.0):
-            #    dx_sph=dx_sph-360.0
-            #elif (dx_sph < -180.0):
-            #    dx_sph =dx_sph+360.0
-            #pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
-            if debug: print "x: ", pt_x, "y: ", pt_y
-            #change in function of the data you dealing with
-            if debug: start = time.time()
-            if var.shape[-1] == self._grid.nnode:
-                varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
-                                          self._grid.aw0[:], self._grid.awx[:],
-                                          self._grid.awy[:], debug=debug)
-            else:
-                varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                              self._grid.a1u[:], self._grid.a2u[:],
-                                              debug=debug)
-            if debug:
-                end = time.time()
-                print "Processing time: ", (end - start)
+        index = closest_points(pt_lon, pt_lat,
+                              self._grid.lon,
+                              self._grid.lat,
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)
+        #Mitchell's method to convert deg. coordinates to relative coordinates in meters
+        lonweight = (lon[trinodes[index,0]]\
+                   + lon[trinodes[index,1]]\
+                   + lon[trinodes[index,2]]) / 3.0
+        latweight = (lat[trinodes[index,0]]\
+                   + lat[trinodes[index,1]]\
+                   + lat[trinodes[index,2]]) / 3.0
+        TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
+        pt_y = TPI * (pt_lat - latweight)
+        dx_sph = pt_lon - lonweight
+        if (dx_sph > 180.0):
+            dx_sph=dx_sph-360.0
+        elif (dx_sph < -180.0):
+            dx_sph =dx_sph+360.0
+        pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
+
+        if var.shape[-1] == self._grid.nnode:
+            varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
+                                      self._grid.aw0[:], self._grid.awx[:],
+                                      self._grid.awy[:], debug=debug)
         else:
-            if debug: start = time.time()
-            varInterp = interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=debug)
-            if debug:
-                end = time.time()
-                print "Processing time: ", (end - start)
-
+            varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
+                                      self._grid.a1u[:], self._grid.a2u[:],
+                                      debug=debug)
+        #TR : This block is buggy !!!
+        # if index in [[], np.nan]:
+        #     # Find indices of the closest element
+        #     index = closest_point(pt_lon, pt_lat, lon, lat,
+        #                           lonc, latc, trinodes, debug=debug)
+        #     if debug: print "index: ", index
         # #TR: bug discovered by Kody and due to drifter out of domain
-        # except IndexError:
-        #     if debug: print "Index problem"
-        #     if len(var.shape)==1:
-        #         varInterp = np.nan
-        #     elif len(var.shape)==2:
-        #         varInterp = np.ones(var.shape[0]) * np.nan
+        # if not np.isnan(index):
+        #     #TR comment: sometimes, for el and h, this index is not valid!!!
+        #     # Conversion (lon, lat) to (x, y)
+        #     pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
+        #                            index, trinodes, debug=debug)
+        #     pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
+        #                            index, trinodes, debug=debug)
+        #     if debug: print "x: ", pt_x, "y: ", pt_y
+        #     #change in function of the data you dealing with
+        #     if debug: start = time.time()
+        #     if var.shape[-1] == self._grid.nnode:
+        #         varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
+        #                                   self._grid.aw0[:], self._grid.awx[:],
+        #                                   self._grid.awy[:], debug=debug)
         #     else:
-        #         varInterp = np.ones((var.shape[0], var.shape[1])) * np.nan
+        #         varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
+        #                                       self._grid.a1u[:], self._grid.a2u[:],
+        #                                       debug=debug)
+        #     if debug:
+        #         end = time.time()
+        #         print "Processing time: ", (end - start)
+        # else:
+        #     if debug: start = time.time()
+        #     varInterp = interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=debug)
+        #     if debug:
+        #         end = time.time()
+        #         print "Processing time: ", (end - start)n
+
+        if debug:
+            end = time.time()
+            print "Processing time: ", (end - start)
 
         return varInterp
 
@@ -699,9 +707,9 @@ class FunctionsFvcom:
             if type(t_start)==str:
                 t = time_to_index(t_start, t_end, self._var.matlabTime[:], debug=debug)
             else:
-                t = arange(t_start, t_end)
+                t = np.arange(t_start, t_end)
         else:
-            t = arange(self._grid.ntime)
+            t = np.arange(self._grid.ntime)
             self.vorticity() 
 
         #Checking if vorticity already computed
@@ -828,12 +836,11 @@ class FunctionsFvcom:
 
         #Finding index
         if index==[]:      
-            index = closest_point(pt_lon, pt_lat,
-                                  self._grid.lon,
-                                  self._grid.lat,
-                                  self._grid.lonc,
-                                  self._grid.latc,
-                                  self._grid.trinodes, debug=debug)
+            index = closest_points(pt_lon, pt_lat,
+                              self._grid.lon,
+                              self._grid.lat,
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)
 
         if not hasattr(self._grid, 'depth2D'):
             #Compute depth
@@ -1004,12 +1011,11 @@ class FunctionsFvcom:
         """
         debug = (debug or self._debug)
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        index = closest_point(pt_lon, pt_lat,
+        index = closest_points(pt_lon, pt_lat,
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc,
-                              self._grid.trinodes, debug=debug)
+                              self._grid.latc, debug=debug)
         argtime = []
         if not time_ind==[]:
             argtime = time_ind
@@ -1019,7 +1025,7 @@ class FunctionsFvcom:
                                         self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
         
         if velocity:
             time = self._var.matlabTime[:]

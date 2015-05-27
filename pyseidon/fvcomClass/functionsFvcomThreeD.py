@@ -131,11 +131,11 @@ class FunctionsFvcomThreeD:
 
         #Finding index
         if index==[]:      
-            index = closest_point(pt_lon, pt_lat,
-                                  self._grid.lon,
-                                  self._grid.lat,
-                                  self._grid.lonc,
-                                  self._grid.latc, self._grid.trinodes, debug=debug)
+            index = closest_points(pt_lon, pt_lat,
+                              self._grid.lon,
+                              self._grid.lat,
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
@@ -360,11 +360,11 @@ class FunctionsFvcomThreeD:
                 argtime = np.arange(t_start, t_end) 
 
         # Finding closest point
-        ind = closest_point(pt_lon, pt_lat,
+        index = closest_points(pt_lon, pt_lat,
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, self._grid.trinodes, debug=debug)
+                              self._grid.latc, debug=debug)
         #Compute depth
         depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)       
 
@@ -540,11 +540,11 @@ class FunctionsFvcomThreeD:
                     vel = self._var.velo_norm
 
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
+        index = closest_points(pt_lon, pt_lat,
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, self._grid.trinodes, debug=debug)
+                              self._grid.latc, debug=debug)
 
         #Computing horizontal velocity norm
         if debug:
@@ -616,11 +616,11 @@ class FunctionsFvcomThreeD:
             print 'Computing flow directions at point...'
 
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
+        index = closest_points(pt_lon, pt_lat,
                               self._grid.lon,
                               self._grid.lat,
                               self._grid.lonc,
-                              self._grid.latc, self._grid.trinodes, debug=debug)
+                              self._grid.latc, debug=debug)
 
         # Find time interval to work in
         argtime = []
@@ -1007,11 +1007,11 @@ class FunctionsFvcomThreeD:
             lons = [start_pt[0], end_pt[0]]
             lats = [start_pt[1], end_pt[1]]
             #Finding the closest elements to start and end points
-            index = closest_points(lons, lats,
-                                  self._grid.lon,
-                                  self._grid.lat,
-                                  self._grid.lonc,
-                                  self._grid.latc, self._grid.trinodes, debug=debug)
+            index = closest_points(pt_lon, pt_lat,
+                              self._grid.lon,
+                              self._grid.lat,
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)
     
             #Finding the shortest path between start and end points
             if debug : print "Computing shortest path..."
