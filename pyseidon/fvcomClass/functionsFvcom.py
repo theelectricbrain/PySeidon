@@ -456,6 +456,8 @@ class FunctionsFvcom:
         if debug: start = time.time()
         lon = self._grid.lon[:]
         lat = self._grid.lat[:]
+        trinodes = self._grid.trinodes[:]
+
         if index == []:
             # Checking if point in domain
             if not hasattr(self._grid, 'triangleLL'):
@@ -469,75 +471,38 @@ class FunctionsFvcom:
             else:
                 finder = self._grid.triangleLL.get_trifinder()
             index = int(finder(pt_lon,pt_lat))
-            if index == -1:
-                varInterp = np.ones(var.shape[:-1]) * np.nan
-                return varInterp
 
-        xc = self._grid.xc[:]
-        yc = self._grid.yc[:]
-        trinodes = self._grid.trinodes[:]
-        triele = self._grid.triele[:]
-
-        if type(index)==list:
-            index = index[0]
-        #Mitchell's method to convert deg. coordinates to relative coordinates in meters
-        lonweight = (lon[trinodes[index,0]]\
-                   + lon[trinodes[index,1]]\
-                   + lon[trinodes[index,2]]) / 3.0
-        latweight = (lat[trinodes[index,0]]\
-                   + lat[trinodes[index,1]]\
-                   + lat[trinodes[index,2]]) / 3.0
-        TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
-        pt_y = TPI * (pt_lat - latweight)
-        dx_sph = pt_lon - lonweight
-        if (dx_sph > 180.0):
-            dx_sph=dx_sph-360.0
-        elif (dx_sph < -180.0):
-            dx_sph =dx_sph+360.0
-        pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
-
-        if var.shape[-1] == self._grid.nnode:
-            varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
-                                      self._grid.aw0[:], self._grid.awx[:],
-                                      self._grid.awy[:], debug=debug)
+        if index == -1:
+            # nan array if outside of domain
+            varInterp = np.ones(var.shape[:-1]) * np.nan
         else:
-            varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                      self._grid.a1u[:], self._grid.a2u[:],
-                                      debug=debug)
-        #TR : This block is buggy !!!
-        # if index in [[], np.nan]:
-        #     # Find indices of the closest element
-        #     index = closest_point(pt_lon, pt_lat, lon, lat,
-        #                           lonc, latc, trinodes, debug=debug)
-        #     if debug: print "index: ", index
-        # #TR: bug discovered by Kody and due to drifter out of domain
-        # if not np.isnan(index):
-        #     #TR comment: sometimes, for el and h, this index is not valid!!!
-        #     # Conversion (lon, lat) to (x, y)
-        #     pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
-        #                            index, trinodes, debug=debug)
-        #     pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
-        #                            index, trinodes, debug=debug)
-        #     if debug: print "x: ", pt_x, "y: ", pt_y
-        #     #change in function of the data you dealing with
-        #     if debug: start = time.time()
-        #     if var.shape[-1] == self._grid.nnode:
-        #         varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
-        #                                   self._grid.aw0[:], self._grid.awx[:],
-        #                                   self._grid.awy[:], debug=debug)
-        #     else:
-        #         varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-        #                                       self._grid.a1u[:], self._grid.a2u[:],
-        #                                       debug=debug)
-        #     if debug:
-        #         end = time.time()
-        #         print "Processing time: ", (end - start)
-        # else:
-        #     if debug: start = time.time()
-        #     varInterp = interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=debug)
-        #     if debug:
-        #         end = time.time()
-        #         print "Processing time: ", (end - start)n
+            if type(index)==list:
+                index = index[0]
+            #Mitchell's method to convert deg. coordinates to relative coordinates in meters
+            lonweight = (lon[trinodes[index,0]]\
+                       + lon[trinodes[index,1]]\
+                       + lon[trinodes[index,2]]) / 3.0
+            latweight = (lat[trinodes[index,0]]\
+                       + lat[trinodes[index,1]]\
+                       + lat[trinodes[index,2]]) / 3.0
+            TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
+            pt_y = TPI * (pt_lat - latweight)
+            dx_sph = pt_lon - lonweight
+            if (dx_sph > 180.0):
+                dx_sph=dx_sph-360.0
+            elif (dx_sph < -180.0):
+                dx_sph =dx_sph+360.0
+            pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
+
+            if var.shape[-1] == self._grid.nnode:
+                varInterp = interpN_at_pt(var, pt_x, pt_y, index, trinodes,
+                                          self._grid.aw0[:], self._grid.awx[:],
+                                          self._grid.awy[:], debug=debug)
+            else:
+                triele = self._grid.triele[:]
+                varInterp = interpE_at_pt(var, pt_x, pt_y, index, triele,
+                                          self._grid.a1u[:], self._grid.a2u[:],
+                                          debug=debug)
 
         if debug:
             end = time.time()
