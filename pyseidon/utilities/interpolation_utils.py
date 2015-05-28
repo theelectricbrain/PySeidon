@@ -132,7 +132,7 @@ def closest_points( pt_lon, pt_lat, lon, lat, debug=False):
 
     return closest_point_indexes
 
-def interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
+def interpN_at_pt(var, pt_x, pt_y, index, trinodes,
                   aw0, awx, awy, debug=False):
     """
     Interpol node variable any given variables at any give location.
@@ -237,7 +237,7 @@ def interpN(var,trinodes,aw0,debug=False):
     #TR comment: squeeze seems to resolve my problem with pydap
     return varPt.squeeze()
     
-def interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
+def interpE_at_pt(var, pt_x, pt_y, index, triele,
                   a1u, a2u, debug=False):
     """
     Interpol element variable any given variables at any give location.
