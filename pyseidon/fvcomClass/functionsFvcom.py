@@ -195,9 +195,7 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -332,9 +330,7 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -431,6 +427,31 @@ class FunctionsFvcom:
             end = time.time()
             print "...processing time: ", (end - start)
 
+    def index_finder(self, pt_lon, pt_lat, debug=False):
+        """
+        Finds closest node index of any given point
+        :input:
+          pt_lon = longitude in decimal degrees East to find, float number
+          pt_lat = latitude in decimal degrees North to find, float number
+        :option:
+          debug = debug flag, boolean
+        :return:
+          index = integer if within a triangle, -1 if outside of domain
+        """
+        # Checking if point in domain
+        if not hasattr(self._grid, 'triangleLL'):
+            # Mesh triangle
+            if debug:
+                print "Computing triangulation..."
+            tri = Tri.Triangulation(self._grid.lon[:], self._grid.lat[:], triangles=self._grid.trinodes[:])
+            self._grid.triangleLL = tri
+            finder = self._grid.triangleLL.get_trifinder()
+        else:
+            finder = self._grid.triangleLL.get_trifinder()
+        index = int(finder(pt_lon,pt_lat))
+
+        return index
+
     def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], debug=False):
         """
         This function interpolates any given variables at any give location.
@@ -454,28 +475,17 @@ class FunctionsFvcom:
         if debug:
             print 'Interpolaling at point...'
         if debug: start = time.time()
-        lon = self._grid.lon[:]
-        lat = self._grid.lat[:]
-        trinodes = self._grid.trinodes[:]
 
         if index == []:
-            # Checking if point in domain
-            if not hasattr(self._grid, 'triangleLL'):
-                # Mesh triangle
-                if debug:
-                    print "Computing triangulation..."
-                trinodes = self._grid.trinodes[:]
-                tri = Tri.Triangulation(lon, lat, triangles=trinodes)
-                self._grid.triangleLL = tri
-                finder = self._grid.triangleLL.get_trifinder()
-            else:
-                finder = self._grid.triangleLL.get_trifinder()
-            index = int(finder(pt_lon,pt_lat))
+            index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         if index == -1:
             # nan array if outside of domain
             varInterp = np.ones(var.shape[:-1]) * np.nan
         else:
+            lon = self._grid.lon
+            lat = self._grid.lat
+            trinodes = self._grid.trinodes
             if type(index)==list:
                 index = index[0]
             #Mitchell's method to convert deg. coordinates to relative coordinates in meters
@@ -496,12 +506,12 @@ class FunctionsFvcom:
 
             if var.shape[-1] == self._grid.nnode:
                 varInterp = interpN_at_pt(var, pt_x, pt_y, index, trinodes,
-                                          self._grid.aw0[:], self._grid.awx[:],
-                                          self._grid.awy[:], debug=debug)
+                                          self._grid.aw0, self._grid.awx,
+                                          self._grid.awy, debug=debug)
             else:
                 triele = self._grid.triele[:]
                 varInterp = interpE_at_pt(var, pt_x, pt_y, index, triele,
-                                          self._grid.a1u[:], self._grid.a2u[:],
+                                          self._grid.a1u, self._grid.a2u,
                                           debug=debug)
 
         if debug:
@@ -808,9 +818,7 @@ class FunctionsFvcom:
 
         #Finding index
         if index==[]:      
-            index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+            index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         if not hasattr(self._grid, 'depth2D'):
             #Compute depth
@@ -981,9 +989,7 @@ class FunctionsFvcom:
         """
         debug = (debug or self._debug)
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
         argtime = []
         if not time_ind==[]:
             argtime = time_ind

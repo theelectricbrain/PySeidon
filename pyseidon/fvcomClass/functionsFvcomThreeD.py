@@ -131,9 +131,7 @@ class FunctionsFvcomThreeD:
 
         #Finding index
         if index==[]:      
-            index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+            index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
@@ -358,9 +356,8 @@ class FunctionsFvcomThreeD:
                 argtime = np.arange(t_start, t_end) 
 
         # Finding closest point
-        index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
+
         #Compute depth
         depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)       
 
@@ -536,9 +533,7 @@ class FunctionsFvcomThreeD:
                     vel = self._var.velo_norm
 
         # Finding closest point
-        index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         #Computing horizontal velocity norm
         if debug:
@@ -610,9 +605,7 @@ class FunctionsFvcomThreeD:
             print 'Computing flow directions at point...'
 
         # Finding closest point
-        index = closest_points(pt_lon, pt_lat,
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         # Find time interval to work in
         argtime = []
