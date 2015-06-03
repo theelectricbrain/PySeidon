@@ -34,6 +34,7 @@ class _load_validation:
         self.obs = observed.Variables
         self.sim = simulated.Variables
         self.struct = np.array([])
+        self._3D = simulated.Variables._3D
 
         #Check if times coincide
         obsMax = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].max()
@@ -75,7 +76,7 @@ class _load_validation:
             el = self.sim.el[:, ind].flatten()
             ua = self.sim.ua[:, ind].flatten()
             va = self.sim.va[:, ind].flatten()
-            if self.sim._3D:
+            if self._3D:
                 u = np.squeeze(self.sim.u[:, :,ind])
                 v = np.squeeze(self.sim.v[:, :,ind])
                 sig = np.squeeze(simulated.Grid.siglay[:, ind])
@@ -92,7 +93,7 @@ class _load_validation:
                                                            self.obs.lon, self.obs.lat)
                 va=simulated.Util2D.interpolation_at_point(self.sim.va,
                                                            self.obs.lon, self.obs.lat)
-                if self.sim._3D:
+                if self._3D:
                    u=simulated.Util3D.interpolation_at_point(self.sim.u,
                                                              self.obs.lon, self.obs.lat)
                    v=simulated.Util3D.interpolation_at_point(self.sim.v,
@@ -101,21 +102,21 @@ class _load_validation:
                                                                self.obs.lon, self.obs.lat)
             else: #Interpolation for drifter
                 if debug: print "...Interpolation at measurement locations & times..."
-                if self.sim._3D:
+                if self._3D:
                     lock=True
                     while lock:
                         userInp = input("Compare to depth averaged flow ('daf'), surface flow ('sf') or interp. at given depth (float): ")
                         if userInp == 'daf':
                             uSim = np.squeeze(self.sim.ua[self._C,:])
                             vSim = np.squeeze(self.sim.va[self._C,:])
-                            self.sim._3D = False
+                            self._3D = False
                             lock=False
                         elif userInp == 'sf':                     
                             #Import only the surface velocities
                             #TR_comment: is surface vertical indice -1 or 0?
                             uSim = np.squeeze(self.sim.u[self._C,0,:])
                             vSim = np.squeeze(self.sim.v[self._C,0,:])
-                            self.sim._3D = False
+                            self._3D = False
                             lock=False
                         elif type(userInp) == float:
                             if userInp > 0.0: userInp = userInp*-1.0
@@ -159,7 +160,7 @@ class _load_validation:
 
         #Store in dict structure for compatibility purposes (except for drifters)
         if not observed.__module__=='pyseidon.drifterClass.drifterClass':
-            if not self.sim._3D:
+            if not self._3D:
                 sim_mod={'ua':ua[C],'va':va[C],'elev':el[C]}
             else:
                 sim_mod={'ua':ua[C],'va':va[C],'elev':el[C],'u':u[C,:],
