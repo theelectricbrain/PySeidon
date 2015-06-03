@@ -244,15 +244,23 @@ class FunctionsFvcomThreeD:
         J = J.astype(int)
         U = U.astype(int)
         D = D.astype(int)
-        if debug: print 'Compute weights...'
+
         if type(var).__name__=='Variable': #Fix for netcdf4 lib
             Var = var[:]
         else:
             Var = var
-        dUp = Depth[I,U,J]
-        varUp = Var[I,U,J]
-        dDo = Depth[I,D,J]
-        varDo = Var[I,D,J]
+        # dUp = Depth[I,U,J]
+        # varUp = Var[I,U,J]
+        # dDo = Depth[I,D,J]
+        # varDo = Var[I,D,J]
+        # TR: append to speed up caching
+        if debug: print 'Caching...'
+        for i in I:
+            dUp = Depth[i,U,J]
+            varUp = Var[i,U,J]
+            dDo = Depth[i,D,J]
+            varDo = Var[i,D,J]
+        if debug: print 'Compute weights...'
         lengths = np.abs(dUp - dDo)
         wU = np.abs(depth - dUp)/lengths
         wD = np.abs(depth - dDo)/lengths

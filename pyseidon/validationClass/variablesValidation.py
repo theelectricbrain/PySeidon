@@ -108,6 +108,7 @@ class _load_validation:
                         if userInp == 'daf':
                             uSim = np.squeeze(self.sim.ua[self._C,:])
                             vSim = np.squeeze(self.sim.va[self._C,:])
+                            self.sim._3D = False
                             lock=False
                         elif userInp == 'sf':                     
                             #Import only the surface velocities
