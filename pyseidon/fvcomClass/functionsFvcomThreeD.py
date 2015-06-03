@@ -175,8 +175,7 @@ class FunctionsFvcomThreeD:
         #checking if depth field already calculated
         if not hasattr(self._grid, 'depth'):
             self.depth()
-        Depth = self._grid.depth[:]#otherwise to slow with netcdf4 lib 
-        dep = Depth[:] - depth
+        dep = self._grid.depth[:] - depth#otherwise to slow with netcdf4 lib 
         #Finding closest values to specified depth
         if ind==[]:
             if debug: print 'Finding closest indexes to depth...'
