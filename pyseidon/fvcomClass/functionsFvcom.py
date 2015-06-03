@@ -441,8 +441,7 @@ class FunctionsFvcom:
         # Checking if point in domain
         if not hasattr(self._grid, 'triangleLL'):
             # Mesh triangle
-            if debug:
-                print "Computing triangulation..."
+            if debug: print "Computing triangulation..."
             tri = Tri.Triangulation(self._grid.lon[:], self._grid.lat[:], triangles=self._grid.trinodes[:])
             self._grid.triangleLL = tri
             finder = self._grid.triangleLL.get_trifinder()
