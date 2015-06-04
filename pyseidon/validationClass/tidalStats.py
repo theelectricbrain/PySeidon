@@ -57,7 +57,7 @@ class TidalStats:
 
 	setattr(self, 'model', m)
 	setattr(self, 'observed', o)
-        
+
         # set up array of datetimes corresponding to the data (and timestamps)
         self.times = start_time + np.arange(self.model.size) * time_step
         self.step = time_step
@@ -81,17 +81,24 @@ class TidalStats:
 	self.length = self.error.size
 	self.type = type
 
+        '''
         if debug: print "...establish limits as defined by NOAA standard..."
         if (type == 'speed' or type == 'velocity'):
             self.ERROR_BOUND = 0.26
         elif (type == 'elevation'):
-    	    self.ERROR_BOUND = 0.15
+            self.ERROR_BOUND = 0.15
         elif (type == 'direction' or type == 'ebb' or type == 'flow'):
-    	    self.ERROR_BOUND = 22.5
-	elif (type == 'u velocity' or type == 'v velocity'):
-	    self.ERROR_BOUND = 0.35
+            self.ERROR_BOUND = 22.5
+        elif (type == 'u velocity' or type == 'v velocity'):
+            self.ERROR_BOUND = 0.35
         else:
-    	    self.ERROR_BOUND = 0.5
+            self.ERROR_BOUND = 0.5
+        '''
+
+        # instead of using the NOAA errors, use 10% of the data range
+        obs_range = 0.1 * (np.max(self.observed) - np.min(self.observed))
+        mod_range = 0.1 * (np.max(self.model) - np.min(self.model))
+        self.ERROR_BOUND = (obs_range + mod_range) / 2.
 
         if debug: print "...TidalStats initialisation done."
 
@@ -222,7 +229,7 @@ class TidalStats:
 	errors = []
 	phases = np.arange(-num_steps, num_steps)
 	for i in phases:
-	    
+
 	    # create shifted data
 	    if (i < 0):
 		# left shift
@@ -239,12 +246,12 @@ class TidalStats:
 
 	    start = self.times[abs(i)]
 	    step = self.times[1] - self.times[0]
-	
+
 	    # create TidalStats class for shifted data and get the RMSE
 	    stats = TidalStats(shift_mod, shift_obs, step, start, type='Phase')
 	    rms_error = stats.getRMSE()
 	    errors.append(rms_error)
-	    
+
 	if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
 	min_index = errors.index(min(errors))
 	best_phase = phases[min_index]
@@ -480,7 +487,7 @@ class TidalStats:
         g = seaborn.jointplot("model", "observed", data=df, kind="reg",
                               xlim=(df.model.min(), df.model.max()),
                               ylim=(df.observed.min(), df.observed.max()),
-                              color=color, size=7)   
+                              color=color, size=7)
         plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
 
 	if save:
@@ -528,7 +535,7 @@ class TidalStats:
 	if save:
 	    plt.savefig(out_f)
 	else:
-	    plt.show()	
+	    plt.show()
 
     def save_data(self):
             df = pd.DataFrame(data={'time': self.times.flatten(),
