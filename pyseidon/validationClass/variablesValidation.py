@@ -20,6 +20,9 @@ from adcpClass import ADCP
 from fvcomClass import FVCOM
 from tidegaugeClass import TideGauge
 
+class CustomError(Exception):
+    print "---Time between simulation and measurement does not match up---"
+    pass
 
 class _load_validation:
     """
@@ -60,8 +63,8 @@ class _load_validation:
         self._c = c
         
         if len(C) == 0:
-           print "---Time between simulation and measurement does not match up---"
-           sys.exit()
+            #sys.exit()
+            raise CustomError
 
         #Check what kind of simulated data it is
         if simulated.__module__=='pyseidon.stationClass.stationClass':
