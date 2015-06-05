@@ -5,9 +5,9 @@ import sys
 from tidalStats import TidalStats
 from smooth import smooth
 from datetime import datetime, timedelta
-from utide import ut_reconstr
 from depthInterp import depthFromSurf
-#from save_FlowFile_BPFormat import sign_speed, get_DirFromN
+# Custom error
+from pyseidon_error import PyseidonError
 
 def dn2dt(datenum):
     '''
@@ -93,8 +93,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     if debug: print "...check if the modeled data lines up with the observed data..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
-        print "---time periods do not match up---"
-        sys.exit()
+        raise PyseidonError("---time periods do not match up---")
 
     else:
         if debug: print "...interpolate the data onto a common time step for each data type..."
@@ -258,8 +257,7 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
 
     if debug: print "...check if they line up in the time domain..."
     if (mod_time[-1] < obs_time[0] or obs_time[-1] < mod_time[0]):
-        print "---time periods do not match up---"
-        sys.exit()
+        raise PyseidonError("---time periods do not match up---")
 
     else:
 

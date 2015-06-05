@@ -1,9 +1,9 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
-import cPickle as pickle
-import numpy as np
 import pandas as pd
 import sys
+# Custom error
+from pyseidon_error import PyseidonError
 
 # ALTERNATE VERSION FOR ANDY
 
@@ -57,8 +57,7 @@ def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, 
 
     # do nothing if a tidegauge is encountered but variable isn't tg
     else:
-        print "---The variable tg is missing---"
-        sys.exit()
+        raise PyseidonError("---The variable tg is missing---")
    
     # add the statistics to the list, round to 2 decimal places
     ovORun.append(stats['ovORun'])

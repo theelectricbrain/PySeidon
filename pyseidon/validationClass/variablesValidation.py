@@ -3,22 +3,10 @@
 
 from __future__ import division
 import numpy as np
-import pandas as pd
-import csv
-
-from datetime import datetime, timedelta
-import cPickle as pickle
 import sys
-import os
-from utide import ut_solv
-import scipy.io as sio
 
 #Local import
 from interpolation_utils import *
-from stationClass import Station
-from adcpClass import ADCP
-from fvcomClass import FVCOM
-from tidegaugeClass import TideGauge
 
 # Custom error
 from pyseidon_error import PyseidonError
@@ -156,8 +144,7 @@ class _load_validation:
                                                 self.obs.lat[uniqCloInd[i]])
         
         else:
-            print "-This type of simulations is not supported yet-"
-            sys.exit()
+            raise PyseidonError("-This type of simulations is not supported yet-")
 
         #Store in dict structure for compatibility purposes (except for drifters)
         if not observed.__module__=='pyseidon.drifterClass.drifterClass':
@@ -183,8 +170,7 @@ class _load_validation:
                 obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
 
             else:
-                print "-This type of measurements is not supported yet-"
-                sys.exit()
+                raise PyseidonError("-This type of measurements is not supported yet-")
         else:
             self._obstype = 'drifter'
             obstype='Drifter'

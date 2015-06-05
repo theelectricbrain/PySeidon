@@ -8,26 +8,19 @@ import cPickle as pkl
 
 #import netCDF4 as nc
 #Quick fix
-import scipy.io.netcdf as nc
 from scipy.io import savemat
-from scipy.io import loadmat
-
-from datetime import datetime, timedelta
-import cPickle as pickle
 import sys
 import os
 from utide import ut_solv
-import scipy.io as sio
 
 #Local import
 from compareData import *
 from valTable import valTable
 from variablesValidation import _load_validation
 from interpolation_utils import *
-from stationClass import Station
-from adcpClass import ADCP
-from fvcomClass import FVCOM
-from tidegaugeClass import TideGauge
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 class Validation:
     """
@@ -153,8 +146,7 @@ class Validation:
             vars.append('cubic_speed')
 
         else:
-            print "-This kind of measurements is not supported yet-"
-            sys.exit()
+            raise PyseidonError("-This kind of measurements is not supported yet-")
 
         #Make csv file
         self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
@@ -224,8 +216,7 @@ class Validation:
                                         #linci=True, ordercnstit='frq')
                                         linci=True, coef_int=True)
         else:
-            print "--This kind of observations is not supported---"
-            sys.exit()
+            raise PyseidonError("--This kind of observations is not supported---")
 
         if self.Variables._simtype=='fvcom':
             time = self.Variables.struct['mod_time']
