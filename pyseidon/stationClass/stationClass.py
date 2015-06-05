@@ -173,8 +173,8 @@ Notes:
                 #             faster, can be unreliable
                 try:
                     self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
-                except ValueError:
-                    self.Data = nc.Dataset(filename, 'r')
+                except ValueError: #TR: quick fix due to mmap
+                    self.Data = netcdf.netcdf_file(filename, 'r')
             #Metadata
             text = 'Created from ' + filename
             self._origin_file = filename
