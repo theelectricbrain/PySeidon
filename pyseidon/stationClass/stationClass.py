@@ -3,7 +3,7 @@
 
 from __future__ import division
 import numpy as np
-#import netCDF4 as nc
+import netCDF4 as nc
 import sys
 import os
 from utide import ut_solv, ut_reconstr
@@ -174,7 +174,7 @@ Notes:
                 try:
                     self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
                 except ValueError: #TR: quick fix due to mmap
-                    self.Data = netcdf.netcdf_file(filename, 'r')
+                    self.Data = nc.Dataset(filename, 'r')
             #Metadata
             text = 'Created from ' + filename
             self._origin_file = filename
