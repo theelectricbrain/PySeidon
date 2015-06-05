@@ -31,7 +31,7 @@ from pyseidon_error import *
 
 __version__ = 'dvt-v2'
 __all__ = ["FVCOM", "ADCP", "Drifter", "TideGauge",\
-           "Validation", "Station", "utilities", "pyseidon_error"]
+           "Validation", "Station", "utilities", "PyseidonError"]
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']
 __licence__ = 'GNU Affero GPL v3.0'
 __copyright__ = 'Copyright (c) 2014 EcoEnergyII'
