@@ -62,9 +62,7 @@ class _load_validation:
         self._c = c
         
         if len(C) == 0:
-            print "---Time between simulation and measurement does not match up---"
-            #sys.exit()
-            raise PyseidonError
+            raise PyseidonError("---Time between simulation and measurement does not match up---")
 
         #Check what kind of simulated data it is
         if simulated.__module__=='pyseidon.stationClass.stationClass':
