@@ -23,6 +23,9 @@ from stationClass import *
 from fvcomClass import *
 from validationClass import *
 
+# Custom error
+from pyseidon_error import PyseidonError
+
 #Permission info for OpenDap server
 #print "OpenDap server connexion info:"
 
