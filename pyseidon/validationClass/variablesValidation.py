@@ -148,11 +148,11 @@ class _load_validation:
                 #Interpolation of timeseries at drifter's trajectory points
                 for i in range(len(uniqCloInd)):
                     uSimInterp=simulated.Util2D.interpolation_at_point(uSim,
-                                                self.obs.lon[indClosest[i]],
-                                                self.obs.lat[indClosest[i]])
+                                                self.obs.lon[uniqCloInd[i]],
+                                                self.obs.lat[uniqCloInd[i]])
                     vSimInterp=simulated.Util2D.interpolation_at_point(vSim,
-                                                self.obs.lon[indClosest[i]],
-                                                self.obs.lat[indClosest[i]])
+                                                self.obs.lon[uniqCloInd[i]],
+                                                self.obs.lat[uniqCloInd[i]])
         
         else:
             print "-This type of simulations is not supported yet-"
@@ -202,11 +202,11 @@ class _load_validation:
         else:#Drifter's case
             self.struct = {'name': observed.History[0].split(' ')[-1],
                            'type':obstype,
-                           'lat':self.obs.lat[indClosest],
-                           'lon':self.obs.lon[indClosest],
+                           'lat':self.obs.lat[uniqCloInd],
+                           'lon':self.obs.lon[uniqCloInd],
                            'obs_timeseries':{'u': uObs, 'v': vObs},
                            'mod_timeseries':{'u': uSimInterp, 'v': vSimInterp},
-                           'obs_time':self.obs.matlabTime[indClosest],
+                           'obs_time':self.obs.matlabTime[uniqCloInd],
                            'mod_time':self.sim.matlabTime[C]}
 
         if debug: print "..done"

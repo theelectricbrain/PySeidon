@@ -171,8 +171,10 @@ Notes:
                 #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
                 #WB_comments: scipy has causes some errors, and even though can be
                 #             faster, can be unreliable
-                #self.Data = nc.Dataset(filename, 'r')
-                self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                try:
+                    self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                except ValueError:
+                    self.Data = nc.Dataset(filename, 'r')
             #Metadata
             text = 'Created from ' + filename
             self._origin_file = filename
