@@ -2,5 +2,5 @@
 
 class PyseidonError(Exception):
     def __init__(self, arg):
-        # Set some exception infomation
-        self.msg = arg
+        # Call the base class constructor with the parameters it needs
+        super(PyseidonError, self).__init__(arg)
