@@ -11,9 +11,9 @@ from scipy.io import netcdf
 
 def pyseidon_to_netcdf(fvcom, filename, debug):
     """
-    save fvcom object in a pickle file
+    saves fvcom object in a pickle file
+
     inputs:
-    ------
       - fvcom = fvcom pyseidon object
       - filename = file name, string
     """

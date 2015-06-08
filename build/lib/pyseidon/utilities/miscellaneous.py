@@ -26,14 +26,13 @@ def op_angles_from_vectors(u, v, debug=False):
     This appears to work correctly.
 
     Inputs:
-    ------
       -u = velocity component along x (West-East) direction, 1D array
       -v = velocity component along y (South-North) direction, 1D array
+
     Outputs:
-    -------
       -angle = corresponidng angle in degrees, 1D array
+
     Notes:
-    -----
       -Angles are reported in compass coordinates, i.e. 0 and 360 deg.,
        0/360=East, 90=North, 180=West, 270=South
     """

@@ -54,11 +54,11 @@ def calc_ensemble(x, ens, ens_dim, debug=False, debug_plot=False):
 
 
 def rotate_coords(x, y, theta, debug=False, debug_plot=False ):
-    '''
+    """
     Similar to "rotate_to_channelcoords.m" code,
     theta is now the angle
     between the old axis and the new x-axis (CCw is positive)
-    '''
+    """
     if debug: "rotate_coords..."
     xnew = x * np.cos(theta) + y * np.sin(theta)
     ynew = -x * np.sin(theta) + y * np.cos(theta)
@@ -68,19 +68,19 @@ def rotate_coords(x, y, theta, debug=False, debug_plot=False ):
     return xnew, ynew
 
 def rotate_to_true(X, Y, theta=-19):
-    '''
-    % X,Y are the X and Y coordinates (could be speeds) relative to magnetic
-    % north -- inputs can be vectors
-    % x,y are the coordinates relative to true north
-    % This function assumes the measured location is Nova Scotia where the
-    % declination angle is -19 degrees.
-    %
-    % Sept 29, 2012: Changed print statement
-    %
-    % Sept 20, 2012: Modified the function to allow for theta to be input.
-    % Default will remain at -19 degrees, but this may not be accurate for all
-    % places in Nova Scotia.
-    '''
+    """
+     X,Y are the X and Y coordinates (could be speeds) relative to magnetic
+     north -- inputs can be vectors
+     x,y are the coordinates relative to true north
+     This function assumes the measured location is Nova Scotia where the
+     declination angle is -19 degrees.
+
+     Sept 29, 2012: Changed print statement
+
+     Sept 20, 2012: Modified the function to allow for theta to be input.
+     Default will remain at -19 degrees, but this may not be accurate for all
+     places in Nova Scotia.
+    """
 
     print 'Rotating velocities to be relative to true north (declination = {0})'.format(theta)
 
@@ -93,14 +93,14 @@ def rotate_to_true(X, Y, theta=-19):
 
 
 def get_DirFromN(u,v):
-    '''
-    #This function computes the direction from North with the output in degrees
-    #and measured clockwise from north.
-    #
-    # Inputs:
-    #   u: eastward component
-    #   v: northward component
-    '''
+    """
+    This function computes the direction from North with the output in degrees
+    and measured clockwise from north.
+
+    Inputs:
+      - u: eastward component
+      - v: northward component
+    """
 
     theta = np.arctan2(u,v) * 180 / np.pi
 

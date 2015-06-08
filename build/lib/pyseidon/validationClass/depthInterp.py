@@ -85,14 +85,14 @@ def depthFromSurf(mod_data, mod_depth, siglay,
     specific distance from the surface.
 
     Input variables:
-	mod_data   2D numpy array of FVCOM model data
-	mod_depth  1D numpy array of model depths at each timestep
-	siglay     array containing values between 0 and 1 representing the
-		   respective percentage of depths for each sigma layer
-	obs_data   2D numpy array of observed ADCP data
-	obs_depth  1D numpy array of observed depths at each timestep
-	depth      number of metres from surface of output timeseries. Defaults
-	           to 5m
+        - mod_data 2D numpy array of FVCOM model data
+        - mod_depth  1D numpy array of model depths at each timestep
+        - siglay     array containing values between 0 and 1 representing the
+          respective percentage of depths for each sigma layer
+        - obs_data 2D numpy array of observed ADCP data
+        - obs_depth  1D numpy array of observed depths at each timestep
+        - depth  number of metres from surface of output timeseries.
+          Defaults to 5m
 
     Outputs two timeseries representing model and observed data at 'depth'
     metres from the surface.

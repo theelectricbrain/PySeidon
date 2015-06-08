@@ -4,17 +4,19 @@ from datetime import timedelta
 import numpy as np
 import time
 
-def smooth(data_1, dt_1, data_2, dt_2, debug=False, debug_plot=False):
+def smooth(data_1, dt_1, data_2, dt_2, delta_t=10, debug=False, debug_plot=False):
     '''
     Smooths a dataset by taking the average of all datapoints within
     a certain timestep to reduce noise. Lines up two datasets in the
     time domain, as well.
     Accepts four variables representing the data. data_1 and data_2 are the
     data points, dt_1 and dt_2 are the datetimes corresponding to the points.
+    delta_t is an optional paramter that changes the time_step in minutes.
     '''
     if debug: print "smooth..."
 
-    time_step = timedelta(minutes=10)
+    # KC: timestep changed to delta_t, made optional parameter
+    time_step = timedelta(minutes=delta_t)
 
     # create POSIX timestamp array corresponding to each dataset
     '''

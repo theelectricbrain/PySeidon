@@ -19,12 +19,11 @@ from stationClass import Station
 from adcpClass import ADCP
 from fvcomClass import FVCOM
 from tidegaugeClass import TideGauge
-
+from smooth import smooth
 
 class _load_validation:
     """
 'Variables' subset in Validation class contains the following items:
------------------------------------------------------------
 
                            _obs. = measurement/observational variables
     Validation.Variables._|_sim. = simulated variables
@@ -35,6 +34,7 @@ class _load_validation:
         self.obs = observed.Variables
         self.sim = simulated.Variables
         self.struct = np.array([])
+        self._3D = simulated.Variables._3D
 
         #Check if times coincide
         obsMax = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].max()
@@ -76,7 +76,7 @@ class _load_validation:
             el = self.sim.el[:, ind].flatten()
             ua = self.sim.ua[:, ind].flatten()
             va = self.sim.va[:, ind].flatten()
-            if self.sim._3D:
+            if self._3D:
                 u = np.squeeze(self.sim.u[:, :,ind])
                 v = np.squeeze(self.sim.v[:, :,ind])
                 sig = np.squeeze(simulated.Grid.siglay[:, ind])
@@ -93,7 +93,7 @@ class _load_validation:
                                                            self.obs.lon, self.obs.lat)
                 va=simulated.Util2D.interpolation_at_point(self.sim.va,
                                                            self.obs.lon, self.obs.lat)
-                if self.sim._3D:
+                if self._3D:
                    u=simulated.Util3D.interpolation_at_point(self.sim.u,
                                                              self.obs.lon, self.obs.lat)
                    v=simulated.Util3D.interpolation_at_point(self.sim.v,
@@ -102,13 +102,14 @@ class _load_validation:
                                                                self.obs.lon, self.obs.lat)
             else: #Interpolation for drifter
                 if debug: print "...Interpolation at measurement locations & times..."
-                if self.sim._3D:
+                if self._3D:
                     lock=True
                     while lock:
                         userInp = input("Compare to depth averaged flow ('daf'), surface flow ('sf') or interp. at given depth (float): ")
                         if userInp == 'daf':
                             uSim = np.squeeze(self.sim.ua[self._C,:])
                             vSim = np.squeeze(self.sim.va[self._C,:])
+                            self._3D = False
                             lock=False
                         elif userInp == 'sf':
                             #Import only the surface velocities
@@ -120,10 +121,10 @@ class _load_validation:
                             lock=False
                         elif type(userInp) == float:
                             if userInp > 0.0: userInp = userInp*-1.0
-                            uSim = simulated.Util3D.interp_at_depth(self.sim.u[self._C,:,:],
-                                                                    userInp, debug=debug)
-                            vSim = simulated.Util3D.interp_at_depth(self.sim.v[self._C,:,:],
-                                                                    userInp, debug=debug)
+                            uInterp = simulated.Util3D.interp_at_depth(self.sim.u[:], userInp, debug=debug)
+                            uSim = np.squeeze(uInterp[self._C,:])
+                            vInterp = simulated.Util3D.interp_at_depth(self.sim.v[:], userInp, debug=debug)
+                            vSim = np.squeeze(vInterp[self._C,:])
                             lock=False
                         else:
                             print "Answer by 'daf', 'sf' or a float number only!!!"
@@ -141,10 +142,29 @@ class _load_validation:
                 #TR: this doesn't not guarantee that the unique value kept is indeed
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
-                uObs = self.obs.u[uniqCloInd]
-                vObs = self.obs.v[uniqCloInd]
-                uSim = np.squeeze(uSim[uniqInd,:])
-                vSim = np.squeeze(vSim[uniqInd,:])
+
+                #KC: Conversion of matlabTime to datetime, smoothing drifter temporally!
+                self.datetimes = [datetime.fromordinal(int(x)) + timedelta(days=x%1) -\
+                        timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
+
+                print 'v: \n', self.obs.v[uniqCloInd], '\nu: \n', self.obs.u[uniqCloInd]
+
+                uObs, vObs, t_s, dt_start = smooth(self.obs.u[self._c], \
+                        self.datetimes, self.obs.v[self._c], \
+                        self.datetimes, delta_t=1, debug=True)
+
+                print 'uObs: \n', uObs
+                print 'vObs: \n', vObs
+                print 't_s: \n', t_s
+                print 'dt_start: \n', dt_start
+
+                uObsOld = self.obs.u[uniqCloInd]
+                vObsOld = self.obs.v[uniqCloInd]
+                print 'uObsOld: \n', uObsOld, '\nvObsOld: \n', vObsOld
+
+                uSim = np.squeeze(uSim[uniqInd[:-1],:])
+                vSim = np.squeeze(vSim[uniqInd[:-1],:])
+                print 'vSim: \n', vSim, '\nuSim: \n', uSim
                 #Interpolation of timeseries at drifter's trajectory points
                 for i in range(len(uniqCloInd)):
                     uSimInterp=simulated.Util2D.interpolation_at_point(uSim,
@@ -160,7 +180,7 @@ class _load_validation:
 
         #Store in dict structure for compatibility purposes (except for drifters)
         if not observed.__module__=='pyseidon.drifterClass.drifterClass':
-            if not self.sim._3D:
+            if not self._3D:
                 sim_mod={'ua':ua[C],'va':va[C],'elev':el[C]}
             else:
                 sim_mod={'ua':ua[C],'va':va[C],'elev':el[C],'u':u[C,:],

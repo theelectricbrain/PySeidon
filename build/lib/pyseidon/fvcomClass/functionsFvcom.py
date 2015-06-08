@@ -20,7 +20,6 @@ from pydap.exceptions import ServerError
 class FunctionsFvcom:
     """
     Description:
-    -----------
     'Util2D' subset of FVCOM class gathers
     useful functions and methods for 2D and 3D runs
     """
@@ -42,7 +41,6 @@ class FunctionsFvcom:
         -> FVCOM.Grid.hc, elc
 
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = debug or self._debug
@@ -78,7 +76,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.hori_velo_norm
 
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = debug or self._debug
@@ -115,7 +112,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_flow_dir
 
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - Can take time over the full domain
@@ -155,17 +151,14 @@ class FunctionsFvcom:
         at any give location.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find, float number 
 
         Outputs:
-        -------
            - flowDir = flowDir at (pt_lon, pt_lat), 1D array
            - norm = velocity norm at (pt_lon, pt_lat), 1D array
 
         Keywords:
-        --------
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -174,7 +167,6 @@ class FunctionsFvcom:
           - excedance = True, compute associated exceedance curve
 
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -191,7 +183,7 @@ class FunctionsFvcom:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib
@@ -203,12 +195,7 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
-                              self._grid.lonc,
-                              self._grid.latc,
-                              self._grid.trinodes, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -244,16 +231,13 @@ class FunctionsFvcom:
         This function computes the depth averaged bidirectionality (deg.)
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East of the reference point, float number 
           - pt_lat = latitude in decimal degrees North of the reference point, float number
 
         Outputs:
-        -------
           - bidir = 1D array of depth averaged bidirectionality, (nele)
 
         Notes:
-        -----
           - bidirectionality between 0 and 90 deg., i.e. 0=perfect alignment,
             90 = perpendicular abb and flood
           - bidirectionality is weighted by the flow speed to filter out slack water
@@ -296,19 +280,16 @@ class FunctionsFvcom:
         at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find,float number 
 
         Outputs:
-        -------
           - floodIndex = flood time index, 1D array of integers
           - ebbIndex = ebb time index, 1D array of integers
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -316,7 +297,6 @@ class FunctionsFvcom:
           - time_ind = time indices to work in, 1D array of integers 
         
         Notes:
-        -----
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -338,7 +318,7 @@ class FunctionsFvcom:
                                         self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib
@@ -350,12 +330,7 @@ class FunctionsFvcom:
 
         #Extraction at point
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
-                              self._grid.lonc,
-                              self._grid.latc,
-                              self._grid.trinodes, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
         if debug:
             print 'Extraction of u and v at point...'
         U = self.interpolation_at_point(u, pt_lon, pt_lat, index=index,
@@ -405,12 +380,10 @@ class FunctionsFvcom:
         flow speed at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find,float number 
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -422,7 +395,6 @@ class FunctionsFvcom:
                      Check doc. of "to_csv" for complete list of options
         
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -455,110 +427,95 @@ class FunctionsFvcom:
             end = time.time()
             print "...processing time: ", (end - start)
 
+    def index_finder(self, pt_lon, pt_lat, debug=False):
+        """
+        Finds closest node index of any given point
+        :input:
+          pt_lon = longitude in decimal degrees East to find, float number
+          pt_lat = latitude in decimal degrees North to find, float number
+        :option:
+          debug = debug flag, boolean
+        :return:
+          index = integer if within a triangle, -1 if outside of domain
+        """
+        # Checking if point in domain
+        if not hasattr(self._grid, 'triangleLL'):
+            # Mesh triangle
+            if debug: print "Computing triangulation..."
+            tri = Tri.Triangulation(self._grid.lon[:], self._grid.lat[:], triangles=self._grid.trinodes[:])
+            self._grid.triangleLL = tri
+            finder = self._grid.triangleLL.get_trifinder()
+        else:
+            finder = self._grid.triangleLL.get_trifinder()
+        index = int(finder(pt_lon,pt_lat))
+
+        return index
+
     def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], debug=False):
         """
         This function interpolates any given variables at any give location.
 
         Inputs:
-        ------
           - var = any FVCOM grid data or variable, numpy array
           - pt_lon = longitude in decimal degrees East to find, float number
           - pt_lat = latitude in decimal degrees North to find, float number
 
         Outputs:
-        -------
            - varInterp = var interpolated at (pt_lon, pt_lat)
 
         Keywords:
-        --------
           - index = element index, integer. Use only if closest element index
                     is already known
 
         Notes:
-        -----
           - use index if closest element already known
         """
         debug = (debug or self._debug)
         if debug:
             print 'Interpolaling at point...'
-        lonc = self._grid.lonc[:]
-        latc = self._grid.latc[:]
-        xc = self._grid.xc[:]
-        yc = self._grid.yc[:]
-        lon = self._grid.lon[:]
-        lat = self._grid.lat[:]
-        trinodes = self._grid.trinodes[:]
+        if debug: start = time.time()
 
-        if index==[]:
-            # Find indices of the closest element
-            index = closest_point(pt_lon, pt_lat, lon, lat,
-                                  lonc, latc, trinodes, debug=debug)
-            if debug: print "index: ", index
+        if index == []:
+            index = self.index_finder(pt_lon, pt_lat, debug=False)
 
-        #TR: bug discovered by Kody and due to drifter out of domain
-        try:
-            #TR comment: sometimes, for el and h, this index is not valid!!!
-            # Conversion (lon, lat) to (x, y)
-            pt_x = interp_at_point(self._grid.x, pt_lon, pt_lat, lon, lat,
-                                   index, trinodes, debug=debug)
-            pt_y = interp_at_point(self._grid.y, pt_lon, pt_lat, lon, lat,
-                                   index, trinodes, debug=debug)
-            #Mitchell's method to convert deg. coordinates to
-            # relative coordinates in meters
-            #lonweight = (lon[trinodes[index,0]]\
-            #           + lon[trinodes[index,1]]\
-            #           + lon[trinodes[index,2]]) / 3.0
-            #latweight = (lat[trinodes[index,0]]\
-            #           + lat[trinodes[index,1]]\
-            #           + lat[trinodes[index,2]]) / 3.0
-            #TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
-            #pt_y = TPI * (pt_lat - latweight)
-            #dx_sph = pt_lon - lonweight
-            #if (dx_sph > 180.0):
-            #    dx_sph=dx_sph-360.0
-            #elif (dx_sph < -180.0):
-            #    dx_sph =dx_sph+360.0
-            #pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
-            if debug:print "x: ", pt_x, "y: ", pt_y
-            #change in function of the data you dealing with
-            if var.shape[-1]== self._grid.nnode:
-                if debug:
-                    start = time.time()
-                varInterp = interpN_at_pt(var, pt_x, pt_y, xc, yc, index, trinodes,
-                                          self._grid.aw0[:], self._grid.awx[:],
-                                          self._grid.awy[:], debug=debug)
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start)
+        if index == -1:
+            # nan array if outside of domain
+            varInterp = np.ones(var.shape[:-1]) * np.nan
+        else:
+            lon = self._grid.lon
+            lat = self._grid.lat
+            trinodes = self._grid.trinodes
+            if type(index)==list:
+                index = index[0]
+            #Mitchell's method to convert deg. coordinates to relative coordinates in meters
+            lonweight = (lon[trinodes[index,0]]\
+                       + lon[trinodes[index,1]]\
+                       + lon[trinodes[index,2]]) / 3.0
+            latweight = (lat[trinodes[index,0]]\
+                       + lat[trinodes[index,1]]\
+                       + lat[trinodes[index,2]]) / 3.0
+            TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
+            pt_y = TPI * (pt_lat - latweight)
+            dx_sph = pt_lon - lonweight
+            if (dx_sph > 180.0):
+                dx_sph=dx_sph-360.0
+            elif (dx_sph < -180.0):
+                dx_sph =dx_sph+360.0
+            pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
+
+            if var.shape[-1] == self._grid.nnode:
+                varInterp = interpN_at_pt(var, pt_x, pt_y, index, trinodes,
+                                          self._grid.aw0, self._grid.awx,
+                                          self._grid.awy, debug=debug)
             else:
                 triele = self._grid.triele[:]
-                indexE = closest_point(pt_lon, pt_lat, lon, lat,
-                                      lonc, latc, triele, debug=debug)
-                if debug:
-                    start = time.time()
-                if not np.isnan(indexE):
-                    varInterp = interpE_at_pt(var, pt_x, pt_y, xc, yc, index, triele,
-                                          self._grid.a1u[:], self._grid.a2u[:],
+                varInterp = interpE_at_pt(var, pt_x, pt_y, index, triele,
+                                          self._grid.a1u, self._grid.a2u,
                                           debug=debug)
-                else:
-                    varInterp = interpE_at_point_bis(var, pt_x, pt_y, xc, yc, debug=debug)
-                    #if len(var.shape)==2:
-                    #    varInterp = np.squeeze(var[:,index])
-                    #else:
-                    #    varInterp = np.squeeze(var[:,:,index])
-                    #print "---This is the nearest value point---"
-                if debug:
-                    end = time.time()
-                    print "Processing time: ", (end - start)
 
-        #TR: bug discovered by Kody and due to drifter out of domain
-        except IndexError:
-            if len(var.shape)==1:
-                varInterp = np.nan
-            elif len(var.shape)==2:
-                varInterp = np.ones(var.shape[0])
-            else:
-                varInterp = np.ones((var.shape[0], var.shape[1]))
+        if debug:
+            end = time.time()
+            print "Processing time: ", (end - start)
 
         return varInterp
 
@@ -569,11 +526,9 @@ class FunctionsFvcom:
         at any given point.
 
         Inputs:
-        ------
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
 
         Keywords:
-        --------
           - pt_lon, pt_lat = coordinates, float numbers.
                              Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
@@ -583,12 +538,10 @@ class FunctionsFvcom:
                      Check doc. of "to_csv" for complete list of options
 
         Outputs:
-        -------
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
         Notes:
-        -----
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -643,7 +596,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_vorticity
      
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -712,18 +664,15 @@ class FunctionsFvcom:
         This function computes the depth averaged vorticity for a time period.
      
         Outputs:
-        -------
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
 
         Keywords:
-        -------
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -739,9 +688,9 @@ class FunctionsFvcom:
             if type(t_start)==str:
                 t = time_to_index(t_start, t_end, self._var.matlabTime[:], debug=debug)
             else:
-                t = arange(t_start, t_end)
+                t = np.arange(t_start, t_end)
         else:
-            t = arange(self._grid.ntime)
+            t = np.arange(self._grid.ntime)
             self.vorticity() 
 
         #Checking if vorticity already computed
@@ -805,7 +754,6 @@ class FunctionsFvcom:
         -> FVCOM.Grid.depth2D
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - Can take time over the full domain
         """
@@ -848,20 +796,16 @@ class FunctionsFvcom:
         This function computes the depth at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
         Keywords:
-        --------
           - index = element index, interger
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -873,12 +817,7 @@ class FunctionsFvcom:
 
         #Finding index
         if index==[]:      
-            index = closest_point(pt_lon, pt_lat,
-                                  self._grid.lon,
-                                  self._grid.lat,
-                                  self._grid.lonc,
-                                  self._grid.latc,
-                                  self._grid.trinodes, debug=debug)
+            index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         if not hasattr(self._grid, 'depth2D'):
             #Compute depth
@@ -911,12 +850,10 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_power_density
     
         Description:
-        -----------
         The power density (pd) is then calculated as follows:
             pd = 0.5*1025*(u**3)
     
         Notes:
-        -----
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -942,7 +879,6 @@ class FunctionsFvcom:
         -> FVCOM.Variables.depth_av_power_assessment
 
         Description:
-        -----------
         This function performs tidal turbine power assessment by accounting for
         cut-in and cut-out speed, power curve/function (pc):
             Cp = pc(u)
@@ -952,13 +888,11 @@ class FunctionsFvcom:
             pd = Cp*(1/2)*1025*(u**3)
 
         Inputs:
-        ------
           - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
                         u being power_mat[0,:] and Ct(u) being power_mat[1,:]
           - rated_speed = rated speed speed in m/s, float number
 
         Keywords:
-        --------
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
 
@@ -1017,23 +951,19 @@ class FunctionsFvcom:
                                    time_ind=[], t_start=[], t_end=[],
                                    elevation=True, velocity=False,
                                    debug=False, **kwarg):
-        '''
+        """
         Description:
-        -----------
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - harmo = harmonic coefficients, dictionary
 
         Keywords:
-        --------
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
@@ -1043,7 +973,6 @@ class FunctionsFvcom:
           - velocity=True means that ut_solv will be done for velocity.
 
         Options:
-        -------
         Options are the same as for ut_solv, which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
@@ -1053,19 +982,13 @@ class FunctionsFvcom:
             ordercnstit=[]; runtimedisp='yyy'
 
         Notes:
-        -----
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        index = closest_point(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
-                              self._grid.lonc,
-                              self._grid.latc,
-                              self._grid.trinodes, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
         argtime = []
         if not time_ind==[]:
             argtime = time_ind
@@ -1075,7 +998,7 @@ class FunctionsFvcom:
                                         self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
         
         if velocity:
             time = self._var.matlabTime[:]
@@ -1117,37 +1040,32 @@ class FunctionsFvcom:
 
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
                                 time_ind=slice(None), debug=False, **kwarg):
-        '''
+        """
         Description:
-        ----------
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
         (ut_solv) has already been executed.
 
         Inputs:
-        ------
           - Harmo = harmonic coefficient from harmo_analysis
           - elevation =True means that ut_reconstr will be done for elevation.
           - velocity =True means that ut_reconst will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
-        ------         
           - Reconstruct = reconstructed signal, dictionary
 
         Options:
-        -------
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
         Notes:
-        -----
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug

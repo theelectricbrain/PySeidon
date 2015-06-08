@@ -19,7 +19,7 @@ from stationClass import Station
 from adcpClass import ADCP
 from fvcomClass import FVCOM
 from tidegaugeClass import TideGauge
-
+from smooth import smooth
 
 class _load_validation:
     """
@@ -142,10 +142,20 @@ class _load_validation:
                 #TR: this doesn't not guarantee that the unique value kept is indeed
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
-                uObs = self.obs.u[uniqCloInd]
-                vObs = self.obs.v[uniqCloInd]
-                uSim = np.squeeze(uSim[uniqInd,:])
-                vSim = np.squeeze(vSim[uniqInd,:])
+
+                #KC: Convert of matlabTime to datetime, smooth drifter temporally!
+                self.datetimes = [datetime.fromordinal(int(x))+timedelta(days=x%1)\
+                   - timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
+
+                uObs, vObs, t_s, dt_start = smooth(self.obs.u[self._c], \
+                        self.datetimes, self.obs.v[self._c], \
+                        self.datetimes, delta_t=1, debug=True)
+
+                uObsOld = self.obs.u[uniqCloInd]
+                vObsOld = self.obs.v[uniqCloInd]
+                uSim = np.squeeze(uSim[uniqInd[:-1],:])
+                vSim = np.squeeze(vSim[uniqInd[:-1],:])
+
                 #Interpolation of timeseries at drifter's trajectory points
                 for i in range(len(uniqCloInd)):
                     uSimInterp=simulated.Util2D.interpolation_at_point(uSim,

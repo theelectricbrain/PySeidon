@@ -9,9 +9,9 @@ from scipy.io import savemat
 
 def pyseidon_to_matlab(fvcom, filename, debug):
     """
-    save fvcom object in a pickle file
+    Saves fvcom object in a pickle file
+
     inputs:
-    ------
       - fvcom = fvcom pyseidon object
       - filename = file name, string
     """

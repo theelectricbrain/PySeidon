@@ -13,6 +13,7 @@ from miscellaneous import *
 from BP_tools import *
 from shortest_element_path import *
 import time
+import matplotlib.pyplot as plt
 import seaborn
 from pydap.exceptions import ServerError
 
@@ -20,7 +21,6 @@ from pydap.exceptions import ServerError
 class FunctionsFvcomThreeD:
     """
     Description:
-    -----------
     'Utils3D' subset of FVCOM class gathers
     useful methods and functions for 3D runs
     """
@@ -46,7 +46,6 @@ class FunctionsFvcomThreeD:
         -> FVCOM.Grid.depth
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - Can take time over the full domain
         """
@@ -55,32 +54,50 @@ class FunctionsFvcomThreeD:
             start = time.time()
             print "Computing depth..."
 
-        #Compute depth      
-        size = self._grid.nele
-        size1 = self._grid.ntime
-        size2 = self._grid.nlevel
-        elc = np.zeros((size1, size))
-        hc = np.zeros((size))
-        siglay = np.zeros((size2, size))
-
         try:
-            for ind, value in enumerate(self._grid.trinodes[:]):
-                elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
-                hc[ind] = np.mean(self._grid.h[value])
-                siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
-
-            #zeta = self._var.el[:,:] + self._grid.h[None,:]
+            elc = interpN(self._var.el[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
+            hc = interpN(self._grid.h[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
+            siglay = interpN(self._grid.siglay[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
             zeta = elc[:,:] + hc[None,:]
             dep = zeta[:,None,:]*siglay[None,:,:]
+
         except MemoryError:
-            print '---Data too large for machine memory---'
-            print 'Tip: use ax or tx during class initialisation'
-            print '---  to use partial data'
-            raise
+             print '---Data too large for machine memory---'
+             print 'Tip: use ax or tx during class initialisation'
+             print '---  to use partial data'
+             raise
 
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
+
+        # TR: need to find vectorized alternative
+        #Compute depth
+        # size = self._grid.nele
+        # size1 = self._grid.ntime
+        # size2 = self._grid.nlevel
+        #
+        # elc = np.zeros((size1, size))
+        # hc = np.zeros((size)
+        # dep = np.zeros((size1, size2, size))
+        # for ind in range(size):
+        #     d = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
+        #     dep[:, :, ind] = d[:,:]
+
+        # TR: does not work with netCDF4 lib
+        # elc = np.zeros((size1, size))
+        # hc = np.zeros((size))
+        # siglay = np.zeros((size2, size))
+        #
+        # try:
+        #     for ind, value in enumerate(self._grid.trinodes[:]):
+        #         elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
+        #         hc[ind] = np.mean(self._grid.h[value])
+        #         siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
+        #
+        #     #zeta = self._var.el[:,:] + self._grid.h[None,:]
+        #     zeta = elc[:,:] + hc[None,:]
+        #     dep = zeta[:,None,:]*siglay[None,:,:]
 
         # Add metadata entry
         self._grid.depth = dep
@@ -92,21 +109,17 @@ class FunctionsFvcomThreeD:
         This function computes depth at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
         Keywords:
-        --------
           - index = element index, interger. Use only if closest element
                     index is already known
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -118,19 +131,15 @@ class FunctionsFvcomThreeD:
 
         #Finding index
         if index==[]:      
-            index = closest_point(pt_lon, pt_lat,
-                                  self._grid.lon,
-                                  self._grid.lat,
-                                  self._grid.lonc,
-                                  self._grid.latc, trinodes, debug=debug)
+            index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
-            h = self.interpolation_at_point(self._grid.h[:], pt_lon, pt_lat,
+            h = self.interpolation_at_point(self._grid.h, pt_lon, pt_lat,
                                             index=index, debug=debug)
-            el = self.interpolation_at_point(self._var.el[:], pt_lon, pt_lat,
+            el = self.interpolation_at_point(self._var.el, pt_lon, pt_lat,
                                              index=index, debug=debug)
-            siglay = self.interpolation_at_point(self._grid.siglay[:], pt_lon, pt_lat,
+            siglay = self.interpolation_at_point(self._grid.siglay, pt_lon, pt_lat,
                                                  index=index, debug=debug)
             zeta = el + h
             dep = zeta[:,None]*siglay[None,:]
@@ -150,16 +159,13 @@ class FunctionsFvcomThreeD:
         onto a specified depth plan
 
         Inputs:
-        ------
           - var = 3 dimensional (time, sigma level, element) variable, array
           - depth = interpolation depth (float in meters), negative from
                     water column top downwards
         Keywords:
-        --------
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
 
         Output:
-        ------
           - interpVar = 2 dimensional (time, element) variable, masked array
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
         """
@@ -169,7 +175,7 @@ class FunctionsFvcomThreeD:
         #checking if depth field already calculated
         if not hasattr(self._grid, 'depth'):
             self.depth()
-        Depth = self._grid.depth[:]#otherwise to slow with netcdf4 lib 
+        Depth = self._grid.depth[:]#otherwise to slow with netcdf4 lib
         dep = Depth[:] - depth
         #Finding closest values to specified depth
         if ind==[]:
@@ -238,15 +244,23 @@ class FunctionsFvcomThreeD:
         J = J.astype(int)
         U = U.astype(int)
         D = D.astype(int)
-        if debug: print 'Compute weights...'
+
         if type(var).__name__=='Variable': #Fix for netcdf4 lib
             Var = var[:]
         else:
             Var = var
-        dUp = Depth[I,U,J]
-        varUp = Var[I,U,J]
-        dDo = Depth[I,D,J]
-        varDo = Var[I,D,J]
+        # dUp = Depth[I,U,J]
+        # varUp = Var[I,U,J]
+        # dDo = Depth[I,D,J]
+        # varDo = Var[I,D,J]
+        # TR: append to speed up caching
+        if debug: print 'Caching...'
+        for i in I:
+            dUp = Depth[i,U,J]
+            varUp = Var[i,U,J]
+            dDo = Depth[i,D,J]
+            varDo = Var[i,D,J]
+        if debug: print 'Compute weights...'
         lengths = np.abs(dUp - dDo)
         wU = np.abs(depth - dUp)/lengths
         wD = np.abs(depth - dDo)/lengths
@@ -266,7 +280,6 @@ class FunctionsFvcomThreeD:
         -> FVCOM.Variables.verti_shear
 
         Notes:
-        -----
           - Can take time over the full doma
         """
         debug = debug or self._debug
@@ -315,16 +328,13 @@ class FunctionsFvcomThreeD:
         This function computes vertical shear at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -336,7 +346,6 @@ class FunctionsFvcomThreeD:
           - dump = boolean, dump profile data in csv file
 
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -355,11 +364,8 @@ class FunctionsFvcomThreeD:
                 argtime = np.arange(t_start, t_end) 
 
         # Finding closest point
-        ind = closest_points(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
-                              self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
+
         #Compute depth
         depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)       
 
@@ -428,7 +434,6 @@ class FunctionsFvcomThreeD:
         -> FVCOM.Variables.velo_norm
 
         Notes:
-        -----
           -Can take time over the full domain
         """
         if debug or self._debug:
@@ -476,16 +481,13 @@ class FunctionsFvcomThreeD:
         This function computes the velocity norm at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - velo_norm = velocity norm, 2D array (time, level)
 
         Keywords:
-        --------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -495,7 +497,6 @@ class FunctionsFvcomThreeD:
           - dump = boolean, dump profile data in csv file
 
         Notes:
-        -----
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -511,7 +512,7 @@ class FunctionsFvcomThreeD:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         try:
             if not hasattr(self._var, 'velo_norm'):
@@ -540,11 +541,7 @@ class FunctionsFvcomThreeD:
                     vel = self._var.velo_norm
 
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
-                              self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         #Computing horizontal velocity norm
         if debug:
@@ -568,7 +565,7 @@ class FunctionsFvcomThreeD:
 
         #use only the time indices of interest
         if not argtime==[]:
-            velo_norm = velo_norm[argtime[:],:]
+            velo_norm = velo_norm[argtime[:],:,:]
 
         #Plot mean values
         if graph:
@@ -591,25 +588,22 @@ class FunctionsFvcomThreeD:
         at any given location.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find
           - pt_lat = latitude in decimal degrees North to find
 
         Outputs:
-        -------
           - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
           - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
 
         Keywords:
-        -------
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - vertical = True, compute flowDir for each vertical level
+
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
@@ -619,11 +613,7 @@ class FunctionsFvcomThreeD:
             print 'Computing flow directions at point...'
 
         # Finding closest point
-        index = closest_point(pt_lon, pt_lat,
-                              self._grid.lon,
-                              self._grid.lat,
-                              self._grid.lonc,
-                              self._grid.latc, trinodes, debug=debug)
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         # Find time interval to work in
         argtime = []
@@ -634,7 +624,7 @@ class FunctionsFvcomThreeD:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
         
         #Choose the right pair of velocity components
         if self._var._3D and vertical:
@@ -663,7 +653,7 @@ class FunctionsFvcomThreeD:
         if debug:
             print 'Computing arctan2...'
         dirFlow = np.rad2deg(np.arctan2(V,U))
-       
+
         if debug: print '...Passed'
         #use only the time indices of interest
         if not argtime==[]:
@@ -677,7 +667,6 @@ class FunctionsFvcomThreeD:
         -> FVCOM.Variables.flow_dir
 
         Notes:
-        -----
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - Can take time over the full domain
@@ -712,7 +701,6 @@ class FunctionsFvcomThreeD:
         -> FVCOM.Variables.vorticity
      
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -793,18 +781,15 @@ class FunctionsFvcomThreeD:
         This function computes the vorticity for a time period.
      
         Outputs:
-        -------
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
 
         Keywords:
-        -------
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
         Notes:
-        -----
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -820,9 +805,9 @@ class FunctionsFvcomThreeD:
             if type(t_start)==str:
                 t = time_to_index(t_start, t_end, self._var.matlabTime[:], debug=debug)
             else:
-                t = arange(t_start, t_end)
+                t = np.arange(t_start, t_end)
         else:
-            t = arange(self._grid.ntime)  
+            t = np.arange(self._grid.ntime)
 
         #Checking if vorticity already computed
         if not hasattr(self._var, 'vorticity'): 
@@ -889,7 +874,6 @@ class FunctionsFvcomThreeD:
             pd = 0.5*1025*(u**3)
 
         Notes:
-        -----
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -914,7 +898,6 @@ class FunctionsFvcomThreeD:
         This function computes power assessment (W/m2) at given depth.
 
         Description:
-        -----------
         This function performs tidal turbine power assessment by accounting for
         cut-in and cut-out speed, power curve/function (pc):
             Cp = pc(u)
@@ -924,7 +907,6 @@ class FunctionsFvcomThreeD:
             pd = Cp*(1/2)*1025*(u**3)
 
         Inputs:
-        ------
           - depth = given depth from the surface, float
           - power_mat = power matrix (u,Cp(u)), 2D array (2,n),
                         u being power_mat[0,:] and Ct(u) being power_mat[1,:]
@@ -932,16 +914,13 @@ class FunctionsFvcomThreeD:
 
 
         Output:
-        ------
           - pa = power assessment in (W/m2), 2D masked array (ntime, nele)
 
         Keywords:
-        --------
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
 
         Notes:
-        -----
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -997,13 +976,11 @@ class FunctionsFvcomThreeD:
         start_point, end_pt.
  
         Inputs:
-        ------
           - var = 2D dimensional (sigma level, element) variable, array
           - start_pt = starting point, [longitude, latitude]
           - end_pt = ending point, [longitude, latitude]
 
         Keywords:
-        --------
           - time_ind = reference time indices for surface elevation, list of integer
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
@@ -1011,7 +988,6 @@ class FunctionsFvcomThreeD:
                     or time index as an integer
 
         Keywords for plot:
-        -----------------
           - title = plot title, string
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
@@ -1025,10 +1001,8 @@ class FunctionsFvcomThreeD:
             lats = [start_pt[1], end_pt[1]]
             #Finding the closest elements to start and end points
             index = closest_points(lons, lats,
-                                  self._grid.lon,
-                                  self._grid.lat,
-                                  self._grid.lonc,
-                                  self._grid.latc, trinodes, debug=debug)
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)
     
             #Finding the shortest path between start and end points
             if debug : print "Computing shortest path..."
@@ -1038,7 +1012,7 @@ class FunctionsFvcomThreeD:
                                                self._grid.lat[:],
                                                self._grid.trinodes[:],
                                                self._grid.h[:], debug=debug)
-            el, _ = short_path.getTargets([ind])           
+            el, _ = short_path.getTargets([index])
             # Plot shortest path
             short_path.graphGrid(plot=True)
 
@@ -1051,7 +1025,7 @@ class FunctionsFvcomThreeD:
                     argtime = time_to_index(t_start, t_end,
                                             self._var.matlabTime, debug=debug)
                 else:
-                    argtime = arange(t_start, t_end)
+                    argtime = np.arange(t_start, t_end)
  
             #Extract along line
             ele=np.asarray(el[:])[0,:]
