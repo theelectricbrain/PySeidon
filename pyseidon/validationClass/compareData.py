@@ -116,9 +116,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = smooth(mod_spd * mod_signed, mod_dt,
                                                                          obs_spd * obs_signed, obs_dt,
                                                                          debug=debug, debug_plot=debug_plot)
-            # Power density
-            mod_cspd = 0.5 * 1025.0 * mod_spd**3.0
-            obs_cspd = 0.5 * 1025.0 * obs_spd**3.0
+            # cubic speed
+            mod_cspd = mod_spd**3.0
+            obs_cspd = obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_cspd, mod_dt, obs_cspd, obs_dt,
                                                                                  debug=debug, debug_plot=debug_plot)
         else:
@@ -137,9 +137,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             (mod_v_int, obs_v_int, step_v_int, start_v_int) = (mod_v, obs_v, step, start)
             # velocity i.e. signed speed
             (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = (mod_spd, obs_spd, step, start)
-            # Power density
-            mod_cspd = 0.5 * 1025.0 * mod_spd**3.0
-            obs_cspd = 0.5 * 1025.0 * obs_spd**3.0
+            # cubic speed
+            mod_cspd = mod_spd**3.0
+            obs_cspd = obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = (mod_cspd, obs_cspd, step, start)
     
     if debug: print "...remove directions where velocities are small..."
@@ -191,9 +191,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                            kind='velocity', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
     csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
-                           0.5 * 1025.0 * mod_u, 0.5 * 1025.0 * obs_u, 0.5 * 1025.0 * mod_v, 0.5 * 1025.0 * obs_v,
+                           mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
-                           kind='power density', plot=plot, save_csv=save_csv,
+                           kind='cubic speed', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
 
     # output statistics in useful format

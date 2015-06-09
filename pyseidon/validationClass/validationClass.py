@@ -98,7 +98,7 @@ class Validation:
             self.Variables.struct['v_val'] = v_suite
             self.Variables.struct['vel_val'] = vel_suite
             # custom benchmark
-            self.Variables.struct['power_density_val'] = csp_suite
+            self.Variables.struct['cubic_speed_val'] = csp_suite
             # Variable to processed
             vars.append('elev')
             vars.append('speed')
@@ -107,7 +107,7 @@ class Validation:
             vars.append('v')
             vars.append('vel')
             # custom var
-            vars.append('power_density')
+            vars.append('cubic_speed')
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
@@ -129,7 +129,7 @@ class Validation:
             self.Variables.struct['v_val'] = v_suite
             # custom benchmark
             self.Variables.struct['vel_val'] = vel_suite
-            self.Variables.struct['power_density_val'] = csp_suite
+            self.Variables.struct['cubic_speed_val'] = csp_suite
 
             # Variable to processed
             vars.append('speed')
@@ -139,7 +139,7 @@ class Validation:
             vars.append('vel')
             # custom var
             vars.append('vel')
-            vars.append('power_density')
+            vars.append('cubic_speed')
 
         else:
             raise PyseidonError("-This kind of measurements is not supported yet-")

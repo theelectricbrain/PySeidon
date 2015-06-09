@@ -100,10 +100,10 @@ class TidalStats:
             #TR: those are not the real times though
 
         # Error attributes
-        if self.kind in ['power density', 'velocity']:
+        if self.kind in ['cubic speed', 'velocity']:
             # TR: pass this step if dealing with Drifter's data
             if not self.gear == 'Drifter':
-            # interpolate power density, u and v on same time steps
+            # interpolate cubic speed, u and v on same time steps
                 model_timestamps = np.zeros(len(model_time))
                 for j, jj in enumerate(model_time):
                     model_timestamps[j] = time.mktime(jj.timetuple())
@@ -119,7 +119,7 @@ class TidalStats:
                 func_v = interp1d(obs_timestamps, observed_v)
                 self.observed_v = func_v(timestamps)
 
-            if self.kind == 'power density':
+            if self.kind == 'cubic speed':
                 # R.Karsten formula
                 self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
                              ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
@@ -143,8 +143,8 @@ class TidalStats:
         #     self.ERROR_BOUND = 22.5
         # elif (self.kind == 'u velocity' or self.kind == 'v velocity'):
         #     self.ERROR_BOUND = 0.35
-        # elif self.kind == 'power density':
-        #     self.ERROR_BOUND = 0.5*1025.0*0.26**3.0
+        # elif self.kind == 'cubic speed':
+        #     self.ERROR_BOUND = 0.26**3.0
         # else:
         #     self.ERROR_BOUND = 0.5
 
@@ -177,8 +177,8 @@ class TidalStats:
         if self.kind == 'velocity':
             # Special definition of rmse - R.Karsten
             rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
-        elif self.kind == 'power density':
-            rmse = np.sqrt(np.mean(self.error))
+        elif self.kind == 'cubic speed':
+            rmse = np.sqrt(abs(np.mean(self.error)))
         else:
             rmse = np.sqrt(np.mean(self.error**2))
         return rmse
@@ -672,8 +672,8 @@ class TidalStats:
                 ax.set_ylabel('V velocity (m/s)')
             if self.kind == 'velocity':
                 ax.set_ylabel('Signed flow speed (m/s)')
-            if self.kind == 'power density':
-                ax.set_ylabel('Power density (W/m2)')
+            if self.kind == 'cubic speed':
+                ax.set_ylabel('Cubic speed (m3/s3)')
 
             fig.suptitle('Predicted and Observed {}'.format(self.kind))
             ax.legend(shadow=True)
