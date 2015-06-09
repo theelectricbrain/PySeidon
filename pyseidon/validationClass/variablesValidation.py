@@ -156,7 +156,7 @@ class _load_validation:
              
 
             #Check what kind of observed data it is
-            if observed.__module__=='pyseidon.adcpClass.adcpClass':
+            if observed.__module__=='pyseidon.adcpClass.adcpClass' or observed.__module__ == 'adcpClass':
                 self._obstype = 'adcp'
                 obstype='ADCP'
                 obs_mod={'ua':self.obs.ua[c],'va':self.obs.va[c],'elev':self.obs.surf[c],

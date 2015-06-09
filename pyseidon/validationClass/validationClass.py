@@ -2,15 +2,11 @@
 # encoding: utf-8
 
 from __future__ import division
-import numpy as np
 import pandas as pd
 import cPickle as pkl
 
-#import netCDF4 as nc
 #Quick fix
 from scipy.io import savemat
-import sys
-import os
 from utide import ut_solv
 
 #Local import
@@ -102,7 +98,7 @@ class Validation:
             self.Variables.struct['v_val'] = v_suite
             self.Variables.struct['vel_val'] = vel_suite
             # custom benchmark
-            self.Variables.struct['cubic_speed_val'] = csp_suite
+            self.Variables.struct['power_density_val'] = csp_suite
             # Variable to processed
             vars.append('elev')
             vars.append('speed')
@@ -111,7 +107,7 @@ class Validation:
             vars.append('v')
             vars.append('vel')
             # custom var
-            vars.append('cubic_speed')
+            vars.append('power_density')
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
@@ -133,7 +129,7 @@ class Validation:
             self.Variables.struct['v_val'] = v_suite
             # custom benchmark
             self.Variables.struct['vel_val'] = vel_suite
-            self.Variables.struct['cubic_speed_val'] = csp_suite
+            self.Variables.struct['power_density_val'] = csp_suite
 
             # Variable to processed
             vars.append('speed')
@@ -143,7 +139,7 @@ class Validation:
             vars.append('vel')
             # custom var
             vars.append('vel')
-            vars.append('cubic_speed')
+            vars.append('power_density')
 
         else:
             raise PyseidonError("-This kind of measurements is not supported yet-")
@@ -153,18 +149,11 @@ class Validation:
                                    save_csv=save_csv, debug=debug, debug_plot=debug_plot)
         
         #Display csv
-        #csvName = filename + '_val.csv'
-        #csv_con = open(csvName, 'r')
-        #csv_cont = list(csv.reader(csv_con, delimiter=','))
         print "---Validation benchmarks---"
         pd.set_option('display.max_rows', len(self.Benchmarks))
         print(self.Benchmarks)
         pd.reset_option('display.max_rows')
-        #print(70*'-')
-        #for row in csv_cont:
-        #   row = [str(e) for e in row[:][1:]]
-        #   print('\t'.join(row))
-        #print(70*'-')
+
 
     def validate_harmonics(self, filename=[], save_csv=False,
                            debug=False, debug_plot=False):
@@ -269,16 +258,14 @@ class Validation:
         matchVelCoef = []
         matchVelCoefInd = []
         try:
-	    for i1, key1 in enumerate(self.Variables.sim.velCoef['name']):
-	        for i2, key2 in enumerate(self.Variables.obs.velCoef['name']):
-	            if key1 == key2:
-		        matchVelCoefInd.append((i1,i2))
-		        matchVelCoef.append(key1)
-	    matchVelCoefInd=np.array(matchVelCoefInd)
-	    noMatchVelCoef = np.delete(self.Variables.sim.velCoef['name'],
-				       matchVelCoefInd[:,0])
-	    np.hstack((noMatchVelCoef,np.delete(self.Variables.obs.velCoef['name'],
-                       matchVelCoefInd[:,1]) ))
+            for i1, key1 in enumerate(self.Variables.sim.velCoef['name']):
+                for i2, key2 in enumerate(self.Variables.obs.velCoef['name']):
+                    if key1 == key2:
+                        matchVelCoefInd.append((i1, i2))
+                        matchVelCoef.append(key1)
+            matchVelCoefInd = np.array(matchVelCoefInd)
+            noMatchVelCoef = np.delete(self.Variables.sim.velCoef['name'], matchVelCoefInd[:, 0])
+            np.hstack((noMatchVelCoef, np.delete(self.Variables.obs.velCoef['name'], matchVelCoefInd[:, 1])))
         except AttributeError:
             pass
 

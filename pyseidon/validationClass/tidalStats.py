@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 import numpy as np
-from scipy.stats import t
+from scipy.stats import t, pearsonr
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from scipy.interpolate import interp1d
@@ -100,10 +100,10 @@ class TidalStats:
             #TR: those are not the real times though
 
         # Error attributes
-        if self.kind in ['cubic speed', 'velocity']:
+        if self.kind in ['power density', 'velocity']:
             # TR: pass this step if dealing with Drifter's data
             if not self.gear == 'Drifter':
-            # interpolate cubic speed, u and v on same time steps
+            # interpolate power density, u and v on same time steps
                 model_timestamps = np.zeros(len(model_time))
                 for j, jj in enumerate(model_time):
                     model_timestamps[j] = time.mktime(jj.timetuple())
@@ -119,7 +119,7 @@ class TidalStats:
                 func_v = interp1d(obs_timestamps, observed_v)
                 self.observed_v = func_v(timestamps)
 
-            if self.kind == 'cubic speed':
+            if self.kind == 'power density':
                 # R.Karsten formula
                 self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
                              ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
@@ -132,21 +132,26 @@ class TidalStats:
             exit()
         self.length = self.error.size
 
-        if debug: print "...establish limits as defined by NOAA standard..."
-        if self.kind == 'velocity':
-            self.ERROR_BOUND = 0.26
-        elif (self.kind == 'speed' or self.kind == 'velocity'):
-            self.ERROR_BOUND = 0.26
-        elif (self.kind == 'elevation'):
-            self.ERROR_BOUND = 0.15
-        elif (self.kind == 'direction'):
-            self.ERROR_BOUND = 22.5
-        elif (self.kind == 'u velocity' or self.kind == 'v velocity'):
-            self.ERROR_BOUND = 0.35
-        elif self.kind == 'cubic speed':
-            self.ERROR_BOUND = 0.26**3.0
-        else:
-            self.ERROR_BOUND = 0.5
+        # if debug: print "...establish limits as defined by NOAA standard..."
+        # if self.kind == 'velocity':
+        #     self.ERROR_BOUND = 0.26
+        # elif (self.kind == 'speed' or self.kind == 'velocity'):
+        #     self.ERROR_BOUND = 0.26
+        # elif (self.kind == 'elevation'):
+        #     self.ERROR_BOUND = 0.15
+        # elif (self.kind == 'direction'):
+        #     self.ERROR_BOUND = 22.5
+        # elif (self.kind == 'u velocity' or self.kind == 'v velocity'):
+        #     self.ERROR_BOUND = 0.35
+        # elif self.kind == 'power density':
+        #     self.ERROR_BOUND = 0.5*1025.0*0.26**3.0
+        # else:
+        #     self.ERROR_BOUND = 0.5
+
+        # instead of using the NOAA errors, use 10% of the data range
+        obs_range = 0.1 * (np.max(self.observed) - np.min(self.observed))
+        mod_range = 0.1 * (np.max(self.model) - np.min(self.model))
+        self.ERROR_BOUND = (obs_range + mod_range) / 2.
 
         if debug: print "...TidalStats initialisation done."
 
@@ -182,6 +187,67 @@ class TidalStats:
         '''
         if debug or self._debug: print "...getSD..."
         return np.sqrt(np.mean(abs(self.error - np.mean(self.error)**2)))
+
+    def getBias(self, debug=False):
+        """
+        Returns the bias of the model, a measure of over/under-estimation.
+        """
+        if debug or self._debug: print "...getBias..."
+        return np.mean(self.error)
+
+    def getSI(self, debug=False):
+        """
+        Returns the scatter index of the model, a weighted measure of data
+        scattering.
+        """
+        if debug or self._debug: print "...getSI..."
+        return self.getRMSE() / np.mean(self.observed)
+
+
+    def getNRMSE(self, debug=False):
+        """
+        Returns the normalized root mean squared error between the model and
+        observed data in %.
+        """
+        if debug or self._debug: print "...getNRMSE..."
+        return 100. * self.getRMSE() / (max(self.observed) - min(self.observed))
+
+    def getPBIAS(self, debug=False):
+        """
+        Returns the percent bias between the model and the observed data.
+
+        References:
+          Yapo P. O., Gupta H. V., Sorooshian S., 1996.
+          Automatic calibration of conceptual rainfall-runoff models: sensitivity to calibration data.
+          Journal of Hydrology. v181 i1-4. 23-48
+
+          Sorooshian, S., Q. Duan, and V. K. Gupta. 1993.
+          Calibration of rainfall-runoff models: Application of global optimization
+          to the Sacramento Soil Moisture Accounting Model.
+          Water Resources Research, 29 (4), 1185-1194, doi:10.1029/92WR02617.
+        """
+        if debug or self._debug: print "...getPBIAS..."
+        norm_error = self.model - self.observed
+        return 100. * (np.sum(norm_error) / np.sum(self.observed))
+
+
+    def getNSE(self, debug=False):
+        """
+        Returns the Nash-Sutcliffe Efficiency coefficient of the model vs.
+        the observed data. Identifies if the model is better for
+        approximation than the mean of the observed data.
+        """
+        SSE_mod = np.sum((self.observed - self.model)**2)
+        SSE_mean = np.sum((self.observed - np.mean(self.observed))**2)
+        return 1 - SSE_mod / SSE_mean
+
+    def getCORR(self, debug=False):
+        """
+        Returns the Pearson correlation coefficient for the model vs.
+        the observed data, a number between -1 and 1. -1 implies perfect
+        negative correlation, 1 implies perfect correlation.
+        """
+        return pearsonr(self.observed, self.model)[0]
 
     def getCF(self, debug=False):
         '''
@@ -333,27 +399,6 @@ class TidalStats:
         best_phase = phases[min_index]
         phase_minutes = best_phase * step_sec / 60
 
-        # plot RMSE vs. the phase shift to ensure we're getting the right one
-        # if self._debug_plot:
-        #     plt.plot(phases, errors, label='Phase Shift vs. RMSE')
-        #     plt.vlines(best_phase, min(errors), max(errors))
-        #     plt.xlabel('Timesteps of Shift')
-        #     plt.ylabel('Root Mean Squared Error')
-        #     plt.show()
-        #     # plot data on top of shifted data
-        #     if (best_phase < 0):
-        #	  plt.plot(self.times[-best_phase:],
-        #              self.model[-best_phase:])
-        #	  plt.plot(self.times[-best_phase:],
-        #	           self.model[:self.length + best_phase], color='k')
-        #	  plt.plot(self.times[-best_phase:],
-        #	           self.observed[:self.length + best_phase],
-        #		       color='r')
-        #	  plt.xlabel('Times')
-        #	  plt.ylabel('Values')
-        #  	  plt.title('Shifted Data vs. Original Data')
-        #     plt.show()
-        # if debug or self._debug: print "...getPhase done."
         return phase_minutes
 
     def altPhase(self, debug=False):
@@ -405,6 +450,13 @@ class TidalStats:
             stats['phase'] = self.getPhase(debug=debug)
         except:
             stats['phase'] = 0.0
+        stats['CORR'] = self.getCORR()
+        stats['NRMSE'] = self.getNRMSE()
+        stats['NSE'] = self.getNSE()
+        stats['bias'] = self.getBias()
+        stats['SI'] = self.getSI()
+        stats['pbias'] = self.getPBIAS()
+        stats['phase'] = self.getPhase(debug=debug)
 
         if debug or self._debug: print "...getStats..."
 
@@ -610,8 +662,8 @@ class TidalStats:
                 ax.set_ylabel('V velocity (m/s)')
             if self.kind == 'velocity':
                 ax.set_ylabel('Signed flow speed (m/s)')
-            if self.kind == 'cubic speed':
-                ax.set_ylabel('Signed flow speed (m/s)')
+            if self.kind == 'power density':
+                ax.set_ylabel('Power density (W/m2)')
 
             fig.suptitle('Predicted and Observed {}'.format(self.kind))
             ax.legend(shadow=True)

@@ -1,7 +1,6 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 import numpy as np
-import sys
 from tidalStats import TidalStats
 from smooth import smooth
 from datetime import datetime, timedelta
@@ -117,9 +116,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = smooth(mod_spd * mod_signed, mod_dt,
                                                                          obs_spd * obs_signed, obs_dt,
                                                                          debug=debug, debug_plot=debug_plot)
-            # cubic speed
-            mod_cspd = mod_spd**3.0
-            obs_cspd = obs_spd**3.0
+            # Power density
+            mod_cspd = 0.5 * 1025.0 * mod_spd**3.0
+            obs_cspd = 0.5 * 1025.0 * obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_cspd, mod_dt, obs_cspd, obs_dt,
                                                                                  debug=debug, debug_plot=debug_plot)
         else:
@@ -138,18 +137,26 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             (mod_v_int, obs_v_int, step_v_int, start_v_int) = (mod_v, obs_v, step, start)
             # velocity i.e. signed speed
             (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = (mod_spd, obs_spd, step, start)
-            # cubic speed
-            mod_cspd = mod_spd**3.0
-            obs_cspd = obs_spd**3.0
+            # Power density
+            mod_cspd = 0.5 * 1025.0 * mod_spd**3.0
+            obs_cspd = 0.5 * 1025.0 * obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = (mod_cspd, obs_cspd, step, start)
     
     if debug: print "...remove directions where velocities are small..."
     MIN_VEL = 0.1
-    for i in np.arange(obs_sp_int.size):
-        if (obs_sp_int[i] < MIN_VEL):
-            obs_dr_int[i] = np.nan
-        if (mod_sp_int[i] < MIN_VEL):
-            mod_dr_int[i] = np.nan
+    indexMin = np.where(obs_sp_int < MIN_VEL)
+    obs_dr_int[indexMin] = np.nan
+    obs_u_int[indexMin] = np.nan
+    obs_v_int[indexMin] = np.nan
+    obs_ve_int[indexMin] = np.nan
+    obs_cspd_int[indexMin] = np.nan
+
+    indexMin = np.where(mod_sp_int < MIN_VEL)
+    mod_dr_int[indexMin] = np.nan
+    mod_u_int[indexMin] = np.nan
+    mod_v_int[indexMin] = np.nan
+    mod_ve_int[indexMin] = np.nan
+    mod_cspd_int[indexMin] = np.nan
 
     if debug: print "...get stats for each tidal variable..."
     gear = data['type'] # Type of measurement gear (drifter, adcp,...)
@@ -184,9 +191,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                            kind='velocity', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
     csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
-                           mod_u, obs_u, mod_v, obs_v,
+                           0.5 * 1025.0 * mod_u, 0.5 * 1025.0 * obs_u, 0.5 * 1025.0 * mod_v, 0.5 * 1025.0 * obs_v,
                            mod_dt, obs_dt,
-                           kind='cubic speed', plot=plot, save_csv=save_csv,
+                           kind='power density', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
 
     # output statistics in useful format
@@ -265,11 +272,6 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
         (mod_elev_int, obs_elev_int, step_int, start_int) = \
             smooth(mod_elev, mod_time, obs_elev, obs_time,
                    debug=debug, debug_plot=debug_plot)
-
-    # if debug: print "...get validation statistics..."
-    # stats = TidalStats(mod_elev_int, obs_elev_int, step_int, start_int, kind='elevation',
-    #                    debug=debug, debug_plot=debug_plot)
-
 
     elev_suite = tidalSuite(mod_elev_int, obs_elev_int, step_int, start_int,
                             kind='elevation', plot=plot, save_csv=save_csv,

@@ -65,6 +65,5 @@ def pyseidon_to_pickle(fvcom, filename, debug):
             raise PyseidonError("---Data too large for machine memory---\n"\
                                 "Tip: use ax or tx during class initialisation\n"\
                                 "     to use partial data")
-            sys.exit()
    
     f.close()
