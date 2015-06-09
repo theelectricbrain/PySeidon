@@ -185,7 +185,7 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
     colors = plt.matplotlib.cm.jet(np.linspace(0,1,sampleLenght))
     samplePoints = []
     for i in range(sampleLenght):
-        l = ax.plot(benchmarks['NRMSE'][i]/100.0, benchmarks['r2'][i],
+        l, = ax.plot(benchmarks['NRMSE'][i]/100.0, benchmarks['r2'][i],
                     marker='$%d$' % (i+1), ms=10, ls='',
                     mfc=colors[i], mec=colors[i], label= benchmarks['Type'][i])
         samplePoints.append(l)
@@ -202,6 +202,7 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
     # Add a figure legend
     fig.legend(samplePoints,[p.get_label() for p in samplePoints],
                numpoints=1, prop=dict(size='small'), loc='upper right')
+    fig.tight_layout()
 
     if save:
         fig.savefig(out_f)

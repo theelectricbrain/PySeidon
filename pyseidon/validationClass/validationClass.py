@@ -165,7 +165,7 @@ class Validation:
           save = save as *.png, boolean
         """
         try:
-            taylorDiagram(self.Benchmarks, save=False, out_f=filename, debug=False)
+            taylorDiagram(self.Benchmarks, save=save, out_f=filename, debug=False)
         except AttributeError:
             raise PyseidonError("-validate_data needs to be run first-")
 
@@ -376,7 +376,7 @@ class Validation:
             print "-No matching harmonic coefficients for velocity-"      
     
 
-    def Save_as(self, filename, fileformat='pickle', debug=False):
+    def save_as(self, filename, fileformat='pickle', debug=False):
         """
         This method saves the current FVCOM structure as:
            - *.p, i.e. python file
