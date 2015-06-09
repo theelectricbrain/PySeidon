@@ -123,7 +123,6 @@ class TidalStats:
                 # R.Karsten formula
                 self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
                              ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
-                self.error = 0.5 * 1025.0 * self.error
             else:
                 self.error = self.observed - self.model
         elif self.kind in ['speed', 'elevation', 'direction', 'u velocity', 'v velocity', 'Phase']:
@@ -237,7 +236,7 @@ class TidalStats:
         else:
             norm_error = self.model - self.observed
             pbias = 100. * (np.sum(norm_error) / np.sum(self.observed))
-            # TR: this formula leads to overly large values when used with sinusoidal signals
+            # TR: this formula may lead to overly large values when used with sinusoidal signals
         return pbias
 
 

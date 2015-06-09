@@ -191,7 +191,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                            kind='velocity', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
     csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
-                           mod_u, obs_u, mod_v, obs_v,
+                           0.5 * 1025.0 * mod_u, 0.5 * 1025.0 * obs_u, 0.5 * 1025.0 * mod_v, 0.5 * 1025.0 * obs_v,
                            mod_dt, obs_dt,
                            kind='power density', plot=plot, save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
