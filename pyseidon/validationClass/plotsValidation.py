@@ -153,7 +153,7 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
     smin = 0
     smax = 1.5
     ghelper = fa.GridHelperCurveLinear(tr, extremes=(0,np.pi/2, smin, smax), grid_locator1=gl1, tick_formatter1=tf1)
-    fig = plt.figure()
+    fig = plt.figure(figsize=(18,10))
     rect=111
     ax = fa.FloatingSubplot(fig, rect, grid_helper=ghelper)
     fig.add_subplot(ax)
@@ -180,6 +180,11 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
     y99 = [0.0, 70.0]
     ax.plot(x95,y95,color='k')
     ax.plot(x99,y99,color='k')
+    # Add reference point and stddev contour
+    l, = ax.plot([0], 1.0, 'k*', ls='', ms=10, label=label)
+    t = np.linspace(0, np.pi/2)
+    r = np.zeros_like(t) + 1.0
+    ax.plot(t,r, 'k--', label='_')
     # Plot points
     sampleLenght = benchmarks['Type'].shape[0]
     colors = plt.matplotlib.cm.jet(np.linspace(0,1,sampleLenght))
@@ -208,3 +213,4 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
         fig.savefig(out_f)
     else:
         fig.show()
+        plt.show()
