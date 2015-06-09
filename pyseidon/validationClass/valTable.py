@@ -1,7 +1,6 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 import pandas as pd
-import sys
 # Custom error
 from pyseidon_error import PyseidonError
 

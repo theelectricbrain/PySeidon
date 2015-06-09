@@ -8,6 +8,9 @@ from depthInterp import depthFromSurf
 # Custom error
 from pyseidon_error import PyseidonError
 
+# Local import
+from plotsValidation import *
+
 def dn2dt(datenum):
     '''
     Convert matlab datenum to python datetime.
@@ -229,10 +232,11 @@ def tidalSuite(gear, model, observed, step, start,
 
     if plot or debug_plot:
         stats.plotData()
-        stats.plotRegression(stats.linReg())
+        plotRegression(stats, stats.linReg())
 
     if save_csv:
         stats.save_data()
+        plotRegression(stats, stats.linReg(), out_f=kind+"_"+gear+".png", save=True)
 
     if debug: print "...tidalSuite done."
 
