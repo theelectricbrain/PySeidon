@@ -74,6 +74,7 @@ def plotRegression(tidalStatClass, lr, save=False, out_f='', debug=False):
         fig.savefig(out_f)
     else:
         fig.show()
+        plt.show()
 
 def plotData(tidalStatClass, graph='time', save=False, out_f='', debug=False):
     """
@@ -124,6 +125,7 @@ def plotData(tidalStatClass, graph='time', save=False, out_f='', debug=False):
         fig.savefig(out_f)
     else:
         fig.show()
+        plt.show()
 
 def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
     """
@@ -181,7 +183,7 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
     ax.plot(x95,y95,color='k')
     ax.plot(x99,y99,color='k')
     # Add reference point and stddev contour
-    l, = ax.plot([0], 1.0, 'k*', ls='', ms=10, label=label)
+    l, = ax.plot(0.0, 1.0, 'k*', ls='', ms=10, label='Reference')
     t = np.linspace(0, np.pi/2)
     r = np.zeros_like(t) + 1.0
     ax.plot(t,r, 'k--', label='_')
