@@ -123,6 +123,7 @@ class TidalStats:
                 # R.Karsten formula
                 self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
                              ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
+                self.error = 0.5 * 1025.0 * self.error
             else:
                 self.error = self.observed - self.model
         elif self.kind in ['speed', 'elevation', 'direction', 'u velocity', 'v velocity', 'Phase']:
@@ -177,6 +178,8 @@ class TidalStats:
         if self.kind == 'velocity':
             # Special definition of rmse - R.Karsten
             rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
+        elif self.kind == 'power density':
+            rmse = np.sqrt(np.mean(self.error))
         else:
             rmse = np.sqrt(np.mean(self.error**2))
         return rmse
@@ -227,8 +230,15 @@ class TidalStats:
           Water Resources Research, 29 (4), 1185-1194, doi:10.1029/92WR02617.
         """
         if debug or self._debug: print "...getPBIAS..."
-        norm_error = self.model - self.observed
-        return 100. * (np.sum(norm_error) / np.sum(self.observed))
+
+        if self.kind in ['elevation', 'direction', 'u velocity', 'v velocity', 'velocity']:
+            norm_error = self.error / self.observed
+            pbias = 100. * np.sum(norm_error) / norm_error.size
+        else:
+            norm_error = self.model - self.observed
+            pbias = 100. * (np.sum(norm_error) / np.sum(self.observed))
+            # TR: this formula leads to overly large values when used with sinusoidal signals
+        return pbias
 
 
     def getNSE(self, debug=False):
