@@ -185,10 +185,11 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
     t = np.linspace(0, np.pi/2)
     r = np.zeros_like(t) + 1.0
     ax.plot(t,r, 'k--', label='_')
+    samplePoints = [l]
+
     # Plot points
     sampleLenght = benchmarks['Type'].shape[0]
     colors = plt.matplotlib.cm.jet(np.linspace(0,1,sampleLenght))
-    samplePoints = []
     for i in range(sampleLenght):
         l, = ax.plot(benchmarks['NRMSE'][i]/100.0, benchmarks['r2'][i],
                     marker='$%d$' % (i+1), ms=10, ls='',
