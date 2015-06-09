@@ -390,7 +390,8 @@ class TidalStats:
             step = self.times[1] - self.times[0]
 
         # create TidalStats class for shifted data and get the RMSE
-        stats = TidalStats(shift_mod, shift_obs, step, start, kind='Phase')
+        stats = TidalStats(self.gear, shift_mod, shift_obs, step, start, kind='Phase')
+
         rms_error = stats.getRMSE()
         errors.append(rms_error)
 
