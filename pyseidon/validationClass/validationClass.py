@@ -14,6 +14,8 @@ from compareData import *
 from valTable import valTable
 from variablesValidation import _load_validation
 from interpolation_utils import *
+# Local import
+from plotsValidation import taylorDiagram
 
 # Custom error
 from pyseidon_error import PyseidonError
@@ -111,7 +113,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
-                                      plot=plot, #save_csv=save_csv,
+                                      plot=plot, save_csv=save_csv,
                                       debug=debug, debug_plot=debug_plot)
             self.Variables.struct['tg_val'] = elev_suite_dg
             #Variable to processed
@@ -120,7 +122,7 @@ class Validation:
         elif self.Variables.struct['type'] == 'Drifter':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
              vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
-                                    plot=plot, depth=depth, #save_csv=save_csv,
+                                    plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
 
             self.Variables.struct['speed_val'] = speed_suite
@@ -144,16 +146,28 @@ class Validation:
         else:
             raise PyseidonError("-This kind of measurements is not supported yet-")
 
-        #Make csv file
+        # Make csv file
         self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
                                    save_csv=save_csv, debug=debug, debug_plot=debug_plot)
         
-        #Display csv
+        # Display csv
         print "---Validation benchmarks---"
         pd.set_option('display.max_rows', len(self.Benchmarks))
         print(self.Benchmarks)
         pd.reset_option('display.max_rows')
 
+    def taylor_diagram(self, filename="taylor_diagram", save=False):
+        """
+        Plots Taylor diagram based on the results of 'validate_data'
+
+        Options:
+          filename = name of the plot file, string
+          save = save as *.png, boolean
+        """
+        try:
+            taylorDiagram(self.Benchmarks, save=False, out_f=filename, debug=False)
+        except AttributeError:
+            raise PyseidonError("-validate_data needs to be run first-")
 
     def validate_harmonics(self, filename=[], save_csv=False,
                            debug=False, debug_plot=False):
@@ -162,17 +176,17 @@ class Validation:
         for each component of the harmonic analysis (i.e. *_error.csv).     
 
         Options:
-          - filename: file name of the .csv file to be saved, string.
-          - save_csv: will save both observed and modeled harmonic
-                      coefficients into *.csv files (i.e. *_harmo_coef.csv) 
+          filename: file name of the .csv file to be saved, string.
+          save_csv: will save both observed and modeled harmonic
+                    coefficients into *.csv files (i.e. *_harmo_coef.csv)
         """
-        #User input
+        # User input
         if filename==[]:
             filename = input('Enter filename (string) for csv file: ')
             filename = str(filename)
 
 
-        #Harmonic analysis over matching time
+        # Harmonic analysis over matching time
         if self.Variables._obstype=='adcp':
             time = self.Variables.struct['obs_time']
             lat = self.Variables.struct['lat']
@@ -241,7 +255,7 @@ class Validation:
                                   cnstit='auto', rmin=0.95, notrend=True,
                                   method='ols', nodiagn=True, linci=True, conf_int=True)
 
-        #find matching and non-matching coef
+        # find matching and non-matching coef
         matchElCoef = []
         matchElCoefInd = []
         for i1, key1 in enumerate(self.Variables.sim.elCoef['name']):
@@ -270,18 +284,18 @@ class Validation:
             pass
 
 
-        #Compare obs. vs. sim. elevation harmo coef
+        # Compare obs. vs. sim. elevation harmo coef
         data = {}
         columns = ['A', 'g', 'A_ci', 'g_ci']
 
-        #Store harmonics in csv files 
+        # Store harmonics in csv files
         if save_csv:
-            #observed elevation coefs
+            # observed elevation coefs
             for key in columns:
                 data[key] = self.Variables.obs.elCoef[key]           
             table = pd.DataFrame(data=data, index=self.Variables.obs.elCoef['name'],
                                  columns=columns)
-            ##export as .csv file
+            # export as .csv file
             out_file = '{}_obs_el_harmo_coef.csv'.format(filename)
             table.to_csv(out_file)            
             data = {}
@@ -291,12 +305,12 @@ class Validation:
                 data[key] = self.Variables.sim.elCoef[key]           
             table = pd.DataFrame(data=data, index=self.Variables.sim.elCoef['name'],
                                  columns=columns)
-            ##export as .csv file
+            # export as .csv file
             out_file = '{}_sim_el_harmo_coef.csv'.format(filename)
             table.to_csv(out_file)            
             data = {}
 
-        ##error in %
+        # error in %
         if not matchElCoef==[]:
             for key in columns:
                 b=self.Variables.sim.elCoef[key][matchElCoefInd[:,0]]

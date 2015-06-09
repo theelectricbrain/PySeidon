@@ -578,57 +578,6 @@ class TidalStats:
 
         return data
 
-
-
-    def plotData(self, graph='time', save=False, out_f='', debug=False):
-        """
-        Provides a visualization of the data.
-
-        Takes an option which determines the kind of graph to be made.
-        time: plots the model data against the observed data over time
-        scatter : plots the model data vs. observed data
-
-        If save is set to True, saves the image file in out_f.
-        """
-        #define figure frame
-        fig = plt.figure(figsize=(18,10))
-        plt.rc('font',size='22')
-        ax = fig.add_subplot(111)
-
-        if (graph == 'time'):
-            ax.plot(self.times, self.model, label='Model Predictions')
-            ax.plot(self.times, self.observed, color='r',
-                     label='Observed Data')
-            ax.set_xlabel('Time')
-            if self.kind == 'elevation':
-                ax.set_ylabel('Elevation (m)')
-            if self.kind == 'speed':
-                ax.set_ylabel('Flow speed (m/s)')
-            if self.kind == 'direction':
-                ax.set_ylabel('Flow direction (deg.)')
-            if self.kind == 'u velocity':
-                ax.set_ylabel('U velocity (m/s)')
-            if self.kind == 'v velocity':
-                ax.set_ylabel('V velocity (m/s)')
-            if self.kind == 'velocity':
-                ax.set_ylabel('Signed flow speed (m/s)')
-            if self.kind == 'cubic speed':
-                ax.set_ylabel('Cubic speed (m3/s3)')
-
-            fig.suptitle('Predicted and Observed {}'.format(self.kind))
-            ax.legend(shadow=True)
-
-        if (graph == 'scatter'):
-            ax.scatter(self.model, self.observed, c='b', alpha=0.5)
-            ax.set_xlabel('Predicted Height')
-            ax.set_ylabel('Observed Height')
-            fig.suptitle('Predicted vs. Observed {}'.format(self.kind))
-
-        if save:
-            fig.savefig(out_f)
-        else:
-            fig.show()
-
     def save_data(self):
             df = pd.DataFrame(data={'time': self.times.flatten(),
                                     'observed':self.observed.flatten(),

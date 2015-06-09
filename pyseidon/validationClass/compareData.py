@@ -205,51 +205,14 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite, csp_suite)
 
-def tidalSuite(gear, model, observed, step, start,
-               model_u, observed_u, model_v, observed_v,
-               model_time, observed_time,
-               kind='', plot=False, save_csv=False, debug=False, debug_plot=False):
-    '''
-    Create stats classes for a given tidal variable.
-
-    Accepts interpolated model and observed data, the timestep, and start
-    time. kind is a string representing the kind of data. If plot is set
-    to true, a time plot and regression plot will be produced.
-
-    Returns a dictionary containing all the stats.
-    '''
-    if debug: print "tidalSuite..."
-    stats = TidalStats(gear, model, observed, step, start,
-                       model_u = model_u, observed_u = observed_u, model_v = model_v, observed_v = observed_v,
-                       model_time = model_time, observed_time = observed_time,
-                       kind=kind, debug=debug, debug_plot=debug_plot)
-    stats_suite = stats.getStats()
-    stats_suite['r_squared'] = stats.linReg()['r_2']
-    try: #Fix for Drifter's data
-        stats_suite['phase'] = stats.getPhase(debug=debug)
-    except:
-        stats_suite['phase'] = 0.0
-
-    if plot or debug_plot:
-        stats.plotData()
-        plotRegression(stats, stats.linReg())
-
-    if save_csv:
-        stats.save_data()
-        plotRegression(stats, stats.linReg(), out_f=kind+"_"+gear+".png", save=True)
-
-    if debug: print "...tidalSuite done."
-
-    return stats_suite
-
 def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
-    '''
+    """
     Does a comprehensive comparison between tide gauge height data and
     modeled data, much like the above function.
 
     Input is a dictionary containing all necessary tide gauge and model data.
     Outputs a dictionary of useful statistics.
-    '''
+    """
     if debug: print "CompareTG..."
     # load data
     mod_elev = data['mod_timeseries']['elev']
@@ -284,3 +247,41 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     if debug: print "...CompareTG done."
 
     return elev_suite
+
+def tidalSuite(gear, model, observed, step, start,
+               model_u, observed_u, model_v, observed_v,
+               model_time, observed_time,
+               kind='', plot=False, save_csv=False, debug=False, debug_plot=False):
+    """
+    Create stats classes for a given tidal variable.
+
+    Accepts interpolated model and observed data, the timestep, and start
+    time. kind is a string representing the kind of data. If plot is set
+    to true, a time plot and regression plot will be produced.
+
+    Returns a dictionary containing all the stats.
+    """
+    if debug: print "tidalSuite..."
+    stats = TidalStats(gear, model, observed, step, start,
+                       model_u = model_u, observed_u = observed_u, model_v = model_v, observed_v = observed_v,
+                       model_time = model_time, observed_time = observed_time,
+                       kind=kind, debug=debug, debug_plot=debug_plot)
+    stats_suite = stats.getStats()
+    stats_suite['r_squared'] = stats.linReg()['r_2']
+    try: #Fix for Drifter's data
+        stats_suite['phase'] = stats.getPhase(debug=debug)
+    except:
+        stats_suite['phase'] = 0.0
+
+    if plot or debug_plot:
+        plotData(stats)
+        plotRegression(stats, stats.linReg())
+
+    if save_csv:
+        stats.save_data()
+        plotData(stats, out_f=kind+"_"+gear+"_time_series.png", save=True)
+        plotRegression(stats, stats.linReg(), out_f=kind+"_"+gear+"_linear_regression.png", save=True)
+
+    if debug: print "...tidalSuite done."
+
+    return stats_suite
