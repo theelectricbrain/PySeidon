@@ -56,7 +56,7 @@ Notes:
         try:
             self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
         except NotImplementedError:
-            self.Data = h5py.File(filename)
+            self.Data = h5py.File(filename, 'r')
         #TR_comments: Initialize class structure
         self.Variables = _load_adcp(self, debug=self._debug)
         self.Plots = PlotsAdcp(self.Variables, debug=self._debug)

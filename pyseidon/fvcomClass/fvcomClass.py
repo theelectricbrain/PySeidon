@@ -9,7 +9,6 @@ from utide import ut_solv, ut_reconstr
 #TR comment: 2 alternatives
 import netCDF4 as nc
 from scipy.io import netcdf
-from scipy.io import savemat
 from pydap.client import open_url
 import cPickle as pkl
 import pickle as Pkl
@@ -17,15 +16,14 @@ import copy
 from os.path import isfile
 import gc
 
-#Add local path to utilities
-sys.path.append('../utilities/')
-
 #Utility import
-from shortest_element_path import shortest_element_path
 from object_from_dict import ObjectFromDict
 from pyseidon2pickle import pyseidon_to_pickle
 from pyseidon2matlab import pyseidon_to_matlab
 from pyseidon2netcdf_alter import pyseidon_to_netcdf
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 #Local import
 from variablesFvcom import _load_var, _load_grid
@@ -166,11 +164,9 @@ Notes:
                 raise
 
         elif filename.endswith('.mat'):
-            print "---Functionality not yet implemented---"
-            sys.exit()
+            raise PyseidonError("---Functionality not yet implemented---")
         else:
-            print "---Wrong file format---"
-            sys.exit()
+            raise PyseidonError("---Wrong file format---")
 
         self.Plots = PlotsFvcom(self.Variables,
                                 self.Grid,
@@ -249,18 +245,15 @@ Notes:
                                    lat.min(), lat.max()]
         #series of test before stacking
         if not (self.Grid._ax == FvcomClass.Grid._ax):
-            print "---Spatial regions do not match---"
-            sys.exit()
+            raise PyseidonError("---Spatial regions do not match---")
         elif not ((self.Grid.nele == FvcomClass.Grid.nele) and
                   (self.Grid.nnode == FvcomClass.Grid.nnode) and
                   (self.Variables._3D == FvcomClass.Variables._3D)):
-            print "---Data dimensions do not match---"
-            sys.exit()
+            raise PyseidonError("---Data dimensions do not match---")
         else:
             if not (self.Variables.julianTime[-1]<=
                     FvcomClass.Variables.julianTime[0]):
-                print "---Data not consecutive in time---"
-                sys.exit()
+                raise PyseidonError("---Data not consecutive in time---")
             #Copy self to newself
             newself = copy.copy(self)
             #TR comment: it still points toward self and modifies it

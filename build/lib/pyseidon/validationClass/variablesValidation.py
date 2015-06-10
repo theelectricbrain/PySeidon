@@ -143,28 +143,19 @@ class _load_validation:
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
 
-                #KC: Conversion of matlabTime to datetime, smoothing drifter temporally!
-                self.datetimes = [datetime.fromordinal(int(x)) + timedelta(days=x%1) -\
-                        timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
-
-                print 'v: \n', self.obs.v[uniqCloInd], '\nu: \n', self.obs.u[uniqCloInd]
+                #KC: Convert of matlabTime to datetime, smooth drifter temporally!
+                self.datetimes = [datetime.fromordinal(int(x))+timedelta(days=x%1)\
+                   - timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
 
                 uObs, vObs, t_s, dt_start = smooth(self.obs.u[self._c], \
                         self.datetimes, self.obs.v[self._c], \
                         self.datetimes, delta_t=1, debug=True)
 
-                print 'uObs: \n', uObs
-                print 'vObs: \n', vObs
-                print 't_s: \n', t_s
-                print 'dt_start: \n', dt_start
-
                 uObsOld = self.obs.u[uniqCloInd]
                 vObsOld = self.obs.v[uniqCloInd]
-                print 'uObsOld: \n', uObsOld, '\nvObsOld: \n', vObsOld
-
                 uSim = np.squeeze(uSim[uniqInd[:-1],:])
                 vSim = np.squeeze(vSim[uniqInd[:-1],:])
-                print 'vSim: \n', vSim, '\nuSim: \n', uSim
+
                 #Interpolation of timeseries at drifter's trajectory points
                 for i in range(len(uniqCloInd)):
                     uSimInterp=simulated.Util2D.interpolation_at_point(uSim,

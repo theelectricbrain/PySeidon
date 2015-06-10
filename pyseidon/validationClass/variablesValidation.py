@@ -3,23 +3,21 @@
 
 from __future__ import division
 import numpy as np
-import pandas as pd
-import csv
-
-from datetime import datetime, timedelta
-import cPickle as pickle
 import sys
-import os
-from utide import ut_solv
-import scipy.io as sio
 
 #Local import
 from interpolation_utils import *
+<<<<<<< HEAD
 from stationClass import Station
 from adcpClass import ADCP
 from fvcomClass import FVCOM
 from tidegaugeClass import TideGauge
 from smooth import smooth
+=======
+
+# Custom error
+from pyseidon_error import PyseidonError
+>>>>>>> upstream/development
 
 class _load_validation:
     """
@@ -60,8 +58,7 @@ class _load_validation:
         self._c = c
 
         if len(C) == 0:
-           print "---Time between simulation and measurement does not match up---"
-           sys.exit()
+            raise PyseidonError("---Time between simulation and measurement does not match up---")
 
         #Check what kind of simulated data it is
         if simulated.__module__=='pyseidon.stationClass.stationClass':
@@ -159,15 +156,15 @@ class _load_validation:
                 #Interpolation of timeseries at drifter's trajectory points
                 for i in range(len(uniqCloInd)):
                     uSimInterp=simulated.Util2D.interpolation_at_point(uSim,
-                                                self.obs.lon[indClosest[i]],
-                                                self.obs.lat[indClosest[i]])
+                                                self.obs.lon[uniqCloInd[i]],
+                                                self.obs.lat[uniqCloInd[i]])
                     vSimInterp=simulated.Util2D.interpolation_at_point(vSim,
-                                                self.obs.lon[indClosest[i]],
-                                                self.obs.lat[indClosest[i]])
+                                                self.obs.lon[uniqCloInd[i]],
+                                                self.obs.lat[uniqCloInd[i]])
+
 
         else:
-            print "-This type of simulations is not supported yet-"
-            sys.exit()
+            raise PyseidonError("-This type of simulations is not supported yet-")
 
         #Store in dict structure for compatibility purposes (except for drifters)
         if not observed.__module__=='pyseidon.drifterClass.drifterClass':
@@ -179,7 +176,7 @@ class _load_validation:
 
 
             #Check what kind of observed data it is
-            if observed.__module__=='pyseidon.adcpClass.adcpClass':
+            if observed.__module__=='pyseidon.adcpClass.adcpClass' or observed.__module__ == 'adcpClass':
                 self._obstype = 'adcp'
                 obstype='ADCP'
                 obs_mod={'ua':self.obs.ua[c],'va':self.obs.va[c],'elev':self.obs.surf[c],
@@ -193,8 +190,7 @@ class _load_validation:
                 obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
 
             else:
-                print "-This type of measurements is not supported yet-"
-                sys.exit()
+                raise PyseidonError("-This type of measurements is not supported yet-")
         else:
             self._obstype = 'drifter'
             obstype='Drifter'
@@ -213,11 +209,11 @@ class _load_validation:
         else:#Drifter's case
             self.struct = {'name': observed.History[0].split(' ')[-1],
                            'type':obstype,
-                           'lat':self.obs.lat[indClosest],
-                           'lon':self.obs.lon[indClosest],
+                           'lat':self.obs.lat[uniqCloInd],
+                           'lon':self.obs.lon[uniqCloInd],
                            'obs_timeseries':{'u': uObs, 'v': vObs},
                            'mod_timeseries':{'u': uSimInterp, 'v': vSimInterp},
-                           'obs_time':self.obs.matlabTime[indClosest],
+                           'obs_time':self.obs.matlabTime[uniqCloInd],
                            'mod_time':self.sim.matlabTime[C]}
 
         if debug: print "..done"

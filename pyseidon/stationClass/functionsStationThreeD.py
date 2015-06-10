@@ -5,11 +5,12 @@ from __future__ import division
 import numpy as np
 import sys
 import numexpr as ne
-from datetime import datetime
-from datetime import timedelta
 from miscellaneous import *
 from BP_tools import *
 import time
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 class FunctionsStationThreeD:
     """
@@ -40,11 +41,9 @@ class FunctionsStationThreeD:
                 if station=="".join(self._grid.name[1,:]).strip().upper():
                    index=i
         else:
-            print "---Wrong station input---"
-            sys.exit() 
+            raise PyseidonError("---Wrong station input---")
         if not 'index' in locals():
-            print "---Wrong station input---"
-            sys.exit()
+            raise PyseidonError("---Wrong station input---")
 
         return index
 
