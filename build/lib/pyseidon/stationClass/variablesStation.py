@@ -10,9 +10,9 @@ from miscellaneous import time_to_index
 from miscellaneous import mattime_to_datetime
 
 class _load_grid:
-    '''
+    """
 'Grid' subset in Station class contains grid related quantities:
--------------------------------------------------------------
+
 Some grid data are directly passed on from Station output:
                 _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
                |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
@@ -31,7 +31,7 @@ Some grid data are directly passed on from Station output:
 Some others shall be generated as methods are being called, ex:
              ...
              |_triangle = triangulation object for plotting purposes    
-    '''
+    """
     def __init__(self, data, elements, History, debug=False):  
         if debug:
             print 'Loading grid...'
@@ -67,7 +67,7 @@ Some others shall be generated as methods are being called, ex:
 class _load_var:
     """
 'Variables' subset in Station class contains the numpy arrays:
------------------------------------------------------------
+
 Some variables are directly passed on from Station output:
                      _el = elevation (m), 2D array (ntime, nnode)
                     |_julianTime = julian date, 1D array (ntime)
@@ -137,28 +137,39 @@ Some others shall be generated as methods are being called, ex:
                         if debug: print 'Index bound: ' +\
                             str(ID[0]) + '-' + str(ID[-1]+1)
                         if H==0:
-                            setattr(self, aliaS,
-                            data.variables[key].data[:,ID[0]:(ID[-1]+1)])
+                            try:
+                                setattr(self, aliaS, data.variables[key].data[:,ID[0]:(ID[-1]+1)])
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS, data.variables[key][:,ID[0]:(ID[-1]+1)])
                             H=1
                         else:
-                            setattr(self, aliaS,                            
-                            np.hstack((getattr(self, aliaS),
-                            data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                            try:
+                                setattr(self, aliaS,
+                                np.hstack((getattr(self, aliaS),
+                                data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS,
+                                np.hstack((getattr(self, aliaS),
+                                data.variables[key][:,ID[0]:(ID[-1]+1)])))
                 else:
                     try:                        
                         for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
                             ID = map(itemgetter(1), g)
-                            if debug: print 'Index bound: ' +\
-                                      str(ID[0]) + '-' + str(ID[-1]+1)
+                            if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
                             if H==0:
                                 setattr(self, aliaS,
                                         data.variables[key].\
                                         data[:,ID[0]:(ID[-1]+1)])
                                 H=1
                             else:
-                                setattr(self, aliaS,
-                                np.hstack((getattr(self, aliaS),
-                                data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                                try:
+                                    setattr(self, aliaS,
+                                    np.hstack((getattr(self, aliaS),
+                                    data.variables[key].data[:,ID[0]:(ID[-1]+1)])))
+                                except AttributeError: #exeception due nc.Dataset
+                                    setattr(self, aliaS,
+                                    np.hstack((getattr(self, aliaS),
+                                    data.variables[key][:,ID[0]:(ID[-1]+1)])))
                             keyCount +=1
                     except KeyError:
                         if debug: print key, " is missing !"
@@ -174,16 +185,24 @@ Some others shall be generated as methods are being called, ex:
                     H = 0 #local counter
                     for k, g in groupby(enumerate(region_e), lambda (i,x):i-x):
                         ID = map(itemgetter(1), g)
-                        if debug: print 'Index bound: ' +\
-                                  str(ID[0]) + '-' + str(ID[-1]+1)
+                        if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
                         if H==0:
-                            setattr(self, aliaS,
-                            data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])
+                            try:
+                                setattr(self, aliaS,
+                                data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS,
+                                data.variables[key][:,:,ID[0]:(ID[-1]+1)])
                             H=1
                         else:
-                            setattr(self, aliaS,
-                            np.dstack((getattr(self, aliaS),
-                            data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])))
+                            try:
+                                setattr(self, aliaS,
+                                np.dstack((getattr(self, aliaS),
+                                data.variables[key].data[:,:,ID[0]:(ID[-1]+1)])))
+                            except AttributeError: #exeception due nc.Dataset
+                                setattr(self, aliaS,
+                                np.dstack((getattr(self, aliaS),
+                                data.variables[key][:,:,ID[0]:(ID[-1]+1)])))
                     keyCount +=1
                 except KeyError:
                     if debug: print key, " is missing !"
@@ -201,21 +220,23 @@ Some others shall be generated as methods are being called, ex:
                     if key=='zeta':
                         setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
                         for i in range(grid.ntime):
-                            #TR comment: looping on time indices is a trick from
-                            #            Mitchell to improve loading time
-                            #TR comment: no idea why I have to transpose here but
-                            #            I do !!
-                            getattr(self, aliaS)[i,:] =\
-                            np.transpose(data.variables[key].data[i,region_n])
+                            try:
+                                #TR comment: looping on time indices is a trick from
+                                #            Mitchell to improve loading time
+                                getattr(self, aliaS)[i,:] =\
+                                np.transpose(data.variables[key].data[i,region_n])
+                            except AttributeError: #exeception due nc.Dataset
+                                getattr(self, aliaS)[i,:] = data.variables[key][i,region_n]
                     else:
                         setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
                         for i in range(grid.ntime):
-                            #TR comment: looping on time indices is a trick from
-                            #            Mitchell to improve loading time
-                            #TR comment: no idea why I have to transpose here but
-                            #            I do !!
-                            getattr(self, aliaS)[i,:] =\
-                            np.transpose(data.variables[key].data[i,region_e])
+                            try:
+                                #TR comment: looping on time indices is a trick from
+                                #            Mitchell to improve loading time
+                                getattr(self, aliaS)[i,:] =\
+                                np.transpose(data.variables[key].data[i,region_e])
+                            except AttributeError: #exeception due nc.Dataset
+                                getattr(self, aliaS)[i,:] = data.variables[key][i,region_e]
                     keyCount +=1
                 except KeyError:
                     if debug: print key, " is missing !"
@@ -235,14 +256,12 @@ Some others shall be generated as methods are being called, ex:
                     for i in range(grid.ntime):
                         #TR comment: looping on time indices is a trick from
                         #            Mitchell to improve loading time
-                        #TR comment: no idea why I have to transpose here but
-                        #            I do !!
                         try:
                             getattr(self, aliaS)[i,:,:] =\
                                 np.transpose(data.variables[key].data[i,:,region_e])
-                        except ValueError:
+                        except AttributeError: #exeception due nc.Dataset
                             getattr(self, aliaS)[i,:,:] =\
-                            data.variables[key].data[i,:,region_e]
+                            data.variables[key][i,:,region_e]
                     keyCount +=1
                 except KeyError:
                     if debug: print key, " is missing !"

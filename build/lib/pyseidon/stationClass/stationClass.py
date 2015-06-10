@@ -2,26 +2,19 @@
 # encoding: utf-8
 
 from __future__ import division
-import numpy as np
-#import netCDF4 as nc
-import sys
-import os
-from utide import ut_solv, ut_reconstr
+import netCDF4 as nc
 from scipy.io import netcdf
 from scipy.io import savemat
-from scipy.io import loadmat
 from pydap.client import open_url
 import cPickle as pkl
 import copy
-# Need to add closest point
-
-#Add local path to utilities
-sys.path.append('../utilities/')
 
 #Utility import
-from shortest_element_path import shortest_element_path
 from object_from_dict import ObjectFromDict
 from miscellaneous import findFiles, _load_nc
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 #Local import
 from variablesStation import _load_var, _load_grid
@@ -30,9 +23,8 @@ from functionsStationThreeD import *
 from plotsStation import *
 
 class Station:
-    '''
+    """
 Description:
-----------
   A class/structure for Station data.
   Functionality structured as follows:
                 _Data. = raw netcdf file data
@@ -46,7 +38,6 @@ Description:
                |_Harmonic_reconstruction = harmonic reconstruction based UTide package
 
 Inputs:
-------
   - filename = path to netcdf file or folder, string, 
                ex: testFvcom=Station('./path_to_FVOM_output_file/filename')
                    testFvcom=Station('./path_to_FVOM_output_file/folder/')
@@ -57,19 +48,16 @@ Inputs:
     (i.e. *.nc).           
 
 Options:
--------
   - elements = indices to extract, list of integers
-   
 
 Notes:
------
   Throughout the package, the following conventions aplly:
   - Date = string of 'yyyy-mm-ddThh:mm:ss'
   - Coordinates = decimal degrees East and North
   - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
                  +/-180=West, -90=South
   - Depth = 0m is the free surface and depth is negative
-    '''
+    """
     def __init__(self, filename, elements=slice(None), debug=False):
         #Class attributs
         self._debug = debug
@@ -176,8 +164,10 @@ Notes:
                 #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
                 #WB_comments: scipy has causes some errors, and even though can be
                 #             faster, can be unreliable
-                #self.Data = nc.Dataset(filename, 'r')
-                self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                try:
+                    self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                except ValueError: #TR: quick fix due to mmap
+                    self.Data = nc.Dataset(filename, 'r')
             #Metadata
             text = 'Created from ' + filename
             self._origin_file = filename
@@ -202,11 +192,9 @@ Notes:
                 raise
 
         elif filename.endswith('.mat'):
-            print "---Functionality not yet implemented---"
-            sys.exit()
+            raise PyseidonError("---Functionality not yet implemented---")
         else:
-            print "---Wrong file format---"
-            sys.exit()
+            raise PyseidonError("---Wrong file format---")
 
     #Special methods
     def __add__(self, StationClass, debug=False):
@@ -216,7 +204,6 @@ Notes:
           station1 += station2
 
         Notes:
-        -----
           - station1 and station2 have to cover the exact
             same spatial domain
           - last time step of station1 must be <= to the 
@@ -249,16 +236,13 @@ Notes:
         print len(origEle), " points will be stacked..."
 
         if len(origEle)==0:
-            print "---No matching element found---"
-            sys.exit()
+            raise PyseidonError("---No matching element found---")
         elif not (self.Variables._3D == StationClass.Variables._3D):
-            print "---Data dimensions do not match---"
-            sys.exit()
+            raise PyseidonError("---Data dimensions do not match---")
         else:
             if not (self.Variables.julianTime[-1]<=
                     StationClass.Variables.julianTime[0]):
-                print "---Data not consecutive in time---"
-                sys.exit()
+                raise PyseidonError("---Data not consecutive in time---")
             #Copy self to newself
             newself = copy.copy(self)
             #TR comment: it still points toward self and modifies it
@@ -315,11 +299,9 @@ Notes:
            - *.mat, i.e. Matlab file
 
         Inputs:
-        ------
           - filename = path + name of the file to be saved, string
 
         Keywords:
-        --------
           - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
         """
         debug = debug or self._debug

@@ -18,7 +18,6 @@ from plotsAdcp import *
 class ADCP:
     ''' 
 Description:
------------
   A class/structure for ADCP data.
   Functionality structured as follows:
                _Data. = raw matlab file data
@@ -31,11 +30,9 @@ Description:
               |_method_n
 
 Inputs:
-------
   Only takes a file name as input, ex: testAdcp=ADCP('./path_to_matlab_file/filename')
 
 Notes:
------
   Only handle fully processed ADCP matlab data previously quality-controlled as well
   as formatted through "EnsembleData_FlowFile" matlab script at the mo.
 
@@ -59,7 +56,7 @@ Notes:
         try:
             self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)
         except NotImplementedError:
-            self.Data = h5py.File(filename)
+            self.Data = h5py.File(filename, 'r')
         #TR_comments: Initialize class structure
         self.Variables = _load_adcp(self, debug=self._debug)
         self.Plots = PlotsAdcp(self.Variables, debug=self._debug)

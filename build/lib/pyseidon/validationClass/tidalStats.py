@@ -1,15 +1,16 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 import numpy as np
-from scipy.stats import t
-import matplotlib.pyplot as plt
+from scipy.stats import t, pearsonr
 from datetime import datetime, timedelta
 from scipy.interpolate import interp1d
 from scipy.signal import correlate
 import time
-import seaborn
 import pandas as pd
 from sys import exit
+
+
+
 
 class TidalStats:
     """
@@ -132,21 +133,26 @@ class TidalStats:
             exit()
         self.length = self.error.size
 
-        if debug: print "...establish limits as defined by NOAA standard..."
-        if self.kind == 'velocity':
-            self.ERROR_BOUND = 0.26
-        elif (self.kind == 'speed' or self.kind == 'velocity'):
-            self.ERROR_BOUND = 0.26
-        elif (self.kind == 'elevation'):
-            self.ERROR_BOUND = 0.15
-        elif (self.kind == 'direction'):
-            self.ERROR_BOUND = 22.5
-        elif (self.kind == 'u velocity' or self.kind == 'v velocity'):
-            self.ERROR_BOUND = 0.35
-        elif self.kind == 'cubic speed':
-            self.ERROR_BOUND = 0.26**3.0
-        else:
-            self.ERROR_BOUND = 0.5
+        # if debug: print "...establish limits as defined by NOAA standard..."
+        # if self.kind == 'velocity':
+        #     self.ERROR_BOUND = 0.26
+        # elif (self.kind == 'speed' or self.kind == 'velocity'):
+        #     self.ERROR_BOUND = 0.26
+        # elif (self.kind == 'elevation'):
+        #     self.ERROR_BOUND = 0.15
+        # elif (self.kind == 'direction'):
+        #     self.ERROR_BOUND = 22.5
+        # elif (self.kind == 'u velocity' or self.kind == 'v velocity'):
+        #     self.ERROR_BOUND = 0.35
+        # elif self.kind == 'cubic speed':
+        #     self.ERROR_BOUND = 0.26**3.0
+        # else:
+        #     self.ERROR_BOUND = 0.5
+
+        # instead of using the NOAA errors, use 10% of the data range
+        obs_range = 0.1 * (np.max(self.observed) - np.min(self.observed))
+        mod_range = 0.1 * (np.max(self.model) - np.min(self.model))
+        self.ERROR_BOUND = (obs_range + mod_range) / 2.
 
         if debug: print "...TidalStats initialisation done."
 
@@ -172,6 +178,8 @@ class TidalStats:
         if self.kind == 'velocity':
             # Special definition of rmse - R.Karsten
             rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
+        elif self.kind == 'cubic speed':
+            rmse = np.sqrt(abs(np.mean(self.error)))
         else:
             rmse = np.sqrt(np.mean(self.error**2))
         return rmse
@@ -182,6 +190,74 @@ class TidalStats:
         '''
         if debug or self._debug: print "...getSD..."
         return np.sqrt(np.mean(abs(self.error - np.mean(self.error)**2)))
+
+    def getBias(self, debug=False):
+        """
+        Returns the bias of the model, a measure of over/under-estimation.
+        """
+        if debug or self._debug: print "...getBias..."
+        return np.mean(self.error)
+
+    def getSI(self, debug=False):
+        """
+        Returns the scatter index of the model, a weighted measure of data
+        scattering.
+        """
+        if debug or self._debug: print "...getSI..."
+        return self.getRMSE() / np.mean(self.observed)
+
+
+    def getNRMSE(self, debug=False):
+        """
+        Returns the normalized root mean squared error between the model and
+        observed data in %.
+        """
+        if debug or self._debug: print "...getNRMSE..."
+        return 100. * self.getRMSE() / (max(self.observed) - min(self.observed))
+
+    def getPBIAS(self, debug=False):
+        """
+        Returns the percent bias between the model and the observed data.
+
+        References:
+          Yapo P. O., Gupta H. V., Sorooshian S., 1996.
+          Automatic calibration of conceptual rainfall-runoff models: sensitivity to calibration data.
+          Journal of Hydrology. v181 i1-4. 23-48
+
+          Sorooshian, S., Q. Duan, and V. K. Gupta. 1993.
+          Calibration of rainfall-runoff models: Application of global optimization
+          to the Sacramento Soil Moisture Accounting Model.
+          Water Resources Research, 29 (4), 1185-1194, doi:10.1029/92WR02617.
+        """
+        if debug or self._debug: print "...getPBIAS..."
+
+        if self.kind in ['elevation', 'direction', 'u velocity', 'v velocity', 'velocity']:
+            norm_error = self.error / self.observed
+            pbias = 100. * np.sum(norm_error) / norm_error.size
+        else:
+            norm_error = self.model - self.observed
+            pbias = 100. * (np.sum(norm_error) / np.sum(self.observed))
+            # TR: this formula may lead to overly large values when used with sinusoidal signals
+        return pbias
+
+
+    def getNSE(self, debug=False):
+        """
+        Returns the Nash-Sutcliffe Efficiency coefficient of the model vs.
+        the observed data. Identifies if the model is better for
+        approximation than the mean of the observed data.
+        """
+        SSE_mod = np.sum((self.observed - self.model)**2)
+        SSE_mean = np.sum((self.observed - np.mean(self.observed))**2)
+        return 1 - SSE_mod / SSE_mean
+
+    def getCORR(self, debug=False):
+        """
+        Returns the Pearson correlation coefficient for the model vs.
+        the observed data, a number between -1 and 1. -1 implies perfect
+        negative correlation, 1 implies perfect correlation.
+        """
+        return pearsonr(self.observed, self.model)[0]
 
     def getCF(self, debug=False):
         '''
@@ -324,7 +400,8 @@ class TidalStats:
             step = self.times[1] - self.times[0]
 
         # create TidalStats class for shifted data and get the RMSE
-        stats = TidalStats(shift_mod, shift_obs, step, start, kind='Phase')
+        stats = TidalStats(self.gear, shift_mod, shift_obs, step, start, kind='Phase')
+
         rms_error = stats.getRMSE()
         errors.append(rms_error)
 
@@ -333,27 +410,6 @@ class TidalStats:
         best_phase = phases[min_index]
         phase_minutes = best_phase * step_sec / 60
 
-        # plot RMSE vs. the phase shift to ensure we're getting the right one
-        # if self._debug_plot:
-        #     plt.plot(phases, errors, label='Phase Shift vs. RMSE')
-        #     plt.vlines(best_phase, min(errors), max(errors))
-        #     plt.xlabel('Timesteps of Shift')
-        #     plt.ylabel('Root Mean Squared Error')
-        #     plt.show()
-        #     # plot data on top of shifted data
-        #     if (best_phase < 0):
-        #	  plt.plot(self.times[-best_phase:],
-        #              self.model[-best_phase:])
-        #	  plt.plot(self.times[-best_phase:],
-        #	           self.model[:self.length + best_phase], color='k')
-        #	  plt.plot(self.times[-best_phase:],
-        #	           self.observed[:self.length + best_phase],
-        #		       color='r')
-        #	  plt.xlabel('Times')
-        #	  plt.ylabel('Values')
-        #  	  plt.title('Shifted Data vs. Original Data')
-        #     plt.show()
-        # if debug or self._debug: print "...getPhase done."
         return phase_minutes
 
     def altPhase(self, debug=False):
@@ -405,6 +461,13 @@ class TidalStats:
             stats['phase'] = self.getPhase(debug=debug)
         except:
             stats['phase'] = 0.0
+        stats['CORR'] = self.getCORR()
+        stats['NRMSE'] = self.getNRMSE()
+        stats['NSE'] = self.getNSE()
+        stats['bias'] = self.getBias()
+        stats['SI'] = self.getSI()
+        stats['pbias'] = self.getPBIAS()
+        stats['phase'] = self.getPhase(debug=debug)
 
         if debug or self._debug: print "...getStats..."
 
@@ -514,118 +577,6 @@ class TidalStats:
         if debug or self._debug: print "...crossVal done."
 
         return data
-
-    def plotRegression(self, lr, save=False, out_f='', debug=False):
-        """
-        Plots a visualization of the output from linear regression,
-        including confidence intervals for predictands and slope.
-
-        If save is set to True, exports the plot as an image file to out_f.
-        """
-        df = pd.DataFrame(data={'model': self.model.flatten(),
-                                'observed':self.observed.flatten()})
-        #define figure frame
-        fig = plt.figure(figsize=(18,10))
-        plt.rc('font',size='22')
-        ax = fig.add_subplot(111)
-
-        ax.scatter(self.model, self.observed, c='b', marker='+', alpha=0.5)
-
-        ## plot regression line
-        mod_max = np.amax(self.model)
-        mod_min = np.amin(self.model)
-        upper_intercept = lr['intercept'] + lr['pred_CI_width']
-        lower_intercept = lr['intercept'] - lr['pred_CI_width']
-        ax.plot([mod_min, mod_max], [mod_min * lr['slope'] + lr['intercept'],
-                mod_max * lr['slope'] + lr['intercept']],
-                color='k', linestyle='-', linewidth=2, label='Linear fit')
-
-        ## plot CI's for slope
-        ax.plot([mod_min, mod_max], [mod_min * lr['slope_CI'][0] + lr['intercept_CI'][0],
-                                     mod_max * lr['slope_CI'][0] + lr['intercept_CI'][0]],
-                 color='r', linestyle='--', linewidth=2)
-        ax.plot([mod_min, mod_max], [mod_min * lr['slope_CI'][1] + lr['intercept_CI'][1],
-                                     mod_max * lr['slope_CI'][1] + lr['intercept_CI'][1]],
-                 color='r', linestyle='--', linewidth=2, label='Slope CI')
-
-        ## plot CI's for predictands
-        ax.plot([mod_min, mod_max], [mod_min * lr['slope'] + upper_intercept,
-                                     mod_max * lr['slope'] + upper_intercept],
-                 color='g', linestyle='--', linewidth=2)
-        ax.plot([mod_min, mod_max], [mod_min * lr['slope'] + lower_intercept,
-                                     mod_max * lr['slope'] + lower_intercept],
-                 color='g', linestyle='--', linewidth=2, label='Predictand CI')
-
-        ax.set_xlabel('Modeled Data')
-        ax.set_ylabel('Observed Data')
-        fig.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.kind))
-        plt.legend(loc='lower right', shadow=True)
-
-        r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
-        plt.title(r_string)
-
-        # Pretty plot
-        seaborn.set(style="darkgrid")
-        color = seaborn.color_palette()[2]
-        g = seaborn.jointplot("model", "observed", data=df, kind="reg",
-                              xlim=(df.model.min(), df.model.max()),
-                              ylim=(df.observed.min(), df.observed.max()),
-                              color=color, size=7)
-        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.kind))
-
-        if save:
-            fig.savefig(out_f)
-        else:
-            fig.show()
-
-    def plotData(self, graph='time', save=False, out_f='', debug=False):
-        """
-        Provides a visualization of the data.
-
-        Takes an option which determines the kind of graph to be made.
-        time: plots the model data against the observed data over time
-        scatter : plots the model data vs. observed data
-
-        If save is set to True, saves the image file in out_f.
-        """
-        #define figure frame
-        fig = plt.figure(figsize=(18,10))
-        plt.rc('font',size='22')
-        ax = fig.add_subplot(111)
-
-        if (graph == 'time'):
-            ax.plot(self.times, self.model, label='Model Predictions')
-            ax.plot(self.times, self.observed, color='r',
-                     label='Observed Data')
-            ax.set_xlabel('Time')
-            if self.kind == 'elevation':
-                ax.set_ylabel('Elevation (m)')
-            if self.kind == 'speed':
-                ax.set_ylabel('Flow speed (m/s)')
-            if self.kind == 'direction':
-                ax.set_ylabel('Flow direction (deg.)')
-            if self.kind == 'u velocity':
-                ax.set_ylabel('U velocity (m/s)')
-            if self.kind == 'v velocity':
-                ax.set_ylabel('V velocity (m/s)')
-            if self.kind == 'velocity':
-                ax.set_ylabel('Signed flow speed (m/s)')
-            if self.kind == 'cubic speed':
-                ax.set_ylabel('Signed flow speed (m/s)')
-
-            fig.suptitle('Predicted and Observed {}'.format(self.kind))
-            ax.legend(shadow=True)
-
-        if (graph == 'scatter'):
-            ax.scatter(self.model, self.observed, c='b', alpha=0.5)
-            ax.set_xlabel('Predicted Height')
-            ax.set_ylabel('Observed Height')
-            fig.suptitle('Predicted vs. Observed {}'.format(self.kind))
-
-        if save:
-            fig.savefig(out_f)
-        else:
-            fig.show()
 
     def save_data(self):
             df = pd.DataFrame(data={'time': self.times.flatten(),

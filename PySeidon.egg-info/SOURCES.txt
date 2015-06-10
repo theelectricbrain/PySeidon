@@ -44,6 +44,7 @@ pyseidon/utilities/pyseidon2matlab.py
 pyseidon/utilities/pyseidon2netcdf.py
 pyseidon/utilities/pyseidon2netcdf_alter.py
 pyseidon/utilities/pyseidon2pickle.py
+pyseidon/utilities/pyseidon_error.py
 pyseidon/utilities/regioner.py
 pyseidon/utilities/save_FlowFile_BPFormat.py
 pyseidon/utilities/shortest_element_path.py
@@ -52,6 +53,7 @@ pyseidon/validationClass/__init__.py
 pyseidon/validationClass/compareData.py
 pyseidon/validationClass/depthInterp.py
 pyseidon/validationClass/interpolate.py
+pyseidon/validationClass/plotsValidation.py
 pyseidon/validationClass/smooth.py
 pyseidon/validationClass/tidalStats.py
 pyseidon/validationClass/valTable.py

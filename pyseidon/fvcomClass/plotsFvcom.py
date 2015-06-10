@@ -25,7 +25,7 @@ class PlotsFvcom:
         grid = self._grid
         #self._grid._ax = grid._ax
 
-    def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, debug=False):
+    def colormap_var(self, var, title='Title', cmin=[], cmax=[], mesh=True, hold=False, debug=False):
         '''
         2D xy colormap plot of any given variable and mesh.
 
@@ -39,6 +39,7 @@ class PlotsFvcom:
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
           - mesh = True, with mesh; False, without mesh
+          - hold = False to show plot
         '''
         debug = debug or self._debug
         if debug:
@@ -52,7 +53,7 @@ class PlotsFvcom:
             print "Var has the wrong dimension, var.shape[0]= Grid.nele or nnode"
             return
 
-        # Bounding box nodes, elements and variable 
+        # Bounding box nodes, elements and variable
         lon = self._grid.lon[:]
         lat = self._grid.lat[:]
         if debug:
@@ -60,13 +61,13 @@ class PlotsFvcom:
         if self._grid._ax == []:
             self._grid._ax = [lon.min(), lon.max(),
                              lat.min(), lat.max()]
-        bb = self._grid._ax  
+        bb = self._grid._ax
 
-        if not hasattr(self._grid, 'triangle'):        
+        if not hasattr(self._grid, 'triangle'):
             # Mesh triangle
             if debug:
                 print "Computing triangulation..."
-            trinodes = self._grid.trinodes 
+            trinodes = self._grid.trinodes
             tri = Tri.Triangulation(lon, lat, triangles=trinodes)
             self._grid.triangle = tri
         else:
@@ -111,7 +112,10 @@ class PlotsFvcom:
         self._fig.set_xlim([bb[0],bb[1]])
         self._fig.set_ylim([bb[2],bb[3]])
         plt.grid()
-        plt.show()
+
+        # KC: Added a 'hold' parameter in case were not ready to show plot
+        if not hold:
+            plt.show()
         if debug or self._debug:
             print '...Passed'
 
@@ -142,7 +146,7 @@ class PlotsFvcom:
         l = ax.legend(shadow=True, bbox_to_anchor=[-0.1, 0], loc='lower left')
         plt.setp(l.get_texts(), fontsize=10)
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
-        plt.show() 
+        plt.show()
 
     def plot_xy(self, x, y, xerror=[], yerror=[], title=' ', xLabel=' ', yLabel=' '):
         """
@@ -177,7 +181,7 @@ class PlotsFvcom:
             plt.fill_betweenx(y, x-xerror, x+xerror,
             alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)
 
-        plt.show()      
+        plt.show()
 
     def Histogram(self, y, title=' ', xLabel=' ', yLabel=' '):
         """
@@ -199,7 +203,7 @@ class PlotsFvcom:
         density, bins = np.histogram(y, bins=50, normed=True, density=True)
         unity_density = density / density.sum()
         widths = bins[:-1] - bins[1:]
-        # To plot correct percentages in the y axis 
+        # To plot correct percentages in the y axis
         plt.bar(bins[1:], unity_density, width=widths)
         formatter = ticker.FuncFormatter(lambda v, pos: str(v * 100))
         plt.gca().yaxis.set_major_formatter(formatter)
@@ -207,7 +211,7 @@ class PlotsFvcom:
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
 
-        plt.show()  
+        plt.show()
 
     def add_points(self, x, y, label=' ', color='black'):
         """
@@ -222,7 +226,7 @@ class PlotsFvcom:
         Keywords:
         --------
           - Label = a string
-          - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
+          - Color = a string, 'red', 'green', etc. or gray shades like '0.5'
         """
         plt.scatter(x, y, s=100, color=color)
         #TR : annotate does not work on my machine !?
@@ -230,5 +234,5 @@ class PlotsFvcom:
                      textcoords='offset points', ha='right',
                      arrowprops=dict(arrowstyle="->", shrinkA=0))
 
-                                
+
 

@@ -11,6 +11,9 @@ import sys
 from scipy.io import netcdf
 from pydap.client import open_url
 
+# Custom error
+from pyseidon_error import PyseidonError
+
 def date2py(matlab_datenum):
     python_datetime = datetime.fromordinal(int(matlab_datenum)) + \
         timedelta(days=matlab_datenum%1) - timedelta(days = 366)
@@ -120,8 +123,7 @@ def time_to_index(t_start, t_end, time, debug=False):
     if debug:
         print 'Argtime: ', argtime
     if argtime == []:
-        print "Wrong time input"
-        sys.exit()
+        raise PyseidonError("Wrong time input")
     return argtime
 
 def mattime_to_datetime(mattime, debug=False):

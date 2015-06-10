@@ -9,7 +9,6 @@ from utide import ut_solv, ut_reconstr
 #TR comment: 2 alternatives
 import netCDF4 as nc
 from scipy.io import netcdf
-from scipy.io import savemat
 from pydap.client import open_url
 import cPickle as pkl
 import pickle as Pkl
@@ -17,15 +16,14 @@ import copy
 from os.path import isfile
 import gc
 
-#Add local path to utilities
-sys.path.append('../utilities/')
-
 #Utility import
-from shortest_element_path import shortest_element_path
 from object_from_dict import ObjectFromDict
 from pyseidon2pickle import pyseidon_to_pickle
 from pyseidon2matlab import pyseidon_to_matlab
 from pyseidon2netcdf_alter import pyseidon_to_netcdf
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 #Local import
 from variablesFvcom import _load_var, _load_grid
@@ -36,7 +34,6 @@ from plotsFvcom import *
 class FVCOM:
     '''
 Description:
-----------
   A class/structure for FVCOM data.
   Functionality structured as follows:
             _Data. = raw netcdf file data
@@ -49,15 +46,13 @@ Description:
            |_Save_as = "save as" methods
 
 Inputs:
-------
-  - filename = path to file, string, 
+  - filename = path to file, string,
                ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename').
                Note that the file can be a pickle file (i.e. *.p)
                or a netcdf file (i.e. *.nc).
-               Additionally, either a file path or a OpenDap url could be used. 
+               Additionally, either a file path or a OpenDap url could be used.
 
 Options:
--------
   - ax = defines for a specific spatial region to work with, as such:
              ax = [minimun longitude, maximun longitude,
                  minimun latitude, maximum latitude]
@@ -73,7 +68,6 @@ Options:
          and therefore reduce memory and cpu use.
 
 Notes:
------
   Throughout the package, the following conventions apply:
   - Date = string of 'yyyy-mm-ddThh:mm:ss'
   - Coordinates = decimal degrees East and North
@@ -87,7 +81,7 @@ Notes:
         self._debug = debug
         if debug: print '-Debug mode on-'
         #Force garbage collector when fvcom object created
-        gc.collect()  
+        gc.collect()
 
         #Loading pickle file
         if filename.endswith('.p'):
@@ -121,13 +115,13 @@ Notes:
                             #due to mmap not coping with big array > 4Gib
                         except (OverflowError, TypeError, ValueError) as e:
                             self.Data = nc.Dataset(data['Origin'], 'r',
-                                       format='NETCDF4_CLASSIC') 
+                                       format='NETCDF4_CLASSIC')
                     else:
-                        print "the original *.nc file has not been found"                   
+                        print "the original *.nc file has not been found"
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
-        #Loading netcdf file         
+        #Loading netcdf file
         elif filename.endswith('.nc'):
             if filename.startswith('http'):
                 #Look for file through OpenDAP server
@@ -144,7 +138,7 @@ Notes:
                 try:
                     self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
                     #due to mmap not coping with big array > 4Gib
-                except (OverflowError, TypeError, ValueError) as e: 
+                except (OverflowError, TypeError, ValueError) as e:
                     self.Data = nc.Dataset(filename, 'r', format='NETCDF4_CLASSIC')
             text = 'Created from ' + filename
             self._origin_file = filename
@@ -170,11 +164,9 @@ Notes:
                 raise
 
         elif filename.endswith('.mat'):
-            print "---Functionality not yet implemented---"
-            sys.exit()
+            raise PyseidonError("---Functionality not yet implemented---")
         else:
-            print "---Wrong file format---"
-            sys.exit()
+            raise PyseidonError("---Wrong file format---")
 
         self.Plots = PlotsFvcom(self.Variables,
                                 self.Grid,
@@ -195,8 +187,8 @@ Notes:
             self.Plots.vertical_slice = self.Util3D._vertical_slice
 
         ##Re-assignement of utility functions as methods
-        self.dump_profile_data = self.Plots._dump_profile_data_as_csv
-        self.dump_map_data = self.Plots._dump_map_data_as_csv 
+        #self.dump_profile_data = self.Plots._dump_profile_data_as_csv
+        #self.dump_map_data = self.Plots._dump_map_data_as_csv
 
     #Special methods
     def __del__(self):
@@ -214,7 +206,7 @@ Notes:
                 try:
                     f.close()
                 except (NameError,AttributeError) as e:
-                    pass 
+                    pass
         except AttributeError:
             try:
                 f.close()
@@ -223,7 +215,7 @@ Notes:
 
     def __new__(self):
         """Force garbage collector when new fvcom object created"""
-        gc.collect()         
+        gc.collect()
 
     def __add__(self, FvcomClass, debug=False):
         """
@@ -232,11 +224,10 @@ Notes:
           fvcom1 += fvcom2
 
         Notes:
-        -----
           - fvcom1 and fvcom2 have to cover the exact
             same spatial domain
-          - last time step of fvcom1 must be <= to the 
-            first time step of fvcom2 
+          - last time step of fvcom1 must be <= to the
+            first time step of fvcom2
         """
         debug = debug or self._debug
         #Define bounding box
@@ -254,18 +245,15 @@ Notes:
                                    lat.min(), lat.max()]
         #series of test before stacking
         if not (self.Grid._ax == FvcomClass.Grid._ax):
-            print "---Spatial regions do not match---"
-            sys.exit()
+            raise PyseidonError("---Spatial regions do not match---")
         elif not ((self.Grid.nele == FvcomClass.Grid.nele) and
                   (self.Grid.nnode == FvcomClass.Grid.nnode) and
                   (self.Variables._3D == FvcomClass.Variables._3D)):
-            print "---Data dimensions do not match---"
-            sys.exit()
+            raise PyseidonError("---Data dimensions do not match---")
         else:
             if not (self.Variables.julianTime[-1]<=
                     FvcomClass.Variables.julianTime[0]):
-                print "---Data not consecutive in time---"
-                sys.exit()
+                raise PyseidonError("---Data not consecutive in time---")
             #Copy self to newself
             newself = copy.copy(self)
             #TR comment: it still points toward self and modifies it
@@ -287,7 +275,7 @@ Notes:
                     tmpN = getattr(newself.Variables, key)
                     tmpO = getattr(FvcomClass.Variables, key)
                     setattr(newself.Variables, key,
-                    np.vstack((tmpN[:], tmpO[:])))          
+                    np.vstack((tmpN[:], tmpO[:])))
                 except AttributeError:
                     continue
             #New time dimension
@@ -297,8 +285,8 @@ Notes:
                  + ' has been stacked'
             newself.History.append(text)
 
-        return newself  
-   
+        return newself
+
     #Methods
     def save_as(self, filename, fileformat='netcdf', debug=False):
         """
@@ -308,11 +296,9 @@ Notes:
            - *.mat, i.e. Matlab file
 
         Inputs:
-        ------
           - filename = path + name of the file to be saved, string
 
         Keywords:
-        --------
           - fileformat = format of the file to be saved, i.e. 'pickle', .netcdf. or 'matlab'
         """
         debug = debug or self._debug
@@ -324,9 +310,9 @@ Notes:
         elif fileformat=='matlab':
             pyseidon_to_matlab(self, filename, debug)
         elif fileformat=='netcdf':
-            pyseidon_to_netcdf(self, filename, debug)   
+            pyseidon_to_netcdf(self, filename, debug)
         else:
-            print "---Wrong file format---"                        
+            print "---Wrong file format---"
 
 #Test section when running in shell >> python fvcomClass.py
 #if __name__ == '__main__':

@@ -4,20 +4,18 @@
 from __future__ import division
 import numpy as np
 import sys
+from datetime import datetime, timedelta
 
 #Local import
 from interpolation_utils import *
-<<<<<<< HEAD
 from stationClass import Station
 from adcpClass import ADCP
 from fvcomClass import FVCOM
 from tidegaugeClass import TideGauge
 from smooth import smooth
-=======
 
 # Custom error
 from pyseidon_error import PyseidonError
->>>>>>> upstream/development
 
 class _load_validation:
     """

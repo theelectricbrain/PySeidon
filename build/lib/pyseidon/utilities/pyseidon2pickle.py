@@ -3,18 +3,13 @@
 
 #Libs import
 from __future__ import division
-import numpy as np
-import sys
-#TR comment: 2 alternatives
-#import netCDF4 as nc
-from scipy.io import netcdf
 import cPickle as pkl
 
 #Local import
-from variablesFvcom import _load_var, _load_grid
-from functionsFvcom import *
 from functionsFvcomThreeD import *
-from plotsFvcom import *
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 def pyseidon_to_pickle(fvcom, filename, debug):
     """
@@ -67,9 +62,8 @@ def pyseidon_to_pickle(fvcom, filename, debug):
             print "---Very large data, this may take a while---"
             pkl.dump(data, f)
         except SystemError:                 
-            print "---Data too large for machine memory---"
-            print "Tip: use ax or tx during class initialisation"
-            print "---  to use partial data"
-            sys.exit()
+            raise PyseidonError("---Data too large for machine memory---\n"\
+                                "Tip: use ax or tx during class initialisation\n"\
+                                "     to use partial data")
    
     f.close()

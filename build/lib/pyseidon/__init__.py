@@ -23,12 +23,15 @@ from stationClass import *
 from fvcomClass import *
 from validationClass import *
 
+# Custom error
+from pyseidon_error import *
+
 #Permission info for OpenDap server
 #print "OpenDap server connexion info:"
 
-__version__ = '1.0'
+__version__ = 'dvt-v2'
 __all__ = ["FVCOM", "ADCP", "Drifter", "TideGauge",\
-           "Validation", "Station", "utilities" ]
+           "Validation", "Station", "utilities", "PyseidonError"]
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']
 __licence__ = 'GNU Affero GPL v3.0'
 __copyright__ = 'Copyright (c) 2014 EcoEnergyII'
