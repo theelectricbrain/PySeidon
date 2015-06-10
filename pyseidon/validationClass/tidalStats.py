@@ -178,8 +178,6 @@ class TidalStats:
         if self.kind == 'velocity':
             # Special definition of rmse - R.Karsten
             rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
-        elif self.kind == 'cubic speed':
-            rmse = np.sqrt(abs(np.mean(self.error)))
         else:
             rmse = np.sqrt(np.mean(self.error**2))
         return rmse
