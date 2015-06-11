@@ -130,8 +130,19 @@ class _load_validation:
                 #TR: this doesn't not guarantee that the unique value kept is indeed
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
-                uObs = self.obs.u[uniqCloInd]
-                vObs = self.obs.v[uniqCloInd]
+
+                # Average over +/- 0.5 FVCOM's time step
+                if debug: print "Average over +/- 0.5 FVCOM's time step..."
+                dt = self.sim.matlabTime[1] - self.sim.matlabTime[0]
+                uObs = np.array(len(uniqCloInd))
+                vObs = np.array(len(uniqCloInd))
+                for i, j in enumerate(uniqCloInd):
+                    ttime = self.obs.matlabTime[j]
+                    avInd = np.where((ttime - (dt/2.0) <= self.obs.matlabTime <= ttime + (dt/2.0)))
+                    uObs[i]=np.mean(self.obs.u[avInd])
+                    vObs[i]=np.mean(self.obs.v[avInd])
+                # uObs = self.obs.u[uniqCloInd]
+                # vObs = self.obs.v[uniqCloInd]
                 uSim = np.squeeze(uSim[uniqInd,:])
                 vSim = np.squeeze(vSim[uniqInd,:])
                 #Interpolation of timeseries at drifter's trajectory points
