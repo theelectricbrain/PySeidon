@@ -134,8 +134,8 @@ class _load_validation:
                 # Average over +/- 0.5 FVCOM's time step
                 if debug: print "Average over +/- 0.5 FVCOM's time step..."
                 dt = self.sim.matlabTime[1] - self.sim.matlabTime[0]
-                uObs = np.array(len(uniqCloInd))
-                vObs = np.array(len(uniqCloInd))
+                uObs = np.zeros(len(uniqCloInd))
+                vObs = np.zeros(len(uniqCloInd))
                 for i, j in enumerate(uniqCloInd):
                     ttime = self.obs.matlabTime[j]
                     avInd = np.where(np.logical_and(self.obs.matlabTime <= ttime + (dt/2.0),
