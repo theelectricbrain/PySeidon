@@ -140,8 +140,8 @@ class _load_validation:
                     ttime = self.obs.matlabTime[j]
                     avInd = np.where(np.logical_and(self.obs.matlabTime <= ttime + (dt/2.0),
                                                     self.obs.matlabTime >= ttime - (dt/2.0)))
-                    uObs[i]=np.mean(self.obs.u[avInd])
-                    vObs[i]=np.mean(self.obs.v[avInd])
+                    uObs[i]=np.nanmean(self.obs.u[avInd])
+                    vObs[i]=np.nanmean(self.obs.v[avInd])
                 # uObs = self.obs.u[uniqCloInd]
                 # vObs = self.obs.v[uniqCloInd]
                 uSim = np.squeeze(uSim[uniqInd,:])

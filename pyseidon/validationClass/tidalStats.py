@@ -9,9 +9,6 @@ import time
 import pandas as pd
 from sys import exit
 
-
-
-
 class TidalStats:
     """
     An object representing a set of statistics on tidal heights used
