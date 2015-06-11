@@ -296,7 +296,7 @@ class TidalStats:
         try: #Fix for Drifter's data
             timestep = self.step.seconds / 60
         except AttributeError:
-            timestep = self.step / 60            
+            timestep = self.step * 24.0 * 60.0 # converts matlabtime (in days) to minutes
 
         max_duration = 0
         current_duration = 0
@@ -322,7 +322,7 @@ class TidalStats:
         try: #Fix for Drifter's data
             timestep = self.step.seconds / 60
         except AttributeError:
-            timestep = self.step / 60 
+            timestep = self.step * 24.0 * 60.0 # converts matlabtime (in days) to minutes
 
         max_duration = 0
         current_duration = 0
@@ -369,7 +369,7 @@ class TidalStats:
         try: #Fix for Drifter's data
             step_sec = self.step.seconds
         except AttributeError:
-            step_sec = self.step / 60
+            step_sec = self.step * 24.0 * 60.0 * 60.0 # converts matlabtime to seconds
 
         num_steps = max_phase_sec / step_sec
 
@@ -430,7 +430,7 @@ class TidalStats:
         try: #Fix for Drifter's data
             step_sec = self.step.seconds
         except AttributeError:
-            step_sec = self.step
+            step_sec = self.step * 24.0 * 60.0 * 60.0 # converts matlabtime (in days) to seconds
         lag = time_shift * step_sec / 60
 
         if debug or self._debug: print "...altPhase done."
