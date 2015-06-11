@@ -79,7 +79,7 @@ class Validation:
         if filename==[]:
             filename = input('Enter filename (string) for csv file: ')
             filename = str(filename)
-        if (depth==[] and self.Variables.sim._3D):
+        if (depth==[] and self.Variables._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
             depth = float(depth)
             if depth < 0.0: depth = -1.0 * depth
@@ -121,7 +121,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'Drifter':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
-             vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
+             vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables._3D,
                                     plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
 
