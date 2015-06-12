@@ -25,7 +25,7 @@ class _load_validation:
     Validation.Variables._|_sim. = simulated variables
                           |_struct. = dictionnary structure for validation purposes
     """
-    def __init__(self, observed, simulated, debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow='sf', debug=False, debug_plot=False):
         if debug: print "..variables.."
         self.obs = observed.Variables
         self.sim = simulated.Variables
@@ -100,8 +100,10 @@ class _load_validation:
                 if self._3D:
                     lock=True
                     while lock:
-                        userInp = input("Compare to depth averaged flow ('daf'), surface flow ('sf') or interp. at given depth (float): ")
+                        userInp = flow
                         if userInp == 'daf':
+                            if debug:
+                                print 'flow comparison is depth-averaged'
                             uSim = np.squeeze(self.sim.ua[self._C,:])
                             vSim = np.squeeze(self.sim.va[self._C,:])
                             self._3D = False
@@ -114,7 +116,11 @@ class _load_validation:
                             vSim = np.squeeze(self.sim.v[self._C,1,:])
                             self.sim._3D = False
                             lock=False
+                            if debug:
+                                print 'flow comarison at surface'
                         elif type(userInp) == float:
+                            if debug:
+                                print 'flow comparison at depth level ', float
                             if userInp > 0.0: userInp = userInp*-1.0
                             uInterp = simulated.Util3D.interp_at_depth(self.sim.u[:], userInp, debug=debug)
                             uSim = np.squeeze(uInterp[self._C,:])
@@ -122,7 +128,7 @@ class _load_validation:
                             vSim = np.squeeze(vInterp[self._C,:])
                             lock=False
                         else:
-                            print "Answer by 'daf', 'sf' or a float number only!!!"
+                            print "compare flow by 'daf', 'sf' or a float number only!!!"
                 else:
                     uSim = np.squeeze(self.sim.ua[self._C,:])
                     vSim = np.squeeze(self.sim.va[self._C,:])

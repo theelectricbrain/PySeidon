@@ -39,16 +39,18 @@ class Validation:
     Inputs:
       - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
+      - flow = flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
     """
-    def __init__(self, observed, simulated, debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow='sf', debug=False, debug_plot=False):
         self._debug = debug
+        self._flow = flow
         self._debug_plot = debug_plot
         if debug: print '-Debug mode on-'
         if debug: print 'Loading...'
         #Metadata
         self.History = ['Created from ' + observed._origin_file +\
                         ' and ' + simulated._origin_file]
-        self.Variables = _load_validation(observed, simulated, debug=self._debug)
+        self.Variables = _load_validation(observed, simulated, flow=self._flow,                                     debug=self._debug)
 
     def validate_data(self, filename=[], depth=[], plot=False, save_csv=False,
                       debug=False, debug_plot=False):
