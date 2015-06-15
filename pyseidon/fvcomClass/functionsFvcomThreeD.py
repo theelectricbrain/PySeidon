@@ -33,6 +33,7 @@ class FunctionsFvcomThreeD:
         self._History = History
         self._util = util
         self.interpolation_at_point = self._util.interpolation_at_point
+        self.index_finder = self._util.index_finder
         self.hori_velo_norm = self._util.hori_velo_norm
 
         #Create pointer to FVCOM class
