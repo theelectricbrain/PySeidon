@@ -246,7 +246,7 @@ Some others shall be generated as methods are being called, ex:
         except AttributeError: #exeception due nc.Dataset
             setattr(self, aliaS, data.variables[key])
 
-    def _load_partial_time_partial_region(self, data, grid, pos, key, aliaS, debug=False):
+    def _load_partial_time_partial_region(self, data, grid, key, aliaS, debug=False):
         """
         loading variables for partial time and space domains
 
