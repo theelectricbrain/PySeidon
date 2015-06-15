@@ -294,17 +294,22 @@ Some others shall be generated as methods are being called, ex:
                         var = data.variables[key].data[ts:te,ID[0]:(ID[-1]+1)]
                     else:
                         var = data.variables[key][ts:te,ID[0]:(ID[-1]+1)]
+                    if H == 0:
+                        setattr(self, aliaS,var)
+                        H = 1
+                    else:
+                        setattr(self, aliaS, np.dstack((getattr(self, aliaS), var)))
                 else:
                     if self._scipynetcdf:
                         #TR : Don't I need to transpose here?
                         var = data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)]
                     else:
                         var = data.variables[key][ts:te,:,ID[0]:(ID[-1]+1)]
-                if H == 0:
-                    setattr(self, aliaS,var)
-                    H = 1
-                else:
-                    setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
+                    if H == 0:
+                        setattr(self, aliaS,var)
+                        H = 1
+                    else:
+                        setattr(self, aliaS, np.dstack((getattr(self, aliaS), var)))
         # TR comment: looping on time indices is a trick from Mitchell O'Flaherty-Sproul to improve loading time
         else:
             I = 0
@@ -369,17 +374,22 @@ Some others shall be generated as methods are being called, ex:
                         var = data.variables[key].data[:,ID[0]:(ID[-1]+1)]
                     else:
                         var = data.variables[key][:,ID[0]:(ID[-1]+1)]
+                    if H == 0:
+                        setattr(self, aliaS,var)
+                        H = 1
+                    else:
+                        setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
                 else:
                     if self._scipynetcdf:
                         #TR : Don't I need to transpose here?
                         var = data.variables[key].data[:,:,ID[0]:(ID[-1]+1)]
                     else:
                         var = data.variables[key][:,:,ID[0]:(ID[-1]+1)]
-                if H == 0:
-                    setattr(self, aliaS,var)
-                    H = 1
-                else:
-                    setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
+                    if H == 0:
+                        setattr(self, aliaS,var)
+                        H = 1
+                    else:
+                        setattr(self, aliaS, np.dstack((getattr(self, aliaS), var)))
         else:
             # TR comment: looping on time indices is a trick from Mitchell O'Flaherty-Sproul to improve loading time
             if key in self._kwl2D:
