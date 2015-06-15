@@ -298,7 +298,7 @@ Some others shall be generated as methods are being called, ex:
                         setattr(self, aliaS,var)
                         H = 1
                     else:
-                        setattr(self, aliaS, np.dstack((getattr(self, aliaS), var)))
+                        setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
                 else:
                     if self._scipynetcdf:
                         #TR : Don't I need to transpose here?
