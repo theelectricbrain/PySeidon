@@ -488,12 +488,12 @@ class FunctionsFvcom:
             if type(index)==list:
                 index = index[0]
             #Mitchell's method to convert deg. coordinates to relative coordinates in meters
-            lonweight = (lon[trinodes[index,0]]\
-                       + lon[trinodes[index,1]]\
-                       + lon[trinodes[index,2]]) / 3.0
-            latweight = (lat[trinodes[index,0]]\
-                       + lat[trinodes[index,1]]\
-                       + lat[trinodes[index,2]]) / 3.0
+            lonweight = (lon[int(trinodes[index,0])]\
+                       + lon[int(trinodes[index,1])]\
+                       + lon[int(trinodes[index,2])]) / 3.0
+            latweight = (lat[int(trinodes[index,0])]\
+                       + lat[int(trinodes[index,1])]\
+                       + lat[int(trinodes[index,2])]) / 3.0
             TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
             pt_y = TPI * (pt_lat - latweight)
             dx_sph = pt_lon - lonweight
