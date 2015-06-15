@@ -284,6 +284,7 @@ Some others shall be generated as methods are being called, ex:
 
         if self._opendap:
         # loop over contiguous indexes for opendap
+            H = 0 #local counter
             for k, g in groupby(enumerate(region), lambda (i,x):i-x):
                 ID = map(itemgetter(1), g)
                 #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
@@ -299,8 +300,9 @@ Some others shall be generated as methods are being called, ex:
                         var = data.variables[key].data[ts:te,:,ID[0]:(ID[-1]+1)]
                     else:
                         var = data.variables[key][ts:te,:,ID[0]:(ID[-1]+1)]
-                if k == 0:
+                if H == 0:
                     setattr(self, aliaS,var)
+                    H = 1
                 else:
                     setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
         # TR comment: looping on time indices is a trick from Mitchell O'Flaherty-Sproul to improve loading time
@@ -357,6 +359,7 @@ Some others shall be generated as methods are being called, ex:
 
         if self._opendap:
         # loop over contiguous indexes for opendap
+            H = 0 #local counter
             for k, g in groupby(enumerate(region), lambda (i,x):i-x):
                 ID = map(itemgetter(1), g)
                 #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
@@ -372,8 +375,9 @@ Some others shall be generated as methods are being called, ex:
                         var = data.variables[key].data[:,:,ID[0]:(ID[-1]+1)]
                     else:
                         var = data.variables[key][:,:,ID[0]:(ID[-1]+1)]
-                if k == 0:
+                if H == 0:
                     setattr(self, aliaS,var)
+                    H = 1
                 else:
                     setattr(self, aliaS, np.hstack((getattr(self, aliaS), var)))
         else:
