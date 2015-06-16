@@ -430,11 +430,14 @@ class FunctionsFvcom:
     def index_finder(self, pt_lon, pt_lat, debug=False):
         """
         Finds closest node index of any given point
+
         :input:
           pt_lon = longitude in decimal degrees East to find, float number
           pt_lat = latitude in decimal degrees North to find, float number
+
         :option:
           debug = debug flag, boolean
+
         :return:
           index = integer if within a triangle, -1 if outside of domain
         """

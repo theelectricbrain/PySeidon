@@ -19,7 +19,8 @@ class _load_var:
     """
 'Variables' subset in FVCOM class contains the numpy arrays:
 
-Some variables are directly passed on from FVCOM output:
+Some variables are directly passed on from FVCOM output: ::
+
                    _el = elevation (m), 2D array (ntime, nnode)
                   |_julianTime = julian date, 1D array (ntime)
                   |_matlabTime = matlab time, 1D array (ntime)
@@ -33,8 +34,7 @@ Some variables are directly passed on from FVCOM output:
                   |     3D array (ntime, nlevel, nele)
                   |_w = w velocity component (m/s),
                         3D array (ntime, nlevel, nele)
-
-Some others shall be generated as methods are being called, ex:
+ Some others shall be generated as methods are being called, ex:
                   ...
                   |_hori_velo_norm = horizontal velocity norm (m/s),
                   |                  2D array (ntime, nele)
@@ -42,7 +42,8 @@ Some others shall be generated as methods are being called, ex:
                   |             3D array (ntime, nlevel, nele)
                   |_verti_shear = vertical shear (1/s),
                   |               3D array (ntime, nlevel, nele)
-                  |_vorticity...            
+                  |_vorticity...
+
     """
     def __init__(self, data, grid, tx, History, debug=False):
         self._debug = debug

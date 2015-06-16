@@ -33,51 +33,49 @@ from plotsFvcom import *
 
 class FVCOM:
     """
-A class/structure for FVCOM data.
-Functionality structured as follows::
+    A class/structure for FVCOM data.
+    Functionality structured as follows: ::
 
-            _Data. = raw netcdf file data
-           |_Variables. = fvcom variables and quantities
-           |_Grid. = fvcom grid data
-           |_History = Quality Control metadata
-    FVCOM._|_Utils2D. = set of useful functions and methods for 2D and 3D runs
-           |_Utils3D. = set of useful functions and methods for 3D runs
-           |_Plots. = plotting functions
-           |_Save_as = "save as" methods
+                _Data. = raw netcdf file data
+               |_Variables. = fvcom variables and quantities
+               |_Grid. = fvcom grid data
+               |_History = Quality Control metadata
+        FVCOM._|_Utils2D. = set of useful functions and methods for 2D and 3D runs
+               |_Utils3D. = set of useful functions and methods for 3D runs
+               |_Plots. = plotting functions
+               |_Save_as = "save as" methods
 
-:Inputs:
-  filename = path to file, string,
-               ex: testFvcom=FVCOM('./path_to_FVOM_output_file/filename').
-               Note that the file can be a pickle file (i.e. *.p)
-               or a netcdf file (i.e. *.nc).
-               Additionally, either a file path or a OpenDap url could be used. 
+    :Inputs:
+      filename = path to file, string,
+                ex: testFvcom = FVCOM('./path_to_FVOM_output_file/filename').
 
-:Options:
-  ax = defines for a specific spatial region to work with, as such:
-       ax = [minimun longitude, maximun longitude,
-             minimun latitude, maximum latitude]
-       or use one of the following pre-defined region:
-             ax = 'GP', 'PP', 'DG' or 'MP'
-       Note that this option permits to extract partial data from the overall file
-       and therefore reduce memory and cpu use.
+                Note that the file can be a pickle file (i.e. *.p) or a netcdf file (i.e. *.nc).
+                Additionally, either a file path or a OpenDap url could be used.
 
-  tx = defines for a specific temporal period to work with, as such:
-       tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'],
-       string of 'yyyy-mm-ddThh:mm:ss'.
-       Note that this option permits to extract partial data from the overall file
-       and therefore reduce memory and cpu use.
+    :Options:
+      ax = defines for a specific spatial region to work with, as such:
+           ax = [minimun longitude, maximun longitude, minimun latitude, maximum latitude]
+           or use one of the following pre-defined region: ax = 'GP', 'PP', 'DG' or 'MP'.
 
-*Notes*
-Throughout the package, the following conventions apply:
-  - Date = string of 'yyyy-mm-ddThh:mm:ss'
-  - Coordinates = decimal degrees East and North
-  - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
-                 +/-180=West, -90=South
-  - Depth = 0m is the free surface and depth is negative
+            Note that this option permits to extract partial data from the overall file
+            and therefore reduce memory and cpu use.
+
+      tx = defines for a specific temporal period to work with, as such:
+           tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'], string of 'yyyy-mm-ddThh:mm:ss'.
+
+           Note that this option permits to extract partial data from the overall file
+           and therefore reduce memory and cpu use.
+
+    **Notes**
+    Throughout the package, the following conventions apply:
+      - Date = string of 'yyyy-mm-ddThh:mm:ss'
+      - Coordinates = decimal degrees East and North
+      - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South
+      - Depth = 0m is the free surface and depth is negative
     """
 
     def __init__(self, filename, ax=[], tx=[], debug=False):
-        ''' Initialize FVCOM class.'''
+        """ Initialize FVCOM class."""
         self._debug = debug
         if debug: print '-Debug mode on-'
         #Force garbage collector when fvcom object created
@@ -220,10 +218,10 @@ Throughout the package, the following conventions apply:
     def __add__(self, FvcomClass, debug=False):
         """
         This special method permits to stack variables
-        of 2 FVCOM objects through a simple addition:
+        of 2 FVCOM objects through a simple addition: ::
           fvcom1 += fvcom2
 
-        Notes:
+        **Notes**
           - fvcom1 and fvcom2 have to cover the exact
             same spatial domain
           - last time step of fvcom1 must be <= to the 
@@ -295,11 +293,11 @@ Throughout the package, the following conventions apply:
            - *.p, i.e. python file
            - *.mat, i.e. Matlab file
 
-        Inputs:
-          - filename = path + name of the file to be saved, string
+        :Inputs:
+          filename = path + name of the file to be saved, string
 
-        Keywords:
-          - fileformat = format of the file to be saved, i.e. 'pickle', .netcdf. or 'matlab'
+        :Options:
+          fileformat = format of the file to be saved, i.e. 'pickle', .netcdf. or 'matlab'
         """
         debug = debug or self._debug
         if debug:
