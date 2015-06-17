@@ -13,7 +13,7 @@ from windrose import WindroseAxes
 from interpolation_utils import *
 
 class PlotsAdcp:
-    """'Plots' subset of FVCOM class gathers plotting functions"""
+    """ **'Plots' subset of FVCOM class gathers plotting functions**"""
     def __init__(self, variable, debug=False):
         self._debug = debug
         self._var = variable
@@ -32,7 +32,7 @@ class PlotsAdcp:
           - x = 1D array
           - y = 1D array
 
-        Keywords:
+        Options:
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -44,15 +44,15 @@ class PlotsAdcp:
                      Check doc. of "to_csv" for complete list of options
         """
         self._def_fig()
-        self._ax = self._fig.add_subplot(111)         
+        self._ax = self._fig.add_subplot(111)
         self._ax.plot(x, y, label=title)
         scale = 1
         self._ax.set_ylabel(yLabel)
         self._ax.set_xlabel(xLabel)
         self._ax.get_xaxis().set_minor_locator(ticker.AutoMinorLocator())
-	self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
-	self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
-	self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
+        self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
+        self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
+        self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
         if not yerror==[]:
             self._ax.fill_between(x, y-yerror, y+yerror,
             alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)        
@@ -66,9 +66,10 @@ class PlotsAdcp:
             #plt.legend([blue_patch],loc=1, fontsize=12)
 
         self._fig.show()
-        if dump: self._dump_profile_data_as_csv(x, y,xerror=xerror, yerror=yerror,
-                                                title=title, xLabel=xLabel,
-                                                yLabel=yLabel, **kwargs)  
+        if dump:
+            self._dump_profile_data_as_csv(x, y,xerror=xerror, yerror=yerror,
+                                           title=title, xLabel=xLabel,
+                                           yLabel=yLabel, **kwargs)
 
     def Histogram(self, y, title=' ', xLabel=' ', yLabel=' ', dump=False, **kwargs):
         """
@@ -78,7 +79,7 @@ class PlotsAdcp:
           - bins = list of bin edges
           - y = 1D array
 
-        Keywords:
+        Options:
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
@@ -96,9 +97,9 @@ class PlotsAdcp:
         formatter = ticker.FuncFormatter(lambda v, pos: str(v * 100))
         self._ax.yaxis.set_major_formatter(formatter)
         self._ax.get_xaxis().set_minor_locator(ticker.AutoMinorLocator())
-	self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
-	self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
-	self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
+        self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
+        self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
+        self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
 
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)

@@ -91,10 +91,6 @@ class rawADCP:
         rbrout['mtime'] = rbr.yd
         self.rbr = rbrout
 
-
-
-
-
 if __name__ == '__main__':
     #filename = 'GP-120726-BPd_raw.mat'
     filename = '140703-EcoEII_database/data/GP-120726-BPd_raw.mat'

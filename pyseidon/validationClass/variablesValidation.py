@@ -13,11 +13,14 @@ from pyseidon_error import PyseidonError
 
 class _load_validation:
     """
-'Variables' subset in Validation class contains the following items:
+    **'Variables' subset in Validation class**
 
-                           _obs. = measurement/observational variables
-    Validation.Variables._|_sim. = simulated variables
-                          |_struct. = dictionnary structure for validation purposes 
+    It contains the following items: ::
+
+                             _obs. = measurement/observational variables
+      Validation.Variables._|_sim. = simulated variables
+                            |_struct. = dictionnary structure for validation purposes
+
     """
     def __init__(self, observed, simulated, debug=False, debug_plot=False):
         if debug: print "..variables.."

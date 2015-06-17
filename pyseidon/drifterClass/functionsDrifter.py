@@ -5,7 +5,7 @@ from __future__ import division
 import numpy as np
 
 class FunctionsDrifter:
-    """Utils' subset of Tidegauge class gathers useful functions """
+    """**'Utils' subset of Tidegauge class gathers useful functions**"""
     def __init__(self,cls):
         self._var = cls.Variables
         self._debug = cls._debug

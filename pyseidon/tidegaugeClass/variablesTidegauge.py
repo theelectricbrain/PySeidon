@@ -6,13 +6,15 @@ import numpy as np
 
 class _load_tidegauge:
     """
-'Variables' subset in TideGauge class contains the following numpy arrays:
+    **'Variables' subset in TideGauge class**
 
-                       _lat = latitude, float, decimal degrees
-                      |_lon = lontitude, float, decimal degrees
- TideGauge.Variables._|_RBR = Raw recording and sampling features 
-                      |_matlabTime = matlab time, 1D array
-                      |_el = sea surface elevation (m) timeserie, 1D array 
+    It contains the following numpy arrays: ::
+
+                           _lat = latitude, float, decimal degrees
+                          |_lon = lontitude, float, decimal degrees
+     TideGauge.Variables._|_RBR = Raw recording and sampling features
+                          |_matlabTime = matlab time, 1D array
+                          |_el = sea surface elevation (m) timeserie, 1D array
     """
     def __init__(self, cls, debug=False):
         if debug: print 'Loading variables...'

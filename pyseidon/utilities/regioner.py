@@ -32,31 +32,28 @@ def element_region(ax, lonc, latc):
 
 def regioner(gridVar, ax, debug=False):
     """
-Takes as input a region (given by a four elemenTakes as input a region
-(given by a four element NumPy array),
-and some standard data output by ncdatasort and loadnc2d_python
-and returns only the data that lies within the region specified
-in the region arrayt NumPy array),
-and some standard data output by ncdatasort and loadnc2d_python
-and returns only the data that lies within the region specified
-in the region array
+    Takes as input a region (given by a four elemenTakes as input a region
+    (given by a four element NumPy array),
+    and some standard data output by ncdatasort and loadnc2d_python
+    and returns only the data that lies within the region specified
+    in the region arrayt NumPy array),
+    and some standard data output by ncdatasort and loadnc2d_python
+    and returns only the data that lies within the region specified
+    in the region array
 
-:Parameters:
-**region** -- four element array containing the four corners of the
-region box. Entires should be in the following form:
-[long1, long2, lat1, lat2] with the following property:
-abs(long1) < abs(long2), etc.
+    Inputs:
+      - region = four element array containing the four corners of the
+        region box. Entires should be in the following form:
+        [long1, long2, lat1, lat2] with the following property:
+        abs(long1) < abs(long2), etc.
+      - data = standard python data dictionary for these files
+      - name = what should the region be called in the output file
+      - savedir = where should the resultant data be saved? Default is
+        none, i.e. the data will not be saved, only returned.
 
-**data** -- standard python data dictionary for these files
-
-**name** -- what should the region be called in the output file?
-
-**savedir** -- where should the resultant data be saved? Default is
-none, i.e. the data will not be saved, only returned.
-
-**dim = {'2D', '3D'}** the dimension of the data to use regioner
-on. Default is 2D.
-"""
+    **dim = {'2D', '3D'}** the dimension of the data to use regioner
+    on. Default is 2D.
+    """
     if debug:
         print 'Reindexing...'
     lon = gridVar.lon[:]

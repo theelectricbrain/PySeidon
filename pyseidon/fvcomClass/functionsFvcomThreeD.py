@@ -20,9 +20,7 @@ from pydap.exceptions import ServerError
 #TR comment: This all routine needs to be tested and debugged
 class FunctionsFvcomThreeD:
     """
-    Description:
-    'Utils3D' subset of FVCOM class gathers
-    useful methods and functions for 3D runs
+    **'Utils3D' subset of FVCOM class gathers useful methods and functions for 3D runs**
     """
     def __init__(self, variable, grid, plot, util, History, debug):
         #Inheritance
@@ -46,7 +44,7 @@ class FunctionsFvcomThreeD:
         This method computes new grid variable: 'depth' (m)
         -> FVCOM.Grid.depth
 
-        Notes:
+        *Notes*
           - depth convention: 0 = free surface
           - Can take time over the full domain
         """
@@ -116,11 +114,11 @@ class FunctionsFvcomThreeD:
         Outputs:
           - dep = depth, 2D array (ntime, nlevel)
 
-        Keywords:
+        Options:
           - index = element index, interger. Use only if closest element
                     index is already known
 
-        Notes:
+        *Notes*
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -163,7 +161,7 @@ class FunctionsFvcomThreeD:
           - var = 3 dimensional (time, sigma level, element) variable, array
           - depth = interpolation depth (float in meters), negative from
                     water column top downwards
-        Keywords:
+        Options:
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
 
         Output:
@@ -280,7 +278,7 @@ class FunctionsFvcomThreeD:
         This method computes a new variable: 'vertical shear' (1/s)
         -> FVCOM.Variables.verti_shear
 
-        Notes:
+        *Notes*
           - Can take time over the full doma
         """
         debug = debug or self._debug
@@ -335,7 +333,7 @@ class FunctionsFvcomThreeD:
         Outputs:
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
-        Keywords:
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -346,7 +344,7 @@ class FunctionsFvcomThreeD:
           - graph = plots graph if True
           - dump = boolean, dump profile data in csv file
 
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -434,7 +432,7 @@ class FunctionsFvcomThreeD:
         This method computes a new variable: 'velocity norm' (m/s)
         -> FVCOM.Variables.velo_norm
 
-        Notes:
+        *Notes*
           -Can take time over the full domain
         """
         if debug or self._debug:
@@ -488,7 +486,7 @@ class FunctionsFvcomThreeD:
         Outputs:
           - velo_norm = velocity norm, 2D array (time, level)
 
-        Keywords:
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -497,7 +495,7 @@ class FunctionsFvcomThreeD:
           - graph = boolean, plots or not veritcal profile
           - dump = boolean, dump profile data in csv file
 
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -596,7 +594,7 @@ class FunctionsFvcomThreeD:
           - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
           - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
 
-        Keywords:
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -604,7 +602,7 @@ class FunctionsFvcomThreeD:
           - time_ind = time indices to work in, list of integers
           - vertical = True, compute flowDir for each vertical level
 
-        Notes:
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
@@ -667,7 +665,7 @@ class FunctionsFvcomThreeD:
         This method computes a new variable: 'flow directions' (deg.)
         -> FVCOM.Variables.flow_dir
 
-        Notes:
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - Can take time over the full domain
@@ -701,7 +699,7 @@ class FunctionsFvcomThreeD:
         This method creates a new variable: 'depth averaged vorticity' (1/s)
         -> FVCOM.Variables.vorticity
      
-        Notes:
+        *Notes*
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -784,13 +782,13 @@ class FunctionsFvcomThreeD:
         Outputs:
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
 
-        Keywords:
+        Options:
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
-        Notes:
+        *Notes*
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -874,7 +872,7 @@ class FunctionsFvcomThreeD:
         The power density (pd) is then calculated as follows:
             pd = 0.5*1025*(u**3)
 
-        Notes:
+        *Notes*
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -917,11 +915,11 @@ class FunctionsFvcomThreeD:
         Output:
           - pa = power assessment in (W/m2), 2D masked array (ntime, nele)
 
-        Keywords:
+        Options:
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
 
-        Notes:
+        *Notes*
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -981,7 +979,7 @@ class FunctionsFvcomThreeD:
           - start_pt = starting point, [longitude, latitude]
           - end_pt = ending point, [longitude, latitude]
 
-        Keywords:
+        Options:
           - time_ind = reference time indices for surface elevation, list of integer
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer

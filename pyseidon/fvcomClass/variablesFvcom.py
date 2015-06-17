@@ -17,32 +17,33 @@ from miscellaneous import mattime_to_datetime
 
 class _load_var:
     """
-'Variables' subset in FVCOM class contains the numpy arrays:
+    **'Variables' subset in FVCOM class contains the numpy arrays**
 
-Some variables are directly passed on from FVCOM output: ::
+    Some variables are directly passed on from FVCOM output: ::
 
-                   _el = elevation (m), 2D array (ntime, nnode)
-                  |_julianTime = julian date, 1D array (ntime)
-                  |_matlabTime = matlab time, 1D array (ntime)
-                  |_ua = depth averaged u velocity component (m/s),
-                  |      2D array (ntime, nele)
-                  |_va = depth averaged v velocity component (m/s),
- FVCOM.Variables._|      2D array (ntime, nele)
-                  |_u = u velocity component (m/s),
-                  |     3D array (ntime, nlevel, nele)
-                  |_v = v velocity component (m/s),
-                  |     3D array (ntime, nlevel, nele)
-                  |_w = w velocity component (m/s),
-                        3D array (ntime, nlevel, nele)
- Some others shall be generated as methods are being called, ex:
-                  ...
-                  |_hori_velo_norm = horizontal velocity norm (m/s),
-                  |                  2D array (ntime, nele)
-                  |_velo_norm = velocity norm (m/s),
-                  |             3D array (ntime, nlevel, nele)
-                  |_verti_shear = vertical shear (1/s),
-                  |               3D array (ntime, nlevel, nele)
-                  |_vorticity...
+                       _el = elevation (m), 2D array (ntime, nnode)
+                      |_julianTime = julian date, 1D array (ntime)
+                      |_matlabTime = matlab time, 1D array (ntime)
+                      |_ua = depth averaged u velocity component (m/s),
+                      |      2D array (ntime, nele)
+                      |_va = depth averaged v velocity component (m/s),
+     FVCOM.Variables._|      2D array (ntime, nele)
+                      |_u = u velocity component (m/s),
+                      |     3D array (ntime, nlevel, nele)
+                      |_v = v velocity component (m/s),
+                      |     3D array (ntime, nlevel, nele)
+                      |_w = w velocity component (m/s),
+                            3D array (ntime, nlevel, nele)
+
+    Some others shall be generated as methods are being called, ex: ::
+                      ...
+                      |_hori_velo_norm = horizontal velocity norm (m/s),
+                      |                  2D array (ntime, nele)
+                      |_velo_norm = velocity norm (m/s),
+                      |             3D array (ntime, nlevel, nele)
+                      |_verti_shear = vertical shear (1/s),
+                      |               3D array (ntime, nlevel, nele)
+                      |_vorticity...
 
     """
     def __init__(self, data, grid, tx, History, debug=False):
@@ -486,33 +487,33 @@ Some variables are directly passed on from FVCOM output: ::
 
 class _load_grid:
     """
-'Grid' subset in FVCOM class contains grid related quantities:
+    **'Grid' subset in FVCOM class contains grid related quantities**
 
-Some grid data are directly passed on from FVCOM output:
-              _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
-             |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
-             |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
-             |_latc = latitudes at elements (deg.), 2D array (ntime, nele)   
-             |_x = x coordinates at nodes (m), 2D array (ntime, nnode)
-             |_xc = x coordinates at elements (m), 2D array (ntime, nele)
-             |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
-             |_yc = y coordinates at nodes (m), 2D array (ntime, nele)
- FVCOM.Grid._|_h = bathymetry (m), 2D array (ntime, nnode)
-             |_nele = element dimension, integer
-             |_nnode = node dimension, integer
-             |_nlevel = vertical level dimension, integer
-             |_ntime = time dimension, integer
-             |_trinodes = surrounding node indices, 2D array (3, nele)
-             |_triele = surrounding element indices, 2D array (3, nele)
-             |_siglay = sigma layers, 2D array (nlevel, nnode)
-             |_siglay = sigma levels, 2D array (nlevel+1, nnode)
-             |_and a all bunch of grid parameters...
-             | i.e. a1u, a2u, aw0, awx, awy
+    Some grid data are directly passed on from FVCOM output: ::
+                  _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
+                 |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
+                 |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
+                 |_latc = latitudes at elements (deg.), 2D array (ntime, nele)
+                 |_x = x coordinates at nodes (m), 2D array (ntime, nnode)
+                 |_xc = x coordinates at elements (m), 2D array (ntime, nele)
+                 |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
+                 |_yc = y coordinates at nodes (m), 2D array (ntime, nele)
+     FVCOM.Grid._|_h = bathymetry (m), 2D array (ntime, nnode)
+                 |_nele = element dimension, integer
+                 |_nnode = node dimension, integer
+                 |_nlevel = vertical level dimension, integer
+                 |_ntime = time dimension, integer
+                 |_trinodes = surrounding node indices, 2D array (3, nele)
+                 |_triele = surrounding element indices, 2D array (3, nele)
+                 |_siglay = sigma layers, 2D array (nlevel, nnode)
+                 |_siglay = sigma levels, 2D array (nlevel+1, nnode)
+                 |_and a all bunch of grid parameters...
+                 | i.e. a1u, a2u, aw0, awx, awy
 
+    Some others shall be generated as methods are being called, ex: ::
+                 ...
+                 |_triangle = triangulation object for plotting purposes
 
-Some others shall be generated as methods are being called, ex:
-             ...
-             |_triangle = triangulation object for plotting purposes    
     """
     def __init__(self, data, ax, History, debug=False):
         self._debug = debug   

@@ -15,8 +15,7 @@ from interpolation_utils import *
 
 class PlotsFvcom:
     """
-    Description:
-    'Plots' subset of FVCOM class gathers plotting functions
+    **'Plots' subset of FVCOM class gathers plotting functions**
     """
     def __init__(self, variable, grid, debug):
         self._debug = debug
@@ -34,14 +33,13 @@ class PlotsFvcom:
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
                      degree=True, mesh=True, dump=False, debug=False, **kwargs):
-        '''
+        """
         2D xy colormap plot of any given variable and mesh.
 
         Input:
           - var = gridded variable, 1 D numpy array (nele or nnode)
 
-        Keywords:
-        --------
+        Options:
           - title = plot title, string
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
@@ -52,7 +50,7 @@ class PlotsFvcom:
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
-        '''
+        """
         debug = debug or self._debug
         if debug:
             print 'Plotting grid...'
@@ -201,7 +199,7 @@ class PlotsFvcom:
           - x = 1D array
           - y = 1D array
 
-        Keywords:
+        Options:
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -249,7 +247,7 @@ class PlotsFvcom:
           - bins = list of bin edges
           - y = 1D array
 
-        Keywords:
+        Options:
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
@@ -292,7 +290,7 @@ class PlotsFvcom:
           - x = float number or list of float numbers
           - y = float number or list of float numbers
 
-        Keywords:
+        Options:
           - Label = a string
           - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """

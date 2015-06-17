@@ -10,8 +10,7 @@ import pandas as pd
 
 class PlotsDrifter:
     """
-    Description:
-    'Plots' subset of Drifter class gathers plotting functions
+    **'Plots' subset of Drifter class gathers plotting functions**
     """
     def __init__(self, variable, debug):
         self._debug = debug
@@ -28,7 +27,7 @@ class PlotsDrifter:
         2D xy colormap plot of all the trajectories.
         Colors represent the drifter velocity
 
-        Keywords:
+        Options:
           - title = plot title, string
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar

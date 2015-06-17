@@ -66,7 +66,7 @@ class PlotsStation:
           - x = 1D array
           - y = 1D array
 
-        Keywords:
+        Options:
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -112,7 +112,7 @@ class PlotsStation:
           - bins = list of bin edges
           - y = 1D array
 
-        Keywords:
+        Options:
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
@@ -141,7 +141,7 @@ class PlotsStation:
           - x = float number
           - y = float numbe
 
-        Keywords:
+        Options:
           - Label = a string
           - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
         """

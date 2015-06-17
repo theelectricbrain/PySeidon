@@ -13,7 +13,7 @@ from pyseidon_error import PyseidonError
 
 def pyseidon_to_pickle(fvcom, filename, debug):
     """
-    save fvcom object in a pickle file
+    Saves fvcom object in a pickle file
 
     inputs:
       - fvcom = fvcom pyseidon object

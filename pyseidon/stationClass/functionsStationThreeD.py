@@ -14,9 +14,7 @@ from pyseidon_error import PyseidonError
 
 class FunctionsStationThreeD:
     """
-    Description:
-    'Utils3D' subset of Station class gathers
-    useful functions for 3D runs
+    **'Utils3D' subset of Station class gathers useful functions for 3D runs**
     """
     def __init__(self, variable, grid, plot, History, debug):
         #Inheritance
@@ -94,17 +92,15 @@ class FunctionsStationThreeD:
         Outputs:
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
-        Keywords:
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - bot_lvl = index of the bottom level to consider, integer
           - top_lvl = index of the top level to consider, integer
           - graph = plots graph if True
 
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -180,15 +176,13 @@ class FunctionsStationThreeD:
         Outputs:
           - velo_norm = velocity norm, 2D array (time, level)
 
-        Keywords:
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - graph = plots vertical profile averaged over time if True
 
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -257,15 +251,13 @@ class FunctionsStationThreeD:
           - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
           - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
 
-        Keywords:
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - vertical = True, compute flowDir for each vertical level
 
-        Notes:
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
@@ -304,7 +296,6 @@ class FunctionsStationThreeD:
                 print '...Passed'
 
         return dirFlow, norm
-
 
 #TR_comments: templates
 #    def whatever(self, debug=False):

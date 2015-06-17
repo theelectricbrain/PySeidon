@@ -20,16 +20,27 @@ def dn2dt(datenum):
 
 def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
               debug=False, debug_plot=False):
-    '''
-    Does a comprehensive validation process between modeled and observed
-    data on the following:
-        Current speed
-        Current direction
-        Harmonic constituents (for height and speed)
-
+    """
+    Does a comprehensive validation process between modeled and observed.
     Outputs a list of important statistics for each variable, calculated
     using the TidalStats class
-    '''
+
+    Inputs:
+        - data = dictionary containing all necessary observed and model data
+        - threeDim = boolean flag, 3D or not
+    Outputs
+       - elev_suite = dictionary of useful statistics for sea elevation
+       - speed_suite = dictionary of useful statistics for flow speed
+       - dir_suite = dictionary of useful statistics for flow direction
+       - u_suite = dictionary of useful statistics for u velocity component
+       - v_suite = dictionary of useful statistics for v velocity component
+       - vel_suite = dictionary of useful statistics for signed flow velocity
+       - csp_suite = dictionary of useful statistics for cubic flow speed
+    Options:
+       - depth = interpolation depth from surface, float
+       - plot = boolean flag for plotting results
+       - save_csv = boolean flag for saving statistical benchmarks in csv file
+    """
     if debug: print "CompareUV..."
     # take data from input dictionary
     mod_time = data['mod_time']
@@ -208,10 +219,15 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     """
     Does a comprehensive comparison between tide gauge height data and
-    modeled data, much like the above function.
+    modeled data.
 
-    Input is a dictionary containing all necessary tide gauge and model data.
-    Outputs a dictionary of useful statistics.
+    Input:
+       - data = dictionary containing all necessary tide gauge and model data.
+    Outputs
+       - elev_suite = dictionary of useful statistics
+    Options:
+       - plot = boolean flag for plotting results
+       - save_csv = boolean flag for saving statistical benchmarks in csv file
     """
     if debug: print "CompareTG..."
     # load data

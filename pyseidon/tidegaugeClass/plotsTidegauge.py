@@ -11,7 +11,9 @@ import seaborn
 import pandas as pd
 
 class PlotsTidegauge:
-    """'Plots' subset of Tidegauge class gathers plotting functions"""
+    """
+    **'Plots' subset of Tidegauge class gathers plotting functions**
+    """
     def __init__(self, variable, debug=False):
         self._debug = debug
         self._var = variable
@@ -30,7 +32,7 @@ class PlotsTidegauge:
           - x = 1D array
           - y = 1D array
 
-        Keywords:
+        Options:
           - xerror = error on 'x', 1D array
           - yerror = error on 'y', 1D array
           - title = plot title, string
@@ -50,9 +52,9 @@ class PlotsTidegauge:
         self._ax.set_ylabel(yLabel)
         self._ax.set_xlabel(xLabel)
         self._ax.get_xaxis().set_minor_locator(ticker.AutoMinorLocator())
-	self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
-	self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
-	self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
+        self._ax.get_yaxis().set_minor_locator(ticker.AutoMinorLocator())
+        self._ax.grid(b=True, which='major', color='w', linewidth=1.5)
+        self._ax.grid(b=True, which='minor', color='w', linewidth=0.5)
         if not yerror==[]:
             self._ax.fill_between(x, y-yerror, y+yerror,
             alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF', antialiased=True)        

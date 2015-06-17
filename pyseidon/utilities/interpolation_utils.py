@@ -447,7 +447,6 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
     Interpol any given variables at any give location.
 
     Inputs:
-    ------
       - var = variable, numpy array, dim=(time, nele or node)
       - pt_lon = longitude in degrees to find
       - pt_lat = latitude in degrees to find
@@ -455,10 +454,8 @@ def interp_at_point(var, pt_lon, pt_lat, lon, lat,
       - lat = list of latitudes of var, numpy array, dim=(nele or node)
       - trinodes = FVCOM trinodes, numpy array, dim=(3,nele)
     Keywords:
-    --------
       - tri = triangulation object
     Outputs:
-    -------
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:
@@ -516,7 +513,6 @@ def interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=False):
     Interpol at awkward locations.
 
     Inputs:
-    ------
       - var = variable, numpy array, dim=(time, nele)
       - pt_lon = longitude to find
       - pt_lat = latitude to find
@@ -524,7 +520,6 @@ def interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=False):
       - lonc = list of latitudes of var, numpy array, dim=(nele)
 
     Outputs:
-    -------
       - varInterp = var interpolate at (pt_lon, pt_lat)
     """
     if debug:

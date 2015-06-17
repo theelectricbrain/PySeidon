@@ -409,8 +409,7 @@ class TidalStats:
 
     def altPhase(self, debug=False):
         """
-        Alternate version of lag detection using scipy's cross correlation
-        function.
+        Alternate version of lag detection using scipy's cross correlation function.
         """
         if debug or self._debug: print "altPhase..."
         # normalize arrays

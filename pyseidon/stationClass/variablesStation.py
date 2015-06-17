@@ -11,26 +11,28 @@ from miscellaneous import mattime_to_datetime
 
 class _load_grid:
     """
-'Grid' subset in Station class contains grid related quantities:
+    **'Grid' subset in Station class contains grid related quantities**
 
-Some grid data are directly passed on from Station output:
-                _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
-               |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
- Station.Grid._|_x = x coordinates at nodes (m), 2D array (ntime, nnode)
-               |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
-               |_h = bathymetry (m), 2D array (ntime, nnode)
-               |_nele = element dimension, integer
-               |_nnode = node dimension, integer
-               |_nlevel = vertical level dimension, integer
-               |_ntime = time dimension, integer
-               |_siglay = sigma layers, 2D array (nlevel, nnode)
-               |_siglay = sigma levels, 2D array (nlevel+1, nnode)
-               |_name = name of the stations, (nnode, 20)
+    Some grid data are directly passed on from Station output: ::
 
+                    _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
+                   |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
+                   |_x = x coordinates at nodes (m), 2D array (ntime, nnode)
+                   |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
+                   |_h = bathymetry (m), 2D array (ntime, nnode)
+                   |_nele = element dimension, integer
+     Station.Grid._|_nnode = node dimension, integer
+                   |_nlevel = vertical level dimension, integer
+                   |_ntime = time dimension, integer
+                   |_siglay = sigma layers, 2D array (nlevel, nnode)
+                   |_siglay = sigma levels, 2D array (nlevel+1, nnode)
+                   |_name = name of the stations, (nnode, 20)
 
-Some others shall be generated as methods are being called, ex:
-             ...
-             |_triangle = triangulation object for plotting purposes    
+    Some others shall be generated as methods are being called, ex: ::
+
+                   ...
+                   |_triangle = triangulation object for plotting purposes
+
     """
     def __init__(self, data, elements, History, debug=False):  
         if debug:
@@ -66,31 +68,34 @@ Some others shall be generated as methods are being called, ex:
 
 class _load_var:
     """
-'Variables' subset in Station class contains the numpy arrays:
+    **'Variables' subset in Station class contains the hydrodynamic related quantities**
 
-Some variables are directly passed on from Station output:
-                     _el = elevation (m), 2D array (ntime, nnode)
-                    |_julianTime = julian date, 1D array (ntime)
-                    |_matlabTime = matlab time, 1D array (ntime)
-                    |_ua = depth averaged u velocity component (m/s),
-                    |      2D array (ntime, nele)
-                    |_va = depth averaged v velocity component (m/s),
- Station.Variables._|      2D array (ntime, nele)
-                    |_u = u velocity component (m/s),
-                    |     3D array (ntime, nlevel, nele)
-                    |_v = v velocity component (m/s),
-                    |     3D array (ntime, nlevel, nele)
-                    |_w = w velocity component (m/s),
-                          3D array (ntime, nlevel, nele)
+    Some variables are directly passed on from Station output: ::
 
-Some others shall be generated as methods are being called, ex:
-                    ...
-                    |_hori_velo_norm = horizontal velocity norm (m/s),
-                    |                  2D array (ntime, nele)
-                    |_velo_norm = velocity norm (m/s),
-                    |             3D array (ntime, nlevel, nele)
-                    |_verti_shear = vertical shear (1/s),
-                                  3D array (ntime, nlevel, nele)           
+                         _el = elevation (m), 2D array (ntime, nnode)
+                        |_julianTime = julian date, 1D array (ntime)
+                        |_matlabTime = matlab time, 1D array (ntime)
+                        |_ua = depth averaged u velocity component (m/s),
+                        |      2D array (ntime, nele)
+                        |_va = depth averaged v velocity component (m/s),
+     Station.Variables._|      2D array (ntime, nele)
+                        |_u = u velocity component (m/s),
+                        |     3D array (ntime, nlevel, nele)
+                        |_v = v velocity component (m/s),
+                        |     3D array (ntime, nlevel, nele)
+                        |_w = w velocity component (m/s),
+                              3D array (ntime, nlevel, nele)
+
+    Some others shall be generated as methods are being called, ex: ::
+
+                        ...
+                        |_hori_velo_norm = horizontal velocity norm (m/s),
+                        |                  2D array (ntime, nele)
+                        |_velo_norm = velocity norm (m/s),
+                        |             3D array (ntime, nlevel, nele)
+                        |_verti_shear = vertical shear (1/s),
+                                      3D array (ntime, nlevel, nele)
+
     """
     def __init__(self, data, elements, grid, History, debug=False):
         if debug: print 'Loading variables...'
@@ -110,13 +115,13 @@ Some others shall be generated as methods are being called, ex:
         self.julianTime = data.variables['time_JD'][:]
         self.secondTime = data.variables['time_second'][:]
         self.matlabTime = self.julianTime[:] + 678942.0 + self.secondTime[:] / (24*3600)
-        #-Append message to History field
-	start = mattime_to_datetime(self.matlabTime[0])
-	end = mattime_to_datetime(self.matlabTime[-1])
-	text = 'Full temporal domain from ' + str(start) +\
-	       ' to ' + str(end)
-	self._History.append(text)
-	#Add time dimension to grid variables
+        # Append message to History field
+        start = mattime_to_datetime(self.matlabTime[0])
+        end = mattime_to_datetime(self.matlabTime[-1])
+        text = 'Full temporal domain from ' + str(start) +\
+               ' to ' + str(end)
+        self._History.append(text)
+        # Add time dimension to grid variables
         grid.ntime = self.matlabTime.shape[0]
 
         if debug: print '...hydro variables...'

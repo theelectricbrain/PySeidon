@@ -9,7 +9,15 @@ from miscellaneous import *
 
 class _load_drifter:
     """
-'Variables' subset in Tidegauge class contains the following numpy arrays:
+    **'Variables' subset in Tidegauge class**
+    It contains the following numpy arrays: ::
+
+                         _u = u velocity component (m/s), 1D array (ntime)
+                        |_v = v velocity component (m/s), 1D array (ntime)
+     Drifter.Variables._|_matlabTime = matlab time, 1D array (ntime)
+                        |_lon = longitudes (deg.), 1D array (ntime)
+                        |_lat = latitudes (deg.), 1D array (ntime)
+
     """
     def __init__(self,cls, debug=False):
         if debug:

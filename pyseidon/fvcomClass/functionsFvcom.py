@@ -19,9 +19,7 @@ from pydap.exceptions import ServerError
 
 class FunctionsFvcom:
     """
-    Description:
-    'Util2D' subset of FVCOM class gathers
-    useful functions and methods for 2D and 3D runs
+    **'Util2D' subset of FVCOM class gathers useful functions and methods for 2D and 3D runs**
     """
     def __init__(self, variable, grid, plot, History, debug):
         self._debug = debug
@@ -40,7 +38,7 @@ class FunctionsFvcom:
         Create new variable 'bathy and elevation at center points' (m)
         -> FVCOM.Grid.hc, elc
 
-        Notes:
+        *Notes*
           - Can take time over the full domain
         """
         debug = debug or self._debug
@@ -111,9 +109,8 @@ class FunctionsFvcom:
         This method create new variable 'depth averaged flow directions' (deg.)
         -> FVCOM.Variables.depth_av_flow_dir
 
-        Notes:
-          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
-            +/-180=West, -90=South
+        *Notes*
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South
           - Can take time over the full domain
         """
         if debug or self._debug:
@@ -159,16 +156,13 @@ class FunctionsFvcom:
            - norm = velocity norm at (pt_lon, pt_lat), 1D array
 
         Keywords:
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - excedance = True, compute associated exceedance curve
 
-        Notes:
-          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
-            +/-180=West, -90=South
+        *Notes*
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South
         """
         debug = debug or self._debug
         if debug:
@@ -237,9 +231,8 @@ class FunctionsFvcom:
         Outputs:
           - bidir = 1D array of depth averaged bidirectionality, (nele)
 
-        Notes:
-          - bidirectionality between 0 and 90 deg., i.e. 0=perfect alignment,
-            90 = perpendicular abb and flood
+        *Notes*
+          - bidirectionality between 0 and 90 deg., i.e. 0=perfect alignment, 90 = perpendicular abb and flood
           - bidirectionality is weighted by the flow speed to filter out slack water
         """
         debug = debug or self._debug
@@ -289,17 +282,14 @@ class FunctionsFvcom:
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
-        Keywords:
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, 1D array of integers 
         
-        Notes:
+        *Notes*
           - may take time to compute if time period too long
-          - directions between -180 and 180 deg., i.e. 0=East, 90=North,
-            +/-180=West, -90=South
+          - directions between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
           - assume that flood is aligned with principal direction
         """
@@ -383,18 +373,16 @@ class FunctionsFvcom:
           - pt_lon = longitude in decimal degrees East to find, float number 
           - pt_lat = latitude in decimal degrees North to find,float number 
 
-        Keywords:
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, 1D array of integers 
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
         
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -431,15 +419,15 @@ class FunctionsFvcom:
         """
         Finds closest node index of any given point
 
-        :input:
-          pt_lon = longitude in decimal degrees East to find, float number
-          pt_lat = latitude in decimal degrees North to find, float number
+        Inputs:
+          - pt_lon = longitude in decimal degrees East to find, float number
+          - pt_lat = latitude in decimal degrees North to find, float number
 
-        :option:
-          debug = debug flag, boolean
+        Option:
+          - debug = debug flag, boolean
 
-        :return:
-          index = integer if within a triangle, -1 if outside of domain
+        Output:
+          - index = integer if within a triangle, -1 if outside of domain
         """
         # Checking if point in domain
         if not hasattr(self._grid, 'triangleLL'):
@@ -466,11 +454,11 @@ class FunctionsFvcom:
         Outputs:
            - varInterp = var interpolated at (pt_lon, pt_lat)
 
-        Keywords:
+        Options:
           - index = element index, integer. Use only if closest element index
                     is already known
 
-        Notes:
+        *Notes*
           - use index if closest element already known
         """
         debug = (debug or self._debug)
@@ -531,9 +519,8 @@ class FunctionsFvcom:
         Inputs:
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
 
-        Keywords:
-          - pt_lon, pt_lat = coordinates, float numbers.
-                             Necessary if var = 2D (i.e. [time, nnode or nele]
+        Options:
+          - pt_lon, pt_lat = coordinates, float numbers. Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
           - dump = boolean, dump graph data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
@@ -544,7 +531,7 @@ class FunctionsFvcom:
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
-        Notes:
+        *Notes*
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -598,7 +585,7 @@ class FunctionsFvcom:
         This method creates a new variable: 'depth averaged vorticity (1/s)'
         -> FVCOM.Variables.depth_av_vorticity
      
-        Notes:
+        *Notes*
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -669,13 +656,11 @@ class FunctionsFvcom:
         Outputs:
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
 
-        Keywords:
+        Options:
           - time_ind = time indices to work in, list of integers
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                     or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
-        Notes:
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+        *Notes*
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -756,7 +741,7 @@ class FunctionsFvcom:
         This method creates a new grid variable: 'depth2D' (m)
         -> FVCOM.Grid.depth2D
 
-        Notes:
+        *Notes*
           - depth convention: 0 = free surface
           - Can take time over the full domain
         """
@@ -805,10 +790,10 @@ class FunctionsFvcom:
         Outputs:
           - dep = depth, 2D array (ntime, nlevel)
 
-        Keywords:
+        Options:
           - index = element index, interger
 
-        Notes:
+        *Notes*
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -851,14 +836,10 @@ class FunctionsFvcom:
         """
         This method creates a new variable: 'depth averaged power density' (W/m2)
         -> FVCOM.Variables.depth_av_power_density
-    
-        Description:
-        The power density (pd) is then calculated as follows:
-            pd = 0.5*1025*(u**3)
-    
-        Notes:
-          - This may take some time to compute depending on the size
-            of the data set
+
+        *Notes*
+          - The power density (pd) is then calculated as follows: pd = 0.5*1025*(u**3)
+          - This may take some time to compute depending on the size of the data set
         """
         debug = (debug or self._debug)
         if debug: print "Computing depth averaged power density..."
@@ -881,28 +862,20 @@ class FunctionsFvcom:
         This method creates a new variable: 'depth averaged power assessment' (W/m2)
         -> FVCOM.Variables.depth_av_power_assessment
 
-        Description:
-        This function performs tidal turbine power assessment by accounting for
-        cut-in and cut-out speed, power curve/function (pc):
-            Cp = pc(u)
-           (where u is the flow speed)
-
-        The power density (pd) is then calculated as follows:
-            pd = Cp*(1/2)*1025*(u**3)
-
         Inputs:
           - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
                         u being power_mat[0,:] and Ct(u) being power_mat[1,:]
           - rated_speed = rated speed speed in m/s, float number
 
-        Keywords:
+        Options:
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
 
-        Notes:
-        -----
-          - This may take some time to compute depending on the size
-            of the data set
+        *Notes*
+          - The power density (pd) is then calculated as follows: pd = Cp*(1/2)*1025*(u**3)
+          - This function performs tidal turbine power assessment by accounting for
+            cut-in and cut-out speed, power curve/function (pc): Cp = pc(u) (where u is the flow speed)
+          - This may take some time to compute depending on the size of the data set
         """
         debug = (debug or self._debug)
         if debug: print "Computing depth averaged power density..."
@@ -955,7 +928,6 @@ class FunctionsFvcom:
                                    elevation=True, velocity=False,
                                    debug=False, **kwarg):
         """
-        Description:
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
@@ -966,16 +938,14 @@ class FunctionsFvcom:
         Outputs:
           - harmo = harmonic coefficients, dictionary
 
-        Keywords:
+        Options:
           - time_ind = time indices to work in, list of integers
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                     or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - elevation=True means that ut_solv will be done for elevation.
           - velocity=True means that ut_solv will be done for velocity.
 
-        Options:
+        Utide's options:
         Options are the same as for ut_solv, which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
@@ -984,7 +954,7 @@ class FunctionsFvcom:
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
 
-        Notes:
+        *Notes*
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
 
@@ -1044,7 +1014,6 @@ class FunctionsFvcom:
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
                                 time_ind=slice(None), debug=False, **kwarg):
         """
-        Description:
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
@@ -1064,7 +1033,7 @@ class FunctionsFvcom:
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
-        Notes:
+        *Notes*
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
 

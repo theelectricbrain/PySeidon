@@ -24,39 +24,40 @@ from plotsStation import *
 
 class Station:
     """
-Description:
-  A class/structure for Station data.
-  Functionality structured as follows:
-                _Data. = raw netcdf file data
-               |_Variables. = fvcom station variables and quantities
-               |_Grid. = fvcom station grid data
-               |_History = Quality Control metadata
-    testFvcom._|_Utils2D. = set of useful functions for 2D and 3D station
-               |_Utils3D. = set of useful functions for 3D station
-               |_Plots. = plotting functions
-               |_Harmonic_analysis = harmonic analysis based UTide package
-               |_Harmonic_reconstruction = harmonic reconstruction based UTide package
+    **A class/structure for Station data**
 
-Inputs:
-  - filename = path to netcdf file or folder, string, 
-               ex: testFvcom=Station('./path_to_FVOM_output_file/filename')
-                   testFvcom=Station('./path_to_FVOM_output_file/folder/')
+    Functionality structured as follows: ::
 
-    Note that if the path point to a folder all the similar netCDF station files
-    will be stack together.
-    Note that the file can be a pickle file (i.e. *.p) or a netcdf file 
-    (i.e. *.nc).           
+                  _Data. = raw netcdf file data
+                 |_Variables. = fvcom station variables and quantities
+                 |_Grid. = fvcom station grid data
+                 |_History = Quality Control metadata
+        Station._|_Utils2D. = set of useful functions for 2D and 3D station
+                 |_Utils3D. = set of useful functions for 3D station
+                 |_Plots. = plotting functions
+                 |_Harmonic_analysis = harmonic analysis based UTide package
+                 |_Harmonic_reconstruction = harmonic reconstruction based UTide package
 
-Options:
-  - elements = indices to extract, list of integers
+    Inputs:
+      - filename = path to netcdf file or folder, string,
+                   ex: testFvcom=Station('./path_to_FVOM_output_file/filename')
+                       testFvcom=Station('./path_to_FVOM_output_file/folder/')
 
-Notes:
-  Throughout the package, the following conventions aplly:
-  - Date = string of 'yyyy-mm-ddThh:mm:ss'
-  - Coordinates = decimal degrees East and North
-  - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
-                 +/-180=West, -90=South
-  - Depth = 0m is the free surface and depth is negative
+        Note that if the path point to a folder all the similar netCDF station files
+        will be stack together.
+        Note that the file can be a pickle file (i.e. *.p) or a netcdf file (i.e. *.nc).
+
+    Options:
+      - elements = indices to extract, list of integers
+
+    *Notes*
+      Throughout the package, the following conventions apply:
+      - Date = string of 'yyyy-mm-ddThh:mm:ss'
+      - Coordinates = decimal degrees East and North
+      - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
+                     +/-180=West, -90=South
+      - Depth = 0m is the free surface and depth is negative
+
     """
     def __init__(self, filename, elements=slice(None), debug=False):
         #Class attributs
@@ -200,10 +201,11 @@ Notes:
     def __add__(self, StationClass, debug=False):
         """
         This special method permit to stack variables
-        of 2 Station objects through a simple addition:
+        of 2 Station objects through a simple addition: ::
+
           station1 += station2
 
-        Notes:
+        *Notes*
           - station1 and station2 have to cover the exact
             same spatial domain
           - last time step of station1 must be <= to the 
@@ -301,7 +303,7 @@ Notes:
         Inputs:
           - filename = path + name of the file to be saved, string
 
-        Keywords:
+        Options:
           - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
         """
         debug = debug or self._debug
@@ -396,14 +398,3 @@ Notes:
             print "---Wrong file format---"   
 
 #if __name__ == '__main__':
-    #filename = '/array2/data3/rkarsten/dncoarse_3D/output2/dn_coarse_station_timeseries.nc'
-    #filename = '/array2/data3/rkarsten/dncoarse_3D/output2/dn_coarse_station_timeseries.nc'
-    #filename = '/EcoII/EcoEII_server_data_tree/data/simulated/FVCOM/dngrid/june_2013_3D/'
-    #multi = True
-    #if multi:
-        #filename = '/home/wesley/ncfiles/'
-    #    filename = '/EcoII/EcoEII_server_data_tree/workspace/simulated/FVCOM/dngrid/june_2013_3D/output/'
-    #else:
-    #    filename = '/home/wesley/ncfiles/dn_coarse_station_timeseries.nc'
-
-    #data = station(filename)

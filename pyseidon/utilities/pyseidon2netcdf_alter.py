@@ -11,7 +11,7 @@ import netCDF4 as nc
 
 def pyseidon_to_netcdf(fvcom, filename, debug):
     """
-    save fvcom object in a pickle file
+    Saves fvcom object in a pickle file
 
     inputs:
       - fvcom = fvcom pyseidon object

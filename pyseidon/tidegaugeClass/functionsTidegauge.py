@@ -7,7 +7,9 @@ from utide import ut_solv, ut_reconstr
 from miscellaneous import mattime_to_datetime 
 
 class FunctionsTidegauge:
-    """'Utils' subset of TideGauge class gathers useful functions"""
+    """
+    **'Utils' subset of TideGauge class gathers useful functions**
+    """
     def __init__(self, variable, plot, History, debug=False):
         self._var = variable
         self._plot = plot
@@ -18,17 +20,16 @@ class FunctionsTidegauge:
 
     def harmonics(self, time_ind=slice(None), **kwarg):
         """
-        Description:
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Outputs:
           - harmo = harmonic coefficients, dictionary
 
-        Keywords:
+        Options:
           - time_ind = time indices to work in, list of integers
 
-        Options:
+        Utide's options:
         Options are the same as for ut_solv, which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
@@ -37,7 +38,7 @@ class FunctionsTidegauge:
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
 
-        Notes:
+        *Notes*
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
         """
@@ -48,7 +49,6 @@ class FunctionsTidegauge:
 
     def reconstr(self, harmo, time_ind=slice(None), **kwarg):
         """
-        Description:
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
@@ -57,18 +57,18 @@ class FunctionsTidegauge:
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
 
-        Output:
+        Options:
           - Reconstruct = reconstructed signal, dictionary
 
         Keywords:
           - time_ind = time indices to process, list of integers
 
-        Options:
+        Utide's options:
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
-        Notes:
+        *Notes*
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
         """

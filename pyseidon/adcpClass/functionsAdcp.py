@@ -14,7 +14,7 @@ import time
 from miscellaneous import mattime_to_datetime 
 
 class FunctionsAdcp:
-    ''''Utils' subset of FVCOM class gathers useful functions""" '''
+    """ **'Utils' subset of FVCOM class gathers useful functions** """
     def __init__(self, variable, plot, History, debug=False):
         self._debug = debug
         self._var = variable
@@ -33,7 +33,7 @@ class FunctionsAdcp:
            - flowDir = flowDir at station, 1D array
            - norm = velocity norm at station, 1D array
 
-        Keywords:
+        Options:
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -41,7 +41,7 @@ class FunctionsAdcp:
           - time_ind = time indices to work in, list of integers
           - excedance = True, compute associated exceedance curve
 
-        Notes:
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -94,14 +94,14 @@ class FunctionsAdcp:
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
-        Keywords:
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, 1D array of integers 
         
-        Notes:
+        *Notes*
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -209,7 +209,7 @@ class FunctionsAdcp:
         Inputs:
           - var = given quantity, 1 array of n elements
 
-        Keywords:
+        Options:
           - graph: True->plots curve; False->does not
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
@@ -220,8 +220,7 @@ class FunctionsAdcp:
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
-        Notes:
-        -----
+        *Notes*
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -266,7 +265,7 @@ class FunctionsAdcp:
         This function plots the histogram of occurrences for the signed
         flow speed.
 
-        Keywords:
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -277,7 +276,7 @@ class FunctionsAdcp:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
         
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -313,14 +312,13 @@ class FunctionsAdcp:
                           elevation=True, velocity=False,
                           debug=False, **kwargs):
         '''
-        Description:
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Outputs:
           - harmo = harmonic coefficients, dictionary
 
-        Keywords:
+        Options:
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
@@ -338,7 +336,7 @@ class FunctionsAdcp:
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
 
-        Notes:
+        *Notes*
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
 
@@ -386,7 +384,6 @@ class FunctionsAdcp:
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
                                 time_ind=slice(None), debug=False, **kwargs):
         """
-        Description:
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
@@ -401,12 +398,12 @@ class FunctionsAdcp:
         Output:
           - Reconstruct = reconstructed signal, dictionary
 
-        Options:
+        Utide's options:
         Options are the same as for ut_reconstr, which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
-        Notes:
+        *Notes*
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
         """
@@ -431,7 +428,7 @@ class FunctionsAdcp:
         Outputs:
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
-        Keywords:
+        Utide's options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -443,7 +440,7 @@ class FunctionsAdcp:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
 
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -502,7 +499,7 @@ class FunctionsAdcp:
         Outputs:
           - velo_norm = velocity norm, 2D array (time, level)
 
-        Keywords:
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -514,7 +511,7 @@ class FunctionsAdcp:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
 
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -560,7 +557,6 @@ class FunctionsAdcp:
 
     def mattime2datetime(self, mattime, debug=False):
         """
-        Description:
         Output the time (yyyy-mm-dd, hh:mm:ss) corresponding to
         a given matlab time
 

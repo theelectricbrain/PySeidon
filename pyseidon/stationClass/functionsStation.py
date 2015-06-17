@@ -15,9 +15,7 @@ from pyseidon_error import PyseidonError
 
 class FunctionsStation:
     """
-    Description:
-    'Util2D' subset of Station class gathers
-    useful functions for 2D and 3D runs
+    **'Util2D' subset of Station class gathers useful functions for 2D and 3D runs**
     """
     def __init__(self, variable, grid, plot, History, debug):
         self._debug = debug
@@ -58,15 +56,13 @@ class FunctionsStation:
            - flowDir = flowDir at station, 1D array
            - norm = velocity norm at station, 1D array
 
-        Keywords:
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - excedance = True, compute associated exceedance curve
 
-        Notes:
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -126,14 +122,12 @@ class FunctionsStation:
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
-        Keywords:
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
-          - time_ind = time indices to work in, 1D array of integers 
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - time_ind = time indices to work in, list of integers
         
-        Notes:
+        *Notes*
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -241,7 +235,7 @@ class FunctionsStation:
         Inputs:
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
 
-        Keywords:
+        Options:
           - station = either station index (interger) or name (string)
                       Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
@@ -250,7 +244,7 @@ class FunctionsStation:
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
-        Notes:
+        *Notes*
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -308,7 +302,7 @@ class FunctionsStation:
         Outputs:
           - dep = depth, 2D array (ntime, nlevel)
 
-        Notes:
+        *Notes*
           - depth convention: 0 = free surface
         """
         debug = debug or self._debug
@@ -338,14 +332,12 @@ class FunctionsStation:
         Inputs:
           - station = either station index (interger) or name (string)
 
-        Keywords:
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
-          - time_ind = time indices to work in, 1D array of integers 
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - time_ind = time indices to work in, list of integers
         
-        Notes:
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -381,8 +373,7 @@ class FunctionsStation:
                                    time_ind=[], t_start=[], t_end=[],
                                    elevation=True, velocity=False,
                                    debug=False, **kwarg):
-        '''
-        Description:
+        """
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
@@ -392,16 +383,14 @@ class FunctionsStation:
         Outputs:
           - harmo = harmonic coefficients, dictionary
 
-        Keywords:
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                     or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
           - elevation=True means that ut_solv will be done for elevation.
           - velocity=True means that ut_solv will be done for velocity.
 
-        Options:
+        Utide's options:
         Options are the same as for ut_solv, which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
@@ -410,11 +399,11 @@ class FunctionsStation:
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
 
-        Notes:
+        *Notes*
         For more detailed information about ut_solv, please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
 
         #Search for the station
@@ -460,8 +449,7 @@ class FunctionsStation:
 
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
                                 time_ind=slice(None), debug=False, **kwarg):
-        '''
-        Description:
+        """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
         Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
@@ -481,11 +469,11 @@ class FunctionsStation:
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
-        Notes:
+        *Notes*
         For more detailed information about ut_reconstr, please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug

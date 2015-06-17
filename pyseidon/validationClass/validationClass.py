@@ -22,14 +22,16 @@ from pyseidon_error import PyseidonError
 
 class Validation:
     """
-    Validation class/structure.
-    Functionality structured as follows:
-                 _History = Quality Control metadata
-                |_Variables. = observed and simulated variables and quantities
-                |_validate_data = validation method/function against timeseries
-    Validation._|_validate_harmonics = validation method/function against 
-                |                      harmonic coefficients
-                |_Save_as = "save as" function 
+    **Validation class/structure**
+
+    Class structured as follows: ::
+
+                   _History = Quality Control metadata
+                  |_Variables. = observed and simulated variables and quantities
+                  |_validate_data = validation method/function against timeseries
+      Validation._|_validate_harmonics = validation method/function against
+                  |                      harmonic coefficients
+                  |_Save_as = "save as" function
 
     Inputs:
       - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
@@ -51,27 +53,27 @@ class Validation:
         This method computes series of standard validation benchmarks.
 
         Options:
-          - filename: file name of the .csv file to be saved, string.
-          - depth: depth at which the validation will be performed, float.
+          - filename = file name of the .csv file to be saved, string.
+          - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
-          - plot: plot series of valiudation graphs, boolean.
-          - save_csv: will save both observed and modeled interpolated
+          - plot = plot series of valiudation graphs, boolean.
+          - save_csv = will save both observed and modeled interpolated
                       timeseries into *.csv file  
 
-        References:
-        - NOAA. NOS standards for evaluating operational nowcast and
-          forecast hydrodynamic model systems, 2003.
+        *References*
+          - NOAA. NOS standards for evaluating operational nowcast and
+            forecast hydrodynamic model systems, 2003.
 
-        - K. Gunn, C. Stock-Williams. On validating numerical hydrodynamic
-          models of complex tidal flow, International Journal of Marine Energy, 2013
+          - K. Gunn, C. Stock-Williams. On validating numerical hydrodynamic
+            models of complex tidal flow, International Journal of Marine Energy, 2013
 
-        - N. Georgas, A. Blumberg. Establishing Confidence in Marine Forecast
-          Systems: The design and skill assessment of the New York Harbor Observation
-          and Prediction System, version 3 (NYHOPS v3), 2009
+          - N. Georgas, A. Blumberg. Establishing Confidence in Marine Forecast
+            Systems: The design and skill assessment of the New York Harbor Observation
+            and Prediction System, version 3 (NYHOPS v3), 2009
 
-        - Liu, Y., P. MacCready, B. M. Hickey, E. P. Dever, P. M. Kosro, and
-          N. S. Banas (2009), Evaluation of a coastal ocean circulation model for
-          the Columbia River plume in summer 2004, J. Geophys. Res., 114
+          - Liu, Y., P. MacCready, B. M. Hickey, E. P. Dever, P. M. Kosro, and
+            N. S. Banas (2009), Evaluation of a coastal ocean circulation model for
+            the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         debug = debug or self._debug
         debug_plot = debug_plot or self._debug_plot    
@@ -161,8 +163,8 @@ class Validation:
         Plots Taylor diagram based on the results of 'validate_data'
 
         Options:
-          filename = name of the plot file, string
-          save = save as *.png, boolean
+          - filename = name of the plot file, string
+          - save = save as *.png, boolean
         """
         try:
             taylorDiagram(self.Benchmarks, save=save, out_f=filename, debug=False)
@@ -385,7 +387,7 @@ class Validation:
         Inputs:
           - filename = path + name of the file to be saved, string
 
-        Keywords:
+        Options:
           - fileformat = format of the file to be saved, i.e. 'pickle' or 'matlab'
         """
         debug = debug or self._debug

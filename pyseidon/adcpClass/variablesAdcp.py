@@ -8,24 +8,27 @@ import h5py
 
 class _load_adcp:
     """
-'Variables' subset in ADCP class contains the following numpy arrays:
+    **'Variables' subset in ADCP class**
 
-                  _bins = depth of measurement bins, 1D array, shape=(bins)
-                 |_depth = depth of measurement bins, 1D array, shape=(bins)
-                 |_dir_vel = velocity direction time serie, 2D array, shape=(time,bins)
-                 |_east_vel = East velocity time serie, 2D array, shape=(time,bins)
-                 |_lat = latitude, float, decimal degrees
-                 |_lon = lontitude, float, decimal degrees
-                 |_mag_signed_vel = signed velocity time serie, 2D array, shape=(time,bins)
-                 |_matlabTime = matlab time, 1D array, shape=(time)
- ADCP.Variables._|_north_vel = East velocity time serie, 2D array, shape=(time,bins) 
-                 |_percent_of_depth = percent of the water column measured by ADCP, float
-                 |_surf = pressure at surface timeserie, 1D array, shape=(time)
-                 |_el = elevation (m) at surface timeserie, 1D array, shape=(time)
-                 |_ua = depth averaged velocity component timeserie, 1D array, shape=(time)
-                 |_va = depth averaged velocity component timeserie, 1D array, shape=(time)
-                 |_ucross = ???, 1D array, shape=(time)
-                 |_ualong = ???, 1D array, shape=(time)
+    It contains the following numpy arrays: ::
+
+                      _bins = depth of measurement bins, 1D array, shape=(bins)
+                     |_depth = depth of measurement bins, 1D array, shape=(bins)
+                     |_dir_vel = velocity direction time serie, 2D array, shape=(time,bins)
+                     |_east_vel = East velocity time serie, 2D array, shape=(time,bins)
+                     |_lat = latitude, float, decimal degrees
+                     |_lon = lontitude, float, decimal degrees
+                     |_mag_signed_vel = signed velocity time serie, 2D array, shape=(time,bins)
+                     |_matlabTime = matlab time, 1D array, shape=(time)
+     ADCP.Variables._|_north_vel = East velocity time serie, 2D array, shape=(time,bins)
+                     |_percent_of_depth = percent of the water column measured by ADCP, float
+                     |_surf = pressure at surface timeserie, 1D array, shape=(time)
+                     |_el = elevation (m) at surface timeserie, 1D array, shape=(time)
+                     |_ua = depth averaged velocity component timeserie, 1D array, shape=(time)
+                     |_va = depth averaged velocity component timeserie, 1D array, shape=(time)
+                     |_ucross = ???, 1D array, shape=(time)
+                     |_ualong = ???, 1D array, shape=(time)
+
     """
     def __init__(self,cls, debug=False):
         if debug:
