@@ -111,9 +111,8 @@ class _load_validation:
                         elif userInp == 'sf':
                             #Import only the surface velocities
                             #TR_comment: is surface vertical indice -1 or 0?
-                            #KC Comment: switch sf to layer 2, ignore layer 1 for now
-                            uSim = np.squeeze(self.sim.u[self._C,1,:])
-                            vSim = np.squeeze(self.sim.v[self._C,1,:])
+                            uSim = np.squeeze(self.sim.u[self._C,0,:])
+                            vSim = np.squeeze(self.sim.v[self._C,0,:])
                             self.sim._3D = False
                             lock=False
                             if debug:
