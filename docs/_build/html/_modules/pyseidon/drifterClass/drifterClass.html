@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.drifterClass.drifterClass &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.drifterClass.drifterClass</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span> 
+<span class="kn">import</span> <span class="nn">scipy.io</span> <span class="kn">as</span> <span class="nn">sio</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+
+<span class="c">#Add local path to utilities</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;../utilities/&#39;</span><span class="p">)</span>
+
+<span class="c">#Local import</span>
+<span class="kn">from</span> <span class="nn">variablesDrifter</span> <span class="kn">import</span> <span class="n">_load_drifter</span>
+<span class="kn">from</span> <span class="nn">functionsDrifter</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">plotsDrifter</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="Drifter"><a class="viewcode-back" href="../../../pyseidon.drifterClass.html#pyseidon.Drifter">[docs]</a><span class="k">class</span> <span class="nc">Drifter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **A class/structure for Drifter data**</span>
+
+<span class="sd">    Functionality structured as follows: ::</span>
+
+<span class="sd">                   _Data. = raw matlab file data</span>
+<span class="sd">                  |_Variables. = useable drifter variables and quantities</span>
+<span class="sd">                  |_History = Quality Control metadata</span>
+<span class="sd">        testAdcp._|_Utils. = set of useful functions</span>
+<span class="sd">                  |_Plots. = plotting functions</span>
+<span class="sd">                  |_method_1</span>
+<span class="sd">                  | ...      = methods and analysis techniques intrinsic to drifters</span>
+<span class="sd">                  |_method_n</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">      - Only takes a file name as input, ex: testDrifter=Drifter(&#39;./path_to_matlab_file/filename&#39;)</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">      Only handle fully processed drifter matlab data previously quality-controlled at the mo.</span>
+
+<span class="sd">      Throughout the package, the following conventions apply:</span>
+<span class="sd">      - Coordinates = decimal degrees East and North</span>
+<span class="sd">      - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</span>
+<span class="sd">                     +/-180=West, -90=South</span>
+<span class="sd">      - Depth = 0m is the free surface and depth is negative</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize Drifter class.</span>
+<span class="sd">            Notes: only handle processed Drifter matlab data at the mo.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;-Debug mode on-&#39;</span>
+        <span class="c">#Load data from Matlab file </span>
+        <span class="c">#TR_comments: find a way to dissociate raw and processed data</span>
+        <span class="c">#TR_comments: *_Raw and *_10minavg open with h5py whereas *_davgBS</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="n">struct_as_record</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">squeeze_me</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="c">#Store info in &quot;History&quot; field</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">History</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Created from&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">]</span>
+
+        <span class="c"># KC comment: for some reason, some drifter MATLAB files </span>
+        <span class="c"># have &#39;Comments&#39; as a key in the variables structure,</span>
+        <span class="c"># while others have &#39;comments&#39; as a key.</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;-adding comments to History-&#39;</span>
+
+        <span class="k">if</span> <span class="s">&#39;Comments&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="s">&#39;Comments&#39;</span><span class="p">][:]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">comment</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="s">&#39;comments&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="s">&#39;comments&#39;</span><span class="p">][:]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">comment</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;-no comments found-&#39;</span>
+
+
+        <span class="c">#Initialize class structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span> <span class="o">=</span> <span class="n">_load_drifter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span> <span class="o">=</span> <span class="n">PlotsDrifter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+        <span class="c">#self.Utils = FunctionsAdcp(self.Variables,</span>
+        <span class="c">#                           self.Plots,</span>
+        <span class="c">#                           self.History,</span>
+        <span class="c">#                           debug=self._debug) </span>
+
+        <span class="c">##Re-assignement of utility functions as methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dump_data_as_csv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="o">.</span><span class="n">_dump_data_as_csv</span>    
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

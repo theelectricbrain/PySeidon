@@ -518,7 +518,6 @@ class FunctionsFvcom:
 
         Inputs:
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
-
         Options:
           - pt_lon, pt_lat = coordinates, float numbers. Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
@@ -526,11 +525,9 @@ class FunctionsFvcom:
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
-
         Outputs:
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
-
         *Notes*
           - This method is not suitable for SSE
         """

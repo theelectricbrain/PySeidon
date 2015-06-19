@@ -1,0 +1,547 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.validationClass.validationClass &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.validationClass.validationClass</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pkl</span>
+
+<span class="c">#Quick fix</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">savemat</span>
+<span class="kn">from</span> <span class="nn">utide</span> <span class="kn">import</span> <span class="n">ut_solv</span>
+
+<span class="c">#Local import</span>
+<span class="kn">from</span> <span class="nn">compareData</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">valTable</span> <span class="kn">import</span> <span class="n">valTable</span>
+<span class="kn">from</span> <span class="nn">variablesValidation</span> <span class="kn">import</span> <span class="n">_load_validation</span>
+<span class="kn">from</span> <span class="nn">interpolation_utils</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="c"># Local import</span>
+<span class="kn">from</span> <span class="nn">plotsValidation</span> <span class="kn">import</span> <span class="n">taylorDiagram</span>
+
+<span class="c"># Custom error</span>
+<span class="kn">from</span> <span class="nn">pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
+
+<div class="viewcode-block" id="Validation"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.Validation">[docs]</a><span class="k">class</span> <span class="nc">Validation</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **Validation class/structure**</span>
+
+<span class="sd">    Class structured as follows: ::</span>
+
+<span class="sd">                   _History = Quality Control metadata</span>
+<span class="sd">                  |_Variables. = observed and simulated variables and quantities</span>
+<span class="sd">                  |_validate_data = validation method/function against timeseries</span>
+<span class="sd">      Validation._|_validate_harmonics = validation method/function against</span>
+<span class="sd">                  |                      harmonic coefficients</span>
+<span class="sd">                  |_Save_as = &quot;save as&quot; function</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">      - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)</span>
+<span class="sd">      - simulated = any PySeidon simulation object (i.e. FVCOM or Station)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observed</span><span class="p">,</span> <span class="n">simulated</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug_plot</span> <span class="o">=</span> <span class="n">debug_plot</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;-Debug mode on-&#39;</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Loading...&#39;</span>
+        <span class="c">#Metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">History</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Created from &#39;</span> <span class="o">+</span> <span class="n">observed</span><span class="o">.</span><span class="n">_origin_file</span> <span class="o">+</span>\
+                        <span class="s">&#39; and &#39;</span> <span class="o">+</span> <span class="n">simulated</span><span class="o">.</span><span class="n">_origin_file</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span> <span class="o">=</span> <span class="n">_load_validation</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="n">simulated</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+ 
+<div class="viewcode-block" id="Validation.validate_data"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.Validation.validate_data">[docs]</a>    <span class="k">def</span> <span class="nf">validate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="p">[],</span> <span class="n">depth</span><span class="o">=</span><span class="p">[],</span> <span class="n">plot</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">save_csv</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                      <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method computes series of standard validation benchmarks.</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">          - filename = file name of the .csv file to be saved, string.</span>
+<span class="sd">          - depth = depth at which the validation will be performed, float.</span>
+<span class="sd">                   Only applicable for 3D simulations.</span>
+<span class="sd">          - plot = plot series of valiudation graphs, boolean.</span>
+<span class="sd">          - save_csv = will save both observed and modeled interpolated</span>
+<span class="sd">                      timeseries into *.csv file  </span>
+
+<span class="sd">        *References*</span>
+<span class="sd">          - NOAA. NOS standards for evaluating operational nowcast and</span>
+<span class="sd">            forecast hydrodynamic model systems, 2003.</span>
+
+<span class="sd">          - K. Gunn, C. Stock-Williams. On validating numerical hydrodynamic</span>
+<span class="sd">            models of complex tidal flow, International Journal of Marine Energy, 2013</span>
+
+<span class="sd">          - N. Georgas, A. Blumberg. Establishing Confidence in Marine Forecast</span>
+<span class="sd">            Systems: The design and skill assessment of the New York Harbor Observation</span>
+<span class="sd">            and Prediction System, version 3 (NYHOPS v3), 2009</span>
+
+<span class="sd">          - Liu, Y., P. MacCready, B. M. Hickey, E. P. Dever, P. M. Kosro, and</span>
+<span class="sd">            N. S. Banas (2009), Evaluation of a coastal ocean circulation model for</span>
+<span class="sd">            the Columbia River plume in summer 2004, J. Geophys. Res., 114</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="n">debug_plot</span> <span class="o">=</span> <span class="n">debug_plot</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug_plot</span>    
+        <span class="c">#User input</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;Enter filename (string) for csv file: &#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">depth</span><span class="o">==</span><span class="p">[]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span><span class="p">):</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;Depth from surface at which the validation will be performed: &#39;</span><span class="p">)</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">depth</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span> <span class="n">depth</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">depth</span>
+        <span class="k">if</span> <span class="n">depth</span><span class="o">==</span><span class="p">[]:</span> <span class="n">depth</span><span class="o">=</span><span class="mf">5.0</span>
+
+        <span class="c">#initialisation</span>
+        <span class="nb">vars</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;ADCP&#39;</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">elev_suite</span><span class="p">,</span> <span class="n">speed_suite</span><span class="p">,</span> <span class="n">dir_suite</span><span class="p">,</span> <span class="n">u_suite</span><span class="p">,</span> <span class="n">v_suite</span><span class="p">,</span>
+             <span class="n">vel_suite</span><span class="p">,</span> <span class="n">csp_suite</span><span class="p">)</span> <span class="o">=</span> <span class="n">compareUV</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">_3D</span><span class="p">,</span>
+                                    <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="c">#save_csv=save_csv,</span>
+                                    <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="n">debug_plot</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;elev_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elev_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;speed_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">speed_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;dir_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dir_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;u_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;v_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;vel_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vel_suite</span>
+            <span class="c"># custom benchmark</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;cubic_speed_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">csp_suite</span>
+            <span class="c"># Variable to processed</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;elev&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;speed&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;dir&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;v&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;vel&#39;</span><span class="p">)</span>
+            <span class="c"># custom var</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;cubic_speed&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;TideGauge&#39;</span><span class="p">:</span>
+            <span class="n">elev_suite_dg</span> <span class="o">=</span> <span class="n">compareTG</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">,</span>
+                                      <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">save_csv</span><span class="o">=</span><span class="n">save_csv</span><span class="p">,</span>
+                                      <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="n">debug_plot</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;tg_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elev_suite_dg</span>
+            <span class="c">#Variable to processed</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tg&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;Drifter&#39;</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">elev_suite</span><span class="p">,</span> <span class="n">speed_suite</span><span class="p">,</span> <span class="n">dir_suite</span><span class="p">,</span> <span class="n">u_suite</span><span class="p">,</span> <span class="n">v_suite</span><span class="p">,</span>
+             <span class="n">vel_suite</span><span class="p">,</span> <span class="n">csp_suite</span><span class="p">)</span> <span class="o">=</span> <span class="n">compareUV</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span><span class="p">,</span>
+                                    <span class="n">plot</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">save_csv</span><span class="o">=</span><span class="n">save_csv</span><span class="p">,</span>
+                                    <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="n">debug_plot</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;speed_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">speed_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;dir_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dir_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;u_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;v_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_suite</span>
+            <span class="c"># custom benchmark</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;vel_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vel_suite</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;cubic_speed_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">csp_suite</span>
+
+            <span class="c"># Variable to processed</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;speed&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;dir&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;v&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;vel&#39;</span><span class="p">)</span>
+            <span class="c"># custom var</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;vel&#39;</span><span class="p">)</span>
+            <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;cubic_speed&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;-This kind of measurements is not supported yet-&quot;</span><span class="p">)</span>
+
+        <span class="c"># Make csv file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Benchmarks</span> <span class="o">=</span> <span class="n">valTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>  <span class="nb">vars</span><span class="p">,</span>
+                                   <span class="n">save_csv</span><span class="o">=</span><span class="n">save_csv</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="n">debug_plot</span><span class="p">)</span>
+        
+        <span class="c"># Display csv</span>
+        <span class="k">print</span> <span class="s">&quot;---Validation benchmarks---&quot;</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Benchmarks</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Benchmarks</span><span class="p">)</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s">&#39;display.max_rows&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Validation.taylor_diagram"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.Validation.taylor_diagram">[docs]</a>    <span class="k">def</span> <span class="nf">taylor_diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&quot;taylor_diagram&quot;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots Taylor diagram based on the results of &#39;validate_data&#39;</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">          - filename = name of the plot file, string</span>
+<span class="sd">          - save = save as *.png, boolean</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">taylorDiagram</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Benchmarks</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">out_f</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;-validate_data needs to be run first-&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Validation.validate_harmonics"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.Validation.validate_harmonics">[docs]</a>    <span class="k">def</span> <span class="nf">validate_harmonics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="p">[],</span> <span class="n">save_csv</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method computes and store in a csv file the error in %</span>
+<span class="sd">        for each component of the harmonic analysis (i.e. *_error.csv).     </span>
+
+<span class="sd">        Options:</span>
+<span class="sd">          filename: file name of the .csv file to be saved, string.</span>
+<span class="sd">          save_csv: will save both observed and modeled harmonic</span>
+<span class="sd">                    coefficients into *.csv files (i.e. *_harmo_coef.csv)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># User input</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;Enter filename (string) for csv file: &#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+
+        <span class="c"># Harmonic analysis over matching time</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_obstype</span><span class="o">==</span><span class="s">&#39;adcp&#39;</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;obs_time&#39;</span><span class="p">]</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">]</span>
+            <span class="n">ua</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;obs_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;ua&#39;</span><span class="p">][:]</span>
+            <span class="n">va</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;obs_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;va&#39;</span><span class="p">][:]</span>
+            <span class="n">el</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;obs_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;elev&#39;</span><span class="p">]</span> <span class="p">[:]</span>          
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">velCoef</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">ua</span><span class="p">,</span> <span class="n">va</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span>
+                                         <span class="c">#cnstit=ut_constits, rmin=0.95, notrend=True,</span>
+                                         <span class="n">cnstit</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">rmin</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">notrend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="n">method</span><span class="o">=</span><span class="s">&#39;ols&#39;</span><span class="p">,</span> <span class="n">nodiagn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">linci</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="n">coef_int</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">elCoef</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span>
+                                        <span class="c">#cnstit=ut_constits, rmin=0.95, notrend=True,</span>
+                                        <span class="n">cnstit</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">rmin</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">notrend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                        <span class="n">method</span><span class="o">=</span><span class="s">&#39;ols&#39;</span><span class="p">,</span> <span class="n">nodiagn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">linci</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                        <span class="n">coef_int</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_obstype</span><span class="o">==</span><span class="s">&#39;tidegauge&#39;</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;obs_time&#39;</span><span class="p">]</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">]</span>
+            <span class="n">el</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;obs_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;elev&#39;</span><span class="p">]</span> <span class="p">[:]</span>
+ 
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">elCoef</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span>
+                                        <span class="c">#cnstit=ut_constits, notrend=True,</span>
+                                        <span class="n">cnstit</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">notrend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                        <span class="n">rmin</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;ols&#39;</span><span class="p">,</span> <span class="n">nodiagn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                        <span class="c">#linci=True, ordercnstit=&#39;frq&#39;)</span>
+                                        <span class="n">linci</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">coef_int</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;--This kind of observations is not supported---&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_simtype</span><span class="o">==</span><span class="s">&#39;fvcom&#39;</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_time&#39;</span><span class="p">]</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">]</span>
+            <span class="n">el</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;elev&#39;</span><span class="p">][:]</span>           
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">elCoef</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span>
+                             <span class="c">#cnstit=ut_constits, rmin=0.95, notrend=True,</span>
+                             <span class="n">cnstit</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">rmin</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">notrend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">method</span><span class="o">=</span><span class="s">&#39;ols&#39;</span><span class="p">,</span> <span class="n">nodiagn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">linci</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">conf_int</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_obstype</span><span class="o">==</span><span class="s">&#39;adcp&#39;</span><span class="p">:</span>
+                <span class="n">ua</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;ua&#39;</span><span class="p">][:]</span>
+                <span class="n">va</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;va&#39;</span><span class="p">][:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">velCoef</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">ua</span><span class="p">,</span> <span class="n">va</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span>
+                                  <span class="c">#cnstit=ut_constits, rmin=0.95, notrend=True,</span>
+                                  <span class="n">cnstit</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">rmin</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">notrend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                  <span class="n">method</span><span class="o">=</span><span class="s">&#39;ols&#39;</span><span class="p">,</span> <span class="n">nodiagn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">linci</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">conf_int</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_simtype</span><span class="o">==</span><span class="s">&#39;station&#39;</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_time&#39;</span><span class="p">]</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">]</span>
+            <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;elev&#39;</span><span class="p">][:]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">elCoef</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span>
+                             <span class="c">#cnstit=ut_constits, rmin=0.95, notrend=True,</span>
+                             <span class="n">cnstit</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">rmin</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">notrend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">method</span><span class="o">=</span><span class="s">&#39;ols&#39;</span><span class="p">,</span> <span class="n">nodiagn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">linci</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">conf_int</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_obstype</span><span class="o">==</span><span class="s">&#39;adcp&#39;</span><span class="p">:</span>
+                <span class="n">ua</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;ua&#39;</span><span class="p">][:]</span>
+                <span class="n">va</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">struct</span><span class="p">[</span><span class="s">&#39;mod_timeseries&#39;</span><span class="p">][</span><span class="s">&#39;va&#39;</span><span class="p">][:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">velCoef</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">ua</span><span class="p">,</span> <span class="n">va</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span>
+                                  <span class="c">#cnstit=ut_constits, rmin=0.95, notrend=True,</span>
+                                  <span class="n">cnstit</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="n">rmin</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">notrend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                  <span class="n">method</span><span class="o">=</span><span class="s">&#39;ols&#39;</span><span class="p">,</span> <span class="n">nodiagn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">linci</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">conf_int</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># find matching and non-matching coef</span>
+        <span class="n">matchElCoef</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">matchElCoefInd</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i1</span><span class="p">,</span> <span class="n">key1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">i2</span><span class="p">,</span> <span class="n">key2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">key1</span> <span class="o">==</span> <span class="n">key2</span><span class="p">:</span>
+                   <span class="n">matchElCoefInd</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i1</span><span class="p">,</span><span class="n">i2</span><span class="p">))</span>
+                   <span class="n">matchElCoef</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key1</span><span class="p">)</span>
+        <span class="n">matchElCoefInd</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">matchElCoefInd</span><span class="p">)</span>
+        <span class="n">noMatchElCoef</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                  <span class="n">matchElCoefInd</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">noMatchElCoef</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                   <span class="n">matchElCoefInd</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span> <span class="p">))</span>
+
+        <span class="n">matchVelCoef</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">matchVelCoefInd</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i1</span><span class="p">,</span> <span class="n">key1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">i2</span><span class="p">,</span> <span class="n">key2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">key1</span> <span class="o">==</span> <span class="n">key2</span><span class="p">:</span>
+                        <span class="n">matchVelCoefInd</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">))</span>
+                        <span class="n">matchVelCoef</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key1</span><span class="p">)</span>
+            <span class="n">matchVelCoefInd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">matchVelCoefInd</span><span class="p">)</span>
+            <span class="n">noMatchVelCoef</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">matchVelCoefInd</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">noMatchVelCoef</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">matchVelCoefInd</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])))</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+
+        <span class="c"># Compare obs. vs. sim. elevation harmo coef</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="s">&#39;A_ci&#39;</span><span class="p">,</span> <span class="s">&#39;g_ci&#39;</span><span class="p">]</span>
+
+        <span class="c"># Store harmonics in csv files</span>
+        <span class="k">if</span> <span class="n">save_csv</span><span class="p">:</span>
+            <span class="c"># observed elevation coefs</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>           
+            <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+            <span class="c"># export as .csv file</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="s">&#39;{}_obs_el_harmo_coef.csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>            
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="c">#modeled elevation coefs</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>           
+            <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+            <span class="c"># export as .csv file</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="s">&#39;{}_sim_el_harmo_coef.csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>            
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c"># error in %</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matchElCoef</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">b</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">matchElCoefInd</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">a</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">elCoef</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">matchElCoefInd</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]]</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.0</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">err</span>
+
+            <span class="c">##create table</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">matchElCoef</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>        
+            <span class="c">##export as .csv file</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="s">&#39;{}_el_harmo_error.csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+            <span class="c">##print non-matching coefs</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">noMatchElCoef</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;Non-matching harmonic coefficients for elevation: &quot;</span><span class="p">,</span> <span class="n">noMatchElCoef</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;-No matching harmonic coefficients for elevation-&quot;</span> 
+
+        <span class="c">#Compare obs. vs. sim. velocity harmo coef</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Lsmaj&#39;</span><span class="p">,</span> <span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="s">&#39;theta_ci&#39;</span><span class="p">,</span> <span class="s">&#39;Lsmin_ci&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;Lsmaj_ci&#39;</span><span class="p">,</span> <span class="s">&#39;theta&#39;</span><span class="p">,</span> <span class="s">&#39;g_ci&#39;</span><span class="p">]</span>
+ 
+        <span class="c">#Store harmonics in csv files </span>
+        <span class="k">if</span> <span class="n">save_csv</span><span class="p">:</span>
+            <span class="c">#observed elevation coefs</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>          
+            <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+            <span class="c">##export as .csv file</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="s">&#39;{}_obs_velo_harmo_coef.csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>            
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="c">#modeled elevation coefs</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>           
+            <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+            <span class="c">##export as .csv file</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="s">&#39;{}_sim_velo_harmo_coef.csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>            
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c">##error in %</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matchVelCoef</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="n">b</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">matchVelCoefInd</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">a</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">velCoef</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">matchVelCoefInd</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]]</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.0</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">err</span>
+
+            <span class="c">##create table</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">matchVelCoef</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>        
+            <span class="c">##export as .csv file</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="s">&#39;{}_vel0_harmo_error.csv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+            <span class="c">##print non-matching coefs</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">noMatchVelCoef</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;Non-matching harmonic coefficients for velocity: &quot;</span><span class="p">,</span> <span class="n">noMatchVelCoef</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;-No matching harmonic coefficients for velocity-&quot;</span>      
+    
+</div>
+<div class="viewcode-block" id="Validation.save_as"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.Validation.save_as">[docs]</a>    <span class="k">def</span> <span class="nf">save_as</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">fileformat</span><span class="o">=</span><span class="s">&#39;pickle&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method saves the current FVCOM structure as:</span>
+<span class="sd">           - *.p, i.e. python file</span>
+<span class="sd">           - *.mat, i.e. Matlab file</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">          - filename = path + name of the file to be saved, string</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">          - fileformat = format of the file to be saved, i.e. &#39;pickle&#39; or &#39;matlab&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Saving file...&#39;</span>
+
+        <span class="c">#Save as different formats</span>
+        <span class="k">if</span> <span class="n">fileformat</span><span class="o">==</span><span class="s">&#39;pickle&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot;.p&quot;</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">History</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s">&#39;Benchmarks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Benchmarks</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span> 
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="c">#TR: Force caching Variables otherwise error during loading</span>
+            <span class="c">#    with &#39;netcdf4.Variable&#39; type (see above)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">]:</span>
+                <span class="n">listkeys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Variable&#39;</span><span class="p">,</span> <span class="s">&#39;ArrayProxy&#39;</span><span class="p">,</span> <span class="s">&#39;BaseType&#39;</span><span class="p">]</span> 
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listkeys</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Force caching for &quot;</span> <span class="o">+</span> <span class="n">key</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">][:]</span>
+            <span class="c">#Save in pickle file</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Dumping in pickle file...&#39;</span>
+            <span class="k">try</span><span class="p">:</span>    
+                <span class="n">pkl</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pkl</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">SystemError</span><span class="p">,</span> <span class="ne">MemoryError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;---Data too large for machine memory---&#39;</span>
+                <span class="k">raise</span>
+           
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">fileformat</span><span class="o">==</span><span class="s">&#39;matlab&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot;.mat&quot;</span>
+            <span class="c">#TR comment: based on MitchellO&#39;Flaherty-Sproul&#39;s code</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">Grd</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">Var</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">Bch</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">History</span>
+            <span class="n">Bch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Benchmarks</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">Bch</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Bch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>   
+            <span class="n">Var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="c">#TR: Force caching Variables otherwise error during loading</span>
+            <span class="c">#    with &#39;netcdf4.Variable&#39; type (see above)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">Var</span><span class="p">:</span>
+                <span class="n">listkeys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Variable&#39;</span><span class="p">,</span> <span class="s">&#39;ArrayProxy&#39;</span><span class="p">,</span> <span class="s">&#39;BaseType&#39;</span><span class="p">]</span> 
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listkeys</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Force caching for &quot;</span> <span class="o">+</span> <span class="n">key</span>
+                    <span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">][:]</span>
+                <span class="c">#keyV = key + &#39;-var&#39;</span>
+                <span class="c">#data[keyV] = Var[key]</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+          
+            <span class="c">#Save in mat file file</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Dumping in matlab file...&#39;</span>
+            <span class="n">savemat</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">oned_as</span><span class="o">=</span><span class="s">&#39;column&#39;</span><span class="p">)</span>       
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;---Wrong file format---&quot;</span>              </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

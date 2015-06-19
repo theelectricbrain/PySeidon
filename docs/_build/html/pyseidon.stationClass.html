@@ -1,0 +1,703 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.stationClass package &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="index.html" />
+    <link rel="up" title="pyseidon package" href="pyseidon.html" />
+    <link rel="next" title="pyseidon.tidegaugeClass package" href="pyseidon.tidegaugeClass.html" />
+    <link rel="prev" title="pyseidon.fvcomClass package" href="pyseidon.fvcomClass.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyseidon.tidegaugeClass.html" title="pyseidon.tidegaugeClass package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pyseidon.fvcomClass.html" title="pyseidon.fvcomClass package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="pyseidon.html" accesskey="U">pyseidon package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pyseidon-stationclass-package">
+<h1>pyseidon.stationClass package<a class="headerlink" href="#pyseidon-stationclass-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyseidon.stationClass.functionsStation">
+<span id="pyseidon-stationclass-functionsstation-module"></span><h2>pyseidon.stationClass.functionsStation module<a class="headerlink" href="#module-pyseidon.stationClass.functionsStation" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation">
+<em class="property">class </em><code class="descclassname">pyseidon.stationClass.functionsStation.</code><code class="descname">FunctionsStation</code><span class="sig-paren">(</span><em>variable</em>, <em>grid</em>, <em>plot</em>, <em>History</em>, <em>debug</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>&#8216;Util2D&#8217; subset of Station class gathers useful functions for 2D and 3D runs</strong></p>
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_analysis_at_point">
+<code class="descname">Harmonic_analysis_at_point</code><span class="sig-paren">(</span><em>station</em>, <em>time_ind=[]</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>debug=False</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.Harmonic_analysis_at_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_analysis_at_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function performs a harmonic analysis on the sea surface elevation
+time series or the velocity components timeseries.</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>harmo = harmonic coefficients, dictionary</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>time_ind = time indices to work in, list of integers</li>
+<li>elevation=True means that ut_solv will be done for elevation.</li>
+<li>velocity=True means that ut_solv will be done for velocity.</li>
+</ul>
+</dd>
+</dl>
+<p>Utide&#8217;s options:
+Options are the same as for ut_solv, which are shown below with
+their default values:</p>
+<blockquote>
+<div>conf_int=True; cnstit=&#8217;auto&#8217;; notrend=0; prefilt=[]; nodsatlint=0;
+nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
+rmin=1; method=&#8217;cauchy&#8217;; tunrdn=1; linci=0; white=0; nrlzn=200;
+lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
+ordercnstit=[]; runtimedisp=&#8217;yyy&#8217;</div></blockquote>
+<p><em>Notes</em>
+For more detailed information about ut_solv, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_reconstruction">
+<code class="descname">Harmonic_reconstruction</code><span class="sig-paren">(</span><em>harmo</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reconstructs the velocity components or the surface elevation
+from harmonic coefficients.
+Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
+(ut_solv) has already been executed.</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>Harmo = harmonic coefficient from harmo_analysis</li>
+<li>elevation =True means that ut_reconstr will be done for elevation.</li>
+<li>velocity =True means that ut_reconst will be done for velocity.</li>
+<li>time_ind = time indices to process, list of integers</li>
+</ul>
+</dd>
+<dt>Output:</dt>
+<dd><ul class="first last simple">
+<li>Reconstruct = reconstructed signal, dictionary</li>
+</ul>
+</dd>
+</dl>
+<p>Options:
+Options are the same as for ut_reconstr, which are shown below with
+their default values:</p>
+<blockquote>
+<div>cnstit = [], minsnr = 2, minpe = 0</div></blockquote>
+<p><em>Notes</em>
+For more detailed information about ut_reconstr, please see
+<a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.depth">
+<code class="descname">depth</code><span class="sig-paren">(</span><em>station</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute depth at given point</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>dep = depth, 2D array (ntime, nlevel)</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>depth convention: 0 = free surface</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.ebb_flood_split">
+<code class="descname">ebb_flood_split</code><span class="sig-paren">(</span><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.ebb_flood_split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.ebb_flood_split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute time indices for ebb and flood but also the 
+principal flow directions and associated variances for (lon, lat) point</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>floodIndex = flood time index, 1D array of integers</li>
+<li>ebbIndex = ebb time index, 1D array of integers</li>
+<li>pr_axis = principal flow ax1s, float number in degrees</li>
+<li>pr_ax_var = associated variance, float number</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>time_ind = time indices to work in, list of integers</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>may take time to compute if time period too long</li>
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>use time_ind or t_start and t_end, not both</li>
+<li>assume that flood is aligned with principal direction</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.exceedance">
+<code class="descname">exceedance</code><span class="sig-paren">(</span><em>var</em>, <em>station=[]</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.exceedance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.exceedance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculate the excedence curve of a var(time).</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>station = either station index (interger) or name (string)</dt>
+<dd><p class="first last">Necessary if var = 2D (i.e. [time, nnode or nele]</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">graph: True-&gt;plots curve; False-&gt;does not</p>
+</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>Exceedance = list of % of occurences, 1D array</li>
+<li>Ranges = list of signal amplitude bins, 1D array</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>This method is not suitable for SSE</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.flow_dir">
+<code class="descname">flow_dir</code><span class="sig-paren">(</span><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>exceedance=False</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.flow_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.flow_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flow directions and associated norm at any give location.</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>flowDir = flowDir at station, 1D array</li>
+<li>norm = velocity norm at station, 1D array</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>time_ind = time indices to work in, list of integers</li>
+<li>excedance = True, compute associated exceedance curve</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.search_index">
+<code class="descname">search_index</code><span class="sig-paren">(</span><em>station</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.search_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.search_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the station index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStation.FunctionsStation.speed_histogram">
+<code class="descname">speed_histogram</code><span class="sig-paren">(</span><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.speed_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.speed_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the histogram of occurrences for the signed
+flow speed at any given point.</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>time_ind = time indices to work in, list of integers</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyseidon.stationClass.functionsStationThreeD">
+<span id="pyseidon-stationclass-functionsstationthreed-module"></span><h2>pyseidon.stationClass.functionsStationThreeD module<a class="headerlink" href="#module-pyseidon.stationClass.functionsStationThreeD" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD">
+<em class="property">class </em><code class="descclassname">pyseidon.stationClass.functionsStationThreeD.</code><code class="descname">FunctionsStationThreeD</code><span class="sig-paren">(</span><em>variable</em>, <em>grid</em>, <em>plot</em>, <em>History</em>, <em>debug</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStationThreeD.html#FunctionsStationThreeD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>&#8216;Utils3D&#8217; subset of Station class gathers useful functions for 3D runs</strong></p>
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.depth">
+<code class="descname">depth</code><span class="sig-paren">(</span><em>station</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStationThreeD.html#FunctionsStationThreeD.depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute depth at given point</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>dep = depth, 2D array (ntime, nlevel)</li>
+</ul>
+</dd>
+<dt>Notes:</dt>
+<dd><ul class="first last simple">
+<li>depth convention: 0 = free surface</li>
+<li>index is used in case one knows already at which
+element depth is requested</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.flow_dir">
+<code class="descname">flow_dir</code><span class="sig-paren">(</span><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>vertical=True</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStationThreeD.html#FunctionsStationThreeD.flow_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.flow_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute flow directions and associated norm at any given location.</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
+<li>norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>time_ind = time indices to work in, list of integers</li>
+<li>vertical = True, compute flowDir for each vertical level</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>directions between -180 and 180 deg., i.e. 0=East, 90=North,
++/-180=West, -90=South</li>
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.search_index">
+<code class="descname">search_index</code><span class="sig-paren">(</span><em>station</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStationThreeD.html#FunctionsStationThreeD.search_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.search_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the station index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.velo_norm">
+<code class="descname">velo_norm</code><span class="sig-paren">(</span><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>graph=True</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStationThreeD.html#FunctionsStationThreeD.velo_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.velo_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the velocity norm at any given location</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>velo_norm = velocity norm, 2D array (time, level)</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>time_ind = time indices to work in, list of integers</li>
+<li>graph = plots vertical profile averaged over time if True</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.verti_shear">
+<code class="descname">verti_shear</code><span class="sig-paren">(</span><em>station</em>, <em>t_start=[]</em>, <em>t_end=[]</em>, <em>time_ind=[]</em>, <em>bot_lvl=[]</em>, <em>top_lvl=[]</em>, <em>graph=True</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/functionsStationThreeD.html#FunctionsStationThreeD.verti_shear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStationThreeD.FunctionsStationThreeD.verti_shear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute vertical shear at any given location</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>station = either station index (interger) or name (string)</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time, as string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
+<li>time_ind = time indices to work in, list of integers</li>
+<li>bot_lvl = index of the bottom level to consider, integer</li>
+<li>top_lvl = index of the top level to consider, integer</li>
+<li>graph = plots graph if True</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><ul class="first last simple">
+<li>use time_ind or t_start and t_end, not both</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyseidon.stationClass.plotsStation">
+<span id="pyseidon-stationclass-plotsstation-module"></span><h2>pyseidon.stationClass.plotsStation module<a class="headerlink" href="#module-pyseidon.stationClass.plotsStation" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.stationClass.plotsStation.PlotsStation">
+<em class="property">class </em><code class="descclassname">pyseidon.stationClass.plotsStation.</code><code class="descname">PlotsStation</code><span class="sig-paren">(</span><em>variable</em>, <em>grid</em>, <em>debug</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/plotsStation.html#PlotsStation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.plotsStation.PlotsStation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Description:
+&#8216;Plots&#8217; subset of Station class gathers plotting functions</p>
+<dl class="method">
+<dt id="pyseidon.stationClass.plotsStation.PlotsStation.Histogram">
+<code class="descname">Histogram</code><span class="sig-paren">(</span><em>y</em>, <em>title=' '</em>, <em>xLabel=' '</em>, <em>yLabel=' '</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/plotsStation.html#PlotsStation.Histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.plotsStation.PlotsStation.Histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Histogram plot</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>bins = list of bin edges</li>
+<li>y = 1D array</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>title = plot title, string</li>
+<li>xLabel = title of the x-axis, string</li>
+<li>yLabel = title of the y-axis, string</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.plotsStation.PlotsStation.add_points">
+<code class="descname">add_points</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>label=' '</em>, <em>color='black'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/plotsStation.html#PlotsStation.add_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.plotsStation.PlotsStation.add_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add scattered points (x,y) on current figure,
+where x and y are 1D arrays of the same lengths.</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>x = float number</li>
+<li>y = float numbe</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>Label = a string</li>
+<li>Color = a string, &#8216;red&#8217;, &#8216;green&#8217;, etc. or gray shades like &#8216;0.5&#8217;</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.plotsStation.PlotsStation.plot_xy">
+<code class="descname">plot_xy</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>xerror=[]</em>, <em>yerror=[]</em>, <em>title=' '</em>, <em>xLabel=' '</em>, <em>yLabel=' '</em>, <em>dump=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/plotsStation.html#PlotsStation.plot_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.plotsStation.PlotsStation.plot_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple X vs Y plot</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>x = 1D array</li>
+<li>y = 1D array</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last">
+<li><p class="first">xerror = error on &#8216;x&#8217;, 1D array</p>
+</li>
+<li><p class="first">yerror = error on &#8216;y&#8217;, 1D array</p>
+</li>
+<li><p class="first">title = plot title, string</p>
+</li>
+<li><p class="first">xLabel = title of the x-axis, string</p>
+</li>
+<li><p class="first">yLabel = title of the y-axis, string</p>
+</li>
+<li><p class="first">dump = boolean, dump profile data in csv file</p>
+</li>
+<li><dl class="first docutils">
+<dt>kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:</dt>
+<dd><p class="first last">sep, header, na_rep, index,...etc
+Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyseidon.stationClass.plotsStation.PlotsStation.rose_diagram">
+<code class="descname">rose_diagram</code><span class="sig-paren">(</span><em>direction</em>, <em>norm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/plotsStation.html#PlotsStation.rose_diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.plotsStation.PlotsStation.rose_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot rose diagram</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>direction = 1D array</li>
+<li>norm = 1D array</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyseidon.stationClass.stationClass">
+<span id="pyseidon-stationclass-stationclass-module"></span><h2>pyseidon.stationClass.stationClass module<a class="headerlink" href="#module-pyseidon.stationClass.stationClass" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyseidon.stationClass.stationClass.Station">
+<em class="property">class </em><code class="descclassname">pyseidon.stationClass.stationClass.</code><code class="descname">Station</code><span class="sig-paren">(</span><em>filename</em>, <em>elements=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/stationClass.html#Station"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.stationClass.Station" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>A class/structure for Station data</strong></p>
+<p>Functionality structured as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>          _Data. = raw netcdf file data
+         |_Variables. = fvcom station variables and quantities
+         |_Grid. = fvcom station grid data
+         |_History = Quality Control metadata
+Station._|_Utils2D. = set of useful functions for 2D and 3D station
+         |_Utils3D. = set of useful functions for 3D station
+         |_Plots. = plotting functions
+         |_Harmonic_analysis = harmonic analysis based UTide package
+         |_Harmonic_reconstruction = harmonic reconstruction based UTide package
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>filename = path to netcdf file or folder, string,</dt>
+<dd><dl class="first last docutils">
+<dt>ex: testFvcom=Station(&#8216;./path_to_FVOM_output_file/filename&#8217;)</dt>
+<dd><p class="first last">testFvcom=Station(&#8216;./path_to_FVOM_output_file/folder/&#8217;)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Note that if the path point to a folder all the similar netCDF station files
+will be stack together.
+Note that the file can be a pickle file (i.e. <a href="#id1"><span class="problematic" id="id2">*</span></a>.p) or a netcdf file (i.e. <a href="#id3"><span class="problematic" id="id4">*</span></a>.nc).</p>
+</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>elements = indices to extract, list of integers</li>
+</ul>
+</dd>
+<dt><em>Notes</em></dt>
+<dd><p class="first">Throughout the package, the following conventions apply:
+- Date = string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;
+- Coordinates = decimal degrees East and North
+- Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
+<blockquote>
+<div>+/-180=West, -90=South</div></blockquote>
+<ul class="last simple">
+<li>Depth = 0m is the free surface and depth is negative</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pyseidon.stationClass.stationClass.Station.Save_as">
+<code class="descname">Save_as</code><span class="sig-paren">(</span><em>filename</em>, <em>fileformat='pickle'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyseidon/stationClass/stationClass.html#Station.Save_as"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.stationClass.Station.Save_as" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Save the current Station structure as:</dt>
+<dd><ul class="first last simple">
+<li><a href="#id5"><span class="problematic" id="id6">*</span></a>.p, i.e. python file</li>
+<li><a href="#id7"><span class="problematic" id="id8">*</span></a>.mat, i.e. Matlab file</li>
+</ul>
+</dd>
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>filename = path + name of the file to be saved, string</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>fileformat = format of the file to be saved, i.e. &#8216;pickle&#8217; or &#8216;matlab&#8217;</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyseidon.stationClass.variablesStation">
+<span id="pyseidon-stationclass-variablesstation-module"></span><h2>pyseidon.stationClass.variablesStation module<a class="headerlink" href="#module-pyseidon.stationClass.variablesStation" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyseidon.stationClass">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyseidon.stationClass" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyseidon.stationClass package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyseidon.stationClass.functionsStation">pyseidon.stationClass.functionsStation module</a></li>
+<li><a class="reference internal" href="#module-pyseidon.stationClass.functionsStationThreeD">pyseidon.stationClass.functionsStationThreeD module</a></li>
+<li><a class="reference internal" href="#module-pyseidon.stationClass.plotsStation">pyseidon.stationClass.plotsStation module</a></li>
+<li><a class="reference internal" href="#module-pyseidon.stationClass.stationClass">pyseidon.stationClass.stationClass module</a></li>
+<li><a class="reference internal" href="#module-pyseidon.stationClass.variablesStation">pyseidon.stationClass.variablesStation module</a></li>
+<li><a class="reference internal" href="#module-pyseidon.stationClass">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pyseidon.fvcomClass.html"
+                        title="previous chapter">pyseidon.fvcomClass package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pyseidon.tidegaugeClass.html"
+                        title="next chapter">pyseidon.tidegaugeClass package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pyseidon.stationClass.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="_sources/pyseidon.stationClass.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

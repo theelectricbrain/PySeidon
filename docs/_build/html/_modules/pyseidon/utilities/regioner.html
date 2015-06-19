@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.utilities.regioner &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.utilities.regioner</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">bisect</span> <span class="kn">import</span> <span class="n">bisect_left</span><span class="p">,</span> <span class="n">bisect_right</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.tri</span> <span class="kn">as</span> <span class="nn">Tri</span>
+<span class="c">#quick fix</span>
+<span class="c">#import netCDF4 as nc</span>
+<span class="kn">import</span> <span class="nn">scipy.io.netcdf</span> <span class="kn">as</span> <span class="nn">nc</span>
+
+<div class="viewcode-block" id="node_region"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.regioner.node_region">[docs]</a><span class="k">def</span> <span class="nf">node_region</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">):</span>
+
+    <span class="n">region_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">lon</span> <span class="o">&gt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span>
+                            <span class="p">(</span><span class="n">lon</span> <span class="o">&lt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&amp;</span>
+                            <span class="p">(</span><span class="n">lat</span> <span class="o">&gt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span>
+                            <span class="p">(</span><span class="n">lat</span> <span class="o">&lt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+
+    <span class="n">region_n</span> <span class="o">=</span> <span class="n">region_n</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">region_n</span>
+</div>
+<div class="viewcode-block" id="element_region"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.regioner.element_region">[docs]</a><span class="k">def</span> <span class="nf">element_region</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lonc</span><span class="p">,</span> <span class="n">latc</span><span class="p">):</span>
+
+    <span class="n">region_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">lonc</span> <span class="o">&gt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span>
+                            <span class="p">(</span><span class="n">lonc</span> <span class="o">&lt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&amp;</span>
+                            <span class="p">(</span><span class="n">latc</span> <span class="o">&gt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span>
+                            <span class="p">(</span><span class="n">latc</span> <span class="o">&lt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+
+    <span class="n">region_e</span> <span class="o">=</span> <span class="n">region_e</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">region_e</span>
+
+</div>
+<div class="viewcode-block" id="regioner"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.regioner.regioner">[docs]</a><span class="k">def</span> <span class="nf">regioner</span><span class="p">(</span><span class="n">gridVar</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes as input a region (given by a four elemenTakes as input a region</span>
+<span class="sd">    (given by a four element NumPy array),</span>
+<span class="sd">    and some standard data output by ncdatasort and loadnc2d_python</span>
+<span class="sd">    and returns only the data that lies within the region specified</span>
+<span class="sd">    in the region arrayt NumPy array),</span>
+<span class="sd">    and some standard data output by ncdatasort and loadnc2d_python</span>
+<span class="sd">    and returns only the data that lies within the region specified</span>
+<span class="sd">    in the region array</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">      - region = four element array containing the four corners of the</span>
+<span class="sd">        region box. Entires should be in the following form:</span>
+<span class="sd">        [long1, long2, lat1, lat2] with the following property:</span>
+<span class="sd">        abs(long1) &lt; abs(long2), etc.</span>
+<span class="sd">      - data = standard python data dictionary for these files</span>
+<span class="sd">      - name = what should the region be called in the output file</span>
+<span class="sd">      - savedir = where should the resultant data be saved? Default is</span>
+<span class="sd">        none, i.e. the data will not be saved, only returned.</span>
+
+<span class="sd">    **dim = {&#39;2D&#39;, &#39;3D&#39;}** the dimension of the data to use regioner</span>
+<span class="sd">    on. Default is 2D.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Reindexing...&#39;</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">lon</span><span class="p">[:]</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">lat</span><span class="p">[:]</span>
+    <span class="n">nbe</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">triele</span><span class="p">[:]</span>
+    <span class="n">nv</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">trinodes</span><span class="p">[:]</span>
+    <span class="n">a1u</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">a1u</span><span class="p">[:]</span>
+    <span class="n">a2u</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">a2u</span><span class="p">[:]</span>
+    <span class="n">aw0</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">aw0</span><span class="p">[:]</span>
+    <span class="n">awx</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">awx</span><span class="p">[:]</span>
+    <span class="n">awy</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">awy</span><span class="p">[:]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">x</span><span class="p">[:]</span>
+    <span class="n">xc</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">xc</span><span class="p">[:]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">y</span><span class="p">[:]</span>
+    <span class="n">yc</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">yc</span><span class="p">[:]</span>
+    <span class="n">lonc</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">lonc</span><span class="p">[:]</span>
+    <span class="n">latc</span> <span class="o">=</span> <span class="n">gridVar</span><span class="o">.</span><span class="n">latc</span><span class="p">[:]</span>
+
+    <span class="n">l</span> <span class="o">=</span> <span class="n">nv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">node_region</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
+
+    <span class="c">#first, reindex elements in the region</span>
+    <span class="n">element_index_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="n">nv_rs</span> <span class="o">=</span> <span class="n">nv</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">l</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
+    <span class="c">#find indices that sort nv_rs</span>
+    <span class="n">nv_sortedind</span> <span class="o">=</span> <span class="n">nv_rs</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="c">#sort the array</span>
+    <span class="n">nv_sortd</span> <span class="o">=</span> <span class="n">nv_rs</span><span class="p">[</span><span class="n">nv_sortedind</span><span class="p">]</span>
+    <span class="c">#pick out the values in the region</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Extracting values from box...&#39;</span>
+    <span class="c">#TR comment: very slow...gonna need optimisation down the line</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)):</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="n">bisect_left</span><span class="p">(</span><span class="n">nv_sortd</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">i2</span> <span class="o">=</span> <span class="n">bisect_right</span><span class="p">(</span><span class="n">nv_sortd</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="n">nv_sortedind</span><span class="p">[</span><span class="n">i1</span><span class="p">:</span><span class="n">i2</span><span class="p">]</span>
+        <span class="n">element_index_tmp</span><span class="p">[</span><span class="n">inds</span> <span class="o">%</span> <span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">element_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">element_index_tmp</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c">#TR needs to be inside the loop?</span>
+    <span class="n">node_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nv</span><span class="p">[</span><span class="n">element_index</span><span class="p">,:])</span>
+    <span class="c">#create new linkage arrays</span>
+    <span class="n">nv_tmp</span> <span class="o">=</span> <span class="n">nv</span><span class="p">[</span><span class="n">element_index</span><span class="p">,:]</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nv_tmp</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">nv_tmp2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">L</span><span class="o">*</span><span class="mi">3</span><span class="p">))</span>
+
+    <span class="c">#make a new array of the node labellings for the tri&#39;s in the region</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Re-labelling nodes...&#39;</span>
+    <span class="n">nv2</span> <span class="o">=</span> <span class="n">nv_tmp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">L</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">nv2_sortedind</span> <span class="o">=</span> <span class="n">nv2</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">nv2_sortd</span> <span class="o">=</span> <span class="n">nv2</span><span class="p">[</span><span class="n">nv2_sortedind</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">node_index</span><span class="p">)):</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="n">bisect_left</span><span class="p">(</span><span class="n">nv2_sortd</span><span class="p">,</span> <span class="n">node_index</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">i2</span> <span class="o">=</span> <span class="n">bisect_right</span><span class="p">(</span><span class="n">nv2_sortd</span><span class="p">,</span> <span class="n">node_index</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="n">nv2_sortedind</span><span class="p">[</span><span class="n">i1</span><span class="p">:</span><span class="n">i2</span><span class="p">]</span>
+        <span class="n">nv_tmp2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+    <span class="n">nv_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nv_tmp2</span><span class="p">,</span> <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s">&#39;F&#39;</span><span class="p">)</span>
+
+    <span class="c">#now do the same for nbe...sort of</span>
+    <span class="n">nbe_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nbe</span><span class="p">[</span><span class="n">element_index</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="c">#ghost points</span>
+    <span class="n">ghost</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nbe_index</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">element_index</span><span class="p">)))</span>
+    
+    <span class="n">nbe_tmp</span> <span class="o">=</span> <span class="n">nbe</span><span class="p">[</span><span class="n">element_index</span><span class="p">,:]</span>
+    <span class="n">lnbe</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nbe_tmp</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c">#nbe_tmp2 = np.empty((1, lnbe*3))</span>
+    <span class="c">#TR: np.empty sometimes generates freak values</span>
+    <span class="n">nbe_tmp2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">lnbe</span><span class="o">*</span><span class="mi">3</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Re-labelling elements...&#39;</span>
+    <span class="n">nbe2</span> <span class="o">=</span> <span class="n">nbe_tmp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">lnbe</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">nbe_sortedind</span> <span class="o">=</span> <span class="n">nbe2</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">nbe_sortd</span> <span class="o">=</span> <span class="n">nbe2</span><span class="p">[</span><span class="n">nbe_sortedind</span><span class="p">]</span>
+    
+    <span class="c">#TR: iterator</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nbe_index</span><span class="p">)):</span>
+        <span class="c">#TR: check if ghost point</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">nbe_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="n">ghost</span><span class="p">:</span>
+            <span class="n">i1</span> <span class="o">=</span> <span class="n">bisect_left</span><span class="p">(</span><span class="n">nbe_sortd</span><span class="p">,</span> <span class="n">nbe_index</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">i2</span> <span class="o">=</span> <span class="n">bisect_right</span><span class="p">(</span><span class="n">nbe_sortd</span><span class="p">,</span> <span class="n">nbe_index</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">inds</span> <span class="o">=</span> <span class="n">nbe_sortedind</span><span class="p">[</span><span class="n">i1</span><span class="p">:</span><span class="n">i2</span><span class="p">]</span>
+            <span class="n">nbe_tmp2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">I</span>
+            <span class="n">I</span> <span class="o">+=</span> <span class="mi">1</span> 
+
+    <span class="n">nbe_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nbe_tmp2</span><span class="p">,</span> <span class="p">(</span><span class="n">lnbe</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="s">&#39;F&#39;</span><span class="p">)</span>
+
+    <span class="c">#create new variables for the region</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;node_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_index</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;element_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element_index</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;nbe&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nbe_new</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;nv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nv_new</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;a1u&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a1u</span><span class="p">[:,</span> <span class="n">element_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;a2u&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a2u</span><span class="p">[:,</span> <span class="n">element_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;aw0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aw0</span><span class="p">[:,</span> <span class="n">element_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;awx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">awx</span><span class="p">[:,</span> <span class="n">element_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;awy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">awy</span><span class="p">[:,</span> <span class="n">element_index</span><span class="p">]</span>
+
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;xc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xc</span><span class="p">[</span><span class="n">element_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;yc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yc</span><span class="p">[</span><span class="n">element_index</span><span class="p">]</span>
+
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lon</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lat</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;lonc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lonc</span><span class="p">[</span><span class="n">element_index</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;latc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">latc</span><span class="p">[</span><span class="n">element_index</span><span class="p">]</span>
+
+    <span class="n">data</span><span class="p">[</span><span class="s">&#39;triangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tri</span><span class="o">.</span><span class="n">Triangulation</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;lon&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">],</span> \
+                                        <span class="n">data</span><span class="p">[</span><span class="s">&#39;nv&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">data</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

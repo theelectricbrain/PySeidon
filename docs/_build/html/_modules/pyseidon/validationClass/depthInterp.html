@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.validationClass.depthInterp &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.validationClass.depthInterp</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">ASSUMPTIONS:</span>
+<span class="sd">first dimension of matrices identify the timestep, second the depth</span>
+<span class="sd">column vectors are organized from bottom to top</span>
+<span class="sd">i.e. data[3] is the column at the third timestep</span>
+<span class="sd">     data[3][10] is the tenth layer from the bottom at the third timestep</span>
+<span class="sd">ADCP bins are the depths of each ADCP layer</span>
+<span class="sd">ADCP bin width is constant</span>
+<span class="sd">The top ADCP value of any column is no greater than 95% of the total depth</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="n">ADCP_TOP_SURF</span> <span class="o">=</span> <span class="mf">0.95</span>
+
+<div class="viewcode-block" id="depthToSigma"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.depthInterp.depthToSigma">[docs]</a><span class="k">def</span> <span class="nf">depthToSigma</span><span class="p">(</span><span class="n">obs_data</span><span class="p">,</span> <span class="n">obs_depth</span><span class="p">,</span> <span class="n">siglay</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Performs linear interpolation on 3D ADCP data to change it into a sigma</span>
+<span class="sd">    layer format, similar to an FVCOM run.</span>
+
+<span class="sd">    Outputs a 2D numpy array representing the ADCP data in sigma layer</span>
+<span class="sd">    format.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;depthToSigma...&quot;</span>
+    <span class="n">sig_obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">obs_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">siglay</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...map old depths to between 0 and 1, then interpol...&quot;</span>
+    <span class="c"># loop through columns/steps</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">obs_data</span><span class="p">):</span>
+        <span class="c"># map old depths to between 0 and 1, make interpolation function</span>
+        <span class="n">col_nonan</span> <span class="o">=</span> <span class="n">column</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">column</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">old_depths</span> <span class="o">=</span> <span class="n">bins</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">column</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">mapped_depths</span> <span class="o">=</span> <span class="n">old_depths</span> <span class="o">/</span> <span class="n">obs_depth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">f_obs</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">col_nonan</span><span class="p">,</span> <span class="n">mapped_depths</span><span class="p">)</span>
+        <span class="c"># perform interpolation</span>
+        <span class="n">sig_obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_obs</span><span class="p">(</span><span class="n">siglay</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...depthToSigma done.&quot;</span>
+
+    <span class="k">return</span> <span class="n">sig_obs</span>
+</div>
+<div class="viewcode-block" id="sigmaToDepth"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.depthInterp.sigmaToDepth">[docs]</a><span class="k">def</span> <span class="nf">sigmaToDepth</span><span class="p">(</span><span class="n">mod_data</span><span class="p">,</span> <span class="n">mod_depth</span><span class="p">,</span> <span class="n">siglay</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Performs linear interpolation on 3D FVCOM output to change it into the</span>
+<span class="sd">    same format as ADCP output (i.e. constant depths, NaNs above surface)</span>
+
+<span class="sd">    Outputs a 2D numpy array representing the FVCOM matrix in ADCP format.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;sigmaToDepth...&quot;</span>
+    <span class="n">bin_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mod_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bins</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">bin_width</span> <span class="o">=</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...loop through columns/steps and interpol...&quot;</span>
+    <span class="c"># loop through columns/steps</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mod_data</span><span class="p">):</span>
+        <span class="c"># create interpolation function</span>
+        <span class="n">f_mod</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">siglay</span><span class="p">)</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="n">mod_depth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c"># loop through bins</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">bins</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="c"># check if location is above ADCP_TOP_SURF</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bins_width</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">loc</span> <span class="o">&lt;=</span> <span class="n">ADCP_TOP_SURF</span><span class="p">):</span>
+                <span class="n">bin_mod</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_mod</span><span class="p">(</span><span class="n">loc</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bin_mod</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...sigmaToDepth done.&quot;</span>
+
+    <span class="k">return</span> <span class="n">bin_mod</span>
+</div>
+<div class="viewcode-block" id="depthFromSurf"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.depthInterp.depthFromSurf">[docs]</a><span class="k">def</span> <span class="nf">depthFromSurf</span><span class="p">(</span><span class="n">mod_data</span><span class="p">,</span> <span class="n">mod_depth</span><span class="p">,</span> <span class="n">siglay</span><span class="p">,</span> <span class="n">obs_data</span><span class="p">,</span> <span class="n">obs_depth</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                  <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Performs linear interpolation on 3D ocean data to obtain data at a</span>
+<span class="sd">    specific distance from the surface.</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">        - mod_data = 2D numpy array of FVCOM model data</span>
+<span class="sd">        - mod_depth = 1D numpy array of model depths at each timestep</span>
+<span class="sd">        - siglay = array containing values between 0 and 1 representing the</span>
+<span class="sd">          respective percentage of depths for each sigma layer</span>
+<span class="sd">        - obs_data = 2D numpy array of observed ADCP data</span>
+<span class="sd">        - obs_depth = 1D numpy array of observed depths at each timestep</span>
+<span class="sd">        - depth = number of metres from surface of output timeseries.</span>
+<span class="sd">          Defaults to 5m</span>
+
+<span class="sd">    Outputs:</span>
+<span class="sd">        - (new_mod, new_obs) = timeseries representing model and observed data</span>
+<span class="sd">                               at &#39;depth&#39; metres from the surface.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;depthFromSurf...&quot;</span>
+    <span class="n">new_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mod_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">new_obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">obs_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...loop through simulation columns and interpol at specified depth...&quot;</span>
+    <span class="c"># loop over mod_data columns</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mod_data</span><span class="p">):</span>      
+        <span class="c"># create interpolation function</span>
+        <span class="c">#TR: quick fix</span>
+        <span class="n">f_mod</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">siglay</span><span class="p">),</span> <span class="n">step</span><span class="p">)</span>
+        <span class="c"># find location of specified depth and perform interpolation</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">mod_depth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">depth</span>
+        <span class="n">sig_loc</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">mod_depth</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">new_mod</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_mod</span><span class="p">(</span><span class="n">sig_loc</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...loop through measurement columns and interpol at specified depth...&quot;</span>
+    <span class="c"># loop over obs_data columns</span>
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">obs_data</span><span class="p">):</span>
+        <span class="c"># create interpolation function</span>
+        <span class="n">col_nonan</span> <span class="o">=</span> <span class="n">column</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">column</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">bin_nonan</span> <span class="o">=</span> <span class="n">bins</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">column</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">col_nonan</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="c"># find location of specified depth and perform interpolation</span>
+            <span class="n">f_obs</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">bin_nonan</span><span class="p">,</span> <span class="n">col_nonan</span><span class="p">)</span>
+            <span class="n">location</span> <span class="o">=</span> <span class="n">obs_depth</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">depth</span>
+            <span class="n">new_obs</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_obs</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_obs</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...depthFromSurf done.&quot;</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">new_mod</span><span class="p">,</span> <span class="n">new_obs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

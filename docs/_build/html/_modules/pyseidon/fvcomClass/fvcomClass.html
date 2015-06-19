@@ -1,0 +1,410 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.fvcomClass.fvcomClass &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.fvcomClass.fvcomClass</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="c">#Libs import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">utide</span> <span class="kn">import</span> <span class="n">ut_solv</span><span class="p">,</span> <span class="n">ut_reconstr</span>
+<span class="c">#TR comment: 2 alternatives</span>
+<span class="kn">import</span> <span class="nn">netCDF4</span> <span class="kn">as</span> <span class="nn">nc</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">netcdf</span>
+<span class="kn">from</span> <span class="nn">pydap.client</span> <span class="kn">import</span> <span class="n">open_url</span>
+<span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pkl</span>
+<span class="kn">import</span> <span class="nn">pickle</span> <span class="kn">as</span> <span class="nn">Pkl</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isfile</span>
+<span class="kn">import</span> <span class="nn">gc</span>
+
+<span class="c">#Utility import</span>
+<span class="kn">from</span> <span class="nn">object_from_dict</span> <span class="kn">import</span> <span class="n">ObjectFromDict</span>
+<span class="kn">from</span> <span class="nn">pyseidon2pickle</span> <span class="kn">import</span> <span class="n">pyseidon_to_pickle</span>
+<span class="kn">from</span> <span class="nn">pyseidon2matlab</span> <span class="kn">import</span> <span class="n">pyseidon_to_matlab</span>
+<span class="kn">from</span> <span class="nn">pyseidon2netcdf_alter</span> <span class="kn">import</span> <span class="n">pyseidon_to_netcdf</span>
+
+<span class="c"># Custom error</span>
+<span class="kn">from</span> <span class="nn">pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
+
+<span class="c">#Local import</span>
+<span class="kn">from</span> <span class="nn">variablesFvcom</span> <span class="kn">import</span> <span class="n">_load_var</span><span class="p">,</span> <span class="n">_load_grid</span>
+<span class="kn">from</span> <span class="nn">functionsFvcom</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">functionsFvcomThreeD</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">plotsFvcom</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="FVCOM"><a class="viewcode-back" href="../../../pyseidon.fvcomClass.html#pyseidon.FVCOM">[docs]</a><span class="k">class</span> <span class="nc">FVCOM</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **A class/structure for FVCOM data**</span>
+<span class="sd">    Functionality structured as follows: ::</span>
+
+<span class="sd">                _Data. = raw netcdf file data</span>
+<span class="sd">               |_Variables. = fvcom variables and quantities</span>
+<span class="sd">               |_Grid. = fvcom grid data</span>
+<span class="sd">               |_History = Quality Control metadata</span>
+<span class="sd">        FVCOM._|_Utils2D. = set of useful functions and methods for 2D and 3D runs</span>
+<span class="sd">               |_Utils3D. = set of useful functions and methods for 3D runs</span>
+<span class="sd">               |_Plots. = plotting functions</span>
+<span class="sd">               |_Save_as = &quot;save as&quot; methods</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">      - filename = path to file, string,</span>
+<span class="sd">                ex: testFvcom = FVCOM(&#39;./path_to_FVOM_output_file/filename&#39;)</span>
+<span class="sd">                Note that the file can be a pickle file (i.e. *.p) or a netcdf file (i.e. *.nc)</span>
+<span class="sd">                Additionally, either a file path or a OpenDap url could be used</span>
+
+<span class="sd">    Options:</span>
+<span class="sd">      - ax = defines for a specific spatial region to work with, as such:</span>
+<span class="sd">           ax = [minimun longitude, maximun longitude, minimun latitude, maximum latitude]</span>
+<span class="sd">           or use one of the following pre-defined region: ax = &#39;GP&#39;, &#39;PP&#39;, &#39;DG&#39; or &#39;MP&#39;</span>
+<span class="sd">           Note that this option permits to extract partial data from the overall file</span>
+<span class="sd">           and therefore reduce memory and cpu use.</span>
+
+<span class="sd">      - tx = defines for a specific temporal period to work with, as such:</span>
+<span class="sd">           tx = [&#39;2012-11-07T12:00:00&#39;,&#39;2012.11.09T12:00:00&#39;], string of &#39;yyyy-mm-ddThh:mm:ss&#39;</span>
+<span class="sd">           Note that this option permits to extract partial data from the overall file</span>
+<span class="sd">           and therefore reduce memory and cpu use</span>
+
+<span class="sd">    *Notes*</span>
+<span class="sd">    Throughout the package, the following conventions apply:</span>
+<span class="sd">      - Date = string of &#39;yyyy-mm-ddThh:mm:ss&#39;</span>
+<span class="sd">      - Coordinates = decimal degrees East and North</span>
+<span class="sd">      - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South</span>
+<span class="sd">      - Depth = 0m is the free surface and depth is negative</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="p">[],</span> <span class="n">tx</span><span class="o">=</span><span class="p">[],</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize FVCOM class.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;-Debug mode on-&#39;</span>
+        <span class="c">#Force garbage collector when fvcom object created</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>  
+
+        <span class="c">#Loading pickle file</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.p&#39;</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">pkl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">Pkl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">pkl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">History</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;Turn keys into attributs&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span> <span class="o">=</span> <span class="n">ObjectFromDict</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span> <span class="o">=</span> <span class="n">ObjectFromDict</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">])</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http&#39;</span><span class="p">):</span>
+                    <span class="c">#Look for file through OpenDAP server</span>
+                    <span class="k">print</span> <span class="s">&quot;Retrieving data through OpenDap server...&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">open_url</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">])</span>
+                    <span class="c">#Create fake attribut to be consistent with the rest of the code</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c">#WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
+                    <span class="c">#WB_comments: scipy has causes some errors, and even though can be</span>
+                    <span class="c">#             faster, can be unreliable</span>
+                    <span class="k">if</span> <span class="n">isfile</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">]):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">],</span> <span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                            <span class="c">#due to mmap not coping with big array &gt; 4Gib</span>
+                        <span class="k">except</span> <span class="p">(</span><span class="ne">OverflowError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">],</span> <span class="s">&#39;r&#39;</span><span class="p">,</span>
+                                       <span class="n">format</span><span class="o">=</span><span class="s">&#39;NETCDF4_CLASSIC&#39;</span><span class="p">)</span> 
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;the original *.nc file has not been found&quot;</span>                   
+            <span class="k">except</span><span class="p">:</span> <span class="c">#TR: need to precise the type of error here</span>
+                <span class="k">print</span> <span class="s">&quot;the original *.nc file has not been found&quot;</span>
+                <span class="k">pass</span>
+        <span class="c">#Loading netcdf file         </span>
+        <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.nc&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http&#39;</span><span class="p">):</span>
+                <span class="c">#Look for file through OpenDAP server</span>
+                <span class="k">print</span> <span class="s">&quot;Retrieving data through OpenDap server...&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">open_url</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="c">#Create fake attribut to be consistent with the rest of the code</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#Look for file locally</span>
+                <span class="k">print</span> <span class="s">&quot;Retrieving data from &quot;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot; ...&quot;</span>
+                <span class="c">#WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
+                <span class="c">#WB_comments: scipy has causes some errors, and even though can be</span>
+                <span class="c">#             faster, can be unreliable</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="c">#due to mmap not coping with big array &gt; 4Gib</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">OverflowError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;NETCDF4_CLASSIC&#39;</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Created from &#39;</span> <span class="o">+</span> <span class="n">filename</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span> <span class="o">=</span> <span class="n">filename</span>
+            <span class="c">#Metadata</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">History</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
+            <span class="c"># Calling sub-class</span>
+            <span class="k">print</span> <span class="s">&quot;Initialisation...&quot;</span>
+            <span class="c">#print &quot;This might take some time...&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span> <span class="o">=</span> <span class="n">_load_grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">,</span>
+                                       <span class="n">ax</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                       <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span> <span class="o">=</span> <span class="n">_load_var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                           <span class="n">tx</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                           <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;---Data too large for machine memory---&#39;</span>
+                <span class="k">print</span> <span class="s">&#39;Tip: use ax or tx during class initialisation&#39;</span>
+                <span class="k">print</span> <span class="s">&#39;---  to use partial data&#39;</span>
+                <span class="k">raise</span>
+
+        <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.mat&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Functionality not yet implemented---&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Wrong file format---&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span> <span class="o">=</span> <span class="n">PlotsFvcom</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Util2D</span> <span class="o">=</span> <span class="n">FunctionsFvcom</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Util3D</span> <span class="o">=</span> <span class="n">FunctionsFvcomThreeD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">Util2D</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="o">.</span><span class="n">vertical_slice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Util3D</span><span class="o">.</span><span class="n">_vertical_slice</span>
+
+        <span class="c">##Re-assignement of utility functions as methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dump_profile_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="o">.</span><span class="n">_dump_profile_data_as_csv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dump_map_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="o">.</span><span class="n">_dump_map_data_as_csv</span> 
+
+    <span class="c">#Special methods</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;making sure that all opened files are closed when deleted or overwritten&quot;&quot;&quot;</span>
+        <span class="c">#TR: not sure __del__ is the best approach for that</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;netcdf_file&quot;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;Dataset&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">NameError</span><span class="p">,</span><span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">pass</span> 
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">NameError</span><span class="p">,</span><span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Force garbage collector when new fvcom object created&quot;&quot;&quot;</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>         
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">FvcomClass</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This special method permits to stack variables</span>
+<span class="sd">        of 2 FVCOM objects through a simple addition: ::</span>
+<span class="sd">          fvcom1 += fvcom2</span>
+
+<span class="sd">        *Notes*</span>
+<span class="sd">          - fvcom1 and fvcom2 have to cover the exact</span>
+<span class="sd">            same spatial domain</span>
+<span class="sd">          - last time step of fvcom1 must be &lt;= to the </span>
+<span class="sd">            first time step of fvcom2 </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="c">#Define bounding box</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Computing bounding box...&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">lon</span><span class="p">[:]</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[:]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span> <span class="o">=</span> <span class="p">[</span><span class="n">lon</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lon</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                             <span class="n">lat</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">lon</span><span class="p">[:]</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[:]</span>
+            <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span> <span class="o">=</span> <span class="p">[</span><span class="n">lon</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lon</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                                   <span class="n">lat</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+        <span class="c">#series of test before stacking</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span> <span class="o">==</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Spatial regions do not match---&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">nele</span> <span class="o">==</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">nele</span><span class="p">)</span> <span class="ow">and</span>
+                  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">nnode</span> <span class="o">==</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">nnode</span><span class="p">)</span> <span class="ow">and</span>
+                  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span> <span class="o">==</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Data dimensions do not match---&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span>
+                    <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Data not consecutive in time---&quot;</span><span class="p">)</span>
+            <span class="c">#Copy self to newself</span>
+            <span class="n">newself</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c">#TR comment: it still points toward self and modifies it</span>
+            <span class="c">#            so cannot do fvcom3 = fvcom1 + fvcom2</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Stacking variables...&#39;</span>
+            <span class="c">#keyword list for hstack</span>
+            <span class="n">kwl</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;matlabTime&#39;</span><span class="p">,</span> <span class="s">&#39;julianTime&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwl</span><span class="p">:</span>
+                <span class="n">tmpN</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="n">tmpO</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">FvcomClass</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">tmpN</span><span class="p">[:],</span> <span class="n">tmpO</span><span class="p">[:])))</span>
+
+            <span class="c">#keyword list for vstack</span>
+            <span class="n">kwl</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">&#39;v&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="s">&#39;ua&#39;</span><span class="p">,</span> <span class="s">&#39;va&#39;</span><span class="p">,</span> <span class="s">&#39;el&#39;</span><span class="p">,</span> <span class="s">&#39;tke&#39;</span><span class="p">,</span> <span class="s">&#39;gls&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwl</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">tmpN</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="n">tmpO</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">FvcomClass</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">tmpN</span><span class="p">[:],</span> <span class="n">tmpO</span><span class="p">[:])))</span>          
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="c">#New time dimension</span>
+            <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span> <span class="o">=</span> <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span> <span class="o">+</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span>
+            <span class="c">#Append to new object history</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Data from &#39;</span> <span class="o">+</span> <span class="n">FvcomClass</span><span class="o">.</span><span class="n">History</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> \
+                 <span class="o">+</span> <span class="s">&#39; has been stacked&#39;</span>
+            <span class="n">newself</span><span class="o">.</span><span class="n">History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">newself</span>  
+   
+    <span class="c">#Methods</span>
+<div class="viewcode-block" id="FVCOM.save_as"><a class="viewcode-back" href="../../../pyseidon.fvcomClass.html#pyseidon.FVCOM.save_as">[docs]</a>    <span class="k">def</span> <span class="nf">save_as</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">fileformat</span><span class="o">=</span><span class="s">&#39;netcdf&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method saves the current FVCOM structure as:</span>
+<span class="sd">           - *.nc, i.e. netcdf file</span>
+<span class="sd">           - *.p, i.e. python file</span>
+<span class="sd">           - *.mat, i.e. Matlab file</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">          - filename = path + name of the file to be saved, string</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">          - fileformat = format of the file to be saved, i.e. &#39;pickle&#39;, .netcdf. or &#39;matlab&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Saving file...&#39;</span>
+        <span class="c">#Save as different formats</span>
+        <span class="k">if</span> <span class="n">fileformat</span><span class="o">==</span><span class="s">&#39;pickle&#39;</span><span class="p">:</span>
+            <span class="n">pyseidon_to_pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">debug</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">fileformat</span><span class="o">==</span><span class="s">&#39;matlab&#39;</span><span class="p">:</span>
+            <span class="n">pyseidon_to_matlab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">debug</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">fileformat</span><span class="o">==</span><span class="s">&#39;netcdf&#39;</span><span class="p">:</span>
+            <span class="n">pyseidon_to_netcdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">debug</span><span class="p">)</span>   
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;---Wrong file format---&quot;</span>                        
+
+<span class="c">#Test section when running in shell &gt;&gt; python fvcomClass.py</span>
+<span class="c">#if __name__ == &#39;__main__&#39;:</span>
+
+    <span class="c">#filename = &#39;./test_file/dn_coarse_0001.nc&#39;</span>
+    <span class="c">#test = FVCOM(filename)</span>
+    <span class="c">#test.harmonics(0, cnstit=&#39;auto&#39;, notrend=True, nodiagn=True)</span>
+    <span class="c">#WB_COMMENTS: fixed matlabttime to matlabtime</span>
+    <span class="c">#test.reconstr(test.Variables.matlabTime)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
