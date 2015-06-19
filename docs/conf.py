@@ -23,7 +23,7 @@ import shlex
 sys.path.insert(0, os.path.abspath('../pyseidon'))
 
 #Custom
-autoclass_content = 'both'
+#autoclass_content = 'both'
 
 # -- General configuration ------------------------------------------------
 
