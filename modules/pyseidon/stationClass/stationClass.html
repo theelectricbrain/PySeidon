@@ -1,0 +1,491 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.stationClass.stationClass &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.stationClass.stationClass</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">netCDF4</span> <span class="kn">as</span> <span class="nn">nc</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">netcdf</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">savemat</span>
+<span class="kn">from</span> <span class="nn">pydap.client</span> <span class="kn">import</span> <span class="n">open_url</span>
+<span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pkl</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c">#Utility import</span>
+<span class="kn">from</span> <span class="nn">object_from_dict</span> <span class="kn">import</span> <span class="n">ObjectFromDict</span>
+<span class="kn">from</span> <span class="nn">miscellaneous</span> <span class="kn">import</span> <span class="n">findFiles</span><span class="p">,</span> <span class="n">_load_nc</span>
+
+<span class="c"># Custom error</span>
+<span class="kn">from</span> <span class="nn">pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
+
+<span class="c">#Local import</span>
+<span class="kn">from</span> <span class="nn">variablesStation</span> <span class="kn">import</span> <span class="n">_load_var</span><span class="p">,</span> <span class="n">_load_grid</span>
+<span class="kn">from</span> <span class="nn">functionsStation</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">functionsStationThreeD</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">plotsStation</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="Station"><a class="viewcode-back" href="../../../pyseidon.stationClass.html#pyseidon.Station">[docs]</a><span class="k">class</span> <span class="nc">Station</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **A class/structure for Station data**</span>
+
+<span class="sd">    Functionality structured as follows: ::</span>
+
+<span class="sd">                  _Data. = raw netcdf file data</span>
+<span class="sd">                 |_Variables. = fvcom station variables and quantities</span>
+<span class="sd">                 |_Grid. = fvcom station grid data</span>
+<span class="sd">                 |_History = Quality Control metadata</span>
+<span class="sd">        Station._|_Utils2D. = set of useful functions for 2D and 3D station</span>
+<span class="sd">                 |_Utils3D. = set of useful functions for 3D station</span>
+<span class="sd">                 |_Plots. = plotting functions</span>
+<span class="sd">                 |_Harmonic_analysis = harmonic analysis based UTide package</span>
+<span class="sd">                 |_Harmonic_reconstruction = harmonic reconstruction based UTide package</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">      - filename = path to netcdf file or folder, string,</span>
+<span class="sd">                   ex: testFvcom=Station(&#39;./path_to_FVOM_output_file/filename&#39;)</span>
+<span class="sd">                       testFvcom=Station(&#39;./path_to_FVOM_output_file/folder/&#39;)</span>
+
+<span class="sd">        Note that if the path point to a folder all the similar netCDF station files</span>
+<span class="sd">        will be stack together.</span>
+<span class="sd">        Note that the file can be a pickle file (i.e. *.p) or a netcdf file (i.e. *.nc).</span>
+
+<span class="sd">    Options:</span>
+<span class="sd">      - elements = indices to extract, list of integers</span>
+
+<span class="sd">    *Notes*</span>
+<span class="sd">      Throughout the package, the following conventions apply:</span>
+<span class="sd">      - Date = string of &#39;yyyy-mm-ddThh:mm:ss&#39;</span>
+<span class="sd">      - Coordinates = decimal degrees East and North</span>
+<span class="sd">      - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</span>
+<span class="sd">                     +/-180=West, -90=South</span>
+<span class="sd">      - Depth = 0m is the free surface and depth is negative</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="c">#Class attributs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isMulti</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multi</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">elements</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span> <span class="o">=</span> <span class="n">PlotsStation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Util2D</span> <span class="o">=</span> <span class="n">FunctionsStation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Util3D</span> <span class="o">=</span> <span class="n">FunctionsStationThreeD</span><span class="p">(</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;---Finding matching files---&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_matches</span> <span class="o">=</span> <span class="n">findFiles</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;STATION&#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matches</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span> <span class="o">=</span> <span class="n">PlotsStation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Util2D</span> <span class="o">=</span> <span class="n">FunctionsStation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Util3D</span> <span class="o">=</span> <span class="n">FunctionsStationThreeD</span><span class="p">(</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span> 
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matches</span><span class="p">:</span>
+                <span class="c">#Define new </span>
+                <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Created from &#39;</span> <span class="o">+</span> <span class="n">entry</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_load_nc</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
+                <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_load_grid</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Data&#39;</span><span class="p">],</span> <span class="n">elements</span><span class="p">,</span> <span class="p">[],</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+                <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_load_var</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Data&#39;</span><span class="p">],</span> <span class="n">elements</span><span class="p">,</span> <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">],</span> <span class="p">[],</span>
+                                             <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">ObjectFromDict</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+                <span class="bp">self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__add__</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+        <span class="c">##Re-assignement of utility functions as methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dump_profile_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="o">.</span><span class="n">_dump_profile_data_as_csv</span>
+
+    <span class="k">def</span> <span class="nf">_isMulti</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tells if filename point to a file or a folder&quot;&quot;&quot;</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">split</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_multi</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_multi</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads data from *.nc, *.p and OpenDap url&quot;&quot;&quot;</span>
+        <span class="c">#Loading pickle file</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.p&#39;</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pkl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">History</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;Turn keys into attributs&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span> <span class="o">=</span> <span class="n">ObjectFromDict</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span> <span class="o">=</span> <span class="n">ObjectFromDict</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">])</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http&#39;</span><span class="p">):</span>
+                    <span class="c">#Look for file through OpenDAP server</span>
+                    <span class="k">print</span> <span class="s">&quot;Retrieving data through OpenDap server...&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">open_url</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">])</span>
+                    <span class="c">#Create fake attribut to be consistent with the rest of the code</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c">#WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
+                    <span class="c">#WB_comments: scipy has causes some errors, and even though can be</span>
+                    <span class="c">#             faster, can be unreliable</span>
+                    <span class="c">#self.Data = nc.Dataset(data[&#39;Origin&#39;], &#39;r&#39;)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">],</span> <span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span> <span class="c">#TR: need to precise the type of error here</span>
+                <span class="k">print</span> <span class="s">&quot;the original *.nc file has not been found&quot;</span>
+                <span class="k">pass</span>
+
+        <span class="c">#Loading netcdf file         </span>
+        <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.nc&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http&#39;</span><span class="p">):</span>
+                <span class="c">#Look for file through OpenDAP server</span>
+                <span class="k">print</span> <span class="s">&quot;Retrieving data through OpenDap server...&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">open_url</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="c">#Create fake attribut to be consistent with the rest of the code</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#Look for file locally</span>
+                <span class="k">print</span> <span class="s">&quot;Retrieving data from &quot;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot; ...&quot;</span>
+                <span class="c">#WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
+                <span class="c">#WB_comments: scipy has causes some errors, and even though can be</span>
+                <span class="c">#             faster, can be unreliable</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="c">#TR: quick fix due to mmap</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+            <span class="c">#Metadata</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Created from &#39;</span> <span class="o">+</span> <span class="n">filename</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span> <span class="o">=</span> <span class="n">filename</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">History</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
+            <span class="c"># Calling sub-class</span>
+            <span class="k">print</span> <span class="s">&quot;Initialisation...&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span> <span class="o">=</span> <span class="n">_load_grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">,</span>
+                                       <span class="n">elements</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                       <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span> <span class="o">=</span> <span class="n">_load_var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="p">,</span>
+                                           <span class="n">elements</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">History</span><span class="p">,</span>
+                                           <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;---Data too large for machine memory---&#39;</span>
+                <span class="k">print</span> <span class="s">&#39;Tip: use ax or tx during class initialisation&#39;</span>
+                <span class="k">print</span> <span class="s">&#39;---  to use partial data&#39;</span>
+                <span class="k">raise</span>
+
+        <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.mat&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Functionality not yet implemented---&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Wrong file format---&quot;</span><span class="p">)</span>
+
+    <span class="c">#Special methods</span>
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">StationClass</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This special method permit to stack variables</span>
+<span class="sd">        of 2 Station objects through a simple addition: ::</span>
+
+<span class="sd">          station1 += station2</span>
+
+<span class="sd">        *Notes*</span>
+<span class="sd">          - station1 and station2 have to cover the exact</span>
+<span class="sd">            same spatial domain</span>
+<span class="sd">          - last time step of station1 must be &lt;= to the </span>
+<span class="sd">            first time step of station2 </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;Find matching elements...&quot;</span>
+        <span class="c">#Find matching elements</span>
+        <span class="n">origNele</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">nele</span>
+        <span class="n">origEle</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#origName = self.Grid.name</span>
+        <span class="n">origX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">x</span><span class="p">[:]</span>
+        <span class="n">origY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">y</span><span class="p">[:]</span>
+        <span class="n">newNele</span> <span class="o">=</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">nele</span>
+        <span class="n">newEle</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#newName = StationClass.Grid.name</span>
+        <span class="n">newX</span> <span class="o">=</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">x</span><span class="p">[:]</span>
+        <span class="n">newY</span> <span class="o">=</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">y</span><span class="p">[:]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">origNele</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">newNele</span><span class="p">):</span>
+                <span class="c">#Match based on names</span>
+                <span class="c">#if (all(origName[i,:]==newName[j,:])):</span>
+                <span class="c">#    origEle.append(i)</span>
+                <span class="c">#    newEle.append(j)</span>
+                <span class="c">#Match based on coordinates</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">origX</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">newX</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">origY</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">newY</span><span class="p">[</span><span class="n">j</span><span class="p">])):</span>
+                    <span class="n">origEle</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">newEle</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                
+        <span class="k">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">origEle</span><span class="p">),</span> <span class="s">&quot; points will be stacked...&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">origEle</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---No matching element found---&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span> <span class="o">==</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">_3D</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Data dimensions do not match---&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span>
+                    <span class="n">StationClass</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Data not consecutive in time---&quot;</span><span class="p">)</span>
+            <span class="c">#Copy self to newself</span>
+            <span class="n">newself</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c">#TR comment: it still points toward self and modifies it</span>
+            <span class="c">#            so cannot do Station3 = Station1 + Station2</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Stacking variables...&#39;</span>
+            <span class="c">#keyword list for hstack</span>
+            <span class="n">kwl</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;matlabTime&#39;</span><span class="p">,</span> <span class="s">&#39;julianTime&#39;</span><span class="p">,</span> <span class="s">&#39;secondTime&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwl</span><span class="p">:</span>
+                <span class="n">tmpN</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="n">tmpO</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">StationClass</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">tmpN</span><span class="p">[:],</span> <span class="n">tmpO</span><span class="p">[:])))</span>
+
+            <span class="c">#keyword list for vstack</span>
+            <span class="n">kwl</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">&#39;v&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="s">&#39;tke&#39;</span><span class="p">,</span> <span class="s">&#39;gls&#39;</span><span class="p">,</span> <span class="s">&#39;ua&#39;</span><span class="p">,</span> <span class="s">&#39;va&#39;</span><span class="p">,</span><span class="s">&#39;el&#39;</span><span class="p">]</span>
+            <span class="n">kwl2D</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;ua&#39;</span><span class="p">,</span> <span class="s">&#39;va&#39;</span><span class="p">,</span><span class="s">&#39;el&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwl</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwl2D</span><span class="p">:</span>
+                        <span class="n">tmpN</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>\
+                               <span class="p">[:,</span><span class="n">newEle</span><span class="p">[:]]</span>
+                        <span class="n">tmpO</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">StationClass</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>\
+                               <span class="p">[:,</span><span class="n">origEle</span><span class="p">[:]]</span>                   
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">tmpN</span><span class="p">[:],</span> <span class="n">tmpO</span><span class="p">[:])))</span>
+                        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;Stacking &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s">&quot;...&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tmpN</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>\
+                               <span class="p">[:,:,</span><span class="n">newEle</span><span class="p">[:]]</span>
+                        <span class="n">tmpO</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">StationClass</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>\
+                               <span class="p">[:,:,</span><span class="n">origEle</span><span class="p">[:]]</span>                   
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">newself</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">tmpN</span><span class="p">[:],</span> <span class="n">tmpO</span><span class="p">[:])))</span>  
+                        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;Stacking &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s">&quot;...&quot;</span>    
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="c">#New time dimension</span>
+            <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span> <span class="o">=</span> <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span> <span class="o">+</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span>
+            <span class="c">#Keep only matching names</span>
+            <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="n">origEle</span><span class="p">[:],:]</span>
+            <span class="c">#Append to new object history</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Data from &#39;</span> <span class="o">+</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">History</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> \
+                 <span class="o">+</span> <span class="s">&#39; has been stacked&#39;</span>
+            <span class="n">newself</span><span class="o">.</span><span class="n">History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">newself</span>  
+   
+    <span class="c">#Methods</span>
+<div class="viewcode-block" id="Station.Save_as"><a class="viewcode-back" href="../../../pyseidon.stationClass.html#pyseidon.Station.Save_as">[docs]</a>    <span class="k">def</span> <span class="nf">Save_as</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">fileformat</span><span class="o">=</span><span class="s">&#39;pickle&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the current Station structure as:</span>
+<span class="sd">           - *.p, i.e. python file</span>
+<span class="sd">           - *.mat, i.e. Matlab file</span>
+
+<span class="sd">        Inputs:</span>
+<span class="sd">          - filename = path + name of the file to be saved, string</span>
+
+<span class="sd">        Options:</span>
+<span class="sd">          - fileformat = format of the file to be saved, i.e. &#39;pickle&#39; or &#39;matlab&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Saving file...&#39;</span>
+        <span class="c">#Define bounding box</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Computing bounding box...&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">lon</span><span class="p">[:]</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[:]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">_ax</span> <span class="o">=</span> <span class="p">[</span><span class="n">lon</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lon</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                             <span class="n">lat</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+        <span class="c">#Save as different formats</span>
+        <span class="k">if</span> <span class="n">fileformat</span><span class="o">==</span><span class="s">&#39;pickle&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot;.p&quot;</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">History</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="c">#TR: Force caching Variables otherwise error during loading</span>
+            <span class="c">#    with &#39;netcdf4.Variable&#39; type (see above)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">]:</span>
+                <span class="n">listkeys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Variable&#39;</span><span class="p">,</span> <span class="s">&#39;ArrayProxy&#39;</span><span class="p">,</span> <span class="s">&#39;BaseType&#39;</span><span class="p">]</span> 
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listkeys</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Force caching for &quot;</span> <span class="o">+</span> <span class="n">key</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">][:]</span>
+            <span class="c">#Unpickleable objects</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;triangle&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="c">#TR: Force caching Variables otherwise error during loading</span>
+            <span class="c">#    with &#39;netcdf4.Variable&#39; type (see above)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">]:</span>
+                <span class="n">listkeys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Variable&#39;</span><span class="p">,</span> <span class="s">&#39;ArrayProxy&#39;</span><span class="p">,</span> <span class="s">&#39;BaseType&#39;</span><span class="p">]</span> 
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listkeys</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Force caching for &quot;</span> <span class="o">+</span> <span class="n">key</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">][:]</span>
+            <span class="c">#Save in pickle file</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Dumping in pickle file...&#39;</span>
+            <span class="k">try</span><span class="p">:</span>    
+                <span class="n">pkl</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pkl</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">SystemError</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;---Data too large for machine memory---&#39;</span>
+                <span class="k">print</span> <span class="s">&#39;Tip: use ax or tx during class initialisation&#39;</span>
+                <span class="k">print</span> <span class="s">&#39;---  to use partial data&#39;</span>
+                <span class="k">raise</span>
+           
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">fileformat</span><span class="o">==</span><span class="s">&#39;matlab&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot;.mat&quot;</span>
+            <span class="c">#TR comment: based on MitchellO&#39;Flaherty-Sproul&#39;s code</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">Grd</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">Var</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">History</span>
+            <span class="n">Grd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="n">Var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="c">#TR: Force caching Variables otherwise error during loading</span>
+            <span class="c">#    with &#39;netcdf4.Variable&#39; type (see above)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">Var</span><span class="p">:</span>
+                <span class="n">listkeys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Variable&#39;</span><span class="p">,</span> <span class="s">&#39;ArrayProxy&#39;</span><span class="p">,</span> <span class="s">&#39;BaseType&#39;</span><span class="p">]</span> 
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listkeys</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Force caching for &quot;</span> <span class="o">+</span> <span class="n">key</span>
+                    <span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">][:]</span>
+                <span class="c">#keyV = key + &#39;-var&#39;</span>
+                <span class="c">#data[keyV] = Var[key]</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Var</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="c">#Unpickleable objects</span>
+            <span class="n">Grd</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;triangle&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">Grd</span><span class="p">:</span>
+                <span class="n">listkeys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Variable&#39;</span><span class="p">,</span> <span class="s">&#39;ArrayProxy&#39;</span><span class="p">,</span> <span class="s">&#39;BaseType&#39;</span><span class="p">]</span> 
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">Grd</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listkeys</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Force caching for &quot;</span> <span class="o">+</span> <span class="n">key</span>
+                    <span class="n">Grd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grd</span><span class="p">[</span><span class="n">key</span><span class="p">][:]</span>
+                <span class="c">#keyG = key + &#39;-grd&#39;</span>
+                <span class="c">#data[keyG] = Grd[key]</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Grd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+            <span class="c">#Save in mat file file</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Dumping in matlab file...&#39;</span>
+            <span class="n">savemat</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">oned_as</span><span class="o">=</span><span class="s">&#39;column&#39;</span><span class="p">)</span>       
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;---Wrong file format---&quot;</span>   
+
+<span class="c">#if __name__ == &#39;__main__&#39;:</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

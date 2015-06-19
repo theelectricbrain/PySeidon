@@ -1,0 +1,669 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.validationClass.tidalStats &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.validationClass.tidalStats</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">t</span><span class="p">,</span> <span class="n">pearsonr</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">correlate</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="nb">exit</span>
+
+<div class="viewcode-block" id="TidalStats"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats">[docs]</a><span class="k">class</span> <span class="nc">TidalStats</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object representing a set of statistics on tidal heights used</span>
+<span class="sd">    to determine the skill of a model in comparison to observed data.</span>
+<span class="sd">    Standards are from NOAA&#39;s Standard Suite of Statistics.</span>
+
+<span class="sd">    Instantiated with two arrays containing predicted and observed</span>
+<span class="sd">    data which have already been interpolated so they line up, the</span>
+<span class="sd">    time step between points, and the start time of the data.</span>
+
+<span class="sd">    To remove NaNs in observed data, linear interpolation is performed to</span>
+<span class="sd">    fill gaps. Additionally, NaNs are trimmed from the start and end.</span>
+
+<span class="sd">    Functions are used to calculate statistics and to output</span>
+<span class="sd">    visualizations and tables.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gear</span><span class="p">,</span> <span class="n">model_data</span><span class="p">,</span> <span class="n">observed_data</span><span class="p">,</span> <span class="n">time_step</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span>
+                 <span class="n">model_u</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">observed_u</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">model_v</span><span class="o">=</span> <span class="p">[],</span> <span class="n">observed_v</span> <span class="o">=</span> <span class="p">[],</span>
+                 <span class="n">model_time</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">observed_time</span> <span class="o">=</span> <span class="p">[],</span>
+                 <span class="n">kind</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;TidalStats initialisation...&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug_plot</span> <span class="o">=</span> <span class="n">debug_plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gear</span> <span class="o">=</span> <span class="n">gear</span> <span class="c"># Type of measurement gear (drifter, adcp,...), str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">model_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">observed_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">model_u</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_u</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observed_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">observed_u</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observed_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed_u</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">model_v</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_v</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observed_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">observed_v</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observed_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed_v</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">=</span> <span class="n">kind</span>
+
+        <span class="c"># TR: pass this step if dealing with Drifter&#39;s data</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gear</span> <span class="o">==</span> <span class="s">&#39;Drifter&#39;</span><span class="p">:</span>
+            <span class="c"># TR: fix for interpolation pb when 0 index or -1 index array values = nan</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...trim nans at start and end of data..&quot;</span>
+            <span class="n">start_index</span><span class="p">,</span> <span class="n">end_index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[</span><span class="n">start_index</span><span class="p">])</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">start_index</span><span class="p">])):</span>
+                <span class="n">start_index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[</span><span class="n">end_index</span><span class="p">])</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">end_index</span><span class="p">])):</span>
+                <span class="n">end_index</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="c"># Correction for bound index call</span>
+            <span class="k">if</span> <span class="n">end_index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">end_index</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">end_index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;Start index: &quot;</span><span class="p">,</span> <span class="n">start_index</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;End index: &quot;</span><span class="p">,</span> <span class="n">end_index</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]</span>
+            <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]</span>
+
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;model&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;observed&#39;</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+        
+            <span class="c"># set up array of datetimes corresponding to the data (and timestamps)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">*</span> <span class="n">time_step</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">time_step</span>
+            <span class="n">timestamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">):</span>
+                <span class="n">timestamps</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">jj</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...uses linear interpolation to eliminate any NaNs in the data...&quot;</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">True</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">)):</span>
+                <span class="n">obs_nonan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">time_nonan</span> <span class="o">=</span> <span class="n">timestamps</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">time_nonan</span><span class="p">,</span> <span class="n">obs_nonan</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">True</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)):</span>
+                <span class="n">mod_nonan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">time_nonan</span> <span class="o">=</span> <span class="n">timestamps</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">))[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">time_nonan</span><span class="p">,</span> <span class="n">mod_nonan</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+
+        <span class="c"># TR: pass this step if dealing with Drifter&#39;s data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">time_step</span> <span class="c"># needed for getMDPO, getMDNO, getPhase &amp; altPhase</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">*</span> <span class="n">time_step</span> <span class="c"># needed for plots, en seconds</span>
+            <span class="c">#TR: those are not the real times though</span>
+
+        <span class="c"># Error attributes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;cubic speed&#39;</span><span class="p">,</span> <span class="s">&#39;velocity&#39;</span><span class="p">]:</span>
+            <span class="c"># TR: pass this step if dealing with Drifter&#39;s data</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gear</span> <span class="o">==</span> <span class="s">&#39;Drifter&#39;</span><span class="p">:</span>
+            <span class="c"># interpolate cubic speed, u and v on same time steps</span>
+                <span class="n">model_timestamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model_time</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model_time</span><span class="p">):</span>
+                    <span class="n">model_timestamps</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">jj</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
+                <span class="n">obs_timestamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">observed_time</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">observed_time</span><span class="p">):</span>
+                    <span class="n">obs_timestamps</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">jj</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
+                <span class="n">func_u</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">model_timestamps</span><span class="p">,</span> <span class="n">model_u</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model_u</span> <span class="o">=</span> <span class="n">func_u</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+                <span class="n">func_v</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">model_timestamps</span><span class="p">,</span> <span class="n">model_v</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model_v</span> <span class="o">=</span> <span class="n">func_v</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+                <span class="n">func_u</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">obs_timestamps</span><span class="p">,</span> <span class="n">observed_u</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">observed_u</span> <span class="o">=</span> <span class="n">func_u</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+                <span class="n">func_v</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">obs_timestamps</span><span class="p">,</span> <span class="n">observed_v</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">observed_v</span> <span class="o">=</span> <span class="n">func_v</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;cubic speed&#39;</span><span class="p">:</span>
+                <span class="c"># R.Karsten formula</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model_u</span><span class="o">**</span><span class="mf">2.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_v</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">3.0</span><span class="o">/</span><span class="mf">2.0</span><span class="p">))</span> <span class="o">-</span> \
+                             <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">observed_u</span><span class="o">**</span><span class="mf">2.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed_v</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">3.0</span><span class="o">/</span><span class="mf">2.0</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;speed&#39;</span><span class="p">,</span> <span class="s">&#39;elevation&#39;</span><span class="p">,</span> <span class="s">&#39;direction&#39;</span><span class="p">,</span> <span class="s">&#39;u velocity&#39;</span><span class="p">,</span> <span class="s">&#39;v velocity&#39;</span><span class="p">,</span> <span class="s">&#39;Phase&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;---Data kind not supported---&quot;</span>
+            <span class="nb">exit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="c"># if debug: print &quot;...establish limits as defined by NOAA standard...&quot;</span>
+        <span class="c"># if self.kind == &#39;velocity&#39;:</span>
+        <span class="c">#     self.ERROR_BOUND = 0.26</span>
+        <span class="c"># elif (self.kind == &#39;speed&#39; or self.kind == &#39;velocity&#39;):</span>
+        <span class="c">#     self.ERROR_BOUND = 0.26</span>
+        <span class="c"># elif (self.kind == &#39;elevation&#39;):</span>
+        <span class="c">#     self.ERROR_BOUND = 0.15</span>
+        <span class="c"># elif (self.kind == &#39;direction&#39;):</span>
+        <span class="c">#     self.ERROR_BOUND = 22.5</span>
+        <span class="c"># elif (self.kind == &#39;u velocity&#39; or self.kind == &#39;v velocity&#39;):</span>
+        <span class="c">#     self.ERROR_BOUND = 0.35</span>
+        <span class="c"># elif self.kind == &#39;cubic speed&#39;:</span>
+        <span class="c">#     self.ERROR_BOUND = 0.26**3.0</span>
+        <span class="c"># else:</span>
+        <span class="c">#     self.ERROR_BOUND = 0.5</span>
+
+        <span class="c"># instead of using the NOAA errors, use 10% of the data range</span>
+        <span class="n">obs_range</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">))</span>
+        <span class="n">mod_range</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ERROR_BOUND</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_range</span> <span class="o">+</span> <span class="n">mod_range</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...TidalStats initialisation done.&quot;</span>
+
+<div class="viewcode-block" id="TidalStats.getOverUnder"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getOverUnder">[docs]</a>    <span class="k">def</span> <span class="nf">getOverUnder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determines if model over or under estimate the reference</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">          - ovORun = character, &#39;+&#39; if overestimation and &#39;-&#39; if underestimation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getOverUnder...&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[:]):</span>
+            <span class="n">ovORun</span> <span class="o">=</span> <span class="s">&#39;+&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ovORun</span> <span class="o">=</span> <span class="s">&#39;-&#39;</span>
+        <span class="k">return</span> <span class="n">ovORun</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getRMSE"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getRMSE">[docs]</a>    <span class="k">def</span> <span class="nf">getRMSE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the root mean squared error of the data.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getRMSE...&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;velocity&#39;</span><span class="p">:</span>
+            <span class="c"># Special definition of rmse - R.Karsten</span>
+            <span class="n">rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model_u</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed_u</span><span class="p">)</span><span class="o">**</span><span class="mf">2.0</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_v</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed_v</span><span class="p">)</span><span class="o">**</span><span class="mf">2.0</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">rmse</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getSD"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getSD">[docs]</a>    <span class="k">def</span> <span class="nf">getSD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the standard deviation of the error.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getSD...&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getBias"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getBias">[docs]</a>    <span class="k">def</span> <span class="nf">getBias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the bias of the model, a measure of over/under-estimation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getBias...&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getSI"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getSI">[docs]</a>    <span class="k">def</span> <span class="nf">getSI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the scatter index of the model, a weighted measure of data</span>
+<span class="sd">        scattering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getSI...&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRMSE</span><span class="p">()</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="TidalStats.getNRMSE"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getNRMSE">[docs]</a>    <span class="k">def</span> <span class="nf">getNRMSE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the normalized root mean squared error between the model and</span>
+<span class="sd">        observed data in %.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getNRMSE...&quot;</span>
+        <span class="k">return</span> <span class="mf">100.</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRMSE</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getPBIAS"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getPBIAS">[docs]</a>    <span class="k">def</span> <span class="nf">getPBIAS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the percent bias between the model and the observed data.</span>
+
+<span class="sd">        References:</span>
+<span class="sd">          Yapo P. O., Gupta H. V., Sorooshian S., 1996.</span>
+<span class="sd">          Automatic calibration of conceptual rainfall-runoff models: sensitivity to calibration data.</span>
+<span class="sd">          Journal of Hydrology. v181 i1-4. 23-48</span>
+
+<span class="sd">          Sorooshian, S., Q. Duan, and V. K. Gupta. 1993.</span>
+<span class="sd">          Calibration of rainfall-runoff models: Application of global optimization</span>
+<span class="sd">          to the Sacramento Soil Moisture Accounting Model.</span>
+<span class="sd">          Water Resources Research, 29 (4), 1185-1194, doi:10.1029/92WR02617.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getPBIAS...&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">,</span> <span class="s">&#39;direction&#39;</span><span class="p">,</span> <span class="s">&#39;u velocity&#39;</span><span class="p">,</span> <span class="s">&#39;v velocity&#39;</span><span class="p">,</span> <span class="s">&#39;velocity&#39;</span><span class="p">]:</span>
+            <span class="n">norm_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span>
+            <span class="n">pbias</span> <span class="o">=</span> <span class="mf">100.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">norm_error</span><span class="p">)</span> <span class="o">/</span> <span class="n">norm_error</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">norm_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span>
+            <span class="n">pbias</span> <span class="o">=</span> <span class="mf">100.</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">norm_error</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">))</span>
+            <span class="c"># TR: this formula may lead to overly large values when used with sinusoidal signals</span>
+        <span class="k">return</span> <span class="n">pbias</span>
+
+</div>
+<div class="viewcode-block" id="TidalStats.getNSE"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getNSE">[docs]</a>    <span class="k">def</span> <span class="nf">getNSE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the Nash-Sutcliffe Efficiency coefficient of the model vs.</span>
+<span class="sd">        the observed data. Identifies if the model is better for</span>
+<span class="sd">        approximation than the mean of the observed data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">SSE_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">SSE_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">SSE_mod</span> <span class="o">/</span> <span class="n">SSE_mean</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getCORR"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getCORR">[docs]</a>    <span class="k">def</span> <span class="nf">getCORR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the Pearson correlation coefficient for the model vs.</span>
+<span class="sd">        the observed data, a number between -1 and 1. -1 implies perfect</span>
+<span class="sd">        negative correlation, 1 implies perfect correlation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pearsonr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getCF"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getCF">[docs]</a>    <span class="k">def</span> <span class="nf">getCF</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the central frequency of the data, i.e. the fraction of</span>
+<span class="sd">        errors that lie within the defined limit.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">central_err</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR_BOUND</span><span class="p">]</span>
+        <span class="n">central_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">central_err</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getCF...&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">central_num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getPOF"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getPOF">[docs]</a>    <span class="k">def</span> <span class="nf">getPOF</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the positive outlier frequency of the data, i.e. the</span>
+<span class="sd">        fraction of errors that lie above the defined limit.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">upper_err</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR_BOUND</span><span class="p">]</span>
+        <span class="n">upper_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">upper_err</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getPOF...&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">upper_num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getNOF"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getNOF">[docs]</a>    <span class="k">def</span> <span class="nf">getNOF</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the negative outlier frequency of the data, i.e. the</span>
+<span class="sd">        fraction of errors that lie below the defined limit.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">lower_err</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR_BOUND</span><span class="p">]</span>
+        <span class="n">lower_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lower_err</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getNOF...&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lower_num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getMDPO"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getMDPO">[docs]</a>    <span class="k">def</span> <span class="nf">getMDPO</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the maximum duration of positive outliers, i.e. the</span>
+<span class="sd">        longest amount of time across the data where the model data</span>
+<span class="sd">        exceeds the observed data by a specified limit.</span>
+
+<span class="sd">        Takes one parameter: the number of minutes between consecutive</span>
+<span class="sd">        data points.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c">#Fix for Drifter&#39;s data</span>
+            <span class="n">timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">60</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="c"># converts matlabtime (in days) to minutes</span>
+
+        <span class="n">max_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">current_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR_BOUND</span><span class="p">):</span>
+                <span class="n">current_duration</span> <span class="o">+=</span> <span class="n">timestep</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">current_duration</span> <span class="o">&gt;</span> <span class="n">max_duration</span><span class="p">):</span>
+                    <span class="n">max_duration</span> <span class="o">=</span> <span class="n">current_duration</span>
+                <span class="n">current_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getMDPO...&quot;</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_duration</span><span class="p">,</span> <span class="n">current_duration</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getMDNO"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getMDNO">[docs]</a>    <span class="k">def</span> <span class="nf">getMDNO</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the maximum duration of negative outliers, i.e. the</span>
+<span class="sd">        longest amount of time across the data where the observed</span>
+<span class="sd">        data exceeds the model data by a specified limit.</span>
+
+<span class="sd">        Takes one parameter: the number of minutes between consecutive</span>
+<span class="sd">        data points.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c">#Fix for Drifter&#39;s data</span>
+            <span class="n">timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mi">60</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="c"># converts matlabtime (in days) to minutes</span>
+
+        <span class="n">max_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">current_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">ERROR_BOUND</span><span class="p">):</span>
+                <span class="n">current_duration</span> <span class="o">+=</span> <span class="n">timestep</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">current_duration</span> <span class="o">&gt;</span> <span class="n">max_duration</span><span class="p">):</span>
+                    <span class="n">max_duration</span> <span class="o">=</span> <span class="n">current_duration</span>
+                <span class="n">current_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getMDNO...&quot;</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_duration</span><span class="p">,</span> <span class="n">current_duration</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getWillmott"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getWillmott">[docs]</a>    <span class="k">def</span> <span class="nf">getWillmott</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the Willmott skill statistic.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c"># start by calculating MSE</span>
+        <span class="n">MSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c"># now calculate the rest of it</span>
+        <span class="n">obs_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">)</span>
+        <span class="n">skill</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">MSE</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">-</span> <span class="n">obs_mean</span><span class="p">)</span> <span class="o">+</span>
+                                   <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span> <span class="o">-</span> <span class="n">obs_mean</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getWillmott...&quot;</span>
+        <span class="k">return</span> <span class="n">skill</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getPhase"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getPhase">[docs]</a>    <span class="k">def</span> <span class="nf">getPhase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_phase</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Attempts to find the phase shift between the model data and the</span>
+<span class="sd">        observed data.</span>
+
+<span class="sd">        Iteratively tests different phase shifts, and calculates the RMSE</span>
+<span class="sd">        for each one. The shift with the smallest RMSE is returned.</span>
+
+<span class="sd">        Argument max_phase is the span of time across which the phase shifts</span>
+<span class="sd">        will be tested. If debug is set to True, a plot of the RMSE for each</span>
+<span class="sd">        phase shift will be shown.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;getPhase...&quot;</span>
+        <span class="c"># grab the length of the timesteps in seconds</span>
+        <span class="n">max_phase_sec</span> <span class="o">=</span> <span class="n">max_phase</span><span class="o">.</span><span class="n">seconds</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c">#Fix for Drifter&#39;s data</span>
+            <span class="n">step_sec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">seconds</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">step_sec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="c"># converts matlabtime to seconds</span>
+
+        <span class="n">num_steps</span> <span class="o">=</span> <span class="n">max_phase_sec</span> <span class="o">/</span> <span class="n">step_sec</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...iterate through the phase shifts and check RMSE...&quot;</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">num_steps</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+            <span class="c"># create shifted data</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c"># left shift</span>
+                <span class="n">shift_mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">:]</span>
+                <span class="n">shift_obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c"># right shift</span>
+                <span class="n">shift_mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">-</span> <span class="n">i</span><span class="p">]</span>
+                <span class="n">shift_obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="p">[</span><span class="n">i</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c"># no shift</span>
+                <span class="n">shift_mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+                <span class="n">shift_obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span>
+
+            <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c"># create TidalStats class for shifted data and get the RMSE</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">TidalStats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gear</span><span class="p">,</span> <span class="n">shift_mod</span><span class="p">,</span> <span class="n">shift_obs</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s">&#39;Phase&#39;</span><span class="p">)</span>
+
+        <span class="n">rms_error</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">getRMSE</span><span class="p">()</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rms_error</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...find the minimum rmse, and thus the minimum phase...&quot;</span>
+        <span class="n">min_index</span> <span class="o">=</span> <span class="n">errors</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
+        <span class="n">best_phase</span> <span class="o">=</span> <span class="n">phases</span><span class="p">[</span><span class="n">min_index</span><span class="p">]</span>
+        <span class="n">phase_minutes</span> <span class="o">=</span> <span class="n">best_phase</span> <span class="o">*</span> <span class="n">step_sec</span> <span class="o">/</span> <span class="mi">60</span>
+
+        <span class="k">return</span> <span class="n">phase_minutes</span>
+</div>
+<div class="viewcode-block" id="TidalStats.altPhase"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.altPhase">[docs]</a>    <span class="k">def</span> <span class="nf">altPhase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Alternate version of lag detection using scipy&#39;s cross correlation function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;altPhase...&quot;</span>
+        <span class="c"># normalize arrays</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">mod</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">mod</span> <span class="o">/=</span> <span class="n">mod</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span>
+        <span class="n">obs</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">obs</span> <span class="o">/=</span> <span class="n">obs</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...get cross correlation and find number of timesteps of shift...&quot;</span>
+        <span class="n">xcorr</span> <span class="o">=</span> <span class="n">correlate</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">obs</span><span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="n">time_shift</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">xcorr</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span>
+
+        <span class="c"># find number of minutes in time shift</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c">#Fix for Drifter&#39;s data</span>
+            <span class="n">step_sec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">seconds</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">step_sec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="c"># converts matlabtime (in days) to seconds</span>
+        <span class="n">lag</span> <span class="o">=</span> <span class="n">time_shift</span> <span class="o">*</span> <span class="n">step_sec</span> <span class="o">/</span> <span class="mi">60</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...altPhase done.&quot;</span>
+
+        <span class="k">return</span> <span class="n">lag</span>
+</div>
+<div class="viewcode-block" id="TidalStats.getStats"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.getStats">[docs]</a>    <span class="k">def</span> <span class="nf">getStats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns each of the statistics in a dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;ovORun&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOverUnder</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;RMSE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRMSE</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;CF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCF</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;SD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSD</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;POF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPOF</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;NOF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNOF</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;MDPO&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMDPO</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;MDNO&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMDNO</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;skill&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getWillmott</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c">#Fix for Drifter&#39;s data</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s">&#39;phase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPhase</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s">&#39;phase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;CORR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCORR</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;NRMSE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNRMSE</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;NSE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNSE</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;bias&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getBias</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;SI&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSI</span><span class="p">()</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">&#39;pbias&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPBIAS</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...getStats...&quot;</span>
+
+        <span class="k">return</span> <span class="n">stats</span>
+</div>
+<div class="viewcode-block" id="TidalStats.linReg"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.linReg">[docs]</a>    <span class="k">def</span> <span class="nf">linReg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Does linear regression on the model data vs. recorded data.</span>
+
+<span class="sd">        Gives a 100(1-alpha)% confidence interval for the slope</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;linReg...&quot;</span>
+        <span class="c"># set stuff up to make the code cleaner</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">obs_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="n">mod_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">2</span>
+
+        <span class="c"># calculate square sums</span>
+        <span class="n">SSxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mod</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">n</span>
+        <span class="n">SSyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">obs</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">n</span>
+        <span class="n">SSxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mod</span> <span class="o">*</span> <span class="n">obs</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+        <span class="n">SSE</span> <span class="o">=</span> <span class="n">SSyy</span> <span class="o">-</span> <span class="n">SSxy</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">SSxx</span>
+        <span class="n">MSE</span> <span class="o">=</span> <span class="n">SSE</span> <span class="o">/</span> <span class="n">df</span>
+
+        <span class="c"># estimate parameters</span>
+        <span class="n">slope</span> <span class="o">=</span> <span class="n">SSxy</span> <span class="o">/</span> <span class="n">SSxx</span>
+        <span class="n">intercept</span> <span class="o">=</span> <span class="n">obs_mean</span> <span class="o">-</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">mod_mean</span>
+        <span class="n">sd_slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">MSE</span> <span class="o">/</span> <span class="n">SSxx</span><span class="p">)</span>
+        <span class="n">r_squared</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">SSE</span> <span class="o">/</span> <span class="n">SSyy</span>
+
+        <span class="c"># calculate 100(1 - alpha)% CI for slope</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span> <span class="o">*</span> <span class="n">sd_slope</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">slope</span> <span class="o">-</span> <span class="n">width</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">slope</span> <span class="o">+</span> <span class="n">width</span>
+        <span class="n">slope_CI</span> <span class="o">=</span> <span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+
+        <span class="c"># calculate 100(1 - alpha)% CI for intercept</span>
+        <span class="n">lower_intercept</span> <span class="o">=</span> <span class="n">obs_mean</span> <span class="o">-</span> <span class="n">lower_bound</span> <span class="o">*</span> <span class="n">mod_mean</span>
+        <span class="n">upper_intercept</span> <span class="o">=</span> <span class="n">obs_mean</span> <span class="o">-</span> <span class="n">upper_bound</span> <span class="o">*</span> <span class="n">mod_mean</span>
+        <span class="n">intercept_CI</span> <span class="o">=</span> <span class="p">(</span><span class="n">lower_intercept</span><span class="p">,</span> <span class="n">upper_intercept</span><span class="p">)</span>
+
+        <span class="c"># estimate 100(1 - alpha)% CI for predictands</span>
+        <span class="n">predictands</span> <span class="o">=</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">mod</span> <span class="o">+</span> <span class="n">intercept</span>
+        <span class="n">sd_resid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">obs</span> <span class="o">-</span> <span class="n">predictands</span><span class="p">)</span>
+        <span class="n">y_CI_width</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span> <span class="o">*</span> <span class="n">sd_resid</span> <span class="o">*</span> \
+            <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span>
+
+        <span class="c"># return data in a dictionary</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">slope</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;intercept&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">intercept</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;r_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r_squared</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;slope_CI&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">slope_CI</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;intercept_CI&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">intercept_CI</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;pred_CI_width&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_CI_width</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;conf_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...linReg done.&quot;</span>
+
+        <span class="k">return</span> <span class="n">data</span>
+</div>
+<div class="viewcode-block" id="TidalStats.crossVal"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.crossVal">[docs]</a>    <span class="k">def</span> <span class="nf">crossVal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Performs leave-one-out cross validation on the linear regression.</span>
+
+<span class="sd">        i.e. removes one datum from the set, redoes linreg on the training</span>
+<span class="sd">        set, and uses the results to attempt to predict the missing datum.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;crossVal...&quot;</span>
+        <span class="n">cross_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">cross_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">model_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">obs_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observed</span>
+        <span class="n">time_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...loop through each element, remove it...&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="n">train_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">model_orig</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">train_obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">obs_orig</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">train_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">time_orig</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">train_stats</span> <span class="o">=</span> <span class="n">TidalStats</span><span class="p">(</span><span class="n">train_mod</span><span class="p">,</span> <span class="n">train_obs</span><span class="p">,</span> <span class="n">train_time</span><span class="p">)</span>
+
+            <span class="c"># redo the linear regression and get parameters</span>
+            <span class="n">param</span> <span class="o">=</span> <span class="n">train_stats</span><span class="o">.</span><span class="n">linReg</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+            <span class="n">slope</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span>
+            <span class="n">intercept</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s">&#39;intercept&#39;</span><span class="p">]</span>
+
+            <span class="c"># predict the missing observed value and calculate error</span>
+            <span class="n">pred_obs</span> <span class="o">=</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">model_orig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">intercept</span>
+            <span class="n">cross_pred</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred_obs</span>
+            <span class="n">cross_error</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pred_obs</span> <span class="o">-</span> <span class="n">obs_orig</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="c"># calculate PRESS and PRRMSE statistics for predicted data</span>
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...predicted residual sum of squares and predicted RMSE...&quot;</span>
+        <span class="n">PRESS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cross_error</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">PRRMSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">PRESS</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="c"># return data in a dictionary</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;PRESS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PRESS</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;PRRMSE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PRRMSE</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;cross_pred&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cross_pred</span>
+
+        <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;...crossVal done.&quot;</span>
+
+        <span class="k">return</span> <span class="n">data</span>
+</div>
+<div class="viewcode-block" id="TidalStats.save_data"><a class="viewcode-back" href="../../../pyseidon.validationClass.html#pyseidon.validationClass.tidalStats.TidalStats.save_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;time&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                                    <span class="s">&#39;observed&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">observed</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                                    <span class="s">&#39;modeled&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">})</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

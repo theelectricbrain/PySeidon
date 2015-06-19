@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyseidon.utilities.miscellaneous &mdash; pyseidon  documentation</title>
+    
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../../static/underscore.js"></script>
+    <script type="text/javascript" src="../../../static/doctools.js"></script>
+    <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyseidon.utilities.miscellaneous</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python2.7</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">netcdf</span>
+<span class="kn">from</span> <span class="nn">pydap.client</span> <span class="kn">import</span> <span class="n">open_url</span>
+
+<span class="c"># Custom error</span>
+<span class="kn">from</span> <span class="nn">pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
+
+<div class="viewcode-block" id="date2py"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.miscellaneous.date2py">[docs]</a><span class="k">def</span> <span class="nf">date2py</span><span class="p">(</span><span class="n">matlab_datenum</span><span class="p">):</span>
+    <span class="n">python_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromordinal</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">matlab_datenum</span><span class="p">))</span> <span class="o">+</span> \
+        <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">matlab_datenum</span><span class="o">%</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span> <span class="o">=</span> <span class="mi">366</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">python_datetime</span>
+</div>
+<div class="viewcode-block" id="op_angles_from_vectors"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.miscellaneous.op_angles_from_vectors">[docs]</a><span class="k">def</span> <span class="nf">op_angles_from_vectors</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function takes in vectors in the form (u,v) and compares them in</span>
+<span class="sd">    order to find the angles of the vectors without any wrap-around issues.</span>
+<span class="sd">    This is accomplished by finding the smallest difference between angles</span>
+<span class="sd">    compared at different wrap-around values.</span>
+<span class="sd">    This appears to work correctly.</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">      -u = velocity component along x (West-East) direction, 1D array</span>
+<span class="sd">      -v = velocity component along y (South-North) direction, 1D array</span>
+
+<span class="sd">    Outputs:</span>
+<span class="sd">      -angle = corresponidng angle in degrees, 1D array</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">      -Angles are reported in compass coordinates, i.e. 0 and 360 deg.,</span>
+<span class="sd">       0/360=East, 90=North, 180=West, 270=South</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Computing angles from velocity component...&#39;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">((</span><span class="o">-</span><span class="mf">1.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">u</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mf">180.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">+</span> <span class="mf">90.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">phi</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span><span class="c">#Assuming the only dimension is time</span>
+        <span class="c">#Compute difference between angles</span>
+        <span class="n">diff1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="c">#initial difference between angles</span>
+        <span class="n">diff2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">-</span><span class="mf">360.0</span><span class="p">)</span> <span class="c">#diff when moved down a ring</span>
+        <span class="n">diff3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="mf">360.0</span><span class="p">)</span> <span class="c">#diff when moved up a ring</span>
+
+        <span class="n">index1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">diff2</span> <span class="o">&lt;</span> <span class="n">diff1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">diff2</span> <span class="o">&lt;</span> <span class="n">diff3</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">index2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">diff3</span> <span class="o">&lt;</span> <span class="n">diff1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">diff3</span> <span class="o">&lt;</span> <span class="n">diff2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">phi</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">phi</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">360.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">)</span>
+        <span class="n">phi</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">phi</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">+</span> <span class="mf">360.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">phi</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span><span class="c">#Assuming the only dimension is time and sigma level</span>
+        <span class="c">#Compute difference between angles</span>
+        <span class="n">diff1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:])</span> <span class="c">#initial difference between angles</span>
+        <span class="n">diff2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:]</span><span class="o">-</span><span class="mf">360.0</span><span class="p">)</span> <span class="c">#diff when moved down a ring</span>
+        <span class="n">diff3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:]</span><span class="o">+</span><span class="mf">360.0</span><span class="p">)</span> <span class="c">#diff when moved up a ring</span>
+
+        <span class="n">index1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">diff2</span> <span class="o">&lt;</span> <span class="n">diff1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">diff2</span> <span class="o">&lt;</span> <span class="n">diff3</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">index2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">diff3</span> <span class="o">&lt;</span> <span class="n">diff1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">diff3</span> <span class="o">&lt;</span> <span class="n">diff2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">phi</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">360.0</span>
+        <span class="n">phi</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">+</span> <span class="mf">360.0</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c">#Assuming the only dimension is time ,sigma level and element</span>
+        <span class="c">#Compute difference between angles</span>
+        <span class="n">diff1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:,:]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:,:])</span> <span class="c">#initial difference between angles</span>
+        <span class="n">diff2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:,:]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:,:]</span><span class="o">-</span><span class="mf">360.0</span><span class="p">)</span> <span class="c">#diff when moved down a ring</span>
+        <span class="n">diff3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:,:]</span><span class="o">-</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:,:]</span><span class="o">+</span><span class="mf">360.0</span><span class="p">)</span> <span class="c">#diff when moved up a ring</span>
+
+        <span class="n">index1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">diff2</span> <span class="o">&lt;</span> <span class="n">diff1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">diff2</span> <span class="o">&lt;</span> <span class="n">diff3</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">index2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">diff3</span> <span class="o">&lt;</span> <span class="n">diff1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">diff3</span> <span class="o">&lt;</span> <span class="n">diff2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">phi</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">360.0</span>
+        <span class="n">phi</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span> <span class="o">+</span> <span class="mf">360.0</span>     
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">print</span> <span class="s">&quot;...processing time: &quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">phi</span>
+</div>
+<div class="viewcode-block" id="depth_at_FVCOM_element"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.miscellaneous.depth_at_FVCOM_element">[docs]</a><span class="k">def</span> <span class="nf">depth_at_FVCOM_element</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="n">trinodes</span><span class="p">,</span> <span class="n">time_ind</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Input:</span>
+<span class="sd">      -ind = element index, integer</span>
+<span class="sd">      -trinodes = grid trinodes</span>
+<span class="sd">      -time_ind = reference time indexes for surface elevation, list of integer</span>
+<span class="sd">    Output: deoth at element, 1D array</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indexes</span> <span class="o">=</span> <span class="n">trinodes</span><span class="p">[</span><span class="n">ind</span><span class="p">,:]</span>
+    <span class="n">indexes</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span><span class="c">#due to new version of netCDF4</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">h</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
+    <span class="n">zeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">[</span><span class="n">time_ind</span><span class="p">,</span><span class="n">indexes</span><span class="p">],</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">h</span><span class="p">[:]</span>   
+    <span class="n">siglay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">siglay</span><span class="p">[:,</span><span class="n">indexes</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">zeta</span><span class="p">[</span><span class="bp">None</span><span class="p">,:]</span><span class="o">*</span><span class="n">siglay</span><span class="p">[:,:]</span>
+    <span class="n">dep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dep</span>
+</div>
+<div class="viewcode-block" id="time_to_index"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.miscellaneous.time_to_index">[docs]</a><span class="k">def</span> <span class="nf">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert datetime64[us] string in FVCOM index&quot;&quot;&quot;</span>
+    <span class="c"># Find simulation time contains in [t_start, t_end]</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#TR comment: is it the accurate way to convert?</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromordinal</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">+</span> \
+               <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">%</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">366</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s">&#39;datetime64[us]&#39;</span><span class="p">)</span>
+    <span class="n">t_slice</span> <span class="o">=</span> <span class="p">[</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">]</span>
+    <span class="n">t_slice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t_slice</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s">&#39;datetime64[us]&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">t_slice</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">time</span><span class="o">&gt;=</span><span class="n">t_slice</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">&amp;</span>
+                              <span class="p">(</span><span class="n">time</span><span class="o">&lt;=</span><span class="n">t_slice</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Argtime: &#39;</span><span class="p">,</span> <span class="n">argtime</span>
+    <span class="k">if</span> <span class="n">argtime</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;Wrong time input&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">argtime</span>
+</div>
+<div class="viewcode-block" id="mattime_to_datetime"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.miscellaneous.mattime_to_datetime">[docs]</a><span class="k">def</span> <span class="nf">mattime_to_datetime</span><span class="p">(</span><span class="n">mattime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert matlab time to datetime64[us] &quot;&quot;&quot;</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromordinal</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">mattime</span><span class="p">))</span> <span class="o">+</span> \
+               <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">mattime</span><span class="o">%</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">366</span><span class="p">)</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s">&#39;datetime64[us]&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">time</span>
+</div>
+<div class="viewcode-block" id="findFiles"><a class="viewcode-back" href="../../../pyseidon.utilities.html#pyseidon.utilities.miscellaneous.findFiles">[docs]</a><span class="k">def</span> <span class="nf">findFiles</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Wesley comment[elements] the name needs to be a linux expression to find files</span>
+<span class="sd">    you want. For multiple station files, this would work</span>
+<span class="sd">    name = &#39;*station*.nc&#39;</span>
+
+<span class="sd">    For just dngrid_0001 and no restart files:</span>
+<span class="sd">    name = &#39;dngrid_0*.nc&#39;</span>
+<span class="sd">    will work</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;*&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;*.nc&#39;</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+            <span class="n">filenames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+            <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+</div>
+<span class="k">def</span> <span class="nf">_load_nc</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loads data from *.nc returns Data&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http&#39;</span><span class="p">):</span>
+        <span class="c">#Look for file through OpenDAP server</span>
+        <span class="k">print</span> <span class="s">&quot;Retrieving data through OpenDap server...&quot;</span>
+        <span class="n">Data</span> <span class="o">=</span> <span class="n">open_url</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="c">#Create fake attribut to be consistent with the rest of the code</span>
+        <span class="n">Data</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">Data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#Look for file locally</span>
+        <span class="k">print</span> <span class="s">&quot;Retrieving data from &quot;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot; ...&quot;</span>
+        <span class="c">#WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
+        <span class="c">#WB_comments: scipy has causes some errors, and even though can be</span>
+        <span class="c">#             faster, can be unreliable</span>
+        <span class="c">#self.Data = nc.Dataset(filename, &#39;r&#39;)</span>
+        <span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Data</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
