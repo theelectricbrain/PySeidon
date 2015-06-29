@@ -38,16 +38,6 @@ class Validation:
       Validation._|_validate_harmonics = validation method/function against
                   |                      harmonic coefficients
                   |_Save_as = "save as" function
-=======
-    Validation class/structure.
-    Functionality structured as follows:
-                 _History = Quality Control metadata
-                |_Variables. = observed and simulated variables and quantities
-                |_validate_data = validation method/function against timeseries
-    Validation._|_validate_harmonics = validation method/function against
-                |                      harmonic coefficients
-                |_Save_as = "save as" function
->>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
 
     Inputs:
       - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
@@ -74,15 +64,9 @@ class Validation:
           - filename = file name of the .csv file to be saved, string.
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
-<<<<<<< HEAD
-          - plot = plot series of valiudation graphs, boolean.
+          - plot = plot series of validation graphs, boolean.
           - save_csv = will save both observed and modeled interpolated
-                      timeseries into *.csv file  
-=======
-          - plot: plot series of valiudation graphs, boolean.
-          - save_csv: will save both observed and modeled interpolated
                       timeseries into *.csv file
->>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and

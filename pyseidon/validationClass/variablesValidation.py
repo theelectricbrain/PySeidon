@@ -26,13 +26,6 @@ class _load_validation:
                              _obs. = measurement/observational variables
       Validation.Variables._|_sim. = simulated variables
                             |_struct. = dictionnary structure for validation purposes
-
-<<<<<<< HEAD
-=======
-                           _obs. = measurement/observational variables
-    Validation.Variables._|_sim. = simulated variables
-                          |_struct. = dictionnary structure for validation purposes
->>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
     """
     def __init__(self, observed, simulated, flow='sf', debug=False, debug_plot=False):
         if debug: print "..variables.."
@@ -153,23 +146,6 @@ class _load_validation:
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
 
-<<<<<<< HEAD
-                # Average over +/- 0.5 FVCOM's time step
-                if debug: print "Average over +/- 0.5 FVCOM's time step..."
-                dt = self.sim.matlabTime[1] - self.sim.matlabTime[0]
-                uObs = np.zeros(len(uniqCloInd))
-                vObs = np.zeros(len(uniqCloInd))
-                for i, j in enumerate(uniqCloInd):
-                    ttime = self.obs.matlabTime[j]
-                    avInd = np.where(np.logical_and(self.obs.matlabTime <= ttime + (dt/2.0),
-                                                    self.obs.matlabTime >= ttime - (dt/2.0)))
-                    uObs[i]=np.nanmean(self.obs.u[avInd])
-                    vObs[i]=np.nanmean(self.obs.v[avInd])
-                # uObs = self.obs.u[uniqCloInd]
-                # vObs = self.obs.v[uniqCloInd]
-                uSim = np.squeeze(uSim[uniqInd,:])
-                vSim = np.squeeze(vSim[uniqInd,:])
-=======
                 #KC: Convert of matlabTime to datetime, smooth drifter temporally!
                 self.datetimes = [datetime.fromordinal(int(x))+timedelta(days=x%1)\
                    - timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
@@ -186,7 +162,6 @@ class _load_validation:
                 #print 'uObs: \n', uObs, '\nvObs: \n', vObs
                 #print 'uSim: \n', vSim.shape, '\nuSim: \n', vSim.shape
 
->>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
                 #Interpolation of timeseries at drifter's trajectory points
                 uSimInterp = np.zeros(len(uniqCloInd))
                 vSimInterp = np.zeros(len(uniqCloInd))
