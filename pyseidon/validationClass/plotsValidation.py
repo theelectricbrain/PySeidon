@@ -3,6 +3,7 @@
 
 from __future__ import division
 #import seaborn
+import os.path as os
 import matplotlib.pyplot as plt
 #from pandas import DataFrame
 import numpy as np
@@ -10,12 +11,13 @@ from matplotlib.projections import PolarAxes
 import mpl_toolkits.axisartist.floating_axes as fa
 import mpl_toolkits.axisartist.grid_finder as gf
 
-def plotRegression(tidalStatClass, lr, save=False, out_f='', debug=False):
+def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
     """
     Plots a visualization of the output from linear regression,
     including confidence intervals for predictands and slope.
 
-    If save is set to True, exports the plot as an image file to out_f.
+    If a savepath and filename is defined, exports the plot as an image file
+    to that location. Filenames should include the image file name and extension.
     """
     if debug : print "Plotting linear regression"
 
@@ -69,14 +71,16 @@ def plotRegression(tidalStatClass, lr, save=False, out_f='', debug=False):
     #                       ylim=(df.observed.min(), df.observed.max()),
     #                       color=color, size=7)
     # plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(tidalStatClass.kind))
-
-    if save:
-        fig.savefig(out_f)
+    # KC: Changed save parameter to be a savepath - making a huge assumption here
+    # that people are able to enter in the savepath correctly / exists etc.
+    if savepath.strip() and fname.strip():
+        if os.exists(savepath):
+            fig.savefig(savepath+fname)
     else:
         fig.show()
         plt.show()
 
-def plotData(tidalStatClass, graph='time', save=False, out_f='', debug=False):
+def plotData(tidalStatClass, graph='time', savepath='', fname='', debug=False):
     """
     Provides a visualization of the data.
 
@@ -84,7 +88,8 @@ def plotData(tidalStatClass, graph='time', save=False, out_f='', debug=False):
     time: plots the model data against the observed data over time
     scatter : plots the model data vs. observed data
 
-    If save is set to True, saves the image file in out_f.
+    If a savepath and filename is defined, exports the plot as an image file
+    to that location. Filenames should include the image file name and extension.
     """
     if debug: print "Plotting time-series..."
     #define figure frame
@@ -121,13 +126,14 @@ def plotData(tidalStatClass, graph='time', save=False, out_f='', debug=False):
         ax.set_ylabel('Observed Height')
         fig.suptitle('Predicted vs. Observed {}'.format(tidalStatClass.kind))
 
-    if save:
-        fig.savefig(out_f)
+    if savepath.strip() and fname.strip():
+        if os.exists(savepath):
+            fig.savefig(savepath+fname)
     else:
         fig.show()
         plt.show()
 
-def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
+def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     """
     References:
       Taylor, K.E.:  Summarizing multiple aspects of model performance in a single diagram.
@@ -212,8 +218,9 @@ def taylorDiagram(benchmarks, save=False, out_f='', debug=False):
                numpoints=1, prop=dict(size='small'), loc='upper right')
     fig.tight_layout()
 
-    if save:
-        fig.savefig(out_f)
+    if savepath.strip() and fname.strip():
+        if os.exists(savepath):
+            fig.savefig(savepath+fname)
     else:
         fig.show()
         plt.show()
