@@ -157,8 +157,8 @@ class _load_validation:
                 uSim = np.squeeze(uSim[uniqInd[:],:])
                 vSim = np.squeeze(vSim[uniqInd[:],:])
 
-                print 'uObs: \n', uObs, '\nvObs: \n', vObs
-                print 'uSim: \n', vSim.shape, '\nuSim: \n', vSim.shape
+                #print 'uObs: \n', uObs, '\nvObs: \n', vObs
+                #print 'uSim: \n', vSim.shape, '\nuSim: \n', vSim.shape
 
                 #Interpolation of timeseries at drifter's trajectory points
                 uSimInterp = np.zeros(len(uniqCloInd))
@@ -170,7 +170,7 @@ class _load_validation:
                     vSimInterp[i]=simulated.Util2D.interpolation_at_point(vSim[i,:],
                                                 self.obs.lon[uniqCloInd[i]],
                                                 self.obs.lat[uniqCloInd[i]])
-                print 'vSimInterp: \n', vSimInterp, '\nuSimInterp: \n', uSimInterp
+                #print 'vSimInterp: \n', vSimInterp, '\nuSimInterp: \n', uSimInterp
 
         else:
             raise PyseidonError("-This type of simulations is not supported yet-")
