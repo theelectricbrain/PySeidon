@@ -14,14 +14,20 @@ from compareData import *
 from valTable import valTable
 from variablesValidation import _load_validation
 from interpolation_utils import *
+from stationClass import Station
+from adcpClass import ADCP
+from fvcomClass import FVCOM
+from drifterClass import Drifter
+from tidegaugeClass import TideGauge
 # Local import
 from plotsValidation import taylorDiagram
-
 # Custom error
 from pyseidon_error import PyseidonError
 
+
 class Validation:
     """
+<<<<<<< HEAD
     **Validation class/structure**
 
     Class structured as follows: ::
@@ -32,22 +38,34 @@ class Validation:
       Validation._|_validate_harmonics = validation method/function against
                   |                      harmonic coefficients
                   |_Save_as = "save as" function
+=======
+    Validation class/structure.
+    Functionality structured as follows:
+                 _History = Quality Control metadata
+                |_Variables. = observed and simulated variables and quantities
+                |_validate_data = validation method/function against timeseries
+    Validation._|_validate_harmonics = validation method/function against
+                |                      harmonic coefficients
+                |_Save_as = "save as" function
+>>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
 
     Inputs:
       - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
+      - flow = flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
     """
-    def __init__(self, observed, simulated, debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow='sf', debug=False, debug_plot=False):
         self._debug = debug
+        self._flow = flow
         self._debug_plot = debug_plot
         if debug: print '-Debug mode on-'
         if debug: print 'Loading...'
         #Metadata
         self.History = ['Created from ' + observed._origin_file +\
                         ' and ' + simulated._origin_file]
-        self.Variables = _load_validation(observed, simulated, debug=self._debug)
- 
-    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False, 
+        self.Variables = _load_validation(observed, simulated, flow=self._flow,                                     debug=self._debug)
+
+    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False,
                       debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -56,9 +74,15 @@ class Validation:
           - filename = file name of the .csv file to be saved, string.
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
+<<<<<<< HEAD
           - plot = plot series of valiudation graphs, boolean.
           - save_csv = will save both observed and modeled interpolated
                       timeseries into *.csv file  
+=======
+          - plot: plot series of valiudation graphs, boolean.
+          - save_csv: will save both observed and modeled interpolated
+                      timeseries into *.csv file
+>>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -76,7 +100,7 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         debug = debug or self._debug
-        debug_plot = debug_plot or self._debug_plot    
+        debug_plot = debug_plot or self._debug_plot
         #User input
         if filename==[]:
             filename = input('Enter filename (string) for csv file: ')
@@ -151,7 +175,7 @@ class Validation:
         # Make csv file
         self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
                                    save_csv=save_csv, debug=debug, debug_plot=debug_plot)
-        
+
         # Display csv
         print "---Validation benchmarks---"
         pd.set_option('display.max_rows', len(self.Benchmarks))
@@ -175,7 +199,7 @@ class Validation:
                            debug=False, debug_plot=False):
         """
         This method computes and store in a csv file the error in %
-        for each component of the harmonic analysis (i.e. *_error.csv).     
+        for each component of the harmonic analysis (i.e. *_error.csv).
 
         Options:
           filename: file name of the .csv file to be saved, string.
@@ -194,14 +218,14 @@ class Validation:
             lat = self.Variables.struct['lat']
             ua =  self.Variables.struct['obs_timeseries']['ua'][:]
             va =  self.Variables.struct['obs_timeseries']['va'][:]
-            el =  self.Variables.struct['obs_timeseries']['elev'] [:]          
-            
+            el =  self.Variables.struct['obs_timeseries']['elev'] [:]
+
             self.Variables.obs.velCoef = ut_solv(time, ua, va, lat,
                                          #cnstit=ut_constits, rmin=0.95, notrend=True,
                                          cnstit='auto', rmin=0.95, notrend=True,
                                          method='ols', nodiagn=True, linci=True,
                                          coef_int=True)
-            
+
 
             self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
                                         #cnstit=ut_constits, rmin=0.95, notrend=True,
@@ -213,7 +237,7 @@ class Validation:
             time = self.Variables.struct['obs_time']
             lat = self.Variables.struct['lat']
             el =  self.Variables.struct['obs_timeseries']['elev'] [:]
- 
+
             self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
                                         #cnstit=ut_constits, notrend=True,
                                         cnstit='auto', notrend=True,
@@ -226,8 +250,8 @@ class Validation:
         if self.Variables._simtype=='fvcom':
             time = self.Variables.struct['mod_time']
             lat = self.Variables.struct['lat']
-            el =  self.Variables.struct['mod_timeseries']['elev'][:]           
-            
+            el =  self.Variables.struct['mod_timeseries']['elev'][:]
+
             self.Variables.sim.elCoef = ut_solv(time, el, [], lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
@@ -294,22 +318,22 @@ class Validation:
         if save_csv:
             # observed elevation coefs
             for key in columns:
-                data[key] = self.Variables.obs.elCoef[key]           
+                data[key] = self.Variables.obs.elCoef[key]
             table = pd.DataFrame(data=data, index=self.Variables.obs.elCoef['name'],
                                  columns=columns)
             # export as .csv file
             out_file = '{}_obs_el_harmo_coef.csv'.format(filename)
-            table.to_csv(out_file)            
+            table.to_csv(out_file)
             data = {}
 
             #modeled elevation coefs
             for key in columns:
-                data[key] = self.Variables.sim.elCoef[key]           
+                data[key] = self.Variables.sim.elCoef[key]
             table = pd.DataFrame(data=data, index=self.Variables.sim.elCoef['name'],
                                  columns=columns)
             # export as .csv file
             out_file = '{}_sim_el_harmo_coef.csv'.format(filename)
-            table.to_csv(out_file)            
+            table.to_csv(out_file)
             data = {}
 
         # error in %
@@ -321,7 +345,7 @@ class Validation:
                 data[key] = err
 
             ##create table
-            table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)        
+            table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)
             ##export as .csv file
             out_file = '{}_el_harmo_error.csv'.format(filename)
             table.to_csv(out_file)
@@ -329,33 +353,33 @@ class Validation:
             if not noMatchElCoef.shape[0]==0:
                 print "Non-matching harmonic coefficients for elevation: ", noMatchElCoef
         else:
-            print "-No matching harmonic coefficients for elevation-" 
+            print "-No matching harmonic coefficients for elevation-"
 
         #Compare obs. vs. sim. velocity harmo coef
         data = {}
         columns = ['Lsmaj', 'g', 'theta_ci', 'Lsmin_ci',
                    'Lsmaj_ci', 'theta', 'g_ci']
- 
-        #Store harmonics in csv files 
+
+        #Store harmonics in csv files
         if save_csv:
             #observed elevation coefs
             for key in columns:
-                data[key] = self.Variables.obs.velCoef[key]          
+                data[key] = self.Variables.obs.velCoef[key]
             table = pd.DataFrame(data=data, index=self.Variables.obs.velCoef['name'],
                                  columns=columns)
             ##export as .csv file
             out_file = '{}_obs_velo_harmo_coef.csv'.format(filename)
-            table.to_csv(out_file)            
+            table.to_csv(out_file)
             data = {}
 
             #modeled elevation coefs
             for key in columns:
-                data[key] = self.Variables.sim.velCoef[key]           
+                data[key] = self.Variables.sim.velCoef[key]
             table = pd.DataFrame(data=data, index=self.Variables.sim.velCoef['name'],
                                  columns=columns)
             ##export as .csv file
             out_file = '{}_sim_velo_harmo_coef.csv'.format(filename)
-            table.to_csv(out_file)            
+            table.to_csv(out_file)
             data = {}
 
         ##error in %
@@ -367,7 +391,7 @@ class Validation:
                 data[key] = err
 
             ##create table
-            table = pd.DataFrame(data=data, index=matchVelCoef, columns=columns)        
+            table = pd.DataFrame(data=data, index=matchVelCoef, columns=columns)
             ##export as .csv file
             out_file = '{}_vel0_harmo_error.csv'.format(filename)
             table.to_csv(out_file)
@@ -375,8 +399,8 @@ class Validation:
             if not noMatchVelCoef.shape[0]==0:
                 print "Non-matching harmonic coefficients for velocity: ", noMatchVelCoef
         else:
-            print "-No matching harmonic coefficients for velocity-"      
-    
+            print "-No matching harmonic coefficients for velocity-"
+
 
     def save_as(self, filename, fileformat='pickle', debug=False):
         """
@@ -402,12 +426,12 @@ class Validation:
             try:
                 data['Benchmarks'] = self.Benchmarks
             except AttributeError:
-                pass 
+                pass
             data['Variables'] = self.Variables.__dict__
             #TR: Force caching Variables otherwise error during loading
             #    with 'netcdf4.Variable' type (see above)
             for key in data['Variables']:
-                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                listkeys=['Variable', 'ArrayProxy', 'BaseType']
                 if any([type(data['Variables'][key]).__name__==x for x in listkeys]):
                     if debug:
                         print "Force caching for " + key
@@ -415,12 +439,12 @@ class Validation:
             #Save in pickle file
             if debug:
                 print 'Dumping in pickle file...'
-            try:    
+            try:
                 pkl.dump(data, f, protocol=pkl.HIGHEST_PROTOCOL)
             except (SystemError, MemoryError) as e:
                 print '---Data too large for machine memory---'
                 raise
-           
+
             f.close()
         elif fileformat=='matlab':
             filename = filename + ".mat"
@@ -434,12 +458,12 @@ class Validation:
             data['History'] = self.History
             Bch = self.Benchmarks
             for key in Bch:
-                data[key] = Bch[key]   
+                data[key] = Bch[key]
             Var = self.Variables.__dict__
             #TR: Force caching Variables otherwise error during loading
             #    with 'netcdf4.Variable' type (see above)
             for key in Var:
-                listkeys=['Variable', 'ArrayProxy', 'BaseType'] 
+                listkeys=['Variable', 'ArrayProxy', 'BaseType']
                 if any([type(Var[key]).__name__==x for x in listkeys]):
                     if debug:
                         print "Force caching for " + key
@@ -447,10 +471,11 @@ class Validation:
                 #keyV = key + '-var'
                 #data[keyV] = Var[key]
                 data[key] = Var[key]
-          
+
             #Save in mat file file
             if debug:
                 print 'Dumping in matlab file...'
-            savemat(filename, data, oned_as='column')       
+            savemat(filename, data, oned_as='column')
         else:
-            print "---Wrong file format---"              
+            print "---Wrong file format---"
+

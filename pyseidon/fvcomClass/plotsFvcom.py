@@ -83,6 +83,7 @@ class PlotsFvcom:
                 self._grid.triangleLL = tri
             else:
                 tri = self._grid.triangleLL
+
         else:
             x = self._grid.x[:]
             y = self._grid.y[:]
@@ -141,6 +142,7 @@ class PlotsFvcom:
         cbar=self._fig.colorbar(f, ax=self._ax)
         cbar.set_label(title, rotation=-90,labelpad=30)
         scale = 1
+
         if degree:
             ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
             self._ax.xaxis.set_major_formatter(ticks)
@@ -188,7 +190,7 @@ class PlotsFvcom:
         l = ax.legend(shadow=True, bbox_to_anchor=[-0.1, 0], loc='lower left')
         plt.setp(l.get_texts(), fontsize=10)
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
-        self._fig.show() 
+        self._fig.show()
 
     def plot_xy(self, x, y, xerror=[], yerror=[],
                 title=' ', xLabel=' ', yLabel=' ', dump=False, **kwargs):
@@ -237,7 +239,7 @@ class PlotsFvcom:
         self._fig.show()
         if dump: self._dump_profile_data_as_csv(x, y,xerror=xerror, yerror=yerror,
                                                 title=title, xLabel=xLabel,
-                                                yLabel=yLabel, **kwargs)     
+                                                yLabel=yLabel, **kwargs)
 
     def Histogram(self, y, title=' ', xLabel=' ', yLabel=' ', dump=False, **kwargs):
         """
@@ -279,7 +281,7 @@ class PlotsFvcom:
 
         if dump: self._dump_profile_data_as_csv(bins[1:], unity_density,
                                                 title=title, xLabel=xLabel,
-                                                yLabel=yLabel, **kwargs) 
+                                                yLabel=yLabel, **kwargs)
 
     def add_points(self, x, y, label=' ', color='black'):
         """
@@ -292,7 +294,7 @@ class PlotsFvcom:
 
         Options:
           - Label = a string
-          - Color = a string, 'red', 'green', etc. or gray shades like '0.5' 
+          - Color = a string, 'red', 'green', etc. or gray shades like '0.5'
         """
         plt.scatter(x, y, s=50, color=color)
         #TR : annotate does not work on my machine !?
@@ -358,5 +360,4 @@ class PlotsFvcom:
         if xLabel == ' ': xLabel = 'X'
         if yLabel == ' ': yLabel = 'Y'
         df = pd.DataFrame({xLabel:x[:], yLabel:y[:], varLabel: var[:]})
-
         df.to_csv(filename, encoding='utf-8', **kwargs)

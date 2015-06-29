@@ -76,7 +76,7 @@ class FVCOM:
         self._debug = debug
         if debug: print '-Debug mode on-'
         #Force garbage collector when fvcom object created
-        gc.collect()  
+        gc.collect()
 
         #Loading pickle file
         if filename.endswith('.p'):
@@ -110,13 +110,13 @@ class FVCOM:
                             #due to mmap not coping with big array > 4Gib
                         except (OverflowError, TypeError, ValueError) as e:
                             self.Data = nc.Dataset(data['Origin'], 'r',
-                                       format='NETCDF4_CLASSIC') 
+                                       format='NETCDF4_CLASSIC')
                     else:
-                        print "the original *.nc file has not been found"                   
+                        print "the original *.nc file has not been found"
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
-        #Loading netcdf file         
+        #Loading netcdf file
         elif filename.endswith('.nc'):
             if filename.startswith('http'):
                 #Look for file through OpenDAP server
@@ -133,7 +133,7 @@ class FVCOM:
                 try:
                     self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
                     #due to mmap not coping with big array > 4Gib
-                except (OverflowError, TypeError, ValueError) as e: 
+                except (OverflowError, TypeError, ValueError) as e:
                     self.Data = nc.Dataset(filename, 'r', format='NETCDF4_CLASSIC')
             text = 'Created from ' + filename
             self._origin_file = filename
@@ -182,8 +182,8 @@ class FVCOM:
             self.Plots.vertical_slice = self.Util3D._vertical_slice
 
         ##Re-assignement of utility functions as methods
-        self.dump_profile_data = self.Plots._dump_profile_data_as_csv
-        self.dump_map_data = self.Plots._dump_map_data_as_csv 
+        #self.dump_profile_data = self.Plots._dump_profile_data_as_csv
+        #self.dump_map_data = self.Plots._dump_map_data_as_csv
 
     #Special methods
     def __del__(self):
@@ -201,7 +201,7 @@ class FVCOM:
                 try:
                     f.close()
                 except (NameError,AttributeError) as e:
-                    pass 
+                    pass
         except AttributeError:
             try:
                 f.close()
@@ -210,7 +210,7 @@ class FVCOM:
 
     def __new__(self):
         """Force garbage collector when new fvcom object created"""
-        gc.collect()         
+        gc.collect()
 
     def __add__(self, FvcomClass, debug=False):
         """
@@ -221,8 +221,8 @@ class FVCOM:
         *Notes*
           - fvcom1 and fvcom2 have to cover the exact
             same spatial domain
-          - last time step of fvcom1 must be <= to the 
-            first time step of fvcom2 
+          - last time step of fvcom1 must be <= to the
+            first time step of fvcom2
         """
         debug = debug or self._debug
         #Define bounding box
@@ -270,7 +270,7 @@ class FVCOM:
                     tmpN = getattr(newself.Variables, key)
                     tmpO = getattr(FvcomClass.Variables, key)
                     setattr(newself.Variables, key,
-                    np.vstack((tmpN[:], tmpO[:])))          
+                    np.vstack((tmpN[:], tmpO[:])))
                 except AttributeError:
                     continue
             #New time dimension
@@ -280,8 +280,8 @@ class FVCOM:
                  + ' has been stacked'
             newself.History.append(text)
 
-        return newself  
-   
+        return newself
+
     #Methods
     def save_as(self, filename, fileformat='netcdf', debug=False):
         """
@@ -305,9 +305,9 @@ class FVCOM:
         elif fileformat=='matlab':
             pyseidon_to_matlab(self, filename, debug)
         elif fileformat=='netcdf':
-            pyseidon_to_netcdf(self, filename, debug)   
+            pyseidon_to_netcdf(self, filename, debug)
         else:
-            print "---Wrong file format---"                        
+            print "---Wrong file format---"
 
 #Test section when running in shell >> python fvcomClass.py
 #if __name__ == '__main__':

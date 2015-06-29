@@ -4,9 +4,15 @@
 from __future__ import division
 import numpy as np
 import sys
+from datetime import datetime, timedelta
 
 #Local import
 from interpolation_utils import *
+from stationClass import Station
+from adcpClass import ADCP
+from fvcomClass import FVCOM
+from tidegaugeClass import TideGauge
+from smooth import smooth
 
 # Custom error
 from pyseidon_error import PyseidonError
@@ -21,8 +27,14 @@ class _load_validation:
       Validation.Variables._|_sim. = simulated variables
                             |_struct. = dictionnary structure for validation purposes
 
+<<<<<<< HEAD
+=======
+                           _obs. = measurement/observational variables
+    Validation.Variables._|_sim. = simulated variables
+                          |_struct. = dictionnary structure for validation purposes
+>>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
     """
-    def __init__(self, observed, simulated, debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow='sf', debug=False, debug_plot=False):
         if debug: print "..variables.."
         self.obs = observed.Variables
         self.sim = simulated.Variables
@@ -36,7 +48,7 @@ class _load_validation:
         simMin = self.sim.matlabTime.min()
         absMin = max(obsMin, simMin)
         absMax = min(obsMax, simMax)
-        A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist()) 
+        A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist())
         B = set(np.where(self.sim.matlabTime[:] <= absMax)[0].tolist())
         C = list(A.intersection(B))
         #-Correction by J.Culina 2014-
@@ -44,14 +56,14 @@ class _load_validation:
         #-end-
         self._C = C
 
-        a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist()) 
+        a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist())
         b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
         c = list(a.intersection(b))
         #-Correction by J.Culina 2014-
         c = sorted(c)
         #-end-
         self._c = c
-        
+
         if len(C) == 0:
             raise PyseidonError("---Time between simulation and measurement does not match up---")
 
@@ -97,20 +109,27 @@ class _load_validation:
                 if self._3D:
                     lock=True
                     while lock:
-                        userInp = input("Compare to depth averaged flow ('daf'), surface flow ('sf') or interp. at given depth (float): ")
+                        userInp = flow
                         if userInp == 'daf':
+                            if debug:
+                                print 'flow comparison is depth-averaged'
                             uSim = np.squeeze(self.sim.ua[self._C,:])
                             vSim = np.squeeze(self.sim.va[self._C,:])
                             self._3D = False
                             lock=False
-                        elif userInp == 'sf':                     
+                        elif userInp == 'sf':
                             #Import only the surface velocities
                             #TR_comment: is surface vertical indice -1 or 0?
+                            #KC : 0 is definitely the surface...
                             uSim = np.squeeze(self.sim.u[self._C,0,:])
                             vSim = np.squeeze(self.sim.v[self._C,0,:])
-                            self._3D = False
+                            self.sim._3D = False
                             lock=False
+                            if debug:
+                                print 'flow comarison at surface'
                         elif type(userInp) == float:
+                            if debug:
+                                print 'flow comparison at depth level ', float
                             if userInp > 0.0: userInp = userInp*-1.0
                             uInterp = simulated.Util3D.interp_at_depth(self.sim.u[:], userInp, debug=debug)
                             uSim = np.squeeze(uInterp[self._C,:])
@@ -118,13 +137,13 @@ class _load_validation:
                             vSim = np.squeeze(vInterp[self._C,:])
                             lock=False
                         else:
-                            print "Answer by 'daf', 'sf' or a float number only!!!"
+                            print "compare flow by 'daf', 'sf' or a float number only!!!"
                 else:
                     uSim = np.squeeze(self.sim.ua[self._C,:])
                     vSim = np.squeeze(self.sim.va[self._C,:])
 
                 #Finding the closest Drifter time to simulated data assuming measurement
-                #time step way slower than model one
+                #time step way faster than model one
                 indClosest = []
                 for i in self._C:
                     ind = np.abs(self.obs.matlabTime[:]-self.sim.matlabTime[i]).argmin()
@@ -134,6 +153,7 @@ class _load_validation:
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
 
+<<<<<<< HEAD
                 # Average over +/- 0.5 FVCOM's time step
                 if debug: print "Average over +/- 0.5 FVCOM's time step..."
                 dt = self.sim.matlabTime[1] - self.sim.matlabTime[0]
@@ -149,15 +169,36 @@ class _load_validation:
                 # vObs = self.obs.v[uniqCloInd]
                 uSim = np.squeeze(uSim[uniqInd,:])
                 vSim = np.squeeze(vSim[uniqInd,:])
+=======
+                #KC: Convert of matlabTime to datetime, smooth drifter temporally!
+                self.datetimes = [datetime.fromordinal(int(x))+timedelta(days=x%1)\
+                   - timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
+
+                #uObs, vObs, t_s, dt_start = smooth(self.obs.u[self._c], \
+                #        self.datetimes, self.obs.v[self._c], \
+                #        self.datetimes, delta_t=1, debug=True)
+
+                uObs = self.obs.u[uniqCloInd]
+                vObs = self.obs.v[uniqCloInd]
+                uSim = np.squeeze(uSim[uniqInd[:],:])
+                vSim = np.squeeze(vSim[uniqInd[:],:])
+
+                #print 'uObs: \n', uObs, '\nvObs: \n', vObs
+                #print 'uSim: \n', vSim.shape, '\nuSim: \n', vSim.shape
+
+>>>>>>> 670828f1c83e5d414ac0e4fff9c653cfc2f6db30
                 #Interpolation of timeseries at drifter's trajectory points
+                uSimInterp = np.zeros(len(uniqCloInd))
+                vSimInterp = np.zeros(len(uniqCloInd))
                 for i in range(len(uniqCloInd)):
-                    uSimInterp=simulated.Util2D.interpolation_at_point(uSim,
+                    uSimInterp[i]=simulated.Util2D.interpolation_at_point(uSim[i,:],
                                                 self.obs.lon[uniqCloInd[i]],
                                                 self.obs.lat[uniqCloInd[i]])
-                    vSimInterp=simulated.Util2D.interpolation_at_point(vSim,
+                    vSimInterp[i]=simulated.Util2D.interpolation_at_point(vSim[i,:],
                                                 self.obs.lon[uniqCloInd[i]],
                                                 self.obs.lat[uniqCloInd[i]])
-        
+                #print 'vSimInterp: \n', vSimInterp, '\nuSimInterp: \n', uSimInterp
+
         else:
             raise PyseidonError("-This type of simulations is not supported yet-")
 
@@ -168,7 +209,7 @@ class _load_validation:
             else:
                 sim_mod={'ua':ua[C],'va':va[C],'elev':el[C],'u':u[C,:],
                          'v':v[C,:],'siglay':sig[:]}
-             
+
 
             #Check what kind of observed data it is
             if observed.__module__=='pyseidon.adcpClass.adcpClass' or observed.__module__ == 'adcpClass':

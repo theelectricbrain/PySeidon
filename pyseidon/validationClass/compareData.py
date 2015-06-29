@@ -5,6 +5,7 @@ from tidalStats import TidalStats
 from smooth import smooth
 from datetime import datetime, timedelta
 from depthInterp import depthFromSurf
+from datetime import datetime, timedelta
 # Custom error
 from pyseidon_error import PyseidonError
 
@@ -155,7 +156,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             mod_cspd = mod_spd**3.0
             obs_cspd = obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = (mod_cspd, obs_cspd, step, start)
-    
+
     if debug: print "...remove directions where velocities are small..."
     MIN_VEL = 0.1
     indexMin = np.where(obs_sp_int < MIN_VEL)
@@ -177,17 +178,20 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     if not gear == 'Drifter':
         elev_suite = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
                                 [], [], [], [], [], [],
-                                kind='elevation', plot=plot, save_csv=save_csv,
+                                kind='elevation', plot=plot,
+                                save_csv=save_csv,
                                 debug=debug, debug_plot=debug_plot)
     else:
         elev_suite = []
     speed_suite = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
                              [], [], [], [], [], [],
-                             kind='speed', plot=plot, save_csv=save_csv,
+                             kind='speed', plot=plot,
+                             save_csv=save_csv,
                              debug=debug, debug_plot=debug_plot)
     dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
                            [], [], [], [], [], [],
-                           kind='direction', plot=plot, save_csv=save_csv,
+                           kind='direction', plot=plot,
+                           save_csv=save_csv,
                            debug=debug, debug_plot=debug_plot)
     u_suite = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
                          [], [], [], [], [], [],
@@ -294,9 +298,10 @@ def tidalSuite(gear, model, observed, step, start,
         plotRegression(stats, stats.linReg())
 
     if save_csv:
+        savepath='./'
         stats.save_data()
-        plotData(stats, out_f=kind+"_"+gear+"_time_series.png", save=True)
-        plotRegression(stats, stats.linReg(), out_f=kind+"_"+gear+"_linear_regression.png", save=True)
+        plotData(stats, savepath=savepath, fname=kind+"_"+gear+"_time_series.png")
+        plotRegression(stats, stats.linReg(), savepath=savepath, fname=kind+"_"+gear+"_linear_regression.png")
 
     if debug: print "...tidalSuite done."
 
