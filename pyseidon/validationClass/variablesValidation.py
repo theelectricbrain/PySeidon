@@ -111,6 +111,7 @@ class _load_validation:
                         elif userInp == 'sf':
                             #Import only the surface velocities
                             #TR_comment: is surface vertical indice -1 or 0?
+                            #KC : 0 is definitely the surface...
                             uSim = np.squeeze(self.sim.u[self._C,0,:])
                             vSim = np.squeeze(self.sim.v[self._C,0,:])
                             self.sim._3D = False
@@ -147,24 +148,29 @@ class _load_validation:
                 self.datetimes = [datetime.fromordinal(int(x))+timedelta(days=x%1)\
                    - timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
 
-                uObs, vObs, t_s, dt_start = smooth(self.obs.u[self._c], \
-                        self.datetimes, self.obs.v[self._c], \
-                        self.datetimes, delta_t=1, debug=True)
+                #uObs, vObs, t_s, dt_start = smooth(self.obs.u[self._c], \
+                #        self.datetimes, self.obs.v[self._c], \
+                #        self.datetimes, delta_t=1, debug=True)
 
-                uObsOld = self.obs.u[uniqCloInd]
-                vObsOld = self.obs.v[uniqCloInd]
-                uSim = np.squeeze(uSim[uniqInd[:-1],:])
-                vSim = np.squeeze(vSim[uniqInd[:-1],:])
+                uObs = self.obs.u[uniqCloInd]
+                vObs = self.obs.v[uniqCloInd]
+                uSim = np.squeeze(uSim[uniqInd[:],:])
+                vSim = np.squeeze(vSim[uniqInd[:],:])
+
+                print 'uObs: \n', uObs, '\nvObs: \n', vObs
+                print 'uSim: \n', vSim.shape, '\nuSim: \n', vSim.shape
 
                 #Interpolation of timeseries at drifter's trajectory points
+                uSimInterp = np.zeros(len(uniqCloInd))
+                vSimInterp = np.zeros(len(uniqCloInd))
                 for i in range(len(uniqCloInd)):
-                    uSimInterp=simulated.Util2D.interpolation_at_point(uSim,
+                    uSimInterp[i]=simulated.Util2D.interpolation_at_point(uSim[i,:],
                                                 self.obs.lon[uniqCloInd[i]],
                                                 self.obs.lat[uniqCloInd[i]])
-                    vSimInterp=simulated.Util2D.interpolation_at_point(vSim,
+                    vSimInterp[i]=simulated.Util2D.interpolation_at_point(vSim[i,:],
                                                 self.obs.lon[uniqCloInd[i]],
                                                 self.obs.lat[uniqCloInd[i]])
-
+                print 'vSimInterp: \n', vSimInterp, '\nuSimInterp: \n', uSimInterp
 
         else:
             raise PyseidonError("-This type of simulations is not supported yet-")
