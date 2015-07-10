@@ -3,7 +3,7 @@
 
 from __future__ import division
 import numpy as np
-from utide import ut_solv, ut_reconstr
+from utide import solve, reconstruct
 from miscellaneous import mattime_to_datetime 
 
 class FunctionsTidegauge:
@@ -30,7 +30,7 @@ class FunctionsTidegauge:
           - time_ind = time indices to work in, list of integers
 
         Utide's options:
-        Options are the same as for ut_solv, which are shown below with
+        Options are the same as for 'solve', which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
             nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
@@ -39,20 +39,20 @@ class FunctionsTidegauge:
             ordercnstit=[]; runtimedisp='yyy'
 
         *Notes*
-        For more detailed information about ut_solv, please see
+        For more detailed information about 'solve', please see
         https://github.com/wesleybowman/UTide
         """
-        harmo = ut_solv(self._var.matlabTime[time_ind],
-                       self._var.el, [],
-                       self._var.lat, **kwarg)
+        harmo = solve(self._var.matlabTime[time_ind],
+                      self._var.el, [],
+                      self._var.lat, **kwarg)
         return harmo
 
     def reconstr(self, harmo, time_ind=slice(None), **kwarg):
         """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
-        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
-        (ut_solv) has already been executed.
+        Harmonic_reconstruction calls 'reconstruct'. This function assumes harmonics
+        ('solve') has already been executed.
 
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
@@ -64,16 +64,16 @@ class FunctionsTidegauge:
           - time_ind = time indices to process, list of integers
 
         Utide's options:
-        Options are the same as for ut_reconstr, which are shown below with
+        Options are the same as for 'reconstruct', which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
         *Notes*
-        For more detailed information about ut_reconstr, please see
+        For more detailed information about 'reconstruct', please see
         https://github.com/wesleybowman/UTide
         """
         time = self._var.matlabTime[time_ind]
-        ts_recon, _ = ut_reconstr(time, harmo, **kwarg)
+        ts_recon, _ = reconstruct(time, harmo, **kwarg)
         return ts_recon
 
     def mattime2datetime(self, mattime, debug=False):

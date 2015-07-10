@@ -7,7 +7,7 @@ import cPickle as pkl
 
 #Quick fix
 from scipy.io import savemat
-from utide import ut_solv
+from utide import solve
 
 #Local import
 from compareData import *
@@ -204,14 +204,14 @@ class Validation:
             va =  self.Variables.struct['obs_timeseries']['va'][:]
             el =  self.Variables.struct['obs_timeseries']['elev'] [:]
 
-            self.Variables.obs.velCoef = ut_solv(time, ua, va, lat,
+            self.Variables.obs.velCoef = solve(time, ua, va, lat,
                                          #cnstit=ut_constits, rmin=0.95, notrend=True,
                                          cnstit='auto', rmin=0.95, notrend=True,
                                          method='ols', nodiagn=True, linci=True,
                                          coef_int=True)
 
 
-            self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
+            self.Variables.obs.elCoef = solve(time, el, [], lat,
                                         #cnstit=ut_constits, rmin=0.95, notrend=True,
                                         cnstit='auto', rmin=0.95, notrend=True,
                                         method='ols', nodiagn=True, linci=True,
@@ -222,7 +222,7 @@ class Validation:
             lat = self.Variables.struct['lat']
             el =  self.Variables.struct['obs_timeseries']['elev'] [:]
 
-            self.Variables.obs.elCoef = ut_solv(time, el, [], lat,
+            self.Variables.obs.elCoef = solve(time, el, [], lat,
                                         #cnstit=ut_constits, notrend=True,
                                         cnstit='auto', notrend=True,
                                         rmin=0.95, method='ols', nodiagn=True,
@@ -236,14 +236,14 @@ class Validation:
             lat = self.Variables.struct['lat']
             el =  self.Variables.struct['mod_timeseries']['elev'][:]
 
-            self.Variables.sim.elCoef = ut_solv(time, el, [], lat,
+            self.Variables.sim.elCoef = solve(time, el, [], lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
             if self.Variables._obstype=='adcp':
                 ua =  self.Variables.struct['mod_timeseries']['ua'][:]
                 va =  self.Variables.struct['mod_timeseries']['va'][:]
-                self.Variables.sim.velCoef = ut_solv(time, ua, va, lat,
+                self.Variables.sim.velCoef = solve(time, ua, va, lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
                                   cnstit='auto', rmin=0.95, notrend=True,
                                   method='ols', nodiagn=True, linci=True, conf_int=True)
@@ -253,14 +253,14 @@ class Validation:
             lat = self.Variables.struct['lat']
             el = self.Variables.struct['mod_timeseries']['elev'][:]
 
-            self.Variables.sim.elCoef = ut_solv(time, el, [], lat,
+            self.Variables.sim.elCoef = solve(time, el, [], lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
             if self.Variables._obstype=='adcp':
                 ua = self.Variables.struct['mod_timeseries']['ua'][:]
                 va = self.Variables.struct['mod_timeseries']['va'][:]
-                self.Variables.sim.velCoef = ut_solv(time, ua, va, lat,
+                self.Variables.sim.velCoef = solve(time, ua, va, lat,
                                   #cnstit=ut_constits, rmin=0.95, notrend=True,
                                   cnstit='auto', rmin=0.95, notrend=True,
                                   method='ols', nodiagn=True, linci=True, conf_int=True)

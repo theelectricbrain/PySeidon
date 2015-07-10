@@ -9,7 +9,7 @@ from datetime import datetime
 from datetime import timedelta
 from miscellaneous import *
 from BP_tools import *
-from utide import ut_solv, ut_reconstr
+from utide import solve, reconstruct
 import time
 from miscellaneous import mattime_to_datetime 
 
@@ -57,7 +57,7 @@ class FunctionsAdcp:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if not argtime==[]:
@@ -123,7 +123,7 @@ class FunctionsAdcp:
                                         self._var.matlabTime,
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if not argtime==[]:
@@ -324,11 +324,11 @@ class FunctionsAdcp:
                      or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
-          - elevation=True means that ut_solv will be done for elevation.
-          - velocity=True means that ut_solv will be done for velocity.
+          - elevation=True means that `solve' will be done for elevation.
+          - velocity=True means that `solve' will be done for velocity.
 
         Options:
-        Options are the same as for ut_solv, which are shown below with
+        Options are the same as for 'solve', which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
             nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
@@ -337,7 +337,7 @@ class FunctionsAdcp:
             ordercnstit=[]; runtimedisp='yyy'
 
         *Notes*
-        For more detailed information about ut_solv, please see
+        For more detailed information about 'solve', please see
         https://github.com/wesleybowman/UTide
 
         '''
@@ -352,7 +352,7 @@ class FunctionsAdcp:
                                         self._var.matlabTime,
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
         
         if velocity:
             time = self._var.matlabTime[:]
@@ -365,7 +365,7 @@ class FunctionsAdcp:
                 v = v[argtime[:]]
 
             lat = self._var.lat
-            harmo = ut_solv(time, u, v, lat, **kwargs)
+            harmo = solve(time, u, v, lat, **kwargs)
 
         if elevation:
             time = self._var.matlabTime[:]
@@ -376,7 +376,7 @@ class FunctionsAdcp:
                 el = el[argtime[:]]
 
             lat = self._var.lat
-            harmo = ut_solv(time, el, [], lat, **kwargs)
+            harmo = solve(time, el, [], lat, **kwargs)
             #Write meta-data only if computed over all the elements
 
             return harmo
@@ -386,25 +386,25 @@ class FunctionsAdcp:
         """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
-        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
-        (ut_solv) has already been executed.
+        Harmonic_reconstruction calls 'reconstruct'. This function assumes harmonics
+        ('solve') has already been executed.
 
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
-          - elevation =True means that ut_reconstr will be done for elevation.
-          - velocity =True means that ut_reconst will be done for velocity.
+          - elevation =True means that 'reconstruct' will be done for elevation.
+          - velocity =True means that 'reconstruct' will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
           - Reconstruct = reconstructed signal, dictionary
 
         Utide's options:
-        Options are the same as for ut_reconstr, which are shown below with
+        Options are the same as for 'reconstruct', which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
         *Notes*
-        For more detailed information about ut_reconstr, please see
+        For more detailed information about 'reconstruct', please see
         https://github.com/wesleybowman/UTide
         """
         debug = (debug or self._debug)
@@ -412,11 +412,11 @@ class FunctionsAdcp:
         #TR_comments: Add debug flag in Utide: debug=self._debug
         Reconstruct = {}
         if velocity:
-            U_recon, V_recon = ut_reconstr(time,harmo)
+            U_recon, V_recon = reconstruct(time,harmo)
             Reconstruct['U'] = U_recon
             Reconstruct['V'] = V_recon
         if elevation:
-            elev_recon, _ = ut_reconstr(time,harmo)
+            elev_recon, _ = reconstruct(time,harmo)
             Reconstruct['el'] = elev_recon
         return Reconstruct  
 
@@ -526,7 +526,7 @@ class FunctionsAdcp:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Computing velocity norm
         if not argtime==[]:          
