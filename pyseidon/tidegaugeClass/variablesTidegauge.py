@@ -3,6 +3,7 @@
 
 from __future__ import division
 import numpy as np
+from miscellaneous import mattime_to_datetime
 
 class _load_tidegauge:
     """
@@ -16,14 +17,26 @@ class _load_tidegauge:
                           |_matlabTime = matlab time, 1D array
                           |_el = sea surface elevation (m) timeserie, 1D array
     """
-    def __init__(self, cls, debug=False):
+    def __init__(self, cls, History, debug=False):
         if debug: print 'Loading variables...'
+
+        # Pointer to History
+        self._History = History
+        History = self._History
+
         self.RBR = cls['RBR']
         data = self.RBR.data
         self.matlabTime = self.RBR.date_num_Z
         self.lat = self.RBR.lat
         self.lon = self.RBR.lon
         self.el = data - np.mean(data)
+
+        #-Append message to History field
+        start = mattime_to_datetime(self.matlabTime[0])
+        end = mattime_to_datetime(self.matlabTime[-1])
+        text = 'Temporal domain from ' + str(start) +\
+                ' to ' + str(end)
+        self._History.append(text)
 
         if debug: print '...Done'
 

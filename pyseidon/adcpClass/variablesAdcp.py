@@ -5,6 +5,7 @@ from __future__ import division
 import numpy as np
 from numpy.ma import MaskError
 import h5py
+from miscellaneous import mattime_to_datetime
 
 class _load_adcp:
     """
@@ -30,11 +31,15 @@ class _load_adcp:
                      |_ualong = ???, 1D array, shape=(time)
 
     """
-    def __init__(self,cls, debug=False):
+    def __init__(self,cls, History, debug=False):
         if debug:
             print 'Loading variables...'
+        # Pointer to History
+        self._History = History
+        History = self._History
+
+        # TR: fudge factor, squeeze out the 5 top % of the water column
         self.percent_of_depth=0.95
-        #TR: fudge factor, squeeze out the 5 top % of the water column        
 
         #Test if load with h5py or scipy
         if not type(cls.Data)==h5py._hl.files.File:
@@ -77,6 +82,13 @@ class _load_adcp:
                 self.ualong = cls.Data['data']['Ualong'][:].T
             except KeyError:
                 pass
+
+        #-Append message to History field
+        start = mattime_to_datetime(self.matlabTime[0])
+        end = mattime_to_datetime(self.matlabTime[-1])
+        text = 'Temporal domain from ' + str(start) +\
+                ' to ' + str(end)
+        self._History.append(text)
 
         #Find the depth average of a variable based on percent_of_depth
         #choosen by the user. Currently only working for east_vel (u) and

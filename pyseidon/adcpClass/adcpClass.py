@@ -58,7 +58,7 @@ class ADCP:
         except NotImplementedError:
             self.Data = h5py.File(filename, 'r')
         #TR_comments: Initialize class structure
-        self.Variables = _load_adcp(self, debug=self._debug)
+        self.Variables = _load_adcp(self, self.History, debug=self._debug)
         self.Plots = PlotsAdcp(self.Variables, debug=self._debug)
         self.Utils = FunctionsAdcp(self.Variables,
                                    self.Plots,

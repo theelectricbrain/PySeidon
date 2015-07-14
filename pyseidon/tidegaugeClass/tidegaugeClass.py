@@ -46,7 +46,7 @@ class TideGauge:
 
         self.Data = sio.loadmat(filename,
                                struct_as_record=False, squeeze_me=True)
-        self.Variables = _load_tidegauge(self.Data, debug=self._debug)
+        self.Variables = _load_tidegauge(self.Data, self.History, debug=self._debug)
 
         self.Plots = PlotsTidegauge(self.Variables, debug=self._debug)
 

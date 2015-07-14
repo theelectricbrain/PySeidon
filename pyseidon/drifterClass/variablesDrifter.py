@@ -5,7 +5,7 @@ from __future__ import division
 import numpy as np
 from numpy.ma import MaskError
 import h5py
-from miscellaneous import *
+from miscellaneous import mattime_to_datetime
 
 class _load_drifter:
     """
@@ -19,9 +19,13 @@ class _load_drifter:
                         |_lat = latitudes (deg.), 1D array (ntime)
 
     """
-    def __init__(self,cls, debug=False):
+    def __init__(self,cls, History, debug=False):
         if debug:
             print 'Loading variables...'
+        # Pointer to History
+        self._History = History
+        History = self._History
+
         self.matlabTime = cls.Data['velocity'].vel_time[:]
         #Sorting values with increasing time step
         sortedInd = self.matlabTime.argsort()
@@ -29,6 +33,13 @@ class _load_drifter:
         self.lat = cls.Data['velocity'].vel_lat[sortedInd]
         self.lon = cls.Data['velocity'].vel_lon[sortedInd]
         self.u = cls.Data['velocity'].u[sortedInd]
-        self.v = cls.Data['velocity'].v[sortedInd]       
-        if debug:
-            print '...Passed'
+        self.v = cls.Data['velocity'].v[sortedInd]
+
+        #-Append message to History field
+        start = mattime_to_datetime(self.matlabTime[0])
+        end = mattime_to_datetime(self.matlabTime[-1])
+        text = 'Temporal domain from ' + str(start) +\
+                ' to ' + str(end)
+        self._History.append(text)
+
+        if debug: print '...Passed'

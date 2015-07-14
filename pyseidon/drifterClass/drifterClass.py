@@ -77,7 +77,7 @@ class Drifter:
 
 
         #Initialize class structure
-        self.Variables = _load_drifter(self, debug=self._debug)
+        self.Variables = _load_drifter(self, self.History, debug=self._debug)
         self.Plots = PlotsDrifter(self.Variables, debug=self._debug)
         #self.Utils = FunctionsAdcp(self.Variables,
         #                           self.Plots,
