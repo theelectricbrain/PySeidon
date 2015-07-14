@@ -401,12 +401,12 @@ class Validation:
         """
         if not self._multi:
             self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
-            self._validate_data(self, filename, depth, plot, debug, debug_plot)
+            self._validate_data(filename, depth, plot, debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
             for i, meas in enumerate(self.observed):
                 self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
-                self._validate_data(self, filename, depth, plot, debug, debug_plot)
+                self._validate_data(filename, depth, plot, debug, debug_plot)
                 if i == 0:
                     self.Benchmarks = self._Benchmarks
                 else:
@@ -427,7 +427,7 @@ class Validation:
         """
         if not self._multi:
             self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
-            self._validate_harmonics(self, filename, save_csv, debug, debug_plot)
+            self._validate_harmonics(filename, save_csv, debug, debug_plot)
         else:
             for i, meas in enumerate(self.observed):
                 self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
@@ -435,7 +435,7 @@ class Validation:
                     filename = 'meas'+str(i)
                 else:
                     filename = filename + '_meas'+str(i)
-                self._validate_harmonics(self, filename, save_csv, debug, debug_plot)
+                self._validate_harmonics(filename, save_csv, debug, debug_plot)
 
 
     def taylor_diagram(self, filename="taylor_diagram", save=False):
