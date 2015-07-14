@@ -54,8 +54,12 @@ class Validation:
         if debug: print '-Debug mode on-'
         if debug: print 'Loading...'
         #Metadata
-        self.History = ['Created from ' + observed._origin_file +\
-                        ' and ' + simulated._origin_file]
+        if not self._multi:
+            self.History = ['Created from ' + observed._origin_file +\
+                            ' and ' + simulated._origin_file]
+        else:
+            self.History = ['Created from multiple measurement sources' +\
+                            ' and ' + simulated._origin_file]
         self.observed = observed
         self.simulated = simulated
 
