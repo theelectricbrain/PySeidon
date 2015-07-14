@@ -239,6 +239,7 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     obs_elev = data['obs_timeseries']['elev']
     obs_datenums = data['obs_time']
     mod_datenums = data['mod_time']
+    gear = data['type'] # Type of measurement gear (drifter, adcp,...)
     #TR: comment out
     #mod_harm = data['elev_mod_harmonics']
 
@@ -260,7 +261,7 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
             smooth(mod_elev, mod_time, obs_elev, obs_time,
                    debug=debug, debug_plot=debug_plot)
 
-    elev_suite = tidalSuite(mod_elev_int, obs_elev_int, step_int, start_int,
+    elev_suite = tidalSuite(gear, mod_elev_int, obs_elev_int, step_int, start_int,
                             [], [], [], [], [], [],
                             kind='elevation', plot=plot, save_csv=save_csv,
                             debug=debug, debug_plot=debug_plot)
