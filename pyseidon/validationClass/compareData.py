@@ -261,6 +261,7 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
                    debug=debug, debug_plot=debug_plot)
 
     elev_suite = tidalSuite(mod_elev_int, obs_elev_int, step_int, start_int,
+                            [], [], [], [], [], [],
                             kind='elevation', plot=plot, save_csv=save_csv,
                             debug=debug, debug_plot=debug_plot)
 
