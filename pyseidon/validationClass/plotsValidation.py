@@ -224,3 +224,4 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     else:
         fig.show()
         plt.show()
+

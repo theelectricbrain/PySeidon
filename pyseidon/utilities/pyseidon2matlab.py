@@ -43,8 +43,10 @@ def pyseidon_to_matlab(fvcom, filename, debug):
                 print "Force caching for " + key
             Var[key] = Var[key][:]
         #keyV = key + '-var'
-        #data[keyV] = Var[key]
-        data[key] = np.float64(Var[key].copy())
+        try:
+            data[key] = np.float64(Var[key].copy())
+        except AttributeError:
+            data[key] = Var[key]
     #Unpickleable objects
     Grd.pop("triangle", None)
     for key in Grd:
@@ -54,8 +56,11 @@ def pyseidon_to_matlab(fvcom, filename, debug):
                 print "Force caching for " + key
             Grd[key] = Grd[key][:]
         #keyG = key + '-grd'
-        #data[keyG] = Grd[key]
-        data[key] = np.float64(Grd[key].copy())
+
+        try:
+            data[key] = np.float64(Grd[key].copy())
+        except AttributeError:
+            data[key] = Grd[key]
 
     #Save in mat file file
     if debug:

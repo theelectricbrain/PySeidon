@@ -27,7 +27,6 @@ from pyseidon_error import PyseidonError
 
 class Validation:
     """
-<<<<<<< HEAD
     **Validation class/structure**
 
     Class structured as follows: ::
@@ -40,23 +39,27 @@ class Validation:
                   |_Save_as = "save as" function
 
     Inputs:
-      - observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
+      - observed = standalone or tuple of PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
       - flow = flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
     """
     def __init__(self, observed, simulated, flow='sf', debug=False, debug_plot=False):
         self._debug = debug
         self._flow = flow
+        if type(observed)==tuple:
+            self._multi = True
+        else:
+            self._multi = False
         self._debug_plot = debug_plot
         if debug: print '-Debug mode on-'
         if debug: print 'Loading...'
         #Metadata
         self.History = ['Created from ' + observed._origin_file +\
                         ' and ' + simulated._origin_file]
-        self.Variables = _load_validation(observed, simulated, flow=self._flow,                                     debug=self._debug)
+        self.observed = observed
+        self.simulated = simulated
 
-    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False,
-                      debug=False, debug_plot=False):
+    def _validate_data(self, filename=[], depth=[], plot=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -65,8 +68,6 @@ class Validation:
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
           - plot = plot series of validation graphs, boolean.
-          - save_csv = will save both observed and modeled interpolated
-                      timeseries into *.csv file
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -101,7 +102,7 @@ class Validation:
         if self.Variables.struct['type'] == 'ADCP':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
              vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
-                                    plot=plot, depth=depth, #save_csv=save_csv,
+                                    plot=plot, depth=depth,
                                     debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
             self.Variables.struct['speed_val'] = speed_suite
@@ -123,7 +124,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
-                                      plot=plot, save_csv=save_csv,
+                                      plot=plot,
                                       debug=debug, debug_plot=debug_plot)
             self.Variables.struct['tg_val'] = elev_suite_dg
             #Variable to processed
@@ -132,7 +133,7 @@ class Validation:
         elif self.Variables.struct['type'] == 'Drifter':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
              vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables._3D,
-                                    plot=plot, depth=depth, save_csv=save_csv,
+                                    plot=plot, depth=depth,
                                     debug=debug, debug_plot=debug_plot)
 
             self.Variables.struct['speed_val'] = speed_suite
@@ -157,30 +158,16 @@ class Validation:
             raise PyseidonError("-This kind of measurements is not supported yet-")
 
         # Make csv file
-        self.Benchmarks = valTable(self.Variables.struct, filename,  vars,
-                                   save_csv=save_csv, debug=debug, debug_plot=debug_plot)
+        self._Benchmarks = valTable(self.Variables.struct, filename,  vars,
+                                    debug=debug, debug_plot=debug_plot)
 
         # Display csv
         print "---Validation benchmarks---"
-        pd.set_option('display.max_rows', len(self.Benchmarks))
-        print(self.Benchmarks)
+        pd.set_option('display.max_rows', len(self._Benchmarks))
+        print(self._Benchmarks)
         pd.reset_option('display.max_rows')
 
-    def taylor_diagram(self, filename="taylor_diagram", save=False):
-        """
-        Plots Taylor diagram based on the results of 'validate_data'
-
-        Options:
-          - filename = name of the plot file, string
-          - save = save as *.png, boolean
-        """
-        try:
-            taylorDiagram(self.Benchmarks, save=save, out_f=filename, debug=False)
-        except AttributeError:
-            raise PyseidonError("-validate_data needs to be run first-")
-
-    def validate_harmonics(self, filename=[], save_csv=False,
-                           debug=False, debug_plot=False):
+    def _validate_harmonics(self, filename=[], save_csv=False, debug=False, debug_plot=False):
         """
         This method computes and store in a csv file the error in %
         for each component of the harmonic analysis (i.e. *_error.csv).
@@ -385,6 +372,84 @@ class Validation:
         else:
             print "-No matching harmonic coefficients for velocity-"
 
+    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False, debug=False, debug_plot=False):
+        """
+        This method computes series of standard validation benchmarks.
+
+        Options:
+          - filename = file name of the .csv file to be saved, string.
+          - depth = depth at which the validation will be performed, float.
+                   Only applicable for 3D simulations.
+          - plot = plot series of validation graphs, boolean.
+          - save_csv = will save both observed and modeled interpolated
+                      timeseries into *.csv file
+
+        *References*
+          - NOAA. NOS standards for evaluating operational nowcast and
+            forecast hydrodynamic model systems, 2003.
+
+          - K. Gunn, C. Stock-Williams. On validating numerical hydrodynamic
+            models of complex tidal flow, International Journal of Marine Energy, 2013
+
+          - N. Georgas, A. Blumberg. Establishing Confidence in Marine Forecast
+            Systems: The design and skill assessment of the New York Harbor Observation
+            and Prediction System, version 3 (NYHOPS v3), 2009
+
+          - Liu, Y., P. MacCready, B. M. Hickey, E. P. Dever, P. M. Kosro, and
+            N. S. Banas (2009), Evaluation of a coastal ocean circulation model for
+            the Columbia River plume in summer 2004, J. Geophys. Res., 114
+        """
+        if not self._multi:
+            self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
+            self._validate_data(self, filename, depth, plot, debug, debug_plot)
+            self.Benchmarks = self._Benchmarks
+        else:
+            for i, meas in enumerate(self.observed):
+                self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
+                self._validate_data(self, filename, depth, plot, debug, debug_plot)
+                if i == 0:
+                    self.Benchmarks = self._Benchmarks
+                else:
+                    self.Benchmarks = pd.concat([self.Benchmarks, self._Benchmarks])
+        if save_csv:
+            out_file = '{}_val.csv'.format(filename)
+            self.Benchmarks.to_csv(out_file)
+
+    def validate_harmonics(self, filename=[], save_csv=False, debug=False, debug_plot=False):
+        """
+        This method computes and store in a csv file the error in %
+        for each component of the harmonic analysis (i.e. *_error.csv).
+
+        Options:
+          filename: file name of the .csv file to be saved, string.
+          save_csv: will save both observed and modeled harmonic
+                    coefficients into *.csv files (i.e. *_harmo_coef.csv)
+        """
+        if not self._multi:
+            self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
+            self._validate_harmonics(self, filename, save_csv, debug, debug_plot)
+        else:
+            for i, meas in enumerate(self.observed):
+                self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
+                if filename == []:
+                    filename = 'meas'+str(i)
+                else:
+                    filename = filename + '_meas'+str(i)
+                self._validate_harmonics(self, filename, save_csv, debug, debug_plot)
+
+
+    def taylor_diagram(self, filename="taylor_diagram", save=False):
+        """
+        Plots Taylor diagram based on the results of 'validate_data'
+
+        Options:
+          - filename = name of the plot file, string
+          - save = save as *.png, boolean
+        """
+        try:
+            taylorDiagram(self.Benchmarks, save=save, out_f=filename, debug=False)
+        except AttributeError:
+            raise PyseidonError("-validate_data needs to be run first-")
 
     def save_as(self, filename, fileformat='pickle', debug=False):
         """
