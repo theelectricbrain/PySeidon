@@ -438,7 +438,7 @@ class Validation:
                 self._validate_harmonics(filename, save_csv, debug, debug_plot)
 
 
-    def taylor_diagram(self, filename="taylor_diagram", save=False):
+    def taylor_diagram(self, savepath='', fname="taylor_diagram", debug=False):
         """
         Plots Taylor diagram based on the results of 'validate_data'
 
@@ -447,7 +447,7 @@ class Validation:
           - save = save as *.png, boolean
         """
         try:
-            taylorDiagram(self.Benchmarks, save=save, out_f=filename, debug=False)
+            taylorDiagram(self.Benchmarks, savepath=savepath, fname=fname, debug=False)
         except AttributeError:
             raise PyseidonError("-validate_data needs to be run first-")
 
