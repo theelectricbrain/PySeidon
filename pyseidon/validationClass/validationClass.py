@@ -404,13 +404,18 @@ class Validation:
             self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
-            for i, meas in enumerate(self.observed):
-                self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
-                self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
-                if i == 0:
-                    self.Benchmarks = self._Benchmarks
-                else:
-                    self.Benchmarks = pd.concat([self.Benchmarks, self._Benchmarks])
+            I=0
+            for meas in self.observed:
+                try:
+                    self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
+                    self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
+                    if I == 0:
+                        self.Benchmarks = self._Benchmarks
+                        I += 1
+                    else:
+                        self.Benchmarks = pd.concat([self.Benchmarks, self._Benchmarks])
+                except PyseidonError:
+                    pass
         if save_csv:
             out_file = '{}_val.csv'.format(filename)
             self.Benchmarks.to_csv(out_file)
