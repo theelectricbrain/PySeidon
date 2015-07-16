@@ -56,7 +56,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     # Save path
     name = data['name']
-    save_path = name.split('/')[-1].split('.')[0]
+    save_path = name.split('/')[-1].split('.')[0]+'/'
 
     # Check if 3D simulation
     if threeDim:
@@ -249,7 +249,7 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
 
     # Save path
     name = data['name']
-    save_path = name.split('/')[-1].split('.')[0]
+    save_path = name.split('/')[-1].split('.')[0]+'/'
 
     # convert times and grab values
     obs_time, mod_time = [], []
@@ -311,7 +311,7 @@ def tidalSuite(gear, model, observed, step, start,
     if save_csv:
         if not exists(save_path):
             mkdir(save_path)
-        stats.save_data()
+        stats.save_data(path=save_path)
         plotData(stats, savepath=save_path, fname=kind+"_"+gear+"_time_series.png")
         plotRegression(stats, stats.linReg(), savepath=save_path, fname=kind+"_"+gear+"_linear_regression.png")
 

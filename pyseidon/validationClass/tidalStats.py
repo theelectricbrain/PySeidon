@@ -571,9 +571,8 @@ class TidalStats:
 
         return data
 
-    def save_data(self):
+    def save_data(self, path=''):
             df = pd.DataFrame(data={'time': self.times.flatten(),
                                     'observed':self.observed.flatten(),
                                     'modeled':self.model.flatten() })
-            df.to_csv(str(self.kind)+'.csv')
-
+            df.to_csv(path+str(self.kind)+'.csv')
