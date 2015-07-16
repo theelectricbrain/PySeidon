@@ -203,7 +203,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                          debug=debug, debug_plot=debug_plot)
     v_suite = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
                          [], [], [], [], [], [],
-                         kind='v velocity', plot=plot, save_csv=save_csv,
+                         kind='v velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                          debug=debug, debug_plot=debug_plot)
 
     # TR: requires special treatments from here on
