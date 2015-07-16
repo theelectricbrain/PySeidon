@@ -14,11 +14,7 @@ from compareData import *
 from valTable import valTable
 from variablesValidation import _load_validation
 from interpolation_utils import *
-from stationClass import Station
-from adcpClass import ADCP
-from fvcomClass import FVCOM
-from drifterClass import Drifter
-from tidegaugeClass import TideGauge
+
 # Local import
 from plotsValidation import taylorDiagram
 # Custom error
