@@ -59,7 +59,7 @@ class Validation:
         self.observed = observed
         self.simulated = simulated
 
-    def _validate_data(self, filename=[], depth=[], plot=False, debug=False, debug_plot=False):
+    def _validate_data(self, filename=[], depth=[], plot=False,  save_csv=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -102,7 +102,7 @@ class Validation:
         if self.Variables.struct['type'] == 'ADCP':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
              vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
-                                    plot=plot, depth=depth,
+                                    plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
             self.Variables.struct['speed_val'] = speed_suite
@@ -124,7 +124,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
-                                      plot=plot,
+                                      plot=plot, save_csv=save_csv,
                                       debug=debug, debug_plot=debug_plot)
             self.Variables.struct['tg_val'] = elev_suite_dg
             #Variable to processed
@@ -133,7 +133,7 @@ class Validation:
         elif self.Variables.struct['type'] == 'Drifter':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
              vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables._3D,
-                                    plot=plot, depth=depth,
+                                    depth=depth, plot=plot, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
 
             self.Variables.struct['speed_val'] = speed_suite
@@ -401,12 +401,12 @@ class Validation:
         """
         if not self._multi:
             self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
-            self._validate_data(filename, depth, plot, debug, debug_plot)
+            self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
             for i, meas in enumerate(self.observed):
                 self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
-                self._validate_data(filename, depth, plot, debug, debug_plot)
+                self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
                 if i == 0:
                     self.Benchmarks = self._Benchmarks
                 else:
