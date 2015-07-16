@@ -415,10 +415,13 @@ class Validation:
                     else:
                         self.Benchmarks = pd.concat([self.Benchmarks, self._Benchmarks])
                 except PyseidonError:
-                    pass
+                    continue
         if save_csv:
-            out_file = '{}_val.csv'.format(filename)
-            self.Benchmarks.to_csv(out_file)
+            try:
+                out_file = '{}_val.csv'.format(filename)
+                self.Benchmarks.to_csv(out_file)
+            except AttributeError:
+                raise PyseidonError("-No matching measurement-")
 
     def validate_harmonics(self, filename=[], save_csv=False, debug=False, debug_plot=False):
         """
