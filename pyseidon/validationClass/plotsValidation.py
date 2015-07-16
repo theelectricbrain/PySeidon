@@ -220,7 +220,7 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
 
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
-            fig.savefig(savepath+fname)
+            fig.savefig(savepath+'/'+fname)
     else:
         fig.show()
         plt.show()

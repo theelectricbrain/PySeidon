@@ -1,5 +1,7 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
+from os import mkdir
+from os.path import exists
 from tidalStats import TidalStats
 from smooth import smooth
 from datetime import datetime, timedelta
@@ -52,8 +54,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     else:
         obs_time = data['mod_time']
 
-    # Measurement's name
-    name = data['name'].split('/')[-1].split('.')[0] + '_'
+    # Save path
+    name = data['name']
+    save_path = name.split('/')[-1].split('.')[0]
 
     # Check if 3D simulation
     if threeDim:
@@ -180,23 +183,23 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
         elev_suite = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
                                 [], [], [], [], [], [],
                                 kind='elevation', plot=plot,
-                                save_csv=save_csv, name=name,
+                                save_csv=save_csv, save_path=save_path,
                                 debug=debug, debug_plot=debug_plot)
     else:
         elev_suite = []
     speed_suite = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
                              [], [], [], [], [], [],
                              kind='speed', plot=plot,
-                             save_csv=save_csv, name=name,
+                             save_csv=save_csv, save_path=save_path,
                              debug=debug, debug_plot=debug_plot)
     dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
                            [], [], [], [], [], [],
                            kind='direction', plot=plot,
-                           save_csv=save_csv, name=name,
+                           save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)
     u_suite = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
                          [], [], [], [], [], [],
-                         kind='u velocity', plot=plot, save_csv=save_csv, name=name,
+                         kind='u velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                          debug=debug, debug_plot=debug_plot)
     v_suite = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
                          [], [], [], [], [], [],
@@ -207,12 +210,12 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     vel_suite = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
-                           kind='velocity', plot=plot, save_csv=save_csv, name=name,
+                           kind='velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)
     csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
-                           kind='cubic speed', plot=plot, save_csv=save_csv, name=name,
+                           kind='cubic speed', plot=plot, save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)
 
     # output statistics in useful format
@@ -244,8 +247,9 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     #TR: comment out
     #mod_harm = data['elev_mod_harmonics']
 
-    # Measurement's name
-    name = data['name'].split('/')[-1].split('.')[0] + '_'
+    # Save path
+    name = data['name']
+    save_path = name.split('/')[-1].split('.')[0]
 
     # convert times and grab values
     obs_time, mod_time = [], []
@@ -267,7 +271,7 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
 
     elev_suite = tidalSuite(gear, mod_elev_int, obs_elev_int, step_int, start_int,
                             [], [], [], [], [], [],
-                            kind='elevation', plot=plot, save_csv=save_csv, name=name,
+                            kind='elevation', plot=plot, save_csv=save_csv, save_path=save_path,
                             debug=debug, debug_plot=debug_plot)
 
     if debug: print "...CompareTG done."
@@ -277,7 +281,7 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
 def tidalSuite(gear, model, observed, step, start,
                model_u, observed_u, model_v, observed_v,
                model_time, observed_time,
-               kind='', plot=False, save_csv=False, name='',
+               kind='', plot=False, save_csv=False, save_path='./',
                debug=False, debug_plot=False):
     """
     Create stats classes for a given tidal variable.
@@ -305,9 +309,11 @@ def tidalSuite(gear, model, observed, step, start,
         plotRegression(stats, stats.linReg())
 
     if save_csv:
+        if not exists(save_path):
+            mkdir(save_path)
         stats.save_data()
-        plotData(stats, savepath=name, fname=kind+"_"+gear+"_time_series.png")
-        plotRegression(stats, stats.linReg(), savepath=name, fname=kind+"_"+gear+"_linear_regression.png")
+        plotData(stats, savepath=save_path, fname=kind+"_"+gear+"_time_series.png")
+        plotRegression(stats, stats.linReg(), savepath=save_path, fname=kind+"_"+gear+"_linear_regression.png")
 
     if debug: print "...tidalSuite done."
 
