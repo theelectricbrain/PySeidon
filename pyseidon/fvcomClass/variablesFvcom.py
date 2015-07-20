@@ -21,6 +21,8 @@ class _load_var:
                        _el = elevation (m), 2D array (ntime, nnode)
                       |_julianTime = julian date, 1D array (ntime)
                       |_matlabTime = matlab time, 1D array (ntime)
+                      |_tauc = bottom shear stress (m2/s2),
+                      |      2D array (ntime, nele)
                       |_ua = depth averaged u velocity component (m/s),
                       |      2D array (ntime, nele)
                       |_va = depth averaged v velocity component (m/s),
@@ -30,7 +32,7 @@ class _load_var:
                       |_v = v velocity component (m/s),
                       |     3D array (ntime, nlevel, nele)
                       |_w = w velocity component (m/s),
-                            3D array (ntime, nlevel, nele)
+                      |     3D array (ntime, nlevel, nele)
 
     Some others shall be generated as methods are being called, ex: ::
                       ...

@@ -120,9 +120,10 @@ def mattime_to_datetime(mattime, debug=False):
 
 def datetime_to_mattime(dt, debug=False):
     """Convert datetime64[us] to matlab time"""
-    ord = dt.toordinal()
     mdn = dt + timedelta(days = 366)
-    frac = (dt-datetime(dt.year,dt.month,dt.day,0,0,0)).seconds / (24.0 * 60.0 * 60.0)
+    s = (dt.hour * (60.0*60.0)) + (dt.minute * 60.0) + dt.second
+    day = 24.0*60.0*60.0
+    frac = s/day
 
     return mdn.toordinal() + frac
 
@@ -168,10 +169,11 @@ def _load_nc(filename):
 
 def date_to_julian_day(my_date):
     """Returns the Julian day number of a date."""
-    a = (14 - my_date.month)//12
-    y = my_date.year + 4800 - a
-    m = my_date.month + 12*a - 3
-    s = (my_date.hour * (60.0*60.0)) + (my_date.minute * 60.0) + my_date.second
-    day = 24.0*60.0*60.0
-
-    return my_date.day + ((153*m + 2)//5) + 365*y + y//4 - y//100 + y//400 - 32045 + s/day
+    # a = (14 - my_date.month)//12
+    # y = my_date.year + 4800 - a
+    # m = my_date.month + 12*a - 3
+    # s = (my_date.hour * (60.0*60.0)) + (my_date.minute * 60.0) + my_date.second
+    # day = 24.0*60.0*60.0
+    # jtime = my_date.day + ((153*m + 2)//5) + 365*y + y//4 - y//100 + y//400 - 32045 + s/day
+    jtime = datetime_to_mattime(my_date) + 678942
+    return jtime
