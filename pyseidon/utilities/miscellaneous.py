@@ -128,7 +128,7 @@ def datetime_to_mattime(dt, debug=False):
     return mdn.toordinal() + frac
 
 def findFiles(filename, name):
-    '''
+    """
     Wesley comment[elements] the name needs to be a linux expression to find files
     you want. For multiple station files, this would work
     name = '*station*.nc'
@@ -136,7 +136,7 @@ def findFiles(filename, name):
     For just dngrid_0001 and no restart files:
     name = 'dngrid_0*.nc'
     will work
-    '''
+    """
 
     name = '*' + name + '*.nc'
     matches = []
@@ -175,5 +175,5 @@ def date_to_julian_day(my_date):
     # s = (my_date.hour * (60.0*60.0)) + (my_date.minute * 60.0) + my_date.second
     # day = 24.0*60.0*60.0
     # jtime = my_date.day + ((153*m + 2)//5) + 365*y + y//4 - y//100 + y//400 - 32045 + s/day
-    jtime = datetime_to_mattime(my_date) + 678942
+    jtime = datetime_to_mattime(my_date) - 678942
     return jtime
