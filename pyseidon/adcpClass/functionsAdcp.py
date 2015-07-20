@@ -2,16 +2,14 @@
 # encoding: utf-8
 
 from __future__ import division
+
 import numpy as np
-import sys
 import numexpr as ne
-from datetime import datetime
-from datetime import timedelta
-from miscellaneous import *
-from BP_tools import *
+import datetime
+from pyseidon.utilities.miscellaneous import *
+from pyseidon.utilities.BP_tools import *
 from utide import solve, reconstruct
 import time
-from miscellaneous import mattime_to_datetime 
 
 class FunctionsAdcp:
     """ **'Utils' subset of FVCOM class gathers useful functions** """
@@ -55,7 +53,9 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
 
@@ -119,9 +119,9 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end,
-                                        self._var.matlabTime,
-                                        debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
 
@@ -348,9 +348,9 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end,
-                                        self._var.matlabTime,
-                                        debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
         
@@ -453,7 +453,9 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end) 
 
@@ -524,7 +526,9 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
 

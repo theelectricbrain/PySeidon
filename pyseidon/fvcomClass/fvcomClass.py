@@ -14,10 +14,10 @@ from os.path import isfile
 import gc
 
 #Utility import
-from object_from_dict import ObjectFromDict
-from pyseidon2pickle import pyseidon_to_pickle
-from pyseidon2matlab import pyseidon_to_matlab
-from pyseidon2netcdf_alter import pyseidon_to_netcdf
+from pyseidon.utilities.object_from_dict import ObjectFromDict
+from pyseidon.utilities.pyseidon2pickle import pyseidon_to_pickle
+from pyseidon.utilities.pyseidon2matlab import pyseidon_to_matlab
+from pyseidon.utilities.pyseidon2netcdf_alter import pyseidon_to_netcdf
 
 # Custom error
 from pyseidon_error import PyseidonError

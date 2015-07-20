@@ -85,18 +85,21 @@ def op_angles_from_vectors(u, v, debug=False):
     return phi
 
 def time_to_index(t_start, t_end, time, debug=False):
-    """Convert datetime64[us] string in FVCOM index"""
-    # Find simulation time contains in [t_start, t_end]
-    t = time.shape[0]
-    l = []
-    #TR comment: is it the accurate way to convert?
-    for i in range(t):
-        date = datetime.fromordinal(int(time[i])) + \
-               timedelta(days=time[i]%1)-timedelta(days=366)
-        l.append(date)
-    time = np.array(l,dtype='datetime64[us]')
-    t_slice = [t_start, t_end]
-    t_slice = np.array(t_slice,dtype='datetime64[us]')
+    """
+    Convert datetime64[us] string in FVCOM index
+
+    Inputs:
+      - t_start = start time in datetime
+      - t_end = end time in datetime
+      - time = array of julian days
+
+    Outputs:
+      - argtime = arry of indices
+    """
+    start = date_to_julian_day(t_start)
+    end = date_to_julian_day(t_end)
+
+    t_slice = [start, end]
 
     if t_slice.shape[0] != 1:
         argtime = np.argwhere((time>=t_slice[0])&
@@ -164,3 +167,13 @@ def _load_nc(filename):
         #self.Data = nc.Dataset(filename, 'r')
         Data = netcdf.netcdf_file(filename, 'r',mmap=True)
     return Data
+
+def date_to_julian_day(my_date):
+    """Returns the Julian day number of a date."""
+    a = (14 - my_date.month)//12
+    y = my_date.year + 4800 - a
+    m = my_date.month + 12*a - 3
+    s = (my_date.hour * (60.0*60.0)) + (my_date.minute * 60.0) + my_date.second
+    day = 24.0*60.0*60.0
+
+    return my_date.day + ((153*m + 2)//5) + 365*y + y//4 - y//100 + y//400 - 32045 + s/day

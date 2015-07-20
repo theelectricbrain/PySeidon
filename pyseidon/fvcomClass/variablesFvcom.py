@@ -2,18 +2,15 @@
 # encoding: utf-8
 
 from __future__ import division
-#from jdcal import gcal2jd
-import numpy as np
-import matplotlib.tri as Tri
 from itertools import groupby
 from operator import itemgetter
+import datetime
 # Parallel computing
 import multiprocessing as mp
-import time
 #Local import
-from regioner import *
-from miscellaneous import time_to_index
-from miscellaneous import mattime_to_datetime
+from pyseidon.utilities.regioner import *
+from pyseidon.utilities.miscellaneous import time_to_index
+from pyseidon.utilities.miscellaneous import mattime_to_datetime
 
 class _load_var:
     """
@@ -479,8 +476,9 @@ class _load_var:
         """Return time indices included in time period, aka tx"""
         debug = debug or self._debug      
         if debug: print 'Computing region_t...'
-        region_t = time_to_index(tx[0], tx[1],
-                   (self.julianTime[:] + 678942.0), debug=debug)       
+        start = datetime.datetime.strptime(tx[0], '%Y-%m-%d %H:%M:%S')
+        end = datetime.datetime.strptime(tx[1], '%Y-%m-%d %H:%M:%S')
+        region_t = time_to_index(start, end, self.julianTime[:], debug=debug)
         if debug: print '...Passed'
         print '-Now working in time box-'
         return region_t

@@ -2,9 +2,9 @@
 # encoding: utf-8
 
 from __future__ import division
-import numpy as np
+
 from utide import solve, reconstruct
-from miscellaneous import mattime_to_datetime 
+from pyseidon.utilities.miscellaneous import mattime_to_datetime
 
 class FunctionsTidegauge:
     """

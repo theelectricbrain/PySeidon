@@ -2,19 +2,15 @@
 # encoding: utf-8
 
 from __future__ import division
-import numpy as np
-import sys
 import numexpr as ne
-from datetime import datetime
-from datetime import timedelta
+import datetime
 from scipy.interpolate import interp1d
-from interpolation_utils import *
-from miscellaneous import *
-from BP_tools import *
-from shortest_element_path import *
+from pyseidon.utilities.interpolation_utils import *
+from pyseidon.utilities.miscellaneous import *
+from pyseidon.utilities.BP_tools import *
+from pyseidon.utilities.shortest_element_path import *
 import time
 import matplotlib.pyplot as plt
-import seaborn
 from pydap.exceptions import ServerError
 
 #TR comment: This all routine needs to be tested and debugged
@@ -357,8 +353,9 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
-                                        debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end) 
 
@@ -508,8 +505,9 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
-                                        debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
 
@@ -620,8 +618,9 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime[:],
-                                        debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
         
@@ -802,7 +801,9 @@ class FunctionsFvcomThreeD:
             t = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                t = time_to_index(t_start, t_end, self._var.matlabTime[:], debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                t = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 t = np.arange(t_start, t_end)
         else:
@@ -1021,8 +1022,9 @@ class FunctionsFvcomThreeD:
                 argtime = time_ind
             elif not t_start==[]:
                 if type(t_start)==str:
-                    argtime = time_to_index(t_start, t_end,
-                                            self._var.matlabTime, debug=debug)
+                    start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                    end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                    argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
                 else:
                     argtime = np.arange(t_start, t_end)
  

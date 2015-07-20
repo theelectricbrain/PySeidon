@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 from __future__ import division
-import numpy as np
 
 class FunctionsDrifter:
     """**'Utils' subset of Tidegauge class gathers useful functions**"""
