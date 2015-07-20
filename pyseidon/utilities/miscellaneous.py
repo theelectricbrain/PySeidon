@@ -112,7 +112,7 @@ def mattime_to_datetime(mattime, debug=False):
     """Convert matlab time to datetime64[us] """
     date = datetime.fromordinal(int(mattime)) + \
                timedelta(days=mattime%1)-timedelta(days=366)
-    time = np.array(l,dtype='datetime64[us]')
+    time = np.array(date,dtype='datetime64[us]')
 
     return time
 
