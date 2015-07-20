@@ -101,9 +101,7 @@ def time_to_index(t_start, t_end, time, debug=False):
 
     t_slice = [start, end]
 
-    if t_slice.shape[0] != 1:
-        argtime = np.argwhere((time>=t_slice[0])&
-                              (time<=t_slice[-1])).flatten()
+    argtime = np.argwhere((time>=t_slice[0])&(time<=t_slice[-1])).flatten()
     if debug:
         print 'Argtime: ', argtime
     if argtime == []:
