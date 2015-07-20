@@ -58,13 +58,13 @@ class _load_var:
         #List of keywords
         kwl2D = ['ua', 'va', 'zeta','depth_av_flow_dir', 'hori_velo_norm',
                  'depth_av_vorticity', 'depth_av_power_density',
-                 'depth_av_power_assessment']
+                 'depth_av_power_assessment', 'tauc']
         kwl3D = ['ww', 'u', 'v', 'gls', 'tke', 'flow_dir', 'velo_norm',
                  'verti_shear', 'vorticity', 'power_density']
         #List of aliaSes
         al2D = ['ua', 'va', 'el','depth_av_flow_dir', 'hori_velo_norm',
                'depth_av_vorticity', 'depth_av_power_density',
-               'depth_av_power_assessment']
+               'depth_av_power_assessment', 'tauc']
         al3D = ['w', 'u', 'v', 'gls', 'tke', 'flow_dir', 'velo_norm',
                  'verti_shear', 'vorticity', 'power_density']
 

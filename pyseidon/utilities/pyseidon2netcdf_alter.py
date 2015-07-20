@@ -50,7 +50,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
     varname = ['el', 'ua', 'va', 'julianTime', 'matlabTime',
                'depth_av_flow_dir', 'hori_velo_norm',
                'depth_av_vorticity', 'depth_av_power_density',
-               'depth_av_power_assessment']
+               'depth_av_power_assessment', 'tauc']
     #list of potential 2D grid var
     gridname = ['a1u', 'a2u','trinodes', 'triele',
                 'xc', 'x', 'yc', 'y', 
@@ -69,7 +69,7 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
         if debug: print "...loading "+var+"..."
         if var in ['ua', 'va','depth_av_flow_dir','depth_av_vorticity',
                    'depth_av_power_density','depth_av_power_assessment',
-                   'hori_velo_norm']:
+                   'hori_velo_norm', 'tauc']:
             try:
                 if hasattr(fvcom.Variables, var):
                     tmp_var = f.createVariable(var, 'float', ('time','nele'))
