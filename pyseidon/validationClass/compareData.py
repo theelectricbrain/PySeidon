@@ -30,7 +30,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     Inputs:
         - data = dictionary containing all necessary observed and model data
         - threeDim = boolean flag, 3D or not
-    Outputs
+    Outputs:
        - elev_suite = dictionary of useful statistics for sea elevation
        - speed_suite = dictionary of useful statistics for flow speed
        - dir_suite = dictionary of useful statistics for flow direction

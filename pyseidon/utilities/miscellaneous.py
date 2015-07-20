@@ -7,7 +7,7 @@ from datetime import datetime
 from datetime import timedelta
 import fnmatch
 import os
-import sys
+import time
 from scipy.io import netcdf
 from pydap.client import open_url
 
@@ -84,25 +84,6 @@ def op_angles_from_vectors(u, v, debug=False):
     
     return phi
 
-def depth_at_FVCOM_element(ind, trinodes, time_ind):
-    """
-    Input:
-      -ind = element index, integer
-      -trinodes = grid trinodes
-      -time_ind = reference time indexes for surface elevation, list of integer
-    Output: deoth at element, 1D array
-
-    """
-    indexes = trinodes[ind,:]
-    indexes.sort()#due to new version of netCDF4
-    h = self._grid.h[indexes]
-    zeta = np.mean(self._var.el[time_ind,indexes],0) + h[:]   
-    siglay = self._grid.siglay[:,indexes]
-    z = zeta[None,:]*siglay[:,:]
-    dep = np.mean(z,1)
-
-    return dep
-
 def time_to_index(t_start, t_end, time, debug=False):
     """Convert datetime64[us] string in FVCOM index"""
     # Find simulation time contains in [t_start, t_end]
@@ -135,6 +116,14 @@ def mattime_to_datetime(mattime, debug=False):
     time = np.array(l,dtype='datetime64[us]')
 
     return time
+
+def datetime_to_mattime(dt, debug=False):
+    """Convert datetime64[us] to matlab time"""
+    ord = dt.toordinal()
+    mdn = dt + timedelta(days = 366)
+    frac = (dt-datetime(dt.year,dt.month,dt.day,0,0,0)).seconds / (24.0 * 60.0 * 60.0)
+
+    return mdn.toordinal() + frac
 
 def findFiles(filename, name):
     '''

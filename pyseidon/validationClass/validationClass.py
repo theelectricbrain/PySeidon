@@ -381,8 +381,8 @@ class Validation:
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
           - plot = plot series of validation graphs, boolean.
-          - save_csv = will save both observed and modeled interpolated
-                      timeseries into *.csv file
+          - save_csv = will save benchmark values into *.csv file
+                       as well as associated plots in specific folderssta
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -415,7 +415,7 @@ class Validation:
                     else:
                         self.Benchmarks = pd.concat([self.Benchmarks, self._Benchmarks])
                 except PyseidonError:
-                    continue
+                    pass
         if save_csv:
             try:
                 out_file = '{}_val.csv'.format(filename)
