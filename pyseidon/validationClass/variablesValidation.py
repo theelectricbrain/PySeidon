@@ -97,8 +97,8 @@ class _load_validation:
                 if debug: print "...Interpolation at measurement locations & times..."
                 if self._3D:
                     lock=True
+                    userInp = flow
                     while lock:
-                        userInp = flow
                         if userInp == 'daf':
                             if debug:
                                 print 'flow comparison is depth-averaged'
@@ -127,7 +127,7 @@ class _load_validation:
                             self._3D = False
                             lock=False
                         else:
-                            print "compare flow by 'daf', 'sf' or a float number only!!!"
+                            userInp = input("compare flow by 'daf', 'sf' or a float number only!!!")
                 else:
                     uSim = np.squeeze(self.sim.ua[self._C,:])
                     vSim = np.squeeze(self.sim.va[self._C,:])

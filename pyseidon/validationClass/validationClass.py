@@ -372,7 +372,7 @@ class Validation:
         else:
             print "-No matching harmonic coefficients for velocity-"
 
-    def validate_data(self, filename=[], depth=[], flow='sf', plot=False, save_csv=False, debug=False, debug_plot=False):
+    def validate_data(self, filename=[], depth=[], flow=[], plot=False, save_csv=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
