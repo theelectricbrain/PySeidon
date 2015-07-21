@@ -64,17 +64,16 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
         obs_v_all = data['obs_timeseries']['v']
         mod_u_all = data['mod_timeseries']['u']
         mod_v_all = data['mod_timeseries']['v']
-        if data['type'] == 'ADCP':
-            bins = data['obs_timeseries']['bins']
-            siglay = data['mod_timeseries']['siglay']
-            # use depth interpolation to get a single timeseries
-            mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
-            (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
-                                           obs_u_all, obs_el, bins, depth=depth,
-                                           debug=debug, debug_plot=debug_plot)
-            (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
-                                           obs_v_all, obs_el, bins, depth=depth,
-                                           debug=debug, debug_plot=debug_plot)
+        bins = data['obs_timeseries']['bins']
+        siglay = data['mod_timeseries']['siglay']
+        # use depth interpolation to get a single timeseries
+        mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
+        (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
+                                       obs_u_all, obs_el, bins, depth=depth,
+                                       debug=debug, debug_plot=debug_plot)
+        (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
+                                       obs_v_all, obs_el, bins, depth=depth,
+                                       debug=debug, debug_plot=debug_plot)
     else:
         if not data['type'] == 'Drifter':
             obs_u = data['obs_timeseries']['ua']

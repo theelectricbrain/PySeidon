@@ -7,15 +7,10 @@ import sys
 from datetime import datetime, timedelta
 
 #Local import
-from interpolation_utils import *
-from stationClass import Station
-from adcpClass import ADCP
-from fvcomClass import FVCOM
-from tidegaugeClass import TideGauge
-from smooth import smooth
+from pyseidon.utilities.interpolation_utils import *
 
 # Custom error
-from pyseidon_error import PyseidonError
+from pyseidon.utilities.pyseidon_error import PyseidonError
 
 class _load_validation:
     """
@@ -116,7 +111,7 @@ class _load_validation:
                             #KC : 0 is definitely the surface...
                             uSim = np.squeeze(self.sim.u[self._C,0,:])
                             vSim = np.squeeze(self.sim.v[self._C,0,:])
-                            self.sim._3D = False
+                            self._3D = False
                             lock=False
                             if debug:
                                 print 'flow comarison at surface'
@@ -128,6 +123,7 @@ class _load_validation:
                             uSim = np.squeeze(uInterp[self._C,:])
                             vInterp = simulated.Util3D.interp_at_depth(self.sim.v[:], userInp, debug=debug)
                             vSim = np.squeeze(vInterp[self._C,:])
+                            self._3D = False
                             lock=False
                         else:
                             print "compare flow by 'daf', 'sf' or a float number only!!!"

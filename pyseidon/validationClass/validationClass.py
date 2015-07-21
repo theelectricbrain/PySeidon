@@ -13,12 +13,12 @@ from utide import solve
 from compareData import *
 from valTable import valTable
 from variablesValidation import _load_validation
-from interpolation_utils import *
+from pyseidon.utilities.interpolation_utils import *
 
 # Local import
 from plotsValidation import taylorDiagram
 # Custom error
-from pyseidon_error import PyseidonError
+from pyseidon.utilities.pyseidon_error import PyseidonError
 
 
 class Validation:
