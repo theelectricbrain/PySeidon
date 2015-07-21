@@ -3,7 +3,6 @@
 
 from __future__ import division
 import numpy as np
-import sys
 from datetime import datetime, timedelta
 
 #Local import
@@ -132,32 +131,28 @@ class _load_validation:
                     uSim = np.squeeze(self.sim.ua[self._C,:])
                     vSim = np.squeeze(self.sim.va[self._C,:])
 
-                #Finding the closest Drifter time to simulated data assuming measurement
-                #time step way faster than model one
+                # Finding the closest Drifter time to simulated data assuming measurement
+                # time step way faster than model one
                 indClosest = []
                 for i in self._C:
                     ind = np.abs(self.obs.matlabTime[:]-self.sim.matlabTime[i]).argmin()
                     indClosest.append(ind)
-                #Keep only unique values to avoid sampling in measutement gaps
-                #TR: this doesn't not guarantee that the unique value kept is indeed
+                # Keep only unique values to avoid sampling in measutement gaps
+                # TR: this doesn't not guarantee that the unique value kept is indeed
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
 
-                #KC: Convert of matlabTime to datetime, smooth drifter temporally!
+                # KC: Convert of matlabTime to datetime, smooth drifter temporally!
                 self.datetimes = [datetime.fromordinal(int(x))+timedelta(days=x%1)\
                    - timedelta(days = 366) for x in self.obs.matlabTime[self._c]]
-
-                #uObs, vObs, t_s, dt_start = smooth(self.obs.u[self._c], \
-                #        self.datetimes, self.obs.v[self._c], \
-                #        self.datetimes, delta_t=1, debug=True)
 
                 uObs = self.obs.u[uniqCloInd]
                 vObs = self.obs.v[uniqCloInd]
                 uSim = np.squeeze(uSim[uniqInd[:],:])
                 vSim = np.squeeze(vSim[uniqInd[:],:])
 
-                #print 'uObs: \n', uObs, '\nvObs: \n', vObs
-                #print 'uSim: \n', vSim.shape, '\nuSim: \n', vSim.shape
+                # print 'uObs: \n', uObs, '\nvObs: \n', vObs
+                # print 'uSim: \n', vSim.shape, '\nuSim: \n', vSim.shape
 
                 #Interpolation of timeseries at drifter's trajectory points
                 uSimInterp = np.zeros(len(uniqCloInd))

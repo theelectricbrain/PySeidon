@@ -2,12 +2,8 @@
 # encoding: utf-8
 from __future__ import division
 import numpy as np
-import sys 
 import scipy.io as sio
 import h5py
-
-#Add local path to utilities
-sys.path.append('../utilities/')
 
 #Local import
 from variablesAdcp import _load_adcp

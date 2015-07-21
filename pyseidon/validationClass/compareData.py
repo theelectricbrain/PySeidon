@@ -1,11 +1,15 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
+from __future__ import division
+
+import numpy as np
 from os import mkdir
 from os.path import exists
 from tidalStats import TidalStats
 from smooth import smooth
 from depthInterp import depthFromSurf
 from datetime import datetime, timedelta
+
 # Custom error
 from pyseidon.utilities.pyseidon_error import PyseidonError
 

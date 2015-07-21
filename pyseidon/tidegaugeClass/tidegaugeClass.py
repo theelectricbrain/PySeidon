@@ -2,11 +2,8 @@
 # encoding: utf-8
 
 from __future__ import division
-import scipy.io as sio
-import sys
 
-#Add local path to utilities
-sys.path.append('../utilities/')
+import scipy.io as sio
 
 #Local import
 from variablesTidegauge import _load_tidegauge

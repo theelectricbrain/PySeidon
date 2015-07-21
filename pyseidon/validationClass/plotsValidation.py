@@ -2,10 +2,9 @@
 # encoding: utf-8
 
 from __future__ import division
-#import seaborn
+
 import os.path as os
 import matplotlib.pyplot as plt
-#from pandas import DataFrame
 import numpy as np
 from matplotlib.projections import PolarAxes
 import mpl_toolkits.axisartist.floating_axes as fa

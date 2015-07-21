@@ -2,6 +2,8 @@
 # encoding: utf-8
 
 from __future__ import division
+
+import numpy as np
 import netCDF4 as nc
 from scipy.io import netcdf
 from scipy.io import savemat
@@ -10,11 +12,11 @@ import cPickle as pkl
 import copy
 
 #Utility import
-from object_from_dict import ObjectFromDict
-from miscellaneous import findFiles, _load_nc
+from pyseidon.utilities.object_from_dict import ObjectFromDict
+from pyseidon.utilities.miscellaneous import findFiles, _load_nc
 
 # Custom error
-from pyseidon_error import PyseidonError
+from pyseidon.utilities.pyseidon_error import PyseidonError
 
 #Local import
 from variablesStation import _load_var, _load_grid

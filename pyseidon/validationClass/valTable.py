@@ -2,7 +2,7 @@
 # encoding: utf-8
 import pandas as pd
 # Custom error
-from pyseidon_error import PyseidonError
+from pyseidon.utilities.pyseidon_error import PyseidonError
 
 # ALTERNATE VERSION FOR ANDY
 
@@ -79,4 +79,4 @@ def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, 
     gear.append(site['type'])
     if debug: print "...siteStats done."
 
-    return (type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase, bias, pbias, NRMSE, NSE, corr, SI)
+    return (type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase, bias, pbias, NRMSE, NSE, corr, SI, gear)
