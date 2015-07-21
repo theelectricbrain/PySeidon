@@ -21,6 +21,7 @@ class _load_validation:
                              _obs. = measurement/observational variables
       Validation.Variables._|_sim. = simulated variables
                             |_struct. = dictionnary structure for validation purposes
+
     """
     def __init__(self, observed, simulated, flow='sf', debug=False, debug_plot=False):
         if debug: print "..variables.."
