@@ -59,7 +59,7 @@ class Drifter:
             self.Data = h5py.File(filename)
 
         #Store info in "History" field
-        self.History = ['Created from' + filename]
+        self.History = ['Created from ' + filename]
 
         # KC comment: for some reason, some drifter MATLAB files 
         # have 'Comments' as a key in the variables structure,

@@ -442,6 +442,7 @@ class TidalStats:
         """
 
         stats = {}
+        stats['gear'] = self.gear
         stats['ovORun'] = self.getOverUnder()
         stats['RMSE'] = self.getRMSE()
         stats['CF'] = self.getCF()

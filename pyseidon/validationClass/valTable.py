@@ -15,18 +15,18 @@ def valTable(struct, filename, vars, save_csv=False, debug=False, debug_plot=Fal
     # initialize  lists
     kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
     [], [], [], [], [], [], [], [], [], [], [], [], []
-    bias, pbias, NRMSE, NSE, corr, SI = [], [], [], [], [], []
+    bias, pbias, NRMSE, NSE, corr, SI, gear = [], [], [], [], [], [], []
 
     # append to the lists the stats from each site for each variable
     for var in vars:
-        (kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase, bias, pbias, NRMSE, NSE, corr, SI) \
+        (kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase, bias, pbias, NRMSE, NSE, corr, SI, gear) \
             = siteStats(struct, var, kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase,
-                        bias, pbias, NRMSE, NSE, corr, SI, debug=False, debug_plot=False)
+                        bias, pbias, NRMSE, NSE, corr, SI, gear, debug=False, debug_plot=False)
 
     # put stats into dict and create dataframe
     val_dict = {'Type':kind, 'ovORun':ovORun, 'RMSE':RMSE, 'CF':CF, 'SD':SD, 'POF':POF,
                 'NOF':NOF, 'MDPO':MDPO, 'MDNO':MDNO,  'skill':skill, 'r2':r2, 'phase':phase,
-                'bias':bias, 'pbias':pbias,'NRMSE':NRMSE, 'NSE':NSE, 'corr':corr, 'SI':SI}
+                'bias':bias, 'pbias':pbias,'NRMSE':NRMSE, 'NSE':NSE, 'corr':corr, 'SI':SI, 'gear':gear}
 
     table = pd.DataFrame(data=val_dict, index=name, columns=val_dict.keys())
 
@@ -37,7 +37,7 @@ def valTable(struct, filename, vars, save_csv=False, debug=False, debug_plot=Fal
     return table
 
 def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase,
-              bias, pbias, NRMSE, NSE, corr, SI, debug=False, debug_plot=False):
+              bias, pbias, NRMSE, NSE, corr, SI, gear, debug=False, debug_plot=False):
     """
     Takes in the run (an array of dictionaries) and the type of the run (a
     string). Also takes in the list representing each statistic.
@@ -76,6 +76,7 @@ def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, 
     NSE.append(round(stats['NSE'], 2))
     corr.append(round(stats['CORR'], 2))
     SI.append(round(stats['SI'], 2))
+    gear.append(site['type'])
     if debug: print "...siteStats done."
 
     return (type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase, bias, pbias, NRMSE, NSE, corr, SI)

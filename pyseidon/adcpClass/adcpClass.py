@@ -51,7 +51,7 @@ class ADCP:
         if debug:
             print '-Debug mode on-' 
         #TR_comments: find a way to dissociate raw and processed data
-        self.History = ['Created from' + filename]
+        self.History = ['Created from ' + filename]
         #TR_comments: *_Raw and *_10minavg open with h5py whereas *_davgBS
         try:
             self.Data = sio.loadmat(filename,struct_as_record=False, squeeze_me=True)

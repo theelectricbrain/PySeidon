@@ -4,11 +4,10 @@ from os import mkdir
 from os.path import exists
 from tidalStats import TidalStats
 from smooth import smooth
-from datetime import datetime, timedelta
 from depthInterp import depthFromSurf
 from datetime import datetime, timedelta
 # Custom error
-from pyseidon_error import PyseidonError
+from pyseidon.utilities.pyseidon_error import PyseidonError
 
 # Local import
 from plotsValidation import *
