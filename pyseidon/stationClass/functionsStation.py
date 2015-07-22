@@ -5,8 +5,8 @@ from __future__ import division
 import numpy as np
 import sys
 import numexpr as ne
-from miscellaneous import *
-from BP_tools import *
+from pyseidon.utilities.miscellaneous import *
+from pyseidon.utilities.BP_tools import *
 from utide import solve, reconstruct
 import time
 
@@ -35,7 +35,7 @@ class FunctionsStation:
         elif type(station).__name__ in ['str', 'ndarray']:
             station = "".join(station).strip().upper()
             for i in range(self._grid.nele):
-                if station=="".join(self._grid.name[1,:]).strip().upper():
+                if station=="".join(self._grid.name[i,:]).strip().upper():
                    index=i
         else:
             raise PyseidonError("---Wrong station input---")

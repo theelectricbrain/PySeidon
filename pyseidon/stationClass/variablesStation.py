@@ -53,6 +53,13 @@ class _load_grid:
         self.nele = self.x.shape[0]
         self.nnode = self.x.shape[0]
 
+        # formatting names
+        if len(self.name.shape) > 1:
+            newNames = np.arange(self.nele).astype(str)
+            for i in range(self.nele):
+                newNames[i]="".join(self.name[i,:]).strip()
+            self.name = newNames
+
         #Computing bounding box
         lon = self.lon[:]
         lat = self.lat[:]
@@ -131,6 +138,10 @@ class _load_var:
         #Redefine variables in bounding box
         #Check if OpenDap variables or not
         if type(data.variables).__name__=='DatasetType':
+            # TR: fix for issue wih elements = slice(none)
+            if elements == slice(None):
+                region_e = np.arange(grid.nele)
+                region_n = np.arange(grid.nnode)
             #loading hori data
             keyCount = 0
             for key, aliaS in zip(kwl2D, al2D):

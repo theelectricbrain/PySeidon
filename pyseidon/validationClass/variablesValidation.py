@@ -26,6 +26,11 @@ class _load_validation:
         if debug: print "..variables.."
         self.obs = observed.Variables
         self.sim = simulated.Variables
+        # Compatibility test
+        if (observed.__module__=='pyseidon.drifterClass.drifterClass' and
+            simulated.__module__=='pyseidon.stationClass.stationClass'):
+            raise PyseidonError("---Station and Drifter are incompatible objects---")
+
         self.struct = np.array([])
         self._3D = simulated.Variables._3D
 
