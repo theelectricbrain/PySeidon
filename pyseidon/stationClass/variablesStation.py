@@ -2,12 +2,12 @@
 # encoding: utf-8
 
 from __future__ import division
+
 import numpy as np
 from itertools import groupby
 from operator import itemgetter
 #Local import
-from miscellaneous import time_to_index
-from miscellaneous import mattime_to_datetime
+from pyseidon.utilities.miscellaneous import mattime_to_datetime
 
 class _load_grid:
     """
@@ -262,8 +262,9 @@ class _load_var:
                         #TR comment: looping on time indices is a trick from
                         #            Mitchell to improve loading time
                         try:
-                            getattr(self, aliaS)[i,:,:] =\
-                                np.transpose(data.variables[key].data[i,:,region_e])
+                            getattr(self, aliaS)[i,:,:] =data.variables[key].data[i,:,region_e]
+                            # getattr(self, aliaS)[i,:,:] =\
+                            #     np.transpose(data.variables[key].data[i,:,region_e])
                         except AttributeError: #exeception due nc.Dataset
                             getattr(self, aliaS)[i,:,:] =\
                             data.variables[key][i,:,region_e]
