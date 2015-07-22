@@ -273,9 +273,8 @@ class _load_var:
                         #TR comment: looping on time indices is a trick from
                         #            Mitchell to improve loading time
                         try:
-                            getattr(self, aliaS)[i,:,:] =data.variables[key].data[i,:,region_e]
-                            # getattr(self, aliaS)[i,:,:] =\
-                            #     np.transpose(data.variables[key].data[i,:,region_e])
+                            getattr(self, aliaS)[i,:,:] =\
+                                np.transpose(data.variables[key].data[i,:,region_e])
                         except AttributeError: #exeception due nc.Dataset
                             getattr(self, aliaS)[i,:,:] =\
                             data.variables[key][i,:,region_e]

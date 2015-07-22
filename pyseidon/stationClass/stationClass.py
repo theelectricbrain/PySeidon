@@ -106,7 +106,7 @@ class Station:
                 #Define new 
                 text = 'Created from ' + entry
                 tmp = {}
-                tmp['Data'] = _load_nc(entry)
+                tmp['Data'] = self._load(entry)
                 tmp['History'] = [text]
                 tmp['Grid'] = _load_grid(tmp['Data'], elements, [], debug=self._debug)
                 tmp['Variables'] = _load_var(tmp['Data'], elements, tmp['Grid'], [],
