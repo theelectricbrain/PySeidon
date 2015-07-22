@@ -106,7 +106,7 @@ class Station:
                 #Define new 
                 text = 'Created from ' + entry
                 tmp = {}
-                tmp['Data'] = self._load(entry, elements, debug=debug)
+                tmp['Data'] = self._load_nc(entry)
                 tmp['History'] = [text]
                 tmp['Grid'] = _load_grid(tmp['Data'], elements, [], debug=self._debug)
                 tmp['Variables'] = _load_var(tmp['Data'], elements, tmp['Grid'], [],
@@ -144,18 +144,10 @@ class Station:
                     #Create fake attribut to be consistent with the rest of the code
                     self.Data.variables = self.Data
                 else:
-                    #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
-                    #WB_comments: scipy has causes some errors, and even though can be
-                    #             faster, can be unreliable
-                    #self.Data = nc.Dataset(data['Origin'], 'r')
-                    try:
-                        self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
-                    except ValueError: #TR: quick fix due to mmap
-                        self.Data = nc.Dataset(data['Origin'], 'r')
+                    self.Data = self._load_nc(data['Origin'])
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
-
         #Loading netcdf file         
         elif filename.endswith('.nc'):
             if filename.startswith('http'):
@@ -167,13 +159,7 @@ class Station:
             else:
                 #Look for file locally
                 print "Retrieving data from " + filename + " ..."
-                # WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
-                # WB_comments: scipy has causes some errors, and even though can be
-                #             faster, can be unreliable
-                try:
-                    self.Data = netcdf.netcdf_file(filename, 'r', mmap=True)
-                except ValueError: #TR: quick fix due to mmap
-                    self.Data = nc.Dataset(filename, 'r')
+                self.Data = self._load_nc(filename)
             #Metadata
             text = 'Created from ' + filename
             self._origin_file = filename
@@ -201,6 +187,19 @@ class Station:
             raise PyseidonError("---Functionality not yet implemented---")
         else:
             raise PyseidonError("---Wrong file format---")
+
+    def _load_nc(self, filename):
+        """loads netcdf file"""
+        #Look for file locally
+        print "Retrieving data from " + filename + " ..."
+        # WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+        # WB_comments: scipy has causes some errors, and even though can be
+        #             faster, can be unreliable
+        try:
+            Data = netcdf.netcdf_file(filename, 'r', mmap=True)
+        except ValueError: #TR: quick fix due to mmap
+            Data = nc.Dataset(filename, 'r')
+        return Data
 
     #Special methods
     def __add__(self, StationClass, debug=False):
