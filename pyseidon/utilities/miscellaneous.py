@@ -147,24 +147,6 @@ def findFiles(filename, name):
 
     return sorted(matches)
 
-def _load_nc(filename):
-    """Loads data from *.nc returns Data"""
-    if filename.startswith('http'):
-        #Look for file through OpenDAP server
-        print "Retrieving data through OpenDap server..."
-        Data = open_url(filename)
-        #Create fake attribut to be consistent with the rest of the code
-        Data.variables = Data
-    else:
-        #Look for file locally
-        print "Retrieving data from " + filename + " ..."
-        #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
-        #WB_comments: scipy has causes some errors, and even though can be
-        #             faster, can be unreliable
-        #self.Data = nc.Dataset(filename, 'r')
-        Data = netcdf.netcdf_file(filename, 'r',mmap=True)
-    return Data
-
 def date_to_julian_day(my_date):
     """Returns the Julian day number of a date."""
     # a = (14 - my_date.month)//12

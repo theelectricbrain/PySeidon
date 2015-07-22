@@ -13,7 +13,7 @@ import copy
 
 #Utility import
 from pyseidon.utilities.object_from_dict import ObjectFromDict
-from pyseidon.utilities.miscellaneous import findFiles, _load_nc
+from pyseidon.utilities.miscellaneous import findFiles
 
 # Custom error
 from pyseidon.utilities.pyseidon_error import PyseidonError
@@ -66,7 +66,7 @@ class Station:
         self._debug = debug
         self._isMulti(filename)
         if not self._multi:
-            self._load(filename, elements)
+            self._load(filename, elements, debug=debug )
             self.Plots = PlotsStation(self.Variables,
                                       self.Grid,
                                       self._debug)
@@ -106,7 +106,7 @@ class Station:
                 #Define new 
                 text = 'Created from ' + entry
                 tmp = {}
-                tmp['Data'] = self._load(entry)
+                tmp['Data'] = self._load(entry, elements, debug=debug)
                 tmp['History'] = [text]
                 tmp['Grid'] = _load_grid(tmp['Data'], elements, [], debug=self._debug)
                 tmp['Variables'] = _load_var(tmp['Data'], elements, tmp['Grid'], [],
@@ -148,7 +148,10 @@ class Station:
                     #WB_comments: scipy has causes some errors, and even though can be
                     #             faster, can be unreliable
                     #self.Data = nc.Dataset(data['Origin'], 'r')
-                    self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
+                    try:
+                        self.Data = netcdf.netcdf_file(data['Origin'], 'r',mmap=True)
+                    except ValueError: #TR: quick fix due to mmap
+                        self.Data = nc.Dataset(data['Origin'], 'r')
             except: #TR: need to precise the type of error here
                 print "the original *.nc file has not been found"
                 pass
@@ -164,11 +167,11 @@ class Station:
             else:
                 #Look for file locally
                 print "Retrieving data from " + filename + " ..."
-                #WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
-                #WB_comments: scipy has causes some errors, and even though can be
+                # WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
+                # WB_comments: scipy has causes some errors, and even though can be
                 #             faster, can be unreliable
                 try:
-                    self.Data = netcdf.netcdf_file(filename, 'r',mmap=True)
+                    self.Data = netcdf.netcdf_file(filename, 'r', mmap=True)
                 except ValueError: #TR: quick fix due to mmap
                     self.Data = nc.Dataset(filename, 'r')
             #Metadata
@@ -287,7 +290,7 @@ class Station:
             #New time dimension
             newself.Grid.ntime = newself.Grid.ntime + StationClass.Grid.ntime
             #Keep only matching names
-            newself.Grid.name = self.Grid.name[origEle[:],:]
+            newself.Grid.name = self.Grid.name[origEle[:]]
             #Append to new object history
             text = 'Data from ' + StationClass.History[0].split('/')[-1] \
                  + ' has been stacked'
