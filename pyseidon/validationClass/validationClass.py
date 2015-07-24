@@ -60,6 +60,8 @@ class Validation:
         self.observed = observed
         self.simulated = simulated
 
+        return
+
     def _validate_data(self, filename=[], depth=[], plot=False,  save_csv=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -448,7 +450,6 @@ class Validation:
                 else:
                     filename = filename + '_meas'+str(i)
                 self._validate_harmonics(filename, save_csv, debug, debug_plot)
-
 
     def taylor_diagram(self, savepath='', fname="taylor_diagram", debug=False):
         """

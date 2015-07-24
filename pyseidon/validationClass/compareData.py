@@ -139,8 +139,10 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                                                                          obs_spd * obs_signed, obs_dt,
                                                                          debug=debug, debug_plot=debug_plot)
             # cubic speed
-            mod_cspd = mod_spd**3.0
-            obs_cspd = obs_spd**3.0
+            #mod_cspd = mod_spd**3.0
+            #obs_cspd = obs_spd**3.0
+            mod_cspd = mod_signed * mod_spd**3.0
+            obs_cspd = mod_signed * obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_cspd, mod_dt, obs_cspd, obs_dt,
                                                                                  debug=debug, debug_plot=debug_plot)
         else:
@@ -314,6 +316,8 @@ def tidalSuite(gear, model, observed, step, start,
     if save_csv:
         if not exists(save_path):
             mkdir(save_path)
+        else:
+            save_path = save_path[:-1] + '_bis/'
         stats.save_data(path=save_path)
         plotData(stats, savepath=save_path, fname=kind+"_"+gear+"_time_series.png")
         plotRegression(stats, stats.linReg(), savepath=save_path, fname=kind+"_"+gear+"_linear_regression.png")
