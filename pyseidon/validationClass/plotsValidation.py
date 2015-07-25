@@ -293,8 +293,11 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
                                  xycoords='data', xytext=(5, -15),
                                  textcoords='offset points', ha='left',
                                  color='white', fontsize=12)
-        plt.figtext(.02, .02, "'+' represents over-estimation whereas '-' represents under-estimation.\n" +
-                              "r2 and nrmse are respectively based on cubic signed speed and cubic speed. ")
+    plt.figtext(.02, .02,
+                "Notes:\n" +
+                "'+' represents over-estimation whereas '-' represents under-estimation.\n" +
+                "r2 and nrmse are respectively based on cubic signed speed and cubic speed. ",
+                size='x-small')
 
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
