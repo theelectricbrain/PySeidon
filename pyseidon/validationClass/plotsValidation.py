@@ -247,7 +247,7 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
         for adcp in adcps:
             try:
                 key = adcp.History[0].split(' ')[-1].split('/')[-1].split('.')[0]
-                val = benchmarks.loc['key']
+                val = benchmarks.loc[key]
                 indCS = np.where(val['Type'].values == 'cubic_speed')[0][0]
                 adcpLoc[key] = {'location': [adcp.Variables.lon, adcp.Variables.lat],
                                 'r2': val['r2'][indCS],
@@ -258,7 +258,7 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
     except TypeError:
         key = adcps.History[0].split(' ')[-1].split('/')[-1].split('.')[0]
         adcpLoc[key] = [adcps.Variables.lon, adcps.Variables.lat]
-        val = benchmarks.loc['key']
+        val = benchmarks.loc[key]
         indCS = np.where(val['Type'].values == 'cubic_speed')[0][0]
         adcpLoc[key] = {'location': [adcps.Variables.lon, adcps.Variables.lat],
                         'r2': val['r2'][indCS],
