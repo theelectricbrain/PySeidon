@@ -18,7 +18,7 @@ from variablesValidation import _load_validation
 from pyseidon.utilities.interpolation_utils import *
 
 # Local import
-from plotsValidation import taylorDiagram
+from plotsValidation import taylorDiagram, benchmarksMap
 # Custom error
 from pyseidon.utilities.pyseidon_error import PyseidonError
 
@@ -463,6 +463,28 @@ class Validation:
             taylorDiagram(self.Benchmarks, savepath=savepath, fname=fname, debug=False)
         except AttributeError:
             raise PyseidonError("-validate_data needs to be run first-")
+
+    def benchmarks_map(self, savepath='', fname="taylor_diagram", debug=False):
+        """
+    Plots bathymetric map & model validation benchmarks
+
+    Inputs:
+      - benchmarks = benchmark attribute from Validation class
+      - adcps = list or tuple of ADCP objects
+      - fvcom = FVCOM object
+    Options:
+      - savepath = folder path for saving plot, string
+      - fname = filename for saving plot, string
+
+    Note: this function shall work only if ADCP object(s) and FVCOM object
+          have been used as inputs
+        """
+        if not self.simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
+            raise PyseidonError("---work only with a combination ADCP object(s) and FVCOM object---")
+        try:
+            benchmarksMap(self.Benchmarks, self.observed, self.simulated, savepath=savepath, fname=fname, debug=debug)
+        except AttributeError:
+            raise PyseidonError("---validate_data needs to be run first---")
 
     def save_as(self, filename, fileformat='pickle', debug=False):
         """

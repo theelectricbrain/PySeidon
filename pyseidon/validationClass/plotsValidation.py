@@ -225,22 +225,36 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
         plt.show()
 
 def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
-    if debug: print "Computing flow speed"
-    fvcom.Util2D.hori_velo_norm()
-    speed = np.mean(fvcom.Variables.hori_velo_norm[:],0)
-    if debug: print '...passed'
+    """
+    Plots bathymetric map & model validation benchmarks
+
+    Inputs:
+      - benchmarks = benchmark attribute from Validation class
+      - adcps = list or tuple of ADCP objects
+      - fvcom = FVCOM object
+    Options:
+      - savepath = folder path for saving plot, string
+      - fname = filename for saving plot, string
+    """
+    #if debug: print "Computing flow speed"
+    #fvcom.Util2D.hori_velo_norm()
+    #speed = np.mean(fvcom.Variables.hori_velo_norm[:],0)
+    #if debug: print '...passed'
 
     # collecting names and locations of adcps
     adcpLoc={}
     try:
         for adcp in adcps:
-            key = adcp.History[0].split(' ')[-1].split('/')[-1].split('.')[0]
-            val = benchmarks.loc['key']
-            indCS = np.where(val['Type'].values == 'cubic_speed')[0][0]
-            adcpLoc[key] = {'location': [adcp.Variables.lon, adcp.Variables.lat],
-                            'r2': val['r2'][indCS],
-                            'NRMSE': val['NRMSE'][indCS],
-                            'ovORun': val['ovORun'][indCS]}
+            try:
+                key = adcp.History[0].split(' ')[-1].split('/')[-1].split('.')[0]
+                val = benchmarks.loc['key']
+                indCS = np.where(val['Type'].values == 'cubic_speed')[0][0]
+                adcpLoc[key] = {'location': [adcp.Variables.lon, adcp.Variables.lat],
+                                'r2': val['r2'][indCS],
+                                'NRMSE': val['NRMSE'][indCS],
+                                'bias': val['bias'][indCS]}
+            except KeyError:  # in case something different than adcp in the list
+                pass
     except TypeError:
         key = adcps.History[0].split(' ')[-1].split('/')[-1].split('.')[0]
         adcpLoc[key] = [adcps.Variables.lon, adcps.Variables.lat]
@@ -249,7 +263,7 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
         adcpLoc[key] = {'location': [adcps.Variables.lon, adcps.Variables.lat],
                         'r2': val['r2'][indCS],
                         'NRMSE': val['NRMSE'][indCS],
-                        'ovORun': val['ovORun'][indCS]}
+                        'bias': val['bias'][indCS]}
 
     lons = []
     lats = []
@@ -259,18 +273,22 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
 
     # Plot size and color function of R2 and RMSE
     # #background
-    cmap=plt.cm.jet
-    fvcom.Plots.colormap_var(speed, title='Averaged flow speed', mesh=False, cmap=cmap)
+    #cmap=plt.cm.jet
+    #fvcom.Plots.colormap_var(speed, title='Averaged flow speed', mesh=False, cmap=cmap)
+    fvcom.Plots.colormap_var(fvcom.Grid.h, title='Bathymetric Map & Model Validation Benchmarks', mesh=False)
 
     # TODO: finish integration and debug
     for key in adcpLoc.keys():
         print '...plotting ' + key + '...'
         r2 = adcpLoc[key]['r2']  # r2 for cubic velocity
         nrmse = adcpLoc[key]['NRMSE']  # nrmse for cubic speed
-        mk = adcpLoc[key]['ovORun'][5]  # over or under estimated
-        if mk == '-': mk = '_'
+        mk = adcpLoc[key]['bias']  # over or under estimated
+        if np.sign(mk) == -1.0 :
+            mk = '_'
+        else:
+            mk = '+'
         fvcom.Plots._ax.scatter(adcpLoc[key]['location'][0],adcpLoc[key]['location'][1],
-                                marker=mk,lw=2, s=100, color='red')
+                                marker=mk, lw=2, s=100, color='red')
         fvcom.Plots._ax.annotate('r2: '+str(round(r2,2))+' |',
                                  xy=(adcpLoc[key]['location'][0],adcpLoc[key]['location'][1]),
                                  xycoords='data', xytext=(-55, -15),
@@ -281,4 +299,12 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
                                  xycoords='data', xytext=(5, -15),
                                  textcoords='offset points', ha='left',
                                  color='white', fontsize=12)
+        plt.figtext(.02, .02, "'+' represents over-estimation whereas '-' represents under-estimation.\n" +
+                              "r2 and nrmse are respectively based on cubic signed speed and cubic speed. ")
 
+    if savepath.strip() and fname.strip():
+        if os.exists(savepath):
+            fvcom.Plots._fig.savefig(savepath+fname)
+    else:
+        fvcom.Plots._fig.show()
+        plt.show()
