@@ -138,11 +138,11 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = smooth(mod_spd * mod_signed, mod_dt,
                                                                          obs_spd * obs_signed, obs_dt,
                                                                          debug=debug, debug_plot=debug_plot)
-            # cubic speed
+            # cubic signed speed
             #mod_cspd = mod_spd**3.0
             #obs_cspd = obs_spd**3.0
             mod_cspd = mod_signed * mod_spd**3.0
-            obs_cspd = mod_signed * obs_spd**3.0
+            obs_cspd = obs_signed * obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = smooth(mod_cspd, mod_dt, obs_cspd, obs_dt,
                                                                                  debug=debug, debug_plot=debug_plot)
         else:
@@ -161,9 +161,11 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
             (mod_v_int, obs_v_int, step_v_int, start_v_int) = (mod_v, obs_v, step, start)
             # velocity i.e. signed speed
             (mod_ve_int, obs_ve_int, step_ve_int, start_ve_int) = (mod_spd, obs_spd, step, start)
-            # cubic speed
-            mod_cspd = mod_spd**3.0
-            obs_cspd = obs_spd**3.0
+            # cubic signed speed
+            #mod_cspd = mod_spd**3.0
+            #obs_cspd = obs_spd**3.0
+            mod_cspd = mod_signed * mod_spd**3.0
+            obs_cspd = obs_signed * obs_spd**3.0
             (mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int) = (mod_cspd, obs_cspd, step, start)
 
     if debug: print "...remove directions where velocities are small..."
