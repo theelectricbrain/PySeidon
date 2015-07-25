@@ -468,10 +468,6 @@ class Validation:
         """
     Plots bathymetric map & model validation benchmarks
 
-    Inputs:
-      - benchmarks = benchmark attribute from Validation class
-      - adcps = list or tuple of ADCP objects
-      - fvcom = FVCOM object
     Options:
       - savepath = folder path for saving plot, string
       - fname = filename for saving plot, string

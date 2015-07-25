@@ -265,12 +265,6 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
                         'NRMSE': val['NRMSE'][indCS],
                         'bias': val['bias'][indCS]}
 
-    lons = []
-    lats = []
-    for key in adcpLoc.keys():
-        lons.append(adcpLoc[key][0])
-        lats.append(adcpLoc[key][1])
-
     # Plot size and color function of R2 and RMSE
     # #background
     #cmap=plt.cm.jet
