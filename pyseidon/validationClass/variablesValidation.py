@@ -67,7 +67,10 @@ class _load_validation:
             ind = closest_points([self.obs.lon], [self.obs.lat],
                                 simulated.Grid.lon[:],
                                 simulated.Grid.lat[:])
-            nameSite = ''.join(simulated.Grid.name[ind,:][0,:])
+            try:
+                nameSite = ''.join(simulated.Grid.name[ind,:][0,:])
+            except IndexError:  # TR: quick fix
+                nameSite = ''.join(simulated.Grid.name[ind])
             print "Station site: " + nameSite
             self.sim.lat = simulated.Grid.lat[ind]
             el = self.sim.el[:, ind].flatten()
