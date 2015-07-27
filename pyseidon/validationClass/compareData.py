@@ -316,10 +316,9 @@ def tidalSuite(gear, model, observed, step, start,
         plotRegression(stats, stats.linReg())
 
     if save_csv:
-        if not exists(save_path):
-            mkdir(save_path)
-        else:
+        if exists(save_path):
             save_path = save_path[:-1] + '_bis/'
+        mkdir(save_path)
         stats.save_data(path=save_path)
         plotData(stats, savepath=save_path, fname=kind+"_"+gear+"_time_series.png")
         plotRegression(stats, stats.linReg(), savepath=save_path, fname=kind+"_"+gear+"_linear_regression.png")
