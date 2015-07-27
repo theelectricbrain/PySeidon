@@ -75,6 +75,7 @@ def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fig.savefig(savepath+fname)
+            plt.close(fig)
     else:
         fig.show()
         plt.show()
@@ -128,6 +129,7 @@ def plotData(tidalStatClass, graph='time', savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fig.savefig(savepath+fname)
+            plt.close(fig)
     else:
         fig.show()
         plt.show()
@@ -220,6 +222,7 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fig.savefig(savepath+fname)
+            plt.close(fig)
     else:
         fig.show()
         plt.show()
@@ -271,7 +274,6 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
     #fvcom.Plots.colormap_var(speed, title='Averaged flow speed', mesh=False, cmap=cmap)
     fvcom.Plots.colormap_var(fvcom.Grid.h, title='Bathymetric Map & Model Validation Benchmarks', mesh=False)
 
-    # TODO: finish integration and debug
     for key in adcpLoc.keys():
         print '...plotting ' + key + '...'
         r2 = adcpLoc[key]['r2']  # r2 for cubic velocity
@@ -302,6 +304,7 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fvcom.Plots._fig.savefig(savepath+fname)
+            plt.close(fvcom.Plots._fig)
     else:
         fvcom.Plots._fig.show()
         plt.show()
