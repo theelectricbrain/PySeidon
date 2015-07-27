@@ -456,11 +456,11 @@ class Validation:
         Plots Taylor diagram based on the results of 'validate_data'
 
         Options:
-          - filename = name of the plot file, string
-          - save = save as *.png, boolean
+          - savepath = folder path for saving plot, string
+          - fname = filename for saving plot, string
         """
         try:
-            taylorDiagram(self.Benchmarks, savepath=savepath, fname=fname, debug=False)
+            taylorDiagram(self.Benchmarks, savepath=savepath, fname=fname, debug=debug)
         except AttributeError:
             raise PyseidonError("-validate_data needs to be run first-")
 

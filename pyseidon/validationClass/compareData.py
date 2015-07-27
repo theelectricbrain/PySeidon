@@ -258,9 +258,13 @@ def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     #TR: comment out
     #mod_harm = data['elev_mod_harmonics']
 
-    # Save path
+    # Save path & create folder
     name = data['name']
     save_path = name.split('/')[-1].split('.')[0]+'/'
+    while exists(save_path):
+        save_path = save_path[:-1] + '_bis/'
+    mkdir(save_path)
+
 
     # convert times and grab values
     obs_time, mod_time = [], []
