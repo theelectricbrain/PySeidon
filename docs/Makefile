@@ -8,7 +8,7 @@ export SPHINX_APIDOC_OPTIONS='private-members'
 SPHINXOPTS    = 
 SPHINXBUILD   = sphinx-build
 PAPER         =
-BUILDDIR      = ./
+BUILDDIR      = _build/
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
