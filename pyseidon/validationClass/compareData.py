@@ -316,7 +316,7 @@ def tidalSuite(gear, model, observed, step, start,
     stats_suite['r_squared'] = stats.linReg()['r_2']
     # calling special methods
     if kind == 'direction':
-        r2, rmse, nrmse = stats.statsForDirection(debug=debug)
+        rmse, nrmse = stats.statsForDirection(debug=debug)
         stats_suite['RMSE'] = rmse
         stats_suite['NRMSE'] = nrmse
     try: #Fix for Drifter's data

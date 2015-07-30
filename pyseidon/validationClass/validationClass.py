@@ -92,7 +92,7 @@ class Validation:
         debug_plot = debug_plot or self._debug_plot
         #User input
         if filename==[]:
-            filename = input('Enter filename (string) for csv file: ')
+            filename = raw_input('Enter filename (string) for csv file: ')
             filename = str(filename)
         if (depth==[] and self.Variables._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
@@ -183,7 +183,7 @@ class Validation:
         """
         # User input
         if filename==[]:
-            filename = input('Enter filename (string) for csv file: ')
+            filename = raw_input('Enter filename (string) for csv file: ')
             filename = str(filename)
 
 
