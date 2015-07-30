@@ -12,6 +12,9 @@ import time
 import pandas as pd
 from sys import exit
 
+# local imports
+from pyseidon.utilities.BP_tools import principal_axis
+
 class TidalStats:
     """
     An object representing a set of statistics on tidal heights used
@@ -55,9 +58,9 @@ class TidalStats:
             # TR: fix for interpolation pb when 0 index or -1 index array values = nan
             if debug: print "...trim nans at start and end of data.."
             start_index, end_index = 0, -1
-            while (np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index])):
+            while np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index]):
                 start_index += 1
-            while (np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index])):
+            while np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index]):
                 end_index -= 1
 
             # Correction for bound index call
@@ -83,12 +86,12 @@ class TidalStats:
 
             if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
 
-            if (True in np.isnan(self.observed)):
+            if True in np.isnan(self.observed):
                 obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
                 func = interp1d(time_nonan, obs_nonan)
                 self.observed = func(timestamps)
-            if (True in np.isnan(self.model)):
+            if True in np.isnan(self.model):
                 mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
                 func = interp1d(time_nonan, mod_nonan)
@@ -257,6 +260,63 @@ class TidalStats:
         """
         return pearsonr(self.observed, self.model)[0]
 
+    def statsForDirection(self, debug=False):
+        """
+        Special stats for direction
+
+        Outputs:
+          - err = absolute error
+          - nerr = normalised error
+        """
+        if debug: print "Computing special stats for direction..."
+        pr_axis_mod, pr_ax_var_mod = principal_axis(self.model_u, self.model_v)
+        pr_axis_obs, pr_ax_var_obs = principal_axis(self.observed_u, self.observed_v)
+
+        # Defines intervals
+        dir_all_mod = np.rad2deg(np.arctan2(self.model_v,self.model_u))
+        dir_all_obs = np.rad2deg(np.arctan2(self.observed_v,self.observed_u))
+        ind_mod = np.where(dir_all_mod<0)
+        ind_obs = np.where(dir_all_obs<0)
+        dir_all_mod[ind_mod] = dir_all_mod[ind_mod] + 360
+        dir_all_obs[ind_obs] = dir_all_obs[ind_obs] + 360
+
+        # sign speed - eliminating wrap-around
+        dir_PA_mod = dir_all_mod - pr_axis_mod
+        dir_PA_mod[dir_PA_mod < -90] += 360
+        dir_PA_mod[dir_PA_mod > 270] -= 360
+        dir_PA_obs = dir_all_obs - pr_axis_obs
+        dir_PA_obs[dir_PA_obs < -90] += 360
+        dir_PA_obs[dir_PA_obs > 270] -= 360
+
+        #general direction of flood passed as input argument
+        floodIndex_mod = np.where((dir_PA_mod >= -90) & (dir_PA_mod<90))[0]
+        ebbIndex_mod = np.arange(dir_PA_mod.shape[0])
+        ebbIndex_mod = np.delete(ebbIndex_mod, floodIndex_mod[:])
+        floodIndex_obs = np.where((dir_PA_obs >= -90) & (dir_PA_obs<90))[0]
+        ebbIndex_obs = np.arange(dir_PA_obs.shape[0])
+        ebbIndex_obs = np.delete(ebbIndex_obs, floodIndex_obs[:])
+
+        # principal axis for ebb and flood
+        pr_axis_mod_flood, pr_ax_var_mod_flood = principal_axis(self.model_u[floodIndex_mod],
+                                                                self.model_v[floodIndex_mod])
+        pr_axis_mod_ebb, pr_ax_var_mod_ebb = principal_axis(self.model_u[ebbIndex_mod],
+                                                            self.model_v[ebbIndex_mod])
+        pr_axis_obs_flood, pr_ax_var_obs_flood = principal_axis(self.observed_u[floodIndex_obs],
+                                                                self.observed_v[floodIndex_obs])
+        pr_axis_obs_ebb, pr_ax_var_obs_ebb = principal_axis(self.observed_u[ebbIndex_obs],
+                                                            self.observed_v[ebbIndex_obs])
+        err_flood = np.abs(pr_axis_mod_flood - pr_axis_obs_flood)
+        err_ebb = np.abs(pr_axis_mod_ebb - pr_axis_obs_ebb)
+
+        if debug: print "...ebb direction error: " + str(err_ebb) + " degrees..."
+        if debug: print "...flood direction error: " + str(err_ebb) + " degrees..."
+        
+        err = 0.5 * (err_flood + err_ebb)
+        nerr = 0.5 * (np.abs(err_flood / pr_axis_obs_flood) + np.abs(err_ebb / pr_axis_obs_ebb))
+
+        return err, nerr
+
+
     def getCF(self, debug=False):
         '''
         Returns the central frequency of the data, i.e. the fraction of
@@ -369,7 +429,7 @@ class TidalStats:
         if debug or self._debug: print "getPhase..."
         # grab the length of the timesteps in seconds
         max_phase_sec = max_phase.seconds
-        try: #Fix for Drifter's data
+        try:  # Fix for Drifter's data
             step_sec = self.step.seconds
         except AttributeError:
             step_sec = self.step * 24.0 * 60.0 * 60.0 # converts matlabtime to seconds
