@@ -8,7 +8,7 @@
     
     <title>pyseidon.tidegaugeClass package &mdash; pyseidon  documentation</title>
     
-    <link rel="stylesheet" href="static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -26,7 +26,11 @@
     <link rel="top" title="pyseidon  documentation" href="index.html" />
     <link rel="up" title="pyseidon package" href="pyseidon.html" />
     <link rel="next" title="pyseidon.utilities package" href="pyseidon.utilities.html" />
-    <link rel="prev" title="pyseidon.stationClass package" href="pyseidon.stationClass.html" /> 
+    <link rel="prev" title="pyseidon.stationClass package" href="pyseidon.stationClass.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -83,7 +87,7 @@ time series or the velocity components timeseries.</p>
 </dd>
 </dl>
 <p>Utide&#8217;s options:
-Options are the same as for ut_solv, which are shown below with
+Options are the same as for &#8216;solve&#8217;, which are shown below with
 their default values:</p>
 <blockquote>
 <div>conf_int=True; cnstit=&#8217;auto&#8217;; notrend=0; prefilt=[]; nodsatlint=0;
@@ -92,7 +96,7 @@ rmin=1; method=&#8217;cauchy&#8217;; tunrdn=1; linci=0; white=0; nrlzn=200;
 lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
 ordercnstit=[]; runtimedisp=&#8217;yyy&#8217;</div></blockquote>
 <p><em>Notes</em>
-For more detailed information about ut_solv, please see
+For more detailed information about &#8216;solve&#8217;, please see
 <a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
 </dd></dl>
 
@@ -116,8 +120,8 @@ a given matlab time</p>
 <code class="descname">reconstr</code><span class="sig-paren">(</span><em>harmo</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/tidegaugeClass/functionsTidegauge.html#FunctionsTidegauge.reconstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.tidegaugeClass.functionsTidegauge.FunctionsTidegauge.reconstr" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function reconstructs the velocity components or the surface elevation
 from harmonic coefficients.
-Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
-(ut_solv) has already been executed.</p>
+Harmonic_reconstruction calls &#8216;reconstruct&#8217;. This function assumes harmonics
+(&#8216;solve&#8217;) has already been executed.</p>
 <dl class="docutils">
 <dt>Inputs:</dt>
 <dd><ul class="first last simple">
@@ -136,12 +140,12 @@ Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
 </dd>
 </dl>
 <p>Utide&#8217;s options:
-Options are the same as for ut_reconstr, which are shown below with
+Options are the same as for &#8216;reconstruct&#8217;, which are shown below with
 their default values:</p>
 <blockquote>
 <div>cnstit = [], minsnr = 2, minpe = 0</div></blockquote>
 <p><em>Notes</em>
-For more detailed information about ut_reconstr, please see
+For more detailed information about &#8216;reconstruct&#8217;, please see
 <a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
 </dd></dl>
 
@@ -288,28 +292,20 @@ TideGauge._|_History = Quality Control metadata
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="pyseidon.utilities.html" title="pyseidon.utilities package"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="pyseidon.stationClass.html" title="pyseidon.stationClass package"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pyseidon  documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="pyseidon.html" >pyseidon package</a> &raquo;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="sources/pyseidon.tidegaugeClass.txt"
+          rel="nofollow">Page source</a></li>
     </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2015, Dr. Thomas Roc.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
-    </div>
+
+    
+
+    
   </body>
 </html>

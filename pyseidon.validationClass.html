@@ -8,7 +8,7 @@
     
     <title>pyseidon.validationClass package &mdash; pyseidon  documentation</title>
     
-    <link rel="stylesheet" href="static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -25,7 +25,11 @@
     <script type="text/javascript" src="static/doctools.js"></script>
     <link rel="top" title="pyseidon  documentation" href="index.html" />
     <link rel="up" title="pyseidon package" href="pyseidon.html" />
-    <link rel="prev" title="pyseidon.utilities package" href="pyseidon.utilities.html" /> 
+    <link rel="prev" title="pyseidon.utilities package" href="pyseidon.utilities.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -95,7 +99,7 @@ using the TidalStats class</p>
 <li>threeDim = boolean flag, 3D or not</li>
 </ul>
 </dd>
-<dt>Outputs</dt>
+<dt>Outputs:</dt>
 <dd><ul class="first last simple">
 <li>elev_suite = dictionary of useful statistics for sea elevation</li>
 <li>speed_suite = dictionary of useful statistics for flow speed</li>
@@ -124,7 +128,7 @@ using the TidalStats class</p>
 
 <dl class="function">
 <dt id="pyseidon.validationClass.compareData.tidalSuite">
-<code class="descclassname">pyseidon.validationClass.compareData.</code><code class="descname">tidalSuite</code><span class="sig-paren">(</span><em>gear</em>, <em>model</em>, <em>observed</em>, <em>step</em>, <em>start</em>, <em>model_u</em>, <em>observed_u</em>, <em>model_v</em>, <em>observed_v</em>, <em>model_time</em>, <em>observed_time</em>, <em>kind=''</em>, <em>plot=False</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/compareData.html#tidalSuite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.compareData.tidalSuite" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyseidon.validationClass.compareData.</code><code class="descname">tidalSuite</code><span class="sig-paren">(</span><em>gear</em>, <em>model</em>, <em>observed</em>, <em>step</em>, <em>start</em>, <em>model_u</em>, <em>observed_u</em>, <em>model_v</em>, <em>observed_v</em>, <em>model_time</em>, <em>observed_time</em>, <em>kind=''</em>, <em>plot=False</em>, <em>save_csv=False</em>, <em>save_path='./'</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/compareData.html#tidalSuite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.compareData.tidalSuite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create stats classes for a given tidal variable.</p>
 <p>Accepts interpolated model and observed data, the timestep, and start
 time. kind is a string representing the kind of data. If plot is set
@@ -203,26 +207,49 @@ data. Is a timedelta object, defaults to 10 minutes.</p>
 <div class="section" id="module-pyseidon.validationClass.plotsValidation">
 <span id="pyseidon-validationclass-plotsvalidation-module"></span><h2>pyseidon.validationClass.plotsValidation module<a class="headerlink" href="#module-pyseidon.validationClass.plotsValidation" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="pyseidon.validationClass.plotsValidation.benchmarksMap">
+<code class="descclassname">pyseidon.validationClass.plotsValidation.</code><code class="descname">benchmarksMap</code><span class="sig-paren">(</span><em>benchmarks</em>, <em>adcps</em>, <em>fvcom</em>, <em>savepath=''</em>, <em>fname=''</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/plotsValidation.html#benchmarksMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.plotsValidation.benchmarksMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots bathymetric map &amp; model validation benchmarks</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>benchmarks = benchmark attribute from Validation class</li>
+<li>adcps = list or tuple of ADCP objects</li>
+<li>fvcom = FVCOM object</li>
+</ul>
+</dd>
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>savepath = folder path for saving plot, string</li>
+<li>fname = filename for saving plot, string</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyseidon.validationClass.plotsValidation.plotData">
-<code class="descclassname">pyseidon.validationClass.plotsValidation.</code><code class="descname">plotData</code><span class="sig-paren">(</span><em>tidalStatClass</em>, <em>graph='time'</em>, <em>save=False</em>, <em>out_f=''</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/plotsValidation.html#plotData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.plotsValidation.plotData" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyseidon.validationClass.plotsValidation.</code><code class="descname">plotData</code><span class="sig-paren">(</span><em>tidalStatClass</em>, <em>graph='time'</em>, <em>savepath=''</em>, <em>fname=''</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/plotsValidation.html#plotData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.plotsValidation.plotData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides a visualization of the data.</p>
 <p>Takes an option which determines the kind of graph to be made.
 time: plots the model data against the observed data over time
 scatter : plots the model data vs. observed data</p>
-<p>If save is set to True, saves the image file in out_f.</p>
+<p>If a savepath and filename is defined, exports the plot as an image file
+to that location. Filenames should include the image file name and extension.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyseidon.validationClass.plotsValidation.plotRegression">
-<code class="descclassname">pyseidon.validationClass.plotsValidation.</code><code class="descname">plotRegression</code><span class="sig-paren">(</span><em>tidalStatClass</em>, <em>lr</em>, <em>save=False</em>, <em>out_f=''</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/plotsValidation.html#plotRegression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.plotsValidation.plotRegression" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyseidon.validationClass.plotsValidation.</code><code class="descname">plotRegression</code><span class="sig-paren">(</span><em>tidalStatClass</em>, <em>lr</em>, <em>savepath=''</em>, <em>fname=''</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/plotsValidation.html#plotRegression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.plotsValidation.plotRegression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots a visualization of the output from linear regression,
 including confidence intervals for predictands and slope.</p>
-<p>If save is set to True, exports the plot as an image file to out_f.</p>
+<p>If a savepath and filename is defined, exports the plot as an image file
+to that location. Filenames should include the image file name and extension.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyseidon.validationClass.plotsValidation.taylorDiagram">
-<code class="descclassname">pyseidon.validationClass.plotsValidation.</code><code class="descname">taylorDiagram</code><span class="sig-paren">(</span><em>benchmarks</em>, <em>save=False</em>, <em>out_f=''</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/plotsValidation.html#taylorDiagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.plotsValidation.taylorDiagram" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyseidon.validationClass.plotsValidation.</code><code class="descname">taylorDiagram</code><span class="sig-paren">(</span><em>benchmarks</em>, <em>savepath=''</em>, <em>fname=''</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/plotsValidation.html#taylorDiagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.plotsValidation.taylorDiagram" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>References:</dt>
 <dd><p class="first">Taylor, K.E.:  Summarizing multiple aspects of model performance in a single diagram.
@@ -243,12 +270,13 @@ Cambridge University Press, Cambridge, United Kingdom and New York, NY, USA, 881
 <span id="pyseidon-validationclass-smooth-module"></span><h2>pyseidon.validationClass.smooth module<a class="headerlink" href="#module-pyseidon.validationClass.smooth" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="pyseidon.validationClass.smooth.smooth">
-<code class="descclassname">pyseidon.validationClass.smooth.</code><code class="descname">smooth</code><span class="sig-paren">(</span><em>data_1</em>, <em>dt_1</em>, <em>data_2</em>, <em>dt_2</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/smooth.html#smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.smooth.smooth" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyseidon.validationClass.smooth.</code><code class="descname">smooth</code><span class="sig-paren">(</span><em>data_1</em>, <em>dt_1</em>, <em>data_2</em>, <em>dt_2</em>, <em>delta_t=10</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/smooth.html#smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.smooth.smooth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Smooths a dataset by taking the average of all datapoints within
 a certain timestep to reduce noise. Lines up two datasets in the
 time domain, as well.
 Accepts four variables representing the data. data_1 and data_2 are the
-data points, dt_1 and dt_2 are the datetimes corresponding to the points.</p>
+data points, dt_1 and dt_2 are the datetimes corresponding to the points.
+delta_t is an optional paramter that changes the time_step in minutes.</p>
 </dd></dl>
 
 </div>
@@ -433,7 +461,7 @@ scattering.</p>
 
 <dl class="method">
 <dt id="pyseidon.validationClass.tidalStats.TidalStats.save_data">
-<code class="descname">save_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/tidalStats.html#TidalStats.save_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.tidalStats.TidalStats.save_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save_data</code><span class="sig-paren">(</span><em>path=''</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/tidalStats.html#TidalStats.save_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.tidalStats.TidalStats.save_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -443,7 +471,7 @@ scattering.</p>
 <span id="pyseidon-validationclass-valtable-module"></span><h2>pyseidon.validationClass.valTable module<a class="headerlink" href="#module-pyseidon.validationClass.valTable" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="pyseidon.validationClass.valTable.siteStats">
-<code class="descclassname">pyseidon.validationClass.valTable.</code><code class="descname">siteStats</code><span class="sig-paren">(</span><em>site</em>, <em>variable</em>, <em>type</em>, <em>name</em>, <em>ovORun</em>, <em>RMSE</em>, <em>CF</em>, <em>SD</em>, <em>POF</em>, <em>NOF</em>, <em>MDPO</em>, <em>MDNO</em>, <em>skill</em>, <em>r2</em>, <em>phase</em>, <em>bias</em>, <em>pbias</em>, <em>NRMSE</em>, <em>NSE</em>, <em>corr</em>, <em>SI</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/valTable.html#siteStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.valTable.siteStats" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyseidon.validationClass.valTable.</code><code class="descname">siteStats</code><span class="sig-paren">(</span><em>site</em>, <em>variable</em>, <em>type</em>, <em>name</em>, <em>ovORun</em>, <em>RMSE</em>, <em>CF</em>, <em>SD</em>, <em>POF</em>, <em>NOF</em>, <em>MDPO</em>, <em>MDNO</em>, <em>skill</em>, <em>r2</em>, <em>phase</em>, <em>bias</em>, <em>pbias</em>, <em>NRMSE</em>, <em>NSE</em>, <em>corr</em>, <em>SI</em>, <em>gear</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/valTable.html#siteStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.valTable.siteStats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes in the run (an array of dictionaries) and the type of the run (a
 string). Also takes in the list representing each statistic.</p>
 </dd></dl>
@@ -474,11 +502,28 @@ Validation._|_validate_harmonics = validation method/function against
 <dl class="docutils">
 <dt>Inputs:</dt>
 <dd><ul class="first last simple">
-<li>observed = any PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)</li>
+<li>observed = standalone or tuple of PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)</li>
 <li>simulated = any PySeidon simulation object (i.e. FVCOM or Station)</li>
+<li>flow = flow comparison by surface flow (&#8216;sf&#8217;), depth-averaged flow (&#8216;daf&#8217;) or at any depth (float)</li>
 </ul>
 </dd>
 </dl>
+<dl class="method">
+<dt id="pyseidon.validationClass.validationClass.Validation.benchmarks_map">
+<code class="descname">benchmarks_map</code><span class="sig-paren">(</span><em>savepath=''</em>, <em>fname='taylor_diagram'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.benchmarks_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.validationClass.Validation.benchmarks_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots bathymetric map &amp; model validation benchmarks</p>
+<dl class="docutils">
+<dt>Options:</dt>
+<dd><ul class="first last simple">
+<li>savepath = folder path for saving plot, string</li>
+<li>fname = filename for saving plot, string</li>
+</ul>
+</dd>
+<dt>Note: this function shall work only if ADCP object(s) and FVCOM object</dt>
+<dd>have been used as inputs</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="pyseidon.validationClass.validationClass.Validation.save_as">
 <code class="descname">save_as</code><span class="sig-paren">(</span><em>filename</em>, <em>fileformat='pickle'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.save_as"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.validationClass.Validation.save_as" title="Permalink to this definition">¶</a></dt>
@@ -504,13 +549,13 @@ Validation._|_validate_harmonics = validation method/function against
 
 <dl class="method">
 <dt id="pyseidon.validationClass.validationClass.Validation.taylor_diagram">
-<code class="descname">taylor_diagram</code><span class="sig-paren">(</span><em>filename='taylor_diagram'</em>, <em>save=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.taylor_diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.validationClass.Validation.taylor_diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">taylor_diagram</code><span class="sig-paren">(</span><em>savepath=''</em>, <em>fname='taylor_diagram'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.taylor_diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.validationClass.Validation.taylor_diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots Taylor diagram based on the results of &#8216;validate_data&#8217;</p>
 <dl class="docutils">
 <dt>Options:</dt>
 <dd><ul class="first last simple">
-<li>filename = name of the plot file, string</li>
-<li>save = save as <a href="#id5"><span class="problematic" id="id6">*</span></a>.png, boolean</li>
+<li>savepath = folder path for saving plot, string</li>
+<li>fname = filename for saving plot, string</li>
 </ul>
 </dd>
 </dl>
@@ -518,7 +563,7 @@ Validation._|_validate_harmonics = validation method/function against
 
 <dl class="method">
 <dt id="pyseidon.validationClass.validationClass.Validation.validate_data">
-<code class="descname">validate_data</code><span class="sig-paren">(</span><em>filename=[]</em>, <em>depth=[]</em>, <em>plot=False</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.validate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.validationClass.Validation.validate_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">validate_data</code><span class="sig-paren">(</span><em>filename=[]</em>, <em>depth=[]</em>, <em>flow=[]</em>, <em>plot=False</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.validate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.validationClass.Validation.validate_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method computes series of standard validation benchmarks.</p>
 <dl class="docutils">
 <dt>Options:</dt>
@@ -531,11 +576,13 @@ Validation._|_validate_harmonics = validation method/function against
 </dd>
 </dl>
 </li>
-<li><p class="first">plot = plot series of valiudation graphs, boolean.</p>
+<li><p class="first">flow = flow comparison by surface flow (&#8216;sf&#8217;), depth-averaged flow (&#8216;daf&#8217;) or at any depth (float)</p>
+</li>
+<li><p class="first">plot = plot series of validation graphs, boolean.</p>
 </li>
 <li><dl class="first docutils">
-<dt>save_csv = will save both observed and modeled interpolated</dt>
-<dd><p class="first last">timeseries into <a href="#id7"><span class="problematic" id="id8">*</span></a>.csv file</p>
+<dt>save_csv = will save benchmark values into <a href="#id5"><span class="problematic" id="id6">*</span></a>.csv file</dt>
+<dd><p class="first last">as well as associated plots in specific folderssta</p>
 </dd>
 </dl>
 </li>
@@ -562,13 +609,13 @@ the Columbia River plume in summer 2004, J. Geophys. Res., 114</li>
 <dt id="pyseidon.validationClass.validationClass.Validation.validate_harmonics">
 <code class="descname">validate_harmonics</code><span class="sig-paren">(</span><em>filename=[]</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.validate_harmonics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.validationClass.validationClass.Validation.validate_harmonics" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method computes and store in a csv file the error in %
-for each component of the harmonic analysis (i.e. <a href="#id9"><span class="problematic" id="id10">*</span></a>_error.csv).</p>
+for each component of the harmonic analysis (i.e. <a href="#id7"><span class="problematic" id="id8">*</span></a>_error.csv).</p>
 <dl class="docutils">
 <dt>Options:</dt>
 <dd><p class="first">filename: file name of the .csv file to be saved, string.
 save_csv: will save both observed and modeled harmonic</p>
 <blockquote class="last">
-<div>coefficients into <a href="#id11"><span class="problematic" id="id12">*</span></a>.csv files (i.e. <a href="#id13"><span class="problematic" id="id14">*</span></a>_harmo_coef.csv)</div></blockquote>
+<div>coefficients into <a href="#id9"><span class="problematic" id="id10">*</span></a>.csv files (i.e. <a href="#id11"><span class="problematic" id="id12">*</span></a>_harmo_coef.csv)</div></blockquote>
 </dd>
 </dl>
 </dd></dl>
@@ -635,25 +682,20 @@ save_csv: will save both observed and modeled harmonic</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="pyseidon.utilities.html" title="pyseidon.utilities package"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pyseidon  documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="pyseidon.html" >pyseidon package</a> &raquo;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="sources/pyseidon.validationClass.txt"
+          rel="nofollow">Page source</a></li>
     </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2015, Dr. Thomas Roc.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
-    </div>
+
+    
+
+    
   </body>
 </html>

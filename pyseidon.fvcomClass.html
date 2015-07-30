@@ -8,7 +8,7 @@
     
     <title>pyseidon.fvcomClass package &mdash; pyseidon  documentation</title>
     
-    <link rel="stylesheet" href="static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -26,7 +26,11 @@
     <link rel="top" title="pyseidon  documentation" href="index.html" />
     <link rel="up" title="pyseidon package" href="pyseidon.html" />
     <link rel="next" title="pyseidon.stationClass package" href="pyseidon.stationClass.html" />
-    <link rel="prev" title="pyseidon.drifterClass package" href="pyseidon.drifterClass.html" /> 
+    <link rel="prev" title="pyseidon.drifterClass package" href="pyseidon.drifterClass.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -87,13 +91,13 @@ time series or the velocity components timeseries.</p>
 <li>time_ind = time indices to work in, list of integers</li>
 <li>t_start = start time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
 <li>t_end = end time, as a string (&#8216;yyyy-mm-ddThh:mm:ss&#8217;), or time index as an integer</li>
-<li>elevation=True means that ut_solv will be done for elevation.</li>
-<li>velocity=True means that ut_solv will be done for velocity.</li>
+<li>elevation=True means that &#8216;solve&#8217; will be done for elevation.</li>
+<li>velocity=True means that &#8216;solve&#8217; will be done for velocity.</li>
 </ul>
 </dd>
 </dl>
 <p>Utide&#8217;s options:
-Options are the same as for ut_solv, which are shown below with
+Options are the same as for &#8216;solve&#8217;, which are shown below with
 their default values:</p>
 <blockquote>
 <div>conf_int=True; cnstit=&#8217;auto&#8217;; notrend=0; prefilt=[]; nodsatlint=0;
@@ -102,7 +106,7 @@ rmin=1; method=&#8217;cauchy&#8217;; tunrdn=1; linci=0; white=0; nrlzn=200;
 lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
 ordercnstit=[]; runtimedisp=&#8217;yyy&#8217;</div></blockquote>
 <p><em>Notes</em>
-For more detailed information about ut_solv, please see
+For more detailed information about &#8216;solve&#8217;, please see
 <a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
 </dd></dl>
 
@@ -111,14 +115,14 @@ For more detailed information about ut_solv, please see
 <code class="descname">Harmonic_reconstruction</code><span class="sig-paren">(</span><em>harmo</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/fvcomClass/functionsFvcom.html#FunctionsFvcom.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.fvcomClass.functionsFvcom.FunctionsFvcom.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function reconstructs the velocity components or the surface elevation
 from harmonic coefficients.
-Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
-(ut_solv) has already been executed.</p>
+Harmonic_reconstruction calls &#8216;reconstruct&#8217;. This function assumes harmonics
+(&#8216;solve&#8217;) has already been executed.</p>
 <dl class="docutils">
 <dt>Inputs:</dt>
 <dd><ul class="first last simple">
 <li>Harmo = harmonic coefficient from harmo_analysis</li>
-<li>elevation =True means that ut_reconstr will be done for elevation.</li>
-<li>velocity =True means that ut_reconst will be done for velocity.</li>
+<li>elevation =True means that &#8216;reconstruct&#8217; will be done for elevation.</li>
+<li>velocity =True means that &#8216;reconstruct&#8217; will be done for velocity.</li>
 <li>time_ind = time indices to process, list of integers</li>
 </ul>
 </dd>
@@ -129,12 +133,12 @@ Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
 </dd>
 </dl>
 <p>Options:
-Options are the same as for ut_reconstr, which are shown below with
+Options are the same as for &#8216;reconstruct&#8217;, which are shown below with
 their default values:</p>
 <blockquote>
 <div>cnstit = [], minsnr = 2, minpe = 0</div></blockquote>
 <p><em>Notes</em>
-For more detailed information about ut_reconstr, please see
+For more detailed information about &#8216;reconstruct&#8217;, please see
 <a class="reference external" href="https://github.com/wesleybowman/UTide">https://github.com/wesleybowman/UTide</a></p>
 </dd></dl>
 
@@ -1238,28 +1242,20 @@ Check doc. of &#8220;to_csv&#8221; for complete list of options</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="pyseidon.stationClass.html" title="pyseidon.stationClass package"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="pyseidon.drifterClass.html" title="pyseidon.drifterClass package"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pyseidon  documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="pyseidon.html" >pyseidon package</a> &raquo;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="sources/pyseidon.fvcomClass.txt"
+          rel="nofollow">Page source</a></li>
     </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2015, Dr. Thomas Roc.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
-    </div>
+
+    
+
+    
   </body>
 </html>

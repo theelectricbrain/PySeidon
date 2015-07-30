@@ -8,7 +8,7 @@
     
     <title>pyseidon.utilities package &mdash; pyseidon  documentation</title>
     
-    <link rel="stylesheet" href="static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -26,7 +26,11 @@
     <link rel="top" title="pyseidon  documentation" href="index.html" />
     <link rel="up" title="pyseidon package" href="pyseidon.html" />
     <link rel="next" title="pyseidon.validationClass package" href="pyseidon.validationClass.html" />
-    <link rel="prev" title="pyseidon.tidegaugeClass package" href="pyseidon.tidegaugeClass.html" /> 
+    <link rel="prev" title="pyseidon.tidegaugeClass package" href="pyseidon.tidegaugeClass.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -341,15 +345,15 @@ Inputs:</p>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="pyseidon.utilities.miscellaneous.depth_at_FVCOM_element">
-<code class="descclassname">pyseidon.utilities.miscellaneous.</code><code class="descname">depth_at_FVCOM_element</code><span class="sig-paren">(</span><em>ind</em>, <em>trinodes</em>, <em>time_ind</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/utilities/miscellaneous.html#depth_at_FVCOM_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.utilities.miscellaneous.depth_at_FVCOM_element" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Input:</dt>
-<dd>-ind = element index, integer
--trinodes = grid trinodes
--time_ind = reference time indexes for surface elevation, list of integer</dd>
-</dl>
-<p>Output: deoth at element, 1D array</p>
+<dt id="pyseidon.utilities.miscellaneous.date_to_julian_day">
+<code class="descclassname">pyseidon.utilities.miscellaneous.</code><code class="descname">date_to_julian_day</code><span class="sig-paren">(</span><em>my_date</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/utilities/miscellaneous.html#date_to_julian_day"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.utilities.miscellaneous.date_to_julian_day" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Julian day number of a date.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyseidon.utilities.miscellaneous.datetime_to_mattime">
+<code class="descclassname">pyseidon.utilities.miscellaneous.</code><code class="descname">datetime_to_mattime</code><span class="sig-paren">(</span><em>dt</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/utilities/miscellaneous.html#datetime_to_mattime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.utilities.miscellaneous.datetime_to_mattime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert datetime64[us] to matlab time</p>
 </dd></dl>
 
 <dl class="function">
@@ -396,6 +400,20 @@ This appears to work correctly.</p>
 <dt id="pyseidon.utilities.miscellaneous.time_to_index">
 <code class="descclassname">pyseidon.utilities.miscellaneous.</code><code class="descname">time_to_index</code><span class="sig-paren">(</span><em>t_start</em>, <em>t_end</em>, <em>time</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/utilities/miscellaneous.html#time_to_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.utilities.miscellaneous.time_to_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert datetime64[us] string in FVCOM index</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><ul class="first last simple">
+<li>t_start = start time in datetime</li>
+<li>t_end = end time in datetime</li>
+<li>time = array of julian days</li>
+</ul>
+</dd>
+<dt>Outputs:</dt>
+<dd><ul class="first last simple">
+<li>argtime = arry of indices</li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -984,28 +1002,20 @@ pollutantrose)</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="pyseidon.validationClass.html" title="pyseidon.validationClass package"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="pyseidon.tidegaugeClass.html" title="pyseidon.tidegaugeClass package"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pyseidon  documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="pyseidon.html" >pyseidon package</a> &raquo;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
+      |
+      <a href="sources/pyseidon.utilities.txt"
+          rel="nofollow">Page source</a></li>
     </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2015, Dr. Thomas Roc.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
-    </div>
+
+    
+
+    
   </body>
 </html>

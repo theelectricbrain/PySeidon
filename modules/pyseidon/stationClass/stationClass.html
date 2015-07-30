@@ -8,7 +8,7 @@
     
     <title>pyseidon.stationClass.stationClass &mdash; pyseidon  documentation</title>
     
-    <link rel="stylesheet" href="../../../static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -24,7 +24,11 @@
     <script type="text/javascript" src="../../../static/underscore.js"></script>
     <script type="text/javascript" src="../../../static/doctools.js"></script>
     <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
-    <link rel="up" title="Module code" href="../../index.html" /> 
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -51,6 +55,8 @@
 <span class="c"># encoding: utf-8</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">netCDF4</span> <span class="kn">as</span> <span class="nn">nc</span>
 <span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">netcdf</span>
 <span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">savemat</span>
@@ -59,11 +65,11 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="c">#Utility import</span>
-<span class="kn">from</span> <span class="nn">object_from_dict</span> <span class="kn">import</span> <span class="n">ObjectFromDict</span>
-<span class="kn">from</span> <span class="nn">miscellaneous</span> <span class="kn">import</span> <span class="n">findFiles</span><span class="p">,</span> <span class="n">_load_nc</span>
+<span class="kn">from</span> <span class="nn">pyseidon.utilities.object_from_dict</span> <span class="kn">import</span> <span class="n">ObjectFromDict</span>
+<span class="kn">from</span> <span class="nn">pyseidon.utilities.miscellaneous</span> <span class="kn">import</span> <span class="n">findFiles</span>
 
 <span class="c"># Custom error</span>
-<span class="kn">from</span> <span class="nn">pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
+<span class="kn">from</span> <span class="nn">pyseidon.utilities.pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
 
 <span class="c">#Local import</span>
 <span class="kn">from</span> <span class="nn">variablesStation</span> <span class="kn">import</span> <span class="n">_load_var</span><span class="p">,</span> <span class="n">_load_grid</span>
@@ -113,7 +119,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_isMulti</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multi</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">elements</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span> <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span> <span class="o">=</span> <span class="n">PlotsStation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Variables</span><span class="p">,</span>
                                       <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="p">,</span>
                                       <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
@@ -153,7 +159,7 @@
                 <span class="c">#Define new </span>
                 <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Created from &#39;</span> <span class="o">+</span> <span class="n">entry</span>
                 <span class="n">tmp</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_load_nc</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_nc</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
                 <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;History&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
                 <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_load_grid</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Data&#39;</span><span class="p">],</span> <span class="n">elements</span><span class="p">,</span> <span class="p">[],</span> <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
                 <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_load_var</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Data&#39;</span><span class="p">],</span> <span class="n">elements</span><span class="p">,</span> <span class="n">tmp</span><span class="p">[</span><span class="s">&#39;Grid&#39;</span><span class="p">],</span> <span class="p">[],</span>
@@ -191,15 +197,10 @@
                     <span class="c">#Create fake attribut to be consistent with the rest of the code</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Data</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c">#WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
-                    <span class="c">#WB_comments: scipy has causes some errors, and even though can be</span>
-                    <span class="c">#             faster, can be unreliable</span>
-                    <span class="c">#self.Data = nc.Dataset(data[&#39;Origin&#39;], &#39;r&#39;)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">],</span> <span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_nc</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;Origin&#39;</span><span class="p">])</span>
             <span class="k">except</span><span class="p">:</span> <span class="c">#TR: need to precise the type of error here</span>
                 <span class="k">print</span> <span class="s">&quot;the original *.nc file has not been found&quot;</span>
                 <span class="k">pass</span>
-
         <span class="c">#Loading netcdf file         </span>
         <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.nc&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http&#39;</span><span class="p">):</span>
@@ -211,13 +212,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c">#Look for file locally</span>
                 <span class="k">print</span> <span class="s">&quot;Retrieving data from &quot;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot; ...&quot;</span>
-                <span class="c">#WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
-                <span class="c">#WB_comments: scipy has causes some errors, and even though can be</span>
-                <span class="c">#             faster, can be unreliable</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="c">#TR: quick fix due to mmap</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_nc</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
             <span class="c">#Metadata</span>
             <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Created from &#39;</span> <span class="o">+</span> <span class="n">filename</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_origin_file</span> <span class="o">=</span> <span class="n">filename</span>
@@ -245,6 +240,19 @@
             <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Functionality not yet implemented---&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Wrong file format---&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_nc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;loads netcdf file&quot;&quot;&quot;</span>
+        <span class="c">#Look for file locally</span>
+        <span class="k">print</span> <span class="s">&quot;Retrieving data from &quot;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot; ...&quot;</span>
+        <span class="c"># WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
+        <span class="c"># WB_comments: scipy has causes some errors, and even though can be</span>
+        <span class="c">#             faster, can be unreliable</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Data</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">mmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="c">#TR: quick fix due to mmap</span>
+            <span class="n">Data</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Data</span>
 
     <span class="c">#Special methods</span>
     <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">StationClass</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -334,7 +342,7 @@
             <span class="c">#New time dimension</span>
             <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span> <span class="o">=</span> <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span> <span class="o">+</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">ntime</span>
             <span class="c">#Keep only matching names</span>
-            <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="n">origEle</span><span class="p">[:],:]</span>
+            <span class="n">newself</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grid</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="n">origEle</span><span class="p">[:]]</span>
             <span class="c">#Append to new object history</span>
             <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;Data from &#39;</span> <span class="o">+</span> <span class="n">StationClass</span><span class="o">.</span><span class="n">History</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> \
                  <span class="o">+</span> <span class="s">&#39; has been stacked&#39;</span>
@@ -471,22 +479,17 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
     </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2015, Dr. Thomas Roc.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
-    </div>
+
+    
+
+    
   </body>
 </html>

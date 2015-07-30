@@ -8,7 +8,7 @@
     
     <title>pyseidon.adcpClass.functionsAdcp &mdash; pyseidon  documentation</title>
     
-    <link rel="stylesheet" href="../../../static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -24,7 +24,11 @@
     <script type="text/javascript" src="../../../static/underscore.js"></script>
     <script type="text/javascript" src="../../../static/doctools.js"></script>
     <link rel="top" title="pyseidon  documentation" href="../../../index.html" />
-    <link rel="up" title="Module code" href="../../index.html" /> 
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -51,16 +55,14 @@
 <span class="c"># encoding: utf-8</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">numexpr</span> <span class="kn">as</span> <span class="nn">ne</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
-<span class="kn">from</span> <span class="nn">miscellaneous</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">BP_tools</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">utide</span> <span class="kn">import</span> <span class="n">ut_solv</span><span class="p">,</span> <span class="n">ut_reconstr</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">pyseidon.utilities.miscellaneous</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pyseidon.utilities.BP_tools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">utide</span> <span class="kn">import</span> <span class="n">solve</span><span class="p">,</span> <span class="n">reconstruct</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">miscellaneous</span> <span class="kn">import</span> <span class="n">mattime_to_datetime</span> 
 
 <div class="viewcode-block" id="FunctionsAdcp"><a class="viewcode-back" href="../../../pyseidon.adcpClass.html#pyseidon.adcpClass.functionsAdcp.FunctionsAdcp">[docs]</a><span class="k">class</span> <span class="nc">FunctionsAdcp</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; **&#39;Utils&#39; subset of FVCOM class gathers useful functions** &quot;&quot;&quot;</span>
@@ -104,9 +106,11 @@
             <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_end</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[:],</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
 
         <span class="c">#Choose the right pair of velocity components</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
@@ -168,11 +172,11 @@
             <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span>
-                                        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span>
-                                        <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_end</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[:],</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
 
         <span class="c">#Choose the right pair of velocity components</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
@@ -373,11 +377,11 @@
 <span class="sd">                     or time index as an integer</span>
 <span class="sd">          - t_end = end time, as a string (&#39;yyyy-mm-ddThh:mm:ss&#39;),</span>
 <span class="sd">                    or time index as an integer</span>
-<span class="sd">          - elevation=True means that ut_solv will be done for elevation.</span>
-<span class="sd">          - velocity=True means that ut_solv will be done for velocity.</span>
+<span class="sd">          - elevation=True means that `solve&#39; will be done for elevation.</span>
+<span class="sd">          - velocity=True means that `solve&#39; will be done for velocity.</span>
 
 <span class="sd">        Options:</span>
-<span class="sd">        Options are the same as for ut_solv, which are shown below with</span>
+<span class="sd">        Options are the same as for &#39;solve&#39;, which are shown below with</span>
 <span class="sd">        their default values:</span>
 <span class="sd">            conf_int=True; cnstit=&#39;auto&#39;; notrend=0; prefilt=[]; nodsatlint=0;</span>
 <span class="sd">            nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;</span>
@@ -386,7 +390,7 @@
 <span class="sd">            ordercnstit=[]; runtimedisp=&#39;yyy&#39;</span>
 
 <span class="sd">        *Notes*</span>
-<span class="sd">        For more detailed information about ut_solv, please see</span>
+<span class="sd">        For more detailed information about &#39;solve&#39;, please see</span>
 <span class="sd">        https://github.com/wesleybowman/UTide</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -397,11 +401,11 @@
             <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span>
-                                        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span>
-                                        <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_end</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[:],</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
@@ -414,7 +418,7 @@
                 <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
 
             <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">lat</span>
-            <span class="n">harmo</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
@@ -425,7 +429,7 @@
                 <span class="n">el</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
 
             <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">lat</span>
-            <span class="n">harmo</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="c">#Write meta-data only if computed over all the elements</span>
 
             <span class="k">return</span> <span class="n">harmo</span>
@@ -435,25 +439,25 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function reconstructs the velocity components or the surface elevation</span>
 <span class="sd">        from harmonic coefficients.</span>
-<span class="sd">        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics</span>
-<span class="sd">        (ut_solv) has already been executed.</span>
+<span class="sd">        Harmonic_reconstruction calls &#39;reconstruct&#39;. This function assumes harmonics</span>
+<span class="sd">        (&#39;solve&#39;) has already been executed.</span>
 
 <span class="sd">        Inputs:</span>
 <span class="sd">          - Harmo = harmonic coefficient from harmo_analysis</span>
-<span class="sd">          - elevation =True means that ut_reconstr will be done for elevation.</span>
-<span class="sd">          - velocity =True means that ut_reconst will be done for velocity.</span>
+<span class="sd">          - elevation =True means that &#39;reconstruct&#39; will be done for elevation.</span>
+<span class="sd">          - velocity =True means that &#39;reconstruct&#39; will be done for velocity.</span>
 <span class="sd">          - time_ind = time indices to process, list of integers</span>
 <span class="sd">        </span>
 <span class="sd">        Output:</span>
 <span class="sd">          - Reconstruct = reconstructed signal, dictionary</span>
 
 <span class="sd">        Utide&#39;s options:</span>
-<span class="sd">        Options are the same as for ut_reconstr, which are shown below with</span>
+<span class="sd">        Options are the same as for &#39;reconstruct&#39;, which are shown below with</span>
 <span class="sd">        their default values:</span>
 <span class="sd">            cnstit = [], minsnr = 2, minpe = 0</span>
 
 <span class="sd">        *Notes*</span>
-<span class="sd">        For more detailed information about ut_reconstr, please see</span>
+<span class="sd">        For more detailed information about &#39;reconstruct&#39;, please see</span>
 <span class="sd">        https://github.com/wesleybowman/UTide</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">debug</span> <span class="o">=</span> <span class="p">(</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
@@ -461,11 +465,11 @@
         <span class="c">#TR_comments: Add debug flag in Utide: debug=self._debug</span>
         <span class="n">Reconstruct</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
-            <span class="n">U_recon</span><span class="p">,</span> <span class="n">V_recon</span> <span class="o">=</span> <span class="n">ut_reconstr</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
+            <span class="n">U_recon</span><span class="p">,</span> <span class="n">V_recon</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
             <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;U&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">U_recon</span>
             <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V_recon</span>
         <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
-            <span class="n">elev_recon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ut_reconstr</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
+            <span class="n">elev_recon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
             <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;el&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elev_recon</span>
         <span class="k">return</span> <span class="n">Reconstruct</span>  
 </div>
@@ -502,7 +506,9 @@
             <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_end</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[:],</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span> 
 
@@ -573,9 +579,11 @@
             <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_ind</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">t_start</span><span class="o">==</span><span class="p">[]:</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">t_end</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[:],</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
 
         <span class="c">#Computing velocity norm</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>          
@@ -646,22 +654,17 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">pyseidon  documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2015, Dr. Thomas Roc.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.4</a>
+      
     </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2015, Dr. Thomas Roc.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
-    </div>
+
+    
+
+    
   </body>
 </html>
