@@ -312,7 +312,11 @@ class TidalStats:
         if debug: print "...flood direction error: " + str(err_flood) + " degrees..."
 
         err = 0.5 * (err_flood + err_ebb)
-        nerr = 0.5 * (np.abs(err_flood / pr_axis_obs_flood) + np.abs(err_ebb / pr_axis_obs_ebb))
+
+        std_flood = np.asarray(dir_all_obs[floodIndex_obs]).std()
+        std_ebb = np.asarray(dir_all_obs[ebbIndex_obs]).std()
+        nerr = 0.5 * (np.abs(err_flood / std_flood) + np.abs(err_ebb / std_ebb))
+        #nerr = err / 180.0
 
         return err, nerr
 
