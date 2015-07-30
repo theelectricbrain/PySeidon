@@ -8,7 +8,8 @@ export SPHINX_APIDOC_OPTIONS='private-members'
 SPHINXOPTS    = 
 SPHINXBUILD   = sphinx-build
 PAPER         =
-BUILDDIR      = _build/
+BUILDDIR      = _build
+HTML          = html
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -52,7 +53,8 @@ help:
 	@echo "  coverage   to run coverage check of the documentation (if enabled)"
 
 clean:
-	rm -rf $(BUILDDIR)/*
+	rm -rf $(BUILDDIR)/
+	rm -rf $(HTML)/
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
