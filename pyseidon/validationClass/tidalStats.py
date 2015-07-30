@@ -273,8 +273,8 @@ class TidalStats:
         pr_axis_obs, pr_ax_var_obs = principal_axis(self.observed_u, self.observed_v)
 
         # Defines intervals
-        dir_all_mod = np.rad2deg(np.arctan2(self.model_v,self.model_u))
-        dir_all_obs = np.rad2deg(np.arctan2(self.observed_v,self.observed_u))
+        dir_all_mod = self.model[:]
+        dir_all_obs = self.observed[:]
         ind_mod = np.where(dir_all_mod<0)
         ind_obs = np.where(dir_all_obs<0)
         dir_all_mod[ind_mod] = dir_all_mod[ind_mod] + 360
@@ -309,7 +309,7 @@ class TidalStats:
         err_ebb = np.abs(pr_axis_mod_ebb - pr_axis_obs_ebb)
 
         if debug: print "...ebb direction error: " + str(err_ebb) + " degrees..."
-        if debug: print "...flood direction error: " + str(err_ebb) + " degrees..."
+        if debug: print "...flood direction error: " + str(err_flood) + " degrees..."
 
         err = 0.5 * (err_flood + err_ebb)
         nerr = 0.5 * (np.abs(err_flood / pr_axis_obs_flood) + np.abs(err_ebb / pr_axis_obs_ebb))

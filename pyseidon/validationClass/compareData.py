@@ -203,7 +203,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
                              save_csv=save_csv, save_path=save_path,
                              debug=debug, debug_plot=debug_plot)
     dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
-                           [], [], [], [], [], [],
+                           mod_u, obs_u, mod_v, obs_v,
                            kind='direction', plot=plot,
                            save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)

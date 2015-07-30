@@ -35,7 +35,7 @@ class FunctionsStation:
         elif type(station).__name__ in ['str', 'ndarray']:
             station = "".join(station).strip().upper()
             for i in range(self._grid.nele):
-                if station=="".join(self._grid.name[i,:]).strip().upper():
+                if station=="".join(self._grid.name[i]).strip().upper():
                    index=i
         else:
             raise PyseidonError("---Wrong station input---")
@@ -78,7 +78,7 @@ class FunctionsStation:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Search for the station
         index = self.search_index(station)
@@ -149,7 +149,7 @@ class FunctionsStation:
                                         self._var.matlabTime,
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Search for the station
         index = self.search_index(station)
