@@ -266,7 +266,7 @@ class TidalStats:
 
         Outputs:
           - err = absolute error
-          - nerr = normalised error
+          - nerr = absolute error divided by standard deviation in %
         """
         if debug: print "Computing special stats for direction..."
         pr_axis_mod, pr_ax_var_mod = principal_axis(self.model_u, self.model_v)
@@ -313,12 +313,12 @@ class TidalStats:
 
         err = 0.5 * (err_flood + err_ebb)
 
-        std_flood = np.asarray(dir_all_obs[floodIndex_obs]).std()
-        std_ebb = np.asarray(dir_all_obs[ebbIndex_obs]).std()
-        nerr = 0.5 * (np.abs(err_flood / std_flood) + np.abs(err_ebb / std_ebb))
-        #nerr = err / 180.0
+        #std_flood = np.asarray(dir_all_obs[floodIndex_obs]).std()
+        #std_ebb = np.asarray(dir_all_obs[ebbIndex_obs]).std()
+        #nerr = 0.5 * (np.abs(err_flood / std_flood) + np.abs(err_ebb / std_ebb))
+        nerr = err / 180.0
 
-        return err, nerr
+        return err, nerr * 100.0
 
 
     def getCF(self, debug=False):
