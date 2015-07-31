@@ -418,7 +418,10 @@ class FunctionsStation:
                                         self._var.matlabTime,
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
+
+        if velocity == elevation:
+            raise PyseidonError("---Can only process either velocities or elevation. Change options---")
         
         if velocity:
             time = self._var.matlabTime[:]
@@ -431,7 +434,7 @@ class FunctionsStation:
                 v = v[argtime[:]]
 
             lat = self._grid.lat[index]
-            harmo = ut_solv(time, u, v, lat, **kwarg)
+            harmo = solve(time, u, v, lat, **kwarg)
 
         if elevation:
             time = self._var.matlabTime[:]
@@ -445,10 +448,9 @@ class FunctionsStation:
             harmo = solve(time, el, None, lat, **kwarg)
             #Write meta-data only if computed over all the elements
 
-            return harmo
+        return harmo
 
-    def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
-                                time_ind=slice(None), debug=False, **kwarg):
+    def Harmonic_reconstruction(self, harmo, time_ind=slice(None), debug=False, **kwarg):
         """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
@@ -457,8 +459,6 @@ class FunctionsStation:
 
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
-          - elevation =True means that 'reconstruct' will be done for elevation.
-          - velocity =True means that 'reconstruct' will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
@@ -476,13 +476,7 @@ class FunctionsStation:
         """
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
-        #TR_comments: Add debug flag in Utide: debug=self._debug
-        Reconstruct = {}
-        if velocity:
-            U_recon, V_recon = reconstruct(time,harmo)
-            Reconstruct['U'] = U_recon
-            Reconstruct['V'] = V_recon
-        if elevation:
-            elev_recon, _ = reconstruct(time,harmo)
-            Reconstruct['el'] = elev_recon
+        Reconstruct = reconstruct(time, harmo)
+
+
         return Reconstruct  

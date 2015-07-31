@@ -13,6 +13,7 @@ from utide import solve, reconstruct
 import time
 import matplotlib.tri as Tri
 from pydap.exceptions import ServerError
+from pyseidon.utilities.pyseidon_error import PyseidonError
 
 class FunctionsFvcom:
     """
@@ -808,10 +809,10 @@ class FunctionsFvcom:
             #Compute depth
             if type(self._grid.h).__name__=='Variable': #Fix for netcdf4 lib
                 H = self._grid.h[:]
-                self._var.el[:]
+                EL = self._var.el[:]
             else:
                 H = self._grid.h
-                self._var.el
+                EL = self._var.el
             
             h = self.interpolation_at_point(H, pt_lon, pt_lat, index=index, debug=debug)
             el = self.interpolation_at_point(EL, pt_lon, pt_lat, index=index, debug=debug)
@@ -969,6 +970,9 @@ class FunctionsFvcom:
                 argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
+
+        if velocity == elevation:
+            raise PyseidonError("---Can only process either velocities or elevation. Change options---")
         
         if velocity:
             time = self._var.matlabTime[:]
@@ -989,7 +993,7 @@ class FunctionsFvcom:
             lat = self._grid.lat[index]
             harmo = solve(time, u, v, lat, **kwarg)
 
-        if elevation:
+        else:
             time = self._var.matlabTime[:]
             if type(self._var.el).__name__=='Variable': #Fix for netcdf4 lib
                 el = self._var.el[:]
@@ -1006,10 +1010,9 @@ class FunctionsFvcom:
             harmo = solve(time, el, None, lat, **kwarg)
             #Write meta-data only if computed over all the elements
 
-            return harmo
+        return harmo
 
-    def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
-                                time_ind=slice(None), debug=False, **kwarg):
+    def Harmonic_reconstruction(self, harmo, time_ind=slice(None), debug=False, **kwarg):
         """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
@@ -1018,8 +1021,6 @@ class FunctionsFvcom:
 
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
-          - elevation =True means that 'reconstruct' will be done for elevation.
-          - velocity =True means that 'reconstruct' will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
@@ -1038,12 +1039,6 @@ class FunctionsFvcom:
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        Reconstruct = {}
-        if velocity:
-            U_recon, V_recon = reconstruct(time,harmo)
-            Reconstruct['U'] = U_recon
-            Reconstruct['V'] = V_recon
-        if elevation:
-            elev_recon, _ = reconstruct(time,harmo)
-            Reconstruct['el'] = elev_recon
+        Reconstruct = reconstruct(time,harmo)
+
         return Reconstruct  

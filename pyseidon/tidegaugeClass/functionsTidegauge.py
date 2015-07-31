@@ -73,7 +73,7 @@ class FunctionsTidegauge:
         https://github.com/wesleybowman/UTide
         """
         time = self._var.matlabTime[time_ind]
-        ts_recon, _ = reconstruct(time, harmo, **kwarg)
+        ts_recon = reconstruct(time, harmo, **kwarg)
         return ts_recon
 
     def mattime2datetime(self, mattime, debug=False):

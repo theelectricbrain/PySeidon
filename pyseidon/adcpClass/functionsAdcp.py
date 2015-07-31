@@ -11,6 +11,9 @@ from pyseidon.utilities.BP_tools import *
 from utide import solve, reconstruct
 import time
 
+# Custom error
+from pyseidon_error import PyseidonError
+
 class FunctionsAdcp:
     """ **'Utils' subset of FVCOM class gathers useful functions** """
     def __init__(self, variable, plot, History, debug=False):
@@ -353,6 +356,9 @@ class FunctionsAdcp:
                 argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end)
+
+        if velocity == elevation:
+            raise PyseidonError("---Can only process either velocities or elevation---")
         
         if velocity:
             time = self._var.matlabTime[:]
@@ -379,7 +385,7 @@ class FunctionsAdcp:
             harmo = solve(time, el, None, lat, **kwargs)
             #Write meta-data only if computed over all the elements
 
-            return harmo
+        return harmo
 
     def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
                                 time_ind=slice(None), debug=False, **kwargs):
@@ -416,8 +422,8 @@ class FunctionsAdcp:
             Reconstruct['U'] = U_recon
             Reconstruct['V'] = V_recon
         if elevation:
-            elev_recon, _ = reconstruct(time,harmo)
-            Reconstruct['el'] = elev_recon
+            Reconstruct['el'] = reconstruct(time,harmo)
+
         return Reconstruct  
 
     def verti_shear(self, t_start=[], t_end=[],  time_ind=[],
