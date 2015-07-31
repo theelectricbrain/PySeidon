@@ -209,7 +209,7 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     ax.plot(t,r, 'k--', label='_')
 
     # Add NRMS contours, and label them
-    rs,ts = np.meshgrid(np.linspace(smin, smax), np.linspace(0,np.pi/2))
+    rs, ts = np.meshgrid(np.linspace(smin, smax), np.linspace(0,np.pi/2))
     # Compute centered RMS difference
     rms = np.sqrt(1.0 + rs**2 - 2*rs*np.cos(ts))
     contours = ax.contour(ts, rs, rms, 5, colors='0.5')

@@ -376,7 +376,7 @@ class FunctionsAdcp:
                 el = el[argtime[:]]
 
             lat = self._var.lat
-            harmo = solve(time, el, [], lat, **kwargs)
+            harmo = solve(time, el, None, lat, **kwargs)
             #Write meta-data only if computed over all the elements
 
             return harmo

@@ -210,7 +210,7 @@ class Validation:
                                          coef_int=True)
 
 
-            self.Variables.obs.elCoef = solve(time, el, [], lat,
+            self.Variables.obs.elCoef = solve(time, el, None, lat,
                                         #cnstit=ut_constits, rmin=0.95, notrend=True,
                                         cnstit='auto', rmin=0.95, notrend=True,
                                         method='ols', nodiagn=True, linci=True,
@@ -221,7 +221,7 @@ class Validation:
             lat = self.Variables.struct['lat']
             el =  self.Variables.struct['obs_timeseries']['elev'] [:]
 
-            self.Variables.obs.elCoef = solve(time, el, [], lat,
+            self.Variables.obs.elCoef = solve(time, el, None, lat,
                                         #cnstit=ut_constits, notrend=True,
                                         cnstit='auto', notrend=True,
                                         rmin=0.95, method='ols', nodiagn=True,
@@ -235,7 +235,7 @@ class Validation:
             lat = self.Variables.struct['lat']
             el =  self.Variables.struct['mod_timeseries']['elev'][:]
 
-            self.Variables.sim.elCoef = solve(time, el, [], lat,
+            self.Variables.sim.elCoef = solve(time, el, None, lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)
@@ -252,7 +252,7 @@ class Validation:
             lat = self.Variables.struct['lat']
             el = self.Variables.struct['mod_timeseries']['elev'][:]
 
-            self.Variables.sim.elCoef = solve(time, el, [], lat,
+            self.Variables.sim.elCoef = solve(time, el, None, lat,
                              #cnstit=ut_constits, rmin=0.95, notrend=True,
                              cnstit='auto', rmin=0.95, notrend=True,
                              method='ols', nodiagn=True, linci=True, conf_int=True)

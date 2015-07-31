@@ -1003,7 +1003,7 @@ class FunctionsFvcom:
                 el = el[argtime[:]]
 
             lat = self._grid.lat[index]
-            harmo = solve(time, el, [], lat, **kwarg)
+            harmo = solve(time, el, None, lat, **kwarg)
             #Write meta-data only if computed over all the elements
 
             return harmo

@@ -43,7 +43,7 @@ class FunctionsTidegauge:
         https://github.com/wesleybowman/UTide
         """
         harmo = solve(self._var.matlabTime[time_ind],
-                      self._var.el, [],
+                      self._var.el, None,
                       self._var.lat, **kwarg)
         return harmo
 
