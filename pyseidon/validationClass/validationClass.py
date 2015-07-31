@@ -39,17 +39,23 @@ class Validation:
     Inputs:
       - observed = standalone or tuple of PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
-      - flow = flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
+    Option:
+      - flow = impose flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
     """
-    def __init__(self, observed, simulated, debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow=[], debug=False, debug_plot=False):
         self._debug = debug
-        if type(observed)==tuple:
+        self._flow = flow
+        if type(observed) in [tuple, list]:
             self._multi = True
         else:
             self._multi = False
         self._debug_plot = debug_plot
         if debug: print '-Debug mode on-'
-        if debug: print 'Loading...'
+
+        if type(observed)==tuple:
+            self._multi = True
+        else:
+            self._multi = False
         #Metadata
         if not self._multi:
             self.History = ['Created from ' + observed._origin_file +\
@@ -59,6 +65,8 @@ class Validation:
                             ' and ' + simulated._origin_file]
         self.observed = observed
         self.simulated = simulated
+        if not self._multi:
+            self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
 
         return
 
@@ -376,7 +384,7 @@ class Validation:
         else:
             print "-No matching harmonic coefficients for velocity-"
 
-    def validate_data(self, filename=[], depth=[], flow=[], plot=False, save_csv=False, debug=False, debug_plot=False):
+    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -384,7 +392,6 @@ class Validation:
           - filename = file name of the .csv file to be saved, string.
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
-          - flow = flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
           - plot = plot series of validation graphs, boolean.
           - save_csv = will save benchmark values into *.csv file
                        as well as associated plots in specific folderssta
@@ -404,9 +411,7 @@ class Validation:
             N. S. Banas (2009), Evaluation of a coastal ocean circulation model for
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
-        self._flow = flow
         if not self._multi:
-            self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
             self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:

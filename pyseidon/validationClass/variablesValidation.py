@@ -32,7 +32,10 @@ class _load_validation:
             raise PyseidonError("---Station and Drifter are incompatible objects---")
 
         self.struct = np.array([])
-        self._3D = simulated.Variables._3D
+        if flow == 'daf':
+            self._3D = False
+        else:
+            self._3D = simulated.Variables._3D
 
         #Check if times coincide
         obsMax = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].max()
@@ -145,7 +148,7 @@ class _load_validation:
                 for i in self._C:
                     ind = np.abs(self.obs.matlabTime[:]-self.sim.matlabTime[i]).argmin()
                     indClosest.append(ind)
-                # Keep only unique values to avoid sampling in measutement gaps
+                # Keep only unique values to avoid sampling in measurement gaps
                 # TR: this doesn't not guarantee that the unique value kept is indeed
                 #    the closest one among the values relative to the same indice!!!
                 uniqCloInd, uniqInd = np.unique(indClosest, return_index=True)
