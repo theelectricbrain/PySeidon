@@ -315,10 +315,10 @@ class TidalStats:
 
         #std_flood = np.asarray(dir_all_obs[floodIndex_obs]).std()
         #std_ebb = np.asarray(dir_all_obs[ebbIndex_obs]).std()
-        std_flood = dir_all_obs[floodIndex_obs].max() - dir_all_obs[floodIndex_obs].min()
-        std_ebb = dir_all_obs[ebbIndex_obs].max() - dir_all_obs[ebbIndex_obs].min()
-        nerr = 0.5 * (np.abs(err_flood / std_flood) + np.abs(err_ebb / std_ebb))
-        #nerr = err / 180.0
+        #std_flood = dir_all_obs[floodIndex_obs].max() - dir_all_obs[floodIndex_obs].min()
+        #std_ebb = dir_all_obs[ebbIndex_obs].max() - dir_all_obs[ebbIndex_obs].min()
+        #nerr = 0.5 * (np.abs(err_flood / std_flood) + np.abs(err_ebb / std_ebb))
+        nerr = err / 90.0
 
         return err, nerr * 100.0
 
