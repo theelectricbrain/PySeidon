@@ -50,7 +50,7 @@ class _load_validation:
         #-Correction by J.Culina 2014-
         C = sorted(C)
         #-end-
-        self._C = C
+        self._C = np.asarray(C)
 
         a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist())
         b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
@@ -58,7 +58,7 @@ class _load_validation:
         #-Correction by J.Culina 2014-
         c = sorted(c)
         #-end-
-        self._c = c
+        self._c = np.asarray(c)
 
         if len(C) == 0:
             raise PyseidonError("---Time between simulation and measurement does not match up---")
@@ -125,7 +125,7 @@ class _load_validation:
                             self._3D = False
                             lock=False
                             if debug:
-                                print 'flow comarison at surface'
+                                print 'flow comparison at surface'
                         elif type(userInp) == float:
                             if debug:
                                 print 'flow comparison at depth level ', float

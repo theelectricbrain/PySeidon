@@ -162,6 +162,9 @@ def principal_axis(u, v):
     R = np.dot(U.T, U) / (len(U) - 1)
 
     #calculate eigenvalues and eigenvectors for covariance matrix
+    R[np.where(np.isnan(R))] = 0.0
+    R[np.where(np.isinf(R))] = 0.0
+    R[np.where(np.isneginf(R))] = 0.0
     lamb, V = np.linalg.eig(R)
     #sort eignvalues in descending order so that major axis is given by first eigenvector
     # sort in descending order with indices
