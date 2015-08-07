@@ -52,7 +52,7 @@ class Validation:
         self._debug_plot = debug_plot
         if debug: print '-Debug mode on-'
 
-        if type(observed)==tuple:
+        if type(observed) == (tuple or list):
             self._multi = True
         else:
             self._multi = False

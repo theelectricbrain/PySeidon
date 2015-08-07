@@ -90,19 +90,19 @@ class _load_validation:
             #Different treatment measurements come from drifter
             if not observed.__module__=='pyseidon.drifterClass.drifterClass':
                 if debug: print "...Interpolation at measurement location..."
-                el=simulated.Util2D.interpolation_at_point(self.sim.el,
-                                                           self.obs.lon, self.obs.lat)
-                ua=simulated.Util2D.interpolation_at_point(self.sim.ua,
-                                                           self.obs.lon, self.obs.lat)
-                va=simulated.Util2D.interpolation_at_point(self.sim.va,
-                                                           self.obs.lon, self.obs.lat)
+                el = simulated.Util2D.interpolation_at_point(self.sim.el,
+                                                             self.obs.lon, self.obs.lat)
+                ua = simulated.Util2D.interpolation_at_point(self.sim.ua,
+                                                             self.obs.lon, self.obs.lat)
+                va = simulated.Util2D.interpolation_at_point(self.sim.va,
+                                                             self.obs.lon, self.obs.lat)
                 if self._3D:
-                   u=simulated.Util3D.interpolation_at_point(self.sim.u,
-                                                             self.obs.lon, self.obs.lat)
-                   v=simulated.Util3D.interpolation_at_point(self.sim.v,
-                                                             self.obs.lon, self.obs.lat)
-                   sig=simulated.Util3D.interpolation_at_point(simulated.Grid.siglay,
-                                                               self.obs.lon, self.obs.lat)
+                    u = simulated.Util3D.interpolation_at_point(self.sim.u,
+                                                                self.obs.lon, self.obs.lat)
+                    v = simulated.Util3D.interpolation_at_point(self.sim.v,
+                                                                self.obs.lon, self.obs.lat)
+                    sig = simulated.Util3D.interpolation_at_point(simulated.Grid.siglay,
+                                                                  self.obs.lon, self.obs.lat)
             else: #Interpolation for drifter
                 if debug: print "...Interpolation at measurement locations & times..."
                 if self._3D:
@@ -204,7 +204,7 @@ class _load_validation:
                 obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
 
             else:
-                raise PyseidonError("-This type of measurements is not supported yet-")
+                raise PyseidonError("---This type of measurements is not supported yet---")
         else:
             self._obstype = 'drifter'
             obstype='Drifter'
