@@ -117,6 +117,8 @@ class Station:
         ##Re-assignement of utility functions as methods
         self.dump_profile_data = self.Plots._dump_profile_data_as_csv
 
+        return
+
     def _isMulti(self, filename):
         """Tells if filename point to a file or a folder"""
         split = filename.split('/')
@@ -191,7 +193,7 @@ class Station:
     def _load_nc(self, filename):
         """loads netcdf file"""
         #Look for file locally
-        print "Retrieving data from " + filename + " ..."
+        #print "Retrieving data from " + filename + " ..."
         # WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, 'r')
         # WB_comments: scipy has causes some errors, and even though can be
         #             faster, can be unreliable
