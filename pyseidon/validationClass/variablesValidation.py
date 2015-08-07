@@ -112,16 +112,32 @@ class _load_validation:
                         if userInp == 'daf':
                             if debug:
                                 print 'flow comparison is depth-averaged'
-                            uSim = np.squeeze(self.sim.ua[self._C,:])
-                            vSim = np.squeeze(self.sim.va[self._C,:])
+                            # TR: temporary fix for proxy access
+                            if self.sim._opendap:
+                                uSim = np.zeros((self._C.shape[0], self.sim.ua.shape[1]))
+                                vSim = np.zeros((self._C.shape[0], self.sim.va.shape[1]))
+                                for i, j in enumerate(self._C):
+                                    uSim[i,:] = self.sim.ua[j,:]
+                                    vSim[i,:] = self.sim.va[j,:]
+                            else:
+                                uSim = np.squeeze(self.sim.ua[self._C,:])
+                                vSim = np.squeeze(self.sim.va[self._C,:])
                             self._3D = False
                             lock=False
                         elif userInp == 'sf':
                             #Import only the surface velocities
                             #TR_comment: is surface vertical indice -1 or 0?
                             #KC : 0 is definitely the surface...
-                            uSim = np.squeeze(self.sim.u[self._C,0,:])
-                            vSim = np.squeeze(self.sim.v[self._C,0,:])
+                            # TR: temporary fix for proxy access
+                            if self.sim._opendap:
+                                uSim = np.zeros((self._C.shape[0], self.sim.u.shape[2]))
+                                vSim = np.zeros((self._C.shape[0], self.sim.v.shape[2]))
+                                for i, j in enumerate(self._C):
+                                    uSim[i,:] = self.sim.u[j,0,:]
+                                    vSim[i,:] = self.sim.v[j,0,:]
+                            else:
+                                uSim = np.squeeze(self.sim.u[self._C,0,:])
+                                vSim = np.squeeze(self.sim.v[self._C,0,:])
                             self._3D = False
                             lock=False
                             if debug:
@@ -131,16 +147,32 @@ class _load_validation:
                                 print 'flow comparison at depth level ', float
                             if userInp > 0.0: userInp = userInp*-1.0
                             uInterp = simulated.Util3D.interp_at_depth(self.sim.u[:], userInp, debug=debug)
-                            uSim = np.squeeze(uInterp[self._C,:])
                             vInterp = simulated.Util3D.interp_at_depth(self.sim.v[:], userInp, debug=debug)
-                            vSim = np.squeeze(vInterp[self._C,:])
+                            # TR: temporary fix for proxy access
+                            if self.sim._opendap:
+                                uSim = np.zeros((self._C.shape[0], uInterp.shape[1]))
+                                vSim = np.zeros((self._C.shape[0], vInterp.shape[1]))
+                                for i, j in enumerate(self._C):
+                                    uSim[i,:] = uInterp[j,:]
+                                    vSim[i,:] = vInterp[j,:]
+                            else:
+                                uSim = np.squeeze(uInterp[self._C,:])
+                                vSim = np.squeeze(vInterp[self._C,:])
                             self._3D = False
                             lock=False
                         else:
                             userInp = input("compare flow by 'daf', 'sf' or a float number only!!!")
                 else:
-                    uSim = np.squeeze(self.sim.ua[self._C,:])
-                    vSim = np.squeeze(self.sim.va[self._C,:])
+                    # TR: temporary fix for proxy access
+                    if self.sim._opendap:
+                        uSim = np.zeros((self._C.shape[0], self.sim.ua.shape[1]))
+                        vSim = np.zeros((self._C.shape[0], self.sim.va.shape[1]))
+                        for i, j in enumerate(self._C):
+                            uSim[i,:] = self.sim.ua[j,:]
+                            vSim[i,:] = self.sim.va[j,:]
+                    else:
+                        uSim = np.squeeze(self.sim.ua[self._C,:])
+                        vSim = np.squeeze(self.sim.va[self._C,:])
 
                 # Finding the closest Drifter time to simulated data assuming measurement
                 # time step way faster than model one

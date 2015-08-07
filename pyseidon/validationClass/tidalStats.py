@@ -303,7 +303,7 @@ class TidalStats:
         np.delete(ebbIndex_mod, np.where(ebbIndex_mod >= self.model_u.shape[0]))
         np.delete(floodIndex_obs, np.where(floodIndex_obs >= self.observed_u.shape[0]))
         np.delete(ebbIndex_obs, np.where(ebbIndex_obs >= self.observed_u.shape[0]))
-        
+
         pr_axis_mod_flood, pr_ax_var_mod_flood = principal_axis(self.model_u[floodIndex_mod],
                                                                 self.model_v[floodIndex_mod])
         pr_axis_mod_ebb, pr_ax_var_mod_ebb = principal_axis(self.model_u[ebbIndex_mod],
