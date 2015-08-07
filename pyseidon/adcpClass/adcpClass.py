@@ -63,3 +63,5 @@ class ADCP:
 
         ##Re-assignement of utility functions as methods
         self.dump_profile_data = self.Plots._dump_profile_data_as_csv
+
+        return

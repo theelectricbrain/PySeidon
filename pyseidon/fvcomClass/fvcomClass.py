@@ -182,6 +182,8 @@ class FVCOM:
         #self.dump_profile_data = self.Plots._dump_profile_data_as_csv
         #self.dump_map_data = self.Plots._dump_map_data_as_csv
 
+        return
+
     #Special methods
     def __del__(self):
         """making sure that all opened files are closed when deleted or overwritten"""

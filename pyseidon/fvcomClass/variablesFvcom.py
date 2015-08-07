@@ -229,6 +229,7 @@ class _load_var:
             # #-------end-------
 
         if debug: print '...Passed'
+        return
 
     def _load_full_time_full_region(self, data, key, aliaS, debug=False):
         """
@@ -656,3 +657,5 @@ class _load_grid:
     
         if debug:
             print '...Passed'
+
+        return

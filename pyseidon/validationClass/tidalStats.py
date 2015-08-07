@@ -159,6 +159,8 @@ class TidalStats:
 
         if debug: print "...TidalStats initialisation done."
 
+        return
+
     def getOverUnder(self, debug=False):
         """
         Determines if model over or under estimate the reference
@@ -297,6 +299,11 @@ class TidalStats:
         ebbIndex_obs = np.delete(ebbIndex_obs, floodIndex_obs[:])
 
         # principal axis for ebb and flood
+        np.delete(floodIndex_mod, np.where(floodIndex_mod >= self.model_u.shape[0]))
+        np.delete(ebbIndex_mod, np.where(ebbIndex_mod >= self.model_u.shape[0]))
+        np.delete(floodIndex_obs, np.where(floodIndex_obs >= self.observed_u.shape[0]))
+        np.delete(ebbIndex_obs, np.where(ebbIndex_obs >= self.observed_u.shape[0]))
+        
         pr_axis_mod_flood, pr_ax_var_mod_flood = principal_axis(self.model_u[floodIndex_mod],
                                                                 self.model_v[floodIndex_mod])
         pr_axis_mod_ebb, pr_ax_var_mod_ebb = principal_axis(self.model_u[ebbIndex_mod],

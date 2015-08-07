@@ -30,6 +30,8 @@ class FunctionsFvcom:
         grid = self._grid
         History = self._History
 
+        return
+
     #TR comment: I don't think I need this anymore  
     def _centers(self, debug=False):
         """

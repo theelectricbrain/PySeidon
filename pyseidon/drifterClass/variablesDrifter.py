@@ -43,3 +43,5 @@ class _load_drifter:
         self._History.append(text)
 
         if debug: print '...Passed'
+
+        return

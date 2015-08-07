@@ -25,6 +25,8 @@ class PlotsFvcom:
         grid = self._grid
         #self._grid._ax = grid._ax
 
+        return
+
     def _def_fig(self):
         """Defines figure window"""
         self._fig = plt.figure(figsize=(18,10))

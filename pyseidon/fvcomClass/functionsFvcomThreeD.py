@@ -35,6 +35,8 @@ class FunctionsFvcomThreeD:
         grid = self._grid
         History = self._History
 
+        return
+
     def depth(self, debug=False):
         """
         This method computes new grid variable: 'depth' (m)

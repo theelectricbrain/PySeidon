@@ -25,6 +25,8 @@ class FunctionsAdcp:
         variable = self._var
         History = self._History
 
+        return
+
     def flow_dir(self, t_start=[], t_end=[], time_ind=[],
                  exceedance=False, debug=False):
         """

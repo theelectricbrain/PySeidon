@@ -16,6 +16,8 @@ class PlotsDrifter:
         self._debug = debug
         self._var = variable
 
+        return
+
     def _def_fig(self):
         """Defines figure window"""
         self._fig = plt.figure(figsize=(18,10))

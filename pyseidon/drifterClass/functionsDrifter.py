@@ -9,6 +9,8 @@ class FunctionsDrifter:
         self._var = cls.Variables
         self._debug = cls._debug
 
+        return
+
 #TR_comments: templates
 #    def whatever(self, debug=False):
 #        if debug or self._debug:
