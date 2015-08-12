@@ -104,7 +104,7 @@ class TidalStats:
             #TR: those are not the real times though
 
         # Error attributes
-        if self.kind in ['cubic speed', 'velocity']:
+        if self.kind in ['cubic speed', 'velocity', 'direction']:
             # TR: pass this step if dealing with Drifter's data
             if not self.gear == 'Drifter':
             # interpolate cubic speed, u and v on same time steps
@@ -129,7 +129,7 @@ class TidalStats:
                              ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
             else:
                 self.error = self.observed - self.model
-        elif self.kind in ['speed', 'elevation', 'direction', 'u velocity', 'v velocity', 'Phase']:
+        elif self.kind in ['speed', 'elevation', 'u velocity', 'v velocity', 'Phase']:
             self.error = self.observed - self.model
         else:
             print "---Data kind not supported---"
