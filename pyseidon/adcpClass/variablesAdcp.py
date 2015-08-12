@@ -45,7 +45,7 @@ class _load_adcp:
         if not type(cls.Data)==h5py._hl.files.File:
             self.lat = cls.Data['lat']
             self.lon = cls.Data['lon']
-            self.bins = cls.Data['data'].bins[:].flatten()
+            self.bins = cls.Data['data'].bins[:].ravel()
             self.depth = -1.0 * self.bins
             self.north_vel = cls.Data['data'].north_vel[:]
             self.east_vel = cls.Data['data'].east_vel[:]
@@ -53,10 +53,10 @@ class _load_adcp:
             self.dir_vel = cls.Data['data'].dir_vel[:]
             self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:]
             self.pressure = cls.Data['pres']
-            self.surf = self.pressure.surf[:].flatten()
+            self.surf = self.pressure.surf[:].ravel()
             self.el = self.surf
             self.time = cls.Data['time']
-            self.matlabTime = self.time.mtime[:].flatten()
+            self.matlabTime = self.time.mtime[:].ravel()
             try:
                 self.ucross = cls.Data['data'].ucross[:]
                 self.ualong = cls.Data['data'].ualong[:]
@@ -66,17 +66,17 @@ class _load_adcp:
         else:
             self.lat = cls.Data['lat'][0][0]
             self.lon = cls.Data['lon'][0][0]
-            self.bins = cls.Data['data']['bins'][:].flatten()
+            self.bins = cls.Data['data']['bins'][:].ravel()
             self.north_vel = cls.Data['data']['north_vel'][:].T
             self.east_vel = cls.Data['data']['east_vel'][:].T
             self.vert_vel = cls.Data['data']['vert_vel'][:].T
             self.dir_vel = cls.Data['data']['dir_vel'][:].T
             self.mag_signed_vel = cls.Data['data']['mag_signed_vel'][:].T
             self.pressure = cls.Data['pres']
-            self.surf = self.pressure['surf'][:].flatten()
+            self.surf = self.pressure['surf'][:].ravel()
             self.el = self.surf
             self.time = cls.Data['time']
-            self.matlabTime = self.time['mtime'][:].flatten()
+            self.matlabTime = self.time['mtime'][:].ravel()
             try:
                 self.ucross = cls.Data['data']['Ucross'][:].T
                 self.ualong = cls.Data['data']['Ualong'][:].T

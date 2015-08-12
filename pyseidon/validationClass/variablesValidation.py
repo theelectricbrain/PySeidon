@@ -76,9 +76,9 @@ class _load_validation:
                 nameSite = ''.join(simulated.Grid.name[ind])
             print "Station site: " + nameSite
             self.sim.lat = simulated.Grid.lat[ind]
-            el = self.sim.el[:, ind].flatten()
-            ua = self.sim.ua[:, ind].flatten()
-            va = self.sim.va[:, ind].flatten()
+            el = self.sim.el[:, ind].ravel()
+            ua = self.sim.ua[:, ind].ravel()
+            va = self.sim.va[:, ind].ravel()
             if self._3D:
                 u = np.squeeze(self.sim.u[:, :,ind])
                 v = np.squeeze(self.sim.v[:, :,ind])

@@ -200,11 +200,11 @@ def save_FlowFile_BPFormat(fileinfo, adcp, rbr, params, options):
     datenum = datetime(day1.year,1,1) + timedelta(365)
     datenum = datenum.toordinal()
 
-    yd = adcp.mtime[:].flatten() - datenum
+    yd = adcp.mtime[:].ravel() - datenum
     tind = np.where((yd > params.tmin) & (yd < params.tmax))[0]
 
     time = {}
-    time['mtime'] = adcp.mtime[:].flatten()[tind]
+    time['mtime'] = adcp.mtime[:].ravel()[tind]
     dt = np.nanmean(np.diff(time['mtime']))
 
     if not rbr:
@@ -245,13 +245,13 @@ if __name__ == '__main__':
     #date_time = [date2py(tval[0]) for tval in adcp.mtime[:]]
     datenum = datetime(day1.year,1,1) + timedelta(365)
     datenum = datenum.toordinal()
-    #yd = adcp.mtime[:].flatten() - datenum
-    yd = adcp['mtime'][:].flatten() - datenum
+    #yd = adcp.mtime[:].ravel() - datenum
+    yd = adcp['mtime'][:].ravel() - datenum
     #tind = np.where((yd > params.tmin) & (yd < params.tmax))[0]
     tind = np.where((yd > params['tmin']) & (yd < params['tmax']))[0]
 
     time = {}
-    time['mtime'] = adcp['mtime'][:].flatten()[tind]
+    time['mtime'] = adcp['mtime'][:].ravel()[tind]
     dt = np.nanmean(np.diff(time['mtime']))
     pres = {}
 
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     ## zlevels
     data = {}
     z = adcp['config']['ranges'][:] + params['dabADCP']
-    z = z.flatten()
+    z = z.ravel()
     zind = np.where((z > params['zmin']) & (z < params['zmax']))[0]
     data['bins'] = z[zind]
 

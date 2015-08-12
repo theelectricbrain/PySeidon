@@ -61,8 +61,8 @@ def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
     plt.title(r_string)
 
     # Pretty plot
-    # df = DataFrame(data={'model': tidalStatClass.model.flatten(),
-    #                      'observed':tidalStatClass.observed.flatten()})
+    # df = DataFrame(data={'model': tidalStatClass.model.ravel(),
+    #                      'observed':tidalStatClass.observed.ravel()})
     # seaborn.set(style="darkgrid")
     # color = seaborn.color_palette()[2]
     # g = seaborn.jointplot("model", "observed", data=df, kind="reg",

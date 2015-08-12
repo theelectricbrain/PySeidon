@@ -235,12 +235,12 @@ def save_FlowFile_BPFormat(fileinfo, adcp, rbr, params, options, debug=False):
     datenum = datetime(day1.year,1,1) + timedelta(365)
     datenum = datenum.toordinal()
 
-    yd = adcp['mtime'][:].flatten() - datenum
+    yd = adcp['mtime'][:].ravel() - datenum
     tind = np.where((yd > params['tmin']) & (yd < params['tmax']))[0]
 
     pres = {}
     time = {}
-    time['mtime'] = adcp['mtime'][:].flatten()[tind]
+    time['mtime'] = adcp['mtime'][:].ravel()[tind]
     dt = np.nanmean(np.diff(time['mtime']))
 
     if not rbr:
@@ -291,7 +291,7 @@ def save_FlowFile_BPFormat(fileinfo, adcp, rbr, params, options, debug=False):
     ## zlevels
     data = {}
     z = adcp['config']['ranges'][:] + params['dabADCP']
-    z = z.flatten()
+    z = z.ravel()
     zind = np.where((z > params['zmin']) & (z < params['zmax']))[0]
     data['bins'] = z[zind]
 

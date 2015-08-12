@@ -14,7 +14,7 @@ def node_region(ax, lon, lat):
                             (lat >= ax[2]) &
                             (lat <= ax[3]))
 
-    region_n = region_n.flatten()
+    region_n = region_n.ravel()
 
     return region_n
 
@@ -25,7 +25,7 @@ def element_region(ax, lonc, latc):
                             (latc >= ax[2]) &
                             (latc <= ax[3]))
 
-    region_e = region_e.flatten()
+    region_e = region_e.ravel()
 
     return region_e
 
