@@ -465,7 +465,7 @@ class Validation:
         except AttributeError:
             raise PyseidonError("-validate_data needs to be run first-")
 
-    def benchmarks_map(self, savepath='', fname="taylor_diagram", debug=False):
+    def benchmarks_map(self, savepath='', fname="benchmarks_map", debug=False):
         """
     Plots bathymetric map & model validation benchmarks
 

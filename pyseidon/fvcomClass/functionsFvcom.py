@@ -849,7 +849,8 @@ class FunctionsFvcom:
         if debug: print "Computing powers of hori velo norm..."
         #u = self._var.hori_velo_norm
         #pd = ne.evaluate('0.5*1025.0*(u**3)')
-        pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)
+        #pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)  # TR: very slow
+        pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]
     
         # Add metadata entry
         self._var.depth_av_power_density = pd
