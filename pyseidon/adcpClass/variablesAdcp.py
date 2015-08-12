@@ -94,19 +94,19 @@ class _load_adcp:
         #choosen by the user. Currently only working for east_vel (u) and
         #north_vel (v)
         #TR: alaternative with percent of the depth
-        ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,None])
-        #ind = np.argwhere(self.bins < self.surf[:,None])
+        ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,np.newaxis])
+        #ind = np.argwhere(self.bins < self.surf[:,np.newaxis])
         index = ind[np.r_[ind[1:,0] != ind[:-1,0], True]]
         try:
             data_ma_u = np.ma.array(self.east_vel,
-                        mask=np.arange(self.east_vel.shape[1]) > index[:, 1, None])
+                        mask=np.arange(self.east_vel.shape[1]) > index[:, 1, np.newaxis])
             data_ma_u=np.ma.masked_array(data_ma_u,np.isnan(data_ma_u))
         except MaskError:
             data_ma_u=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
 
         try:
             data_ma_v = np.ma.array(self.north_vel,
-                        mask=np.arange(self.north_vel.shape[1]) > index[:, 1, None])
+                        mask=np.arange(self.north_vel.shape[1]) > index[:, 1, np.newaxis])
             data_ma_v=np.ma.masked_array(data_ma_v,np.isnan(data_ma_v))
         except MaskError:
             data_ma_v=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))

@@ -28,16 +28,16 @@ def closest_point(pt_lon, pt_lat, lon, lat, lonc, latc, tri,
     points = np.array([[pt_lon], [pt_lat]]).T
     point_list = np.array([lonc[:], latc[:]]).T
 
-    #closest_dist = (np.square((point_list[:, 0] - points[:, 0, None])) +
-    #                np.square((point_list[:, 1] - points[:, 1, None])))
+    #closest_dist = (np.square((point_list[:, 0] - points[:, 0, np.newaxis])) +
+    #                np.square((point_list[:, 1] - points[:, 1, np.newaxis])))
 
     #closest_point_indexes = np.argmin(closest_dist, axis=1)
     
     #Wesley's optimized version of this bottleneck
     point_list0 = point_list[:, 0]
-    points0 = points[:, 0, None]
+    points0 = points[:, 0, np.newaxis]
     point_list1 = point_list[:, 1]
-    points1 = points[:, 1, None]
+    points1 = points[:, 1, np.newaxis]
     
     closest_dist = ((point_list0 - points0) *
                     (point_list0 - points0) +
@@ -98,16 +98,16 @@ def closest_points( pt_lon, pt_lat, lon, lat, debug=False):
         points = np.array([pt_lon, pt_lat]).T
     point_list = np.array([lonc, latc]).T
 
-    #closest_dist = (np.square((point_list[:, 0] - points[:, 0, None])) +
-    #                np.square((point_list[:, 1] - points[:, 1, None])))
+    #closest_dist = (np.square((point_list[:, 0] - points[:, 0, np.newaxis])) +
+    #                np.square((point_list[:, 1] - points[:, 1, np.newaxis])))
 
     #closest_point_indexes = np.argmin(closest_dist, axis=1)
     
     #Wesley's optimized version of this bottleneck
     point_list0 = point_list[:, 0]
-    points0 = points[:, 0, None]
+    points0 = points[:, 0, np.newaxis]
     point_list1 = point_list[:, 1]
-    points1 = points[:, 1, None]
+    points1 = points[:, 1, np.newaxis]
     
     closest_dist = ((point_list0 - points0) *
                     (point_list0 - points0) +
@@ -528,9 +528,9 @@ def interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=False):
     points = np.array([[pt_lon], [pt_lat]]).T
     point_list = np.array([lonc[:], latc[:]]).T
     point_list0 = point_list[:, 0]
-    points0 = points[:, 0, None]
+    points0 = points[:, 0, np.newaxis]
     point_list1 = point_list[:, 1]
-    points1 = points[:, 1, None]
+    points1 = points[:, 1, np.newaxis]
     
     closest_dist = ((point_list0 - points0) *
                     (point_list0 - points0) +

@@ -73,7 +73,7 @@ class FunctionsStationThreeD:
         el = self._var.el[:,index]
         zeta = el + h
         siglay = self._grid.siglay[:,index]
-        dep = zeta[:,None]*siglay[None,:]
+        dep = zeta[:, np.newaxis]*siglay[np.newaxis, :]
      
         if debug:
             end = time.time()
