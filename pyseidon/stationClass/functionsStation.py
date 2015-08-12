@@ -97,7 +97,7 @@ class FunctionsStation:
         dirFlow = np.rad2deg(np.arctan2(V,U))
 
         #Compute velocity norm
-        norm = ne.evaluate('sqrt(U**2 + V**2)')
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         if debug:
             print '...Passed'
         #Rose diagram

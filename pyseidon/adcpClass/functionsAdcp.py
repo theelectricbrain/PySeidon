@@ -78,7 +78,7 @@ class FunctionsAdcp:
         dirFlow = np.rad2deg(np.arctan2(V,U))
 
         #Compute velocity norm
-        norm = ne.evaluate('sqrt(U**2 + V**2)')
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         if debug:
             print '...Passed'
         #Rose diagram
@@ -478,7 +478,7 @@ class FunctionsAdcp:
             U = self._var.east_vel[:,:]
             V = self._var.north_vel[:,:]
 
-        norm = ne.evaluate('sqrt(U**2 + V**2)')     
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         # Compute shear
         dz = depth[1:] - depth[:-1]
@@ -544,11 +544,11 @@ class FunctionsAdcp:
         if not argtime==[]:          
             U = self._var.east_vel[argtime, :]
             V = self._var.north_vel[argtime, :]
-            velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+            velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         else:            
             U = self._var.east_vel[:, :]
             V = self._var.north_vel[:, :]
-            velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+            velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         if debug:
             print '...passed'

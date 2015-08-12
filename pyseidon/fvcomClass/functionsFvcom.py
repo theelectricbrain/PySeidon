@@ -83,7 +83,8 @@ class FunctionsFvcom:
         try:
             u = self._var.ua[:]
             v = self._var.va[:]
-            vel = ne.evaluate('sqrt(u**2 + v**2)')  
+            vel = ne.evaluate('sqrt(u**2 + v**2)').squeeze()
+
         except (MemoryError, ServerError) as e:
             if e == ServerError:
                 print '---Data too large for server---'
@@ -204,7 +205,7 @@ class FunctionsFvcom:
         dirFlow = np.rad2deg(np.arctan2(V,U))
 
         #Compute velocity norm
-        norm = ne.evaluate('sqrt(U**2 + V**2)')
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         #use only the time indices of interest
         if not argtime==[]:
@@ -848,7 +849,7 @@ class FunctionsFvcom:
             self.hori_velo_norm(debug=debug)
         if debug: print "Computing powers of hori velo norm..."
         u = self._var.hori_velo_norm[:]
-        pd = ne.evaluate('0.5*1025.0*(u**3)')
+        pd = ne.evaluate('0.5*1025.0*(u**3)').squeeze()
         #pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)  # TR: very slow
         #pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]
     

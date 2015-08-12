@@ -391,7 +391,7 @@ class FunctionsFvcomThreeD:
                                             index=index, debug=debug)  
             V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                             index=index, debug=debug)
-            norm = ne.evaluate('sqrt(U**2 + V**2)')     
+            norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
             # Compute shear
             dz = depth[:,sLvl[1:]] - depth[:,sLvl[:-1]]
@@ -443,7 +443,7 @@ class FunctionsFvcomThreeD:
                 u = self._var.u[:]
                 v = self._var.v[:]
                 w = self._var.w[:]
-                vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
+                vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)').squeeze()
             except (MemoryError, ServerError) as e:
                 print '---Data too large for machine memory or server---'
                 print 'Tip: Save data on your machine first'
@@ -455,7 +455,7 @@ class FunctionsFvcomThreeD:
                 #Computing velocity norm
                 u = self._var.u[:]
                 v = self._var.v[:]
-                vel = ne.evaluate('sqrt(u**2 + v**2)')
+                vel = ne.evaluate('sqrt(u**2 + v**2)').squeeze()
             except (MemoryError, ServerError) as e:
                 print '---Data too large for machine memory or server---'
                 print 'Tip: Save data on your machine first'
@@ -553,9 +553,9 @@ class FunctionsFvcomThreeD:
             if 'w' in locals():
                 W = self.interpolation_at_point(w, pt_lon, pt_lat,
                                                 index=index, debug=debug)
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)').squeeze()
             else:
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         else:
             velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
                                                     index=index, debug=debug)
@@ -886,7 +886,7 @@ class FunctionsFvcomThreeD:
             self.velo_norm(debug=debug)
         if debug: print "Computing power density variable..."
         u = self._var.velo_norm[:]
-        pd = ne.evaluate('0.5*1025.0*(u**3)')
+        pd = ne.evaluate('0.5*1025.0*(u**3)').squeeze()
         #pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)  # TR: very slow
         #pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]
 

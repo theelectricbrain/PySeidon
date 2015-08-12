@@ -79,7 +79,7 @@ class FunctionsStationThreeD:
             end = time.time()
             print "Computation time in (s): ", (end - start)
 
-        return dep
+        return np.squeeze(dep)
 
     def verti_shear(self, station, t_start=[], t_end=[],  time_ind=[],
                     bot_lvl=[], top_lvl=[], graph=True, debug=False):
@@ -145,7 +145,7 @@ class FunctionsStationThreeD:
             U = self._var.u[:,:,index]
             V = self._var.v[:,:,index]
 
-        norm = ne.evaluate('sqrt(U**2 + V**2)')     
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         # Compute shear
         dz = depth[:,sLvl[1:]] - depth[:,sLvl[:-1]]
@@ -165,7 +165,7 @@ class FunctionsStationThreeD:
                                title='Shear profile ',
                                xLabel='Shear (1/s) ', yLabel='Depth (m) ')
 
-        return dveldz             
+        return np.squeeze(dveldz)
 
     def velo_norm(self, station, t_start=[], t_end=[], time_ind=[],
                   graph=True, debug=False):
@@ -212,36 +212,36 @@ class FunctionsStationThreeD:
                 U = self._var.u[argtime, :, index]
                 V = self._var.v[argtime, :, index]
                 W = self._var.w[argtime, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)').squeeze()
             else:            
                 U = self._var.u[:, :, index]
                 V = self._var.v[:, :, index]
                 W = self._var.w[:, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)').squeeze()
         except AttributeError:
             if not argtime==[]:          
                 U = self._var.u[argtime, :, index]
                 V = self._var.v[argtime, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
             else:            
                 U = self._var.u[:, :, index]
                 V = self._var.v[:, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         if debug:
             print '...passed'
 
         #Plot mean values
         if graph:
-            depth = np.mean(self.depth(station),0)
-            vel = np.mean(velo_norm,0)
+            depth = np.mean(self.depth(station),axis=0)
+            vel = np.mean(velo_norm,axis=0)
             error = np.std(velo_norm,axis=0)
             self._plot.plot_xy(vel, depth, xerror=error[:],
                                title='Velocity norm profile ',
                                xLabel='Velocity (m/s) ', yLabel='Depth (m) ')
       
 
-        return velo_norm 
+        return velo_norm
 
     def flow_dir(self, station, t_start=[], t_end=[], time_ind=[], 
                           vertical=True, debug=False):
@@ -253,7 +253,6 @@ class FunctionsStationThreeD:
 
         Outputs:
           - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
-          - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
 
         Options:
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
@@ -296,12 +295,12 @@ class FunctionsStationThreeD:
 
         #Compute directions
         if debug: print 'Computing arctan2 and norm...'
-        dirFlow = np.rad2deg(np.arctan2(V,U))
+        dirFlow = np.rad2deg(np.arctan2(v,u))
        
         if debug:
                 print '...Passed'
 
-        return dirFlow, norm
+        return np.squeeze(dirFlow)
 
 #TR_comments: templates
 #    def whatever(self, debug=False):
