@@ -56,13 +56,13 @@ class FVCOM:
            and therefore reduce memory and cpu use.
 
       - tx = defines for a specific temporal period to work with, as such:
-           tx = ['2012-11-07T12:00:00','2012.11.09T12:00:00'], string of 'yyyy-mm-ddThh:mm:ss'
+           tx = ['2012-11-07T12:00:00','2012.11.09 12:00:00'], string of 'yyyy-mm-dd hh:mm:ss'
            Note that this option permits to extract partial data from the overall file
            and therefore reduce memory and cpu use
 
     *Notes*
     Throughout the package, the following conventions apply:
-      - Date = string of 'yyyy-mm-ddThh:mm:ss'
+      - Date = string of 'yyyy-mm-dd hh:mm:ss'
       - Coordinates = decimal degrees East and North
       - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South
       - Depth = 0m is the free surface and depth is negative

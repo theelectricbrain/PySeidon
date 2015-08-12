@@ -97,7 +97,7 @@ class FunctionsFvcomThreeD:
         #     dep = zeta[:,None,:]*siglay[None,:,:]
 
         # Add metadata entry
-        self._grid.depth = dep
+        setattr(self._grid, 'depth', dep)
         self._History.append('depth computed')
         print '-Depth added to FVCOM.Variables.-'
 
@@ -310,7 +310,7 @@ class FunctionsFvcomThreeD:
             raise
 
         #Custom return
-        self._var.verti_shear = dveldz 
+        setattr(self._var, 'verti_shear', dveldz)
             
         # Add metadata entry
         self._History.append('vertical shear computed')
@@ -464,7 +464,7 @@ class FunctionsFvcomThreeD:
                 raise
 
         #Custom return    
-        self._var.velo_norm = vel 
+        setattr(self._var, 'velo_norm', vel)
        
         # Add metadata entry
         self._History.append('Velocity norm computed')
@@ -686,7 +686,7 @@ class FunctionsFvcomThreeD:
             raise
 
         #Custom return    
-        self._var.flow_dir = dirFlow 
+        setattr(self._var, 'flow_dir', dirFlow)
 
         # Add metadata entry
         self._History.append('flow directions computed')
@@ -768,7 +768,7 @@ class FunctionsFvcomThreeD:
         vort = dvdx - dudy
 
         # Add metadata entry
-        self._var.vorticity = vort
+        setattr(self._var, 'vorticity', vort)
         self._History.append('vorticity computed')
         print '-Vorticity added to FVCOM.Variables.-'
 
@@ -891,7 +891,7 @@ class FunctionsFvcomThreeD:
         #pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]
 
         # Add metadata entry
-        self._var.power_density = pd
+        setattr(self._var, 'power_density', pd)
         self._History.append('power density computed')
         print '-Power density to FVCOM.Variables.-' 
 

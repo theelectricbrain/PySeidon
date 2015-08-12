@@ -57,8 +57,8 @@ class FunctionsFvcom:
             hc[ind] = np.mean(self._grid.h[value])
 
         #Custom return    
-        self._grid.hc = hc
-        self._var.elc = elc
+        setattr(self._grid, 'hc', hc)
+        setattr(self._var, 'elc', elc)
           
         # Add metadata entry
         self._History.append('bathymetry at center points computed')
@@ -95,7 +95,7 @@ class FunctionsFvcom:
             raise
 
         #Custom return    
-        self._var.hori_velo_norm = vel 
+        setattr(self._var, 'hori_velo_norm', vel)
           
         # Add metadata entry
         self._History.append('horizontal velocity norm computed')
@@ -132,7 +132,7 @@ class FunctionsFvcom:
             raise
 
         #Custom return    
-        self._var.depth_av_flow_dir = dirFlow 
+        setattr(self._var, 'depth_av_flow_dir', dirFlow)
 
         # Add metadata entry
         self._History.append('depth averaged flow directions computed')
@@ -639,7 +639,7 @@ class FunctionsFvcom:
         vort = dvdx - dudy
 
         # Add metadata entry
-        self._var.depth_av_vorticity = vort
+        setattr(self._var, 'depth_av_vorticity', vort)
         self._History.append('depth averaged vorticity computed')
         print '-Depth averaged vorticity added to FVCOM.Variables.-'
 
@@ -775,7 +775,7 @@ class FunctionsFvcom:
             print "Computation time in (s): ", (end - start)
 
         # Add metadata entry
-        self._grid.depth2D = dep
+        setattr(self._grid, 'depth2D', dep)
         self._History.append('depth 2D computed')
         print '-Depth 2D added to FVCOM.Variables.-'
 
@@ -853,7 +853,7 @@ class FunctionsFvcom:
         #pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]
     
         # Add metadata entry
-        self._var.depth_av_power_density = pd
+        setattr(self._var, 'depth_av_power_density', pd)
         self._History.append('depth averaged power density computed')
         print '-Depth averaged power density to FVCOM.Variables.-' 
 
@@ -920,7 +920,7 @@ class FunctionsFvcom:
         pa[u>rated_speed] = parated    
 
         # Add metadata entry
-        self._var.depth_av_power_assessment = pd
+        setattr(self._var, 'depth_av_power_assessment', pd)
         self._History.append('depth averaged power assessment computed')
         print '-Depth averaged power assessment to FVCOM.Variables.-'   
 

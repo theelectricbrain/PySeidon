@@ -36,7 +36,7 @@ class FunctionsStationThreeD:
         elif type(station).__name__ in ['str', 'ndarray']:
             station = "".join(station).strip().upper()
             for i in range(self._grid.nele):
-                if station=="".join(self._grid.name[1]).strip().upper():
+                if station=="".join(self._grid.name[i]).strip().upper():
                    index=i
         else:
             raise PyseidonError("---Wrong station input---")

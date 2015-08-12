@@ -54,7 +54,7 @@ class Station:
 
     *Notes*
       Throughout the package, the following conventions apply:
-      - Date = string of 'yyyy-mm-ddThh:mm:ss'
+      - Date = string of 'yyyy-mm-dd hh:mm:ss'
       - Coordinates = decimal degrees East and North
       - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,
                      +/-180=West, -90=South
