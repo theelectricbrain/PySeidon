@@ -885,9 +885,10 @@ class FunctionsFvcomThreeD:
         if not hasattr(self._var, 'velo_norm'):
             self.velo_norm(debug=debug)
         if debug: print "Computing power density variable..."
-        #u = self._var.velo_norm
-        #pd = ne.evaluate('0.5*1025.0*(u**3)')
-        pd = 0.5*1025.0*np.power(self._var.velo_norm[:],3.0)  
+        u = self._var.velo_norm[:]
+        pd = ne.evaluate('0.5*1025.0*(u**3)')
+        #pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)  # TR: very slow
+        #pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]
 
         # Add metadata entry
         self._var.power_density = pd

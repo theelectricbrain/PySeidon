@@ -55,7 +55,7 @@ class _load_var:
         History = self._History
 
         # Parallel computing attributs
-        self._cpus = mp.cpu_count()
+        #self._cpus = mp.cpu_count()
 
         #List of keywords
         kwl2D = ['ua', 'va', 'zeta','depth_av_flow_dir', 'hori_velo_norm',
