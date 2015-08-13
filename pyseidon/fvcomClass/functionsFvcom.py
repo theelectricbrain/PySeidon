@@ -21,14 +21,11 @@ class FunctionsFvcom:
     """
     def __init__(self, variable, grid, plot, History, debug):
         self._debug = debug
-        self._var = variable
-        self._grid = grid
         self._plot = plot
-        self._History = History
         #Create pointer to FVCOM class
-        variable = self._var
-        grid = self._grid
-        History = self._History
+        setattr(self, '_var', variable)
+        setattr(self, '_grid', grid)
+        setattr(self, '_History', History)
 
         return
 

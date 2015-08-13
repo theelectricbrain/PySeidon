@@ -11,12 +11,10 @@ class FunctionsTidegauge:
     **'Utils' subset of TideGauge class gathers useful functions**
     """
     def __init__(self, variable, plot, History, debug=False):
-        self._var = variable
         self._plot = plot
-        self._History = History
         #Create pointer to FVCOM class
-        variable = self._var
-        History = self._History
+        setattr(self, '_var', variable)
+        setattr(self, '_History', History)
 
     def harmonics(self, time_ind=slice(None), **kwarg):
         """

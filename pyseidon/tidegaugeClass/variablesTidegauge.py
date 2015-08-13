@@ -21,8 +21,7 @@ class _load_tidegauge:
         if debug: print 'Loading variables...'
 
         # Pointer to History
-        self._History = History
-        History = self._History
+        setattr(self, '_History', History)
 
         self.RBR = cls['RBR']
         data = self.RBR.data

@@ -23,8 +23,7 @@ class _load_drifter:
         if debug:
             print 'Loading variables...'
         # Pointer to History
-        self._History = History
-        History = self._History
+        setattr(self, '_History', History)
 
         self.matlabTime = cls.Data['velocity'].vel_time[:]
         #Sorting values with increasing time step

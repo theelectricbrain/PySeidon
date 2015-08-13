@@ -16,7 +16,7 @@ class PlotsTidegauge:
     """
     def __init__(self, variable, debug=False):
         self._debug = debug
-        self._var = variable
+        setattr(self, '_var', variable)
 
     def _def_fig(self):
         """Defines figure window"""

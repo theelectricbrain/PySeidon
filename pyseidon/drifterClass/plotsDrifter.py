@@ -14,7 +14,8 @@ class PlotsDrifter:
     """
     def __init__(self, variable, debug):
         self._debug = debug
-        self._var = variable
+        # Pointer
+        setattr(self, '_var', variable)
 
         return
 

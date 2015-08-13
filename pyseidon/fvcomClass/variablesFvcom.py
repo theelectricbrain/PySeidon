@@ -51,8 +51,7 @@ class _load_var:
         self._opendap = type(data.variables).__name__=='DatasetType'
 
         # Pointer to History
-        self._History = History
-        History = self._History
+        setattr(self, '_History', History)
 
         # Parallel computing attributs
         #self._cpus = mp.cpu_count()
@@ -521,8 +520,7 @@ class _load_grid:
         if debug:
             print 'Loading grid...'
         #Pointer to History
-        self._History = History
-        History = self._History
+        setattr(self, '_History', History)
         #list of grid variable
         gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
                    'a1u','a2u','aw0','awx','awy']

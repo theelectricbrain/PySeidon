@@ -35,8 +35,8 @@ class _load_adcp:
         if debug:
             print 'Loading variables...'
         # Pointer to History
-        self._History = History
-        History = self._History
+        setattr(self, '_History', History)
+
 
         # TR: fudge factor, squeeze out the 5 top % of the water column
         self.percent_of_depth=0.95

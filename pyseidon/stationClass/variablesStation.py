@@ -38,8 +38,7 @@ class _load_grid:
         if debug:
             print 'Loading grid...'
         #Pointer to History
-        self._History = History
-        History = self._History
+        setattr(self, '_History', History)
 
         self.x = data.variables['x'][elements]
         self.y = data.variables['y'][elements]
@@ -108,8 +107,8 @@ class _load_var:
         if debug: print 'Loading variables...'
 
         #Pointer to History
-        self._History = History
-        History = self._History
+        setattr(self, '_grid', grid)
+        setattr(self, '_History', History)
 
         #List of keywords
         kwl2D = ['ua', 'va', 'zeta']
@@ -129,7 +128,7 @@ class _load_var:
                ' to ' + str(end)
         self._History.append(text)
         # Add time dimension to grid variables
-        grid.ntime = self.matlabTime.shape[0]
+        self._grid.ntime = self.matlabTime.shape[0]
 
         if debug: print '...hydro variables...'
 
@@ -140,8 +139,8 @@ class _load_var:
         if type(data.variables).__name__=='DatasetType':
             # TR: fix for issue wih elements = slice(none)
             if elements == slice(None):
-                region_e = np.arange(grid.nele)
-                region_n = np.arange(grid.nnode)
+                region_e = np.arange(self._grid.nele)
+                region_n = np.arange(self._grid.nnode)
             #loading hori data
             keyCount = 0
             for key, aliaS in zip(kwl2D, al2D):
@@ -234,8 +233,8 @@ class _load_var:
             for key, aliaS in zip(kwl2D, al2D):
                 try:
                     if key=='zeta':
-                        setattr(self, aliaS, np.zeros((grid.ntime, grid.nnode)))
-                        for i in range(grid.ntime):
+                        setattr(self, aliaS, np.zeros((self._grid.ntime, self._grid.nnode)))
+                        for i in range(self._grid.ntime):
                             try:
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
@@ -244,8 +243,8 @@ class _load_var:
                             except AttributeError: #exeception due nc.Dataset
                                 getattr(self, aliaS)[i,:] = data.variables[key][i,region_n]
                     else:
-                        setattr(self, aliaS, np.zeros((grid.ntime, grid.nele)))
-                        for i in range(grid.ntime):
+                        setattr(self, aliaS, np.zeros((self._grid.ntime, self._grid.nele)))
+                        for i in range(self._grid.ntime):
                             try:
                                 #TR comment: looping on time indices is a trick from
                                 #            Mitchell to improve loading time
@@ -268,8 +267,8 @@ class _load_var:
                     testKey = data.variables[key]
                     del testKey
                     setattr(self, aliaS,
-                    np.zeros((grid.ntime,grid.nlevel, grid.nele)))
-                    for i in range(grid.ntime):
+                    np.zeros((self._grid.ntime,self._grid.nlevel, self._grid.nele)))
+                    for i in range(self._grid.ntime):
                         #TR comment: looping on time indices is a trick from
                         #            Mitchell to improve loading time
                         try:

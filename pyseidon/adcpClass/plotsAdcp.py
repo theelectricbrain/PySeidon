@@ -16,7 +16,7 @@ class PlotsAdcp:
     """ **'Plots' subset of FVCOM class gathers plotting functions**"""
     def __init__(self, variable, debug=False):
         self._debug = debug
-        self._var = variable
+        setattr(self, '_var', variable)
 
         return
 

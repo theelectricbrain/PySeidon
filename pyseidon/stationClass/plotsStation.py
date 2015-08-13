@@ -19,11 +19,9 @@ class PlotsStation:
     """
     def __init__(self, variable, grid, debug):
         self._debug = debug
-        self._var = variable
-        self._grid = grid
         #Back pointer
-        grid = self._grid
-        #self._grid._ax = grid._ax
+        setattr(self, '_var', variable)
+        setattr(self, '_grid', grid)
 
     def _def_fig(self):
         """Defines figure window"""
