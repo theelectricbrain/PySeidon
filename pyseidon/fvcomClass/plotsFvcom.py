@@ -34,7 +34,8 @@ class PlotsFvcom:
 
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
-                     degree=True, mesh=True, dump=False, debug=False, **kwargs):
+                     degree=True, mesh=True, isoline = 'bathy',
+                     dump=False, debug=False, **kwargs):
         """
         2D xy colormap plot of any given variable and mesh.
 
@@ -47,7 +48,8 @@ class PlotsFvcom:
           - cmax = maximum limit colorbar
           - cmap = matplolib colormap
           - mesh = True, with mesh; False, without mesh
-          - degree = boolean, coordinates in degrees (True) or meters (False) 
+          - degree = boolean, coordinates in degrees (True) or meters (False)
+          - isloline = 'bathy': bathymetric isolines, 'var': variable isolines, 'none': no isolines
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
@@ -151,6 +153,18 @@ class PlotsFvcom:
             self._ax.yaxis.set_major_formatter(ticks)
         self._ax.set_xlim([bb[0],bb[1]])
         self._ax.set_ylim([bb[2],bb[3]])
+
+        # Isolines
+        if isoline == 'bathy':
+            cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
+            plt.clabel(cs, fontsize=11, inline=1)
+            plt.figtext(.12, .9,"Notes: white lines = bathymetric isolines", size='x-small')
+        elif isoline == 'var':
+            cs = self._ax.tricontour(tri, var[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0)
+            plt.clabel(cs, fontsize=11, inline=1)
+            plt.figtext(.12, .9,"Notes: white lines = isolines", size='x-small')
+
+        # Show plot
         self._ax.grid()
         self._fig.show()
 
