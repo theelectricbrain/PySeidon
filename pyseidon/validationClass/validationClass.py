@@ -106,10 +106,12 @@ class Validation:
 
         #initialisation
         vars = []
+        threeD = self.Variables.sim._3D
+        if self._flow == 'daf': threeD = False
 
         if self.Variables.struct['type'] == 'ADCP':
             (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
-             vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables.sim._3D,
+             vel_suite, csp_suite) = compareUV(self.Variables.struct, threeD,
                                     plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
             self.Variables.struct['elev_val'] = elev_suite
