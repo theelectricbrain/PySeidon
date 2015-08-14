@@ -60,6 +60,7 @@ Package's documentation can be found [here](http://grumpynounours.github.io/PySe
 ### Contribution guidelines ###
 * [Tutorial 0: First steps](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_0.ipynb)
 * [Tutorial 1: FVCOM class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_1.ipynb)
+* [Tutorial 2: Station class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_2.ipynb)
 
 ### Contacts ###
 * Project Leader: [Richard Karsten](richard.karsten@acadiau.ca)

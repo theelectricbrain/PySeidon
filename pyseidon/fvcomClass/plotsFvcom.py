@@ -32,7 +32,7 @@ class PlotsFvcom:
 
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
-                     degree=True, mesh=True, isoline = 'bathy',
+                     degree=True, mesh=False, isoline = 'bathy',
                      dump=False, debug=False, **kwargs):
         """
         2D xy colormap plot of any given variable and mesh.
