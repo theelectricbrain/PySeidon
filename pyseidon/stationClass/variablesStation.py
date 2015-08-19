@@ -115,7 +115,7 @@ class _load_var:
         kwl3D = ['ww', 'u', 'v', 'gls', 'tke']
         #List of aliaSes
         al2D = ['ua', 'va', 'el']
-        al3D = ['u', 'u', 'v', 'gls', 'tke']         
+        al3D = ['w', 'u', 'v', 'gls', 'tke']
 
         if debug: print '...time variables...'
         self.julianTime = data.variables['time_JD'][:]

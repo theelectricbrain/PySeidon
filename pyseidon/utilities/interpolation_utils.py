@@ -8,6 +8,7 @@ import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
 from matplotlib.path import Path
 from scipy.spatial import KDTree
+import scipy.interpolate as interpolate
 
 def closest_point(pt_lon, pt_lat, lon, lat, lonc, latc, tri,
                   debug=False):
@@ -374,7 +375,7 @@ def interpE(var, xc, yc, triele,
 
     n1 = [int(number) for number in triele[:,0]]
     n2 = [int(number) for number in triele[:,1]]
-    n3 = [int(number) for number in triele[:,0]]
+    n3 = [int(number) for number in triele[:,2]]
 
     #TR quick fix: due to error with pydap.proxy.ArrayProxy
     #              not able to cop with numpy.int
@@ -578,3 +579,19 @@ def interpE_at_point_bis(var, pt_lon, pt_lat, lonc, latc, debug=False):
 
     #TR comment: squeeze seems to resolve my problem with pydap
     return varInterp.squeeze()
+
+def interp_linear_to_nodes(var, xc, yc, x, y):
+    """Linear interpolation from elements to nodes"""
+    L = xc.shape[0]
+    M = x.shape[0]
+    orig = np.zeros((L, 2))
+    ask = np.zeros((M, 2))
+    orig[:, 0] = xc
+    orig[:, 1] = yc
+    ask[:, 0] = x
+    ask[:, 1] = y
+    interpol = interpolate.LinearNDInterpolator(orig, var)
+    varinterp = interpol(ask)
+    varinterp[np.where(varinterp==np.nan)]=0.0
+
+    return  varinterp
