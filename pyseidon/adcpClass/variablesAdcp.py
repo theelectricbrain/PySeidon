@@ -14,7 +14,7 @@ class _load_adcp:
     It contains the following numpy arrays: ::
 
                       _bins = depth of measurement bins, 1D array, shape=(bins)
-                     |_depth = depth of measurement bins, 1D array, shape=(bins)
+                     |_depth = depth, negative from surface down, time serie, 2D array, shape=(time,bins)
                      |_dir_vel = velocity direction time serie, 2D array, shape=(time,bins)
                      |_east_vel = East velocity time serie, 2D array, shape=(time,bins)
                      |_lat = latitude, float, decimal degrees
@@ -46,7 +46,6 @@ class _load_adcp:
             self.lat = cls.Data['lat']
             self.lon = cls.Data['lon']
             self.bins = cls.Data['data'].bins[:].ravel()
-            self.depth = -1.0 * self.bins
             self.north_vel = cls.Data['data'].north_vel[:]
             self.east_vel = cls.Data['data'].east_vel[:]
             self.vert_vel = cls.Data['data'].vert_vel[:]
@@ -113,6 +112,14 @@ class _load_adcp:
         
         self.ua = np.array(data_ma_u.mean(axis=1))
         self.va = np.array(data_ma_v.mean(axis=1))
+
+        # Compute depth with fvcom convention, negative from surface down
+        self.depth = np.ones(self.north_vel.shape) * np.nan
+        for t in range(self.matlabTime.shape[0]):
+            #i = np.where(np.isnan(self.north_vel[t,:]))[0][0]
+            #z = self.bins[i]
+            self.depth[t, :] = self.bins[:] - self.surf[t]
+        self.depth[np.where(self.depth>0.0)] = np.nan
 
         if debug:
             print '...Passed'

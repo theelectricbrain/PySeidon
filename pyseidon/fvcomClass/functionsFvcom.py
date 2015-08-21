@@ -548,7 +548,7 @@ class FunctionsFvcom:
         Ranges = np.arange(0,(Max + dy), dy)
         Exceedance = np.zeros(Ranges.shape[0])
         dt = self._var.julianTime[1] - self._var.julianTime[0]
-        Period = var.shape[0] * dt
+        Period = signal.shape[0] * dt
         time = np.arange(0.0, Period, dt)
 
         N = len(signal)

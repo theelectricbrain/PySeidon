@@ -479,7 +479,7 @@ class FunctionsAdcp:
         norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         # Compute shear
-        dz = depth[1:] - depth[:-1]
+        dz = depth[:,1:] - depth[:,-1]
         dvel = norm[:,1:] - norm[:,:-1]           
         dveldz = dvel / dz
 
@@ -488,7 +488,7 @@ class FunctionsAdcp:
 
         #Plot mean values
         if graph:
-            mean_depth = (depth[1:] + depth[:-1]) / 2.0
+            mean_depth = np.mean((depth[1:] + depth[:-1]) / 2.0, axis=0)
             mdat = np.ma.masked_array(dveldz,np.isnan(dveldz))
             mean_dveldz = np.mean(mdat,0)
             error = np.std(mdat,axis=0)
@@ -557,7 +557,7 @@ class FunctionsAdcp:
             mdat = np.ma.masked_array(velo_norm,np.isnan(velo_norm))
             vel = np.mean(mdat,0)
             error = np.std(mdat,axis=0)
-            self._plot.plot_xy(vel, depth, xerror=error[:],
+            self._plot.plot_xy(vel, depth.mean(axis=0), xerror=error[:],
                                title='Velocity norm profile ',
                                xLabel='Velocity (m/s) ', yLabel='Depth (m) ',
                                dump=dump, **kwargs)
