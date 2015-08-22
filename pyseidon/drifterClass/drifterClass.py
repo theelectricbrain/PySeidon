@@ -8,7 +8,7 @@ import h5py
 
 #Local import
 from variablesDrifter import _load_drifter
-from functionsDrifter import *
+# from functionsDrifter import FunctionsDrifter
 from plotsDrifter import *
 
 

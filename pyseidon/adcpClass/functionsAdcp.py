@@ -387,8 +387,7 @@ class FunctionsAdcp:
 
         return harmo
 
-    def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
-                                time_ind=slice(None), debug=False, **kwargs):
+    def Harmonic_reconstruction(self, harmo, time_ind=slice(None), debug=False, **kwargs):
         """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
@@ -416,13 +415,7 @@ class FunctionsAdcp:
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        Reconstruct = {}
-        if velocity:
-            U_recon, V_recon = reconstruct(time,harmo)
-            Reconstruct['U'] = U_recon
-            Reconstruct['V'] = V_recon
-        if elevation:
-            Reconstruct['el'] = reconstruct(time,harmo)
+        Reconstruct = reconstruct(time,harmo)
 
         return Reconstruct  
 
@@ -472,14 +465,16 @@ class FunctionsAdcp:
         if not argtime==[]:
             U = self._var.east_vel[argtime,:]
             V = self._var.north_vel[argtime,:]
+            depths = depth[argtime,:]
         else:
             U = self._var.east_vel[:,:]
             V = self._var.north_vel[:,:]
+            depths = depth[:,:]
 
         norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         # Compute shear
-        dz = depth[:,1:] - depth[:,-1]
+        dz = depths[:,1:] - depths[:,:-1]
         dvel = norm[:,1:] - norm[:,:-1]           
         dveldz = dvel / dz
 
@@ -488,7 +483,7 @@ class FunctionsAdcp:
 
         #Plot mean values
         if graph:
-            mean_depth = np.mean((depth[1:] + depth[:-1]) / 2.0, axis=0)
+            mean_depth = np.mean((depths[:,1:] + depths[:,:-1]) / 2.0, axis=0)
             mdat = np.ma.masked_array(dveldz,np.isnan(dveldz))
             mean_dveldz = np.mean(mdat,0)
             error = np.std(mdat,axis=0)
@@ -574,7 +569,7 @@ class FunctionsAdcp:
           - mattime = matlab time (floats)
         """  
         time = mattime_to_datetime(mattime, debug=debug)   
-        print time[0]
+        return time
 
 #TR_comments: templates
 #    def whatever(self, debug=False):

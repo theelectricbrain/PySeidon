@@ -55,7 +55,7 @@ class FunctionsTidegauge:
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
 
-        Options:
+        Output:
           - Reconstruct = reconstructed signal, dictionary
 
         Keywords:
@@ -84,7 +84,7 @@ class FunctionsTidegauge:
           - mattime = matlab time (floats)
         """  
         time = mattime_to_datetime(mattime, debug=debug)   
-        print time[0]
+        return time
 
 #TR_comments: templates
 #    def whatever(self, debug=False):
