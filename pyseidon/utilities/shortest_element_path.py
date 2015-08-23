@@ -9,6 +9,10 @@ import matplotlib.ticker as ticker
 import seaborn
 
 class shortest_element_path:
+    """
+    Class that mostly computes the shortest path from A to B
+    by hopping from an element to the next
+    """
     def __init__(self, lonc, latc, lon, lat, trinodes, h, debug=False):
 
         #self.data = nc.Dataset(filename,'r')
@@ -145,7 +149,7 @@ class shortest_element_path:
         plt.rc('font',size='22')
         ax = fig.add_subplot(111,aspect=(1.0/np.cos(np.mean(self.lat)*np.pi/180.0)))
         #plt.tricontourf(tri,-self.h,shading='faceted',cmap=plt.cm.gist_earth)
-        plt.triplot(tri)
+        plt.triplot(tri, color='white', linewidth=0.5)
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.gca().patch.set_facecolor('0.5')

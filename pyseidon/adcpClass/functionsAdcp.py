@@ -2,27 +2,28 @@
 # encoding: utf-8
 
 from __future__ import division
+
 import numpy as np
-import sys
 import numexpr as ne
-from datetime import datetime
-from datetime import timedelta
-from miscellaneous import *
-from BP_tools import *
-from utide import ut_solv, ut_reconstr
+import datetime
+from pyseidon.utilities.miscellaneous import *
+from pyseidon.utilities.BP_tools import *
+from utide import solve, reconstruct
 import time
-from miscellaneous import mattime_to_datetime 
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 class FunctionsAdcp:
-    ''''Utils' subset of FVCOM class gathers useful functions""" '''
+    """ **'Utils' subset of FVCOM class gathers useful functions** """
     def __init__(self, variable, plot, History, debug=False):
         self._debug = debug
-        self._var = variable
         self._plot = plot
-        self._History = History
         #Create pointer to FVCOM class
-        variable = self._var
-        History = self._History
+        setattr(self, '_var', variable)
+        setattr(self, '_History', History)
+
+        return
 
     def flow_dir(self, t_start=[], t_end=[], time_ind=[],
                  exceedance=False, debug=False):
@@ -30,12 +31,10 @@ class FunctionsAdcp:
         Flow directions and associated norm
 
         Outputs:
-        -------
            - flowDir = flowDir at station, 1D array
            - norm = velocity norm at station, 1D array
 
-        Keywords:
-        --------
+        Options:
           - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -43,8 +42,7 @@ class FunctionsAdcp:
           - time_ind = time indices to work in, list of integers
           - excedance = True, compute associated exceedance curve
 
-        Notes:
-        -----
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -58,9 +56,11 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if not argtime==[]:
@@ -76,7 +76,7 @@ class FunctionsAdcp:
         dirFlow = np.rad2deg(np.arctan2(V,U))
 
         #Compute velocity norm
-        norm = ne.evaluate('sqrt(U**2 + V**2)')
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         if debug:
             print '...Passed'
         #Rose diagram
@@ -92,22 +92,19 @@ class FunctionsAdcp:
         principal flow directions and associated variances for (lon, lat) point
 
         Outputs:
-        -------
           - floodIndex = flood time index, 1D array of integers
           - ebbIndex = ebb time index, 1D array of integers
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
-        Keywords:
-        --------
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, 1D array of integers 
         
-        Notes:
-        -----
+        *Notes*
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -125,11 +122,11 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end,
-                                        self._var.matlabTime,
-                                        debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Choose the right pair of velocity components
         if not argtime==[]:
@@ -140,54 +137,67 @@ class FunctionsAdcp:
             V = self._var.va[:]
 
         #WB version of BP's principal axis
-        if debug:
-            print 'Computin principal axis at point...'
+        #Assuming principal axis = flood heading
+        #determine principal axes - potentially a problem if axes are very kinked
+        #   since this would misclassify part of ebb and flood
+        if debug: print 'Computin principal axis at point...'
         pr_axis, pr_ax_var = principal_axis(U, V)
 
         #ebb/flood split
-        if debug:
-            print 'Splitting ebb and flood at point...'
+        if debug: print 'Splitting ebb and flood at point...'
+        ###TR: version 1
         # reverse 0-360 deg convention
-        ra = (-pr_axis - 90.0) * np.pi /180.0
-        if ra>np.pi:
-            ra = ra - (2.0*np.pi)
-        elif ra<-np.pi:
-            ra = ra + (2.0*np.pi)    
-        dirFlow = np.arctan2(V,U)
-        #Define bins of angles
-        if ra == 0.0:
-            binP = [0.0, np.pi/2.0]
-            binP = [0.0, -np.pi/2.0]
-        elif ra > 0.0:
-            if ra == np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0 ]        
-            elif ra < (np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [-((np.pi/2.0)-ra), 0.0]
-            else:
-                binP = [ra - (np.pi/2.0), np.pi]
-                binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
-        else:
-            if ra == -np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0]
-            elif ra > -(np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [ ((-np.pi/2.0)+ra), 0.0]
-            else:
-                binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
-                binM = [-np.pi, ra + (np.pi/2.0)]
-                                
-        test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
-                ((dirFlow > binM[0]) * (dirFlow < binM[1])))
-        floodIndex = np.where(test == True)[0]
-        ebbIndex = np.where(test == False)[0]
-
-        #TR fit with Rose diagram angle convention
-        #pr_axis = pr_axis - 90.0
-        #if pr_axis<0.0:
-        #    pr_axis[ind] = pr_axis[ind] + 360   
+        #ra = (-pr_axis - 90.0) * np.pi /180.0
+        #if ra>np.pi:
+        #    ra = ra - (2.0*np.pi)
+        #elif ra<-np.pi:
+        #    ra = ra + (2.0*np.pi)    
+        #dirFlow = np.arctan2(V,U)
+        ##Define bins of angles
+        #if ra == 0.0:
+        #    binP = [0.0, np.pi/2.0]
+        #    binP = [0.0, -np.pi/2.0]
+        #elif ra > 0.0:
+        #    if ra == np.pi:
+        #        binP = [np.pi/2.0 , np.pi]
+        #        binM = [-np.pi, -np.pi/2.0 ]        
+        #    elif ra < (np.pi/2.0):
+        #        binP = [0.0, ra + (np.pi/2.0)]
+        #        binM = [-((np.pi/2.0)-ra), 0.0]
+        #    else:
+        #        binP = [ra - (np.pi/2.0), np.pi]
+        #        binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
+        #else:
+        #    if ra == -np.pi:
+        #        binP = [np.pi/2.0 , np.pi]
+        #        binM = [-np.pi, -np.pi/2.0]
+        #    elif ra > -(np.pi/2.0):
+        #        binP = [0.0, ra + (np.pi/2.0)]
+        #        binM = [ ((-np.pi/2.0)+ra), 0.0]
+        #    else:
+        #        binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
+        #        binM = [-np.pi, ra + (np.pi/2.0)]
+        #                        
+        #test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
+        #        ((dirFlow > binM[0]) * (dirFlow < binM[1])))
+        #floodIndex = np.where(test == True)[0]
+        #ebbIndex = np.where(test == False)[0]
+        ###TR: version 2
+        flood_heading = np.array([-90, 90]) + pr_axis
+        dir_all = np.rad2deg(np.arctan2(V,U))
+        ind = np.where(dir_all<0)
+        dir_all[ind] = dir_all[ind] + 360     
+        # sign speed - eliminating wrap-around
+        dir_PA = dir_all - pr_axis
+        dir_PA[dir_PA < -90] += 360
+        dir_PA[dir_PA > 270] -= 360
+        #general direction of flood passed as input argument
+        floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
+        ebbIndex = np.arange(dir_PA.shape[0])
+        ebbIndex = np.delete(ebbIndex,floodIndex[:])         
+        #TR: quick fix
+        if type(floodIndex).__name__=='tuple':
+            floodIndex = floodIndex[0]
 
         if debug:
             end = time.time()
@@ -195,25 +205,25 @@ class FunctionsAdcp:
 
         return floodIndex, ebbIndex, pr_axis, pr_ax_var
 
-    def exceedance(self, var, debug=False):
+    def exceedance(self, var, graph=True, dump=False, debug=False, **kwargs):
         """
         This function calculate the excedence curve of a var(time).
 
         Inputs:
-        ------
           - var = given quantity, 1 array of n elements
 
-        Keywords:
-        --------
+        Options:
           - graph: True->plots curve; False->does not
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
 
         Outputs:
-        -------
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
-        Notes:
-        -----
+        *Notes*
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -240,31 +250,36 @@ class FunctionsAdcp:
                     Exceedance[i] = Exceedance[i] + (time[j+1] - time[j])
 
         Exceedance = (Exceedance * 100) / Period
+        #Plot
+        if graph:
+            error=np.ones(Exceedance.shape) * np.std(var)/2.0
+            self._plot.plot_xy(Exceedance, Ranges, yerror=error,
+                               yLabel='Amplitudes',
+                               xLabel='Exceedance probability in %', dump=dump, **kwargs)
 
         if debug:
             print '...Passed'
-       
-        #Plot
-        self._plot.plot_xy(Exceedance, Ranges, yLabel='Amplitudes',
-                           xLabel='Exceedance probability in %')
 
         return Exceedance, Ranges
 
-    def speed_histogram(self, t_start=[], t_end=[], time_ind=[], debug=False):
+    def speed_histogram(self, t_start=[], t_end=[], time_ind=[],
+                        debug=False, dump=False, **kwargs):
         """
         This function plots the histogram of occurrences for the signed
         flow speed.
 
-        Keywords:
-        --------
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
-          - time_ind = time indices to work in, 1D array of integers 
+          - time_ind = time indices to work in, 1D array of integers
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
         
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -286,8 +301,9 @@ class FunctionsAdcp:
 
         #plot histogram
         self._plot.Histogram(norm,
+                             title='Flow speed histogram',
                              xLabel='Signed flow speed (m/s)',
-                             yLabel='Occurrences (%)')
+                             yLabel='Occurrences (%)', dump=dump, **kwargs)
    
         if debug:
             end = time.time()
@@ -297,30 +313,25 @@ class FunctionsAdcp:
     def Harmonic_analysis(self,
                           time_ind=[], t_start=[], t_end=[],
                           elevation=True, velocity=False,
-                          debug=False, **kwarg):
+                          debug=False, **kwargs):
         '''
-        Description:
-        -----------
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Outputs:
-        -------
           - harmo = harmonic coefficients, dictionary
 
-        Keywords:
-        --------
+        Options:
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                      or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
-          - elevation=True means that ut_solv will be done for elevation.
-          - velocity=True means that ut_solv will be done for velocity.
+          - elevation=True means that `solve' will be done for elevation.
+          - velocity=True means that `solve' will be done for velocity.
 
         Options:
-        -------
-        Options are the same as for ut_solv, which are shown below with
+        Options are the same as for 'solve', which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
             nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
@@ -328,9 +339,8 @@ class FunctionsAdcp:
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
 
-        Notes:
-        -----
-        For more detailed information about ut_solv, please see
+        *Notes*
+        For more detailed information about 'solve', please see
         https://github.com/wesleybowman/UTide
 
         '''
@@ -341,11 +351,14 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end,
-                                        self._var.matlabTime,
-                                        debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
+
+        if velocity == elevation:
+            raise PyseidonError("---Can only process either velocities or elevation---")
         
         if velocity:
             time = self._var.matlabTime[:]
@@ -358,7 +371,7 @@ class FunctionsAdcp:
                 v = v[argtime[:]]
 
             lat = self._var.lat
-            harmo = ut_solv(time, u, v, lat, **kwarg)
+            harmo = solve(time, u, v, lat, **kwargs)
 
         if elevation:
             time = self._var.matlabTime[:]
@@ -369,77 +382,64 @@ class FunctionsAdcp:
                 el = el[argtime[:]]
 
             lat = self._var.lat
-            harmo = ut_solv(time, el, [], lat, **kwarg)
+            harmo = solve(time, el, None, lat, **kwargs)
             #Write meta-data only if computed over all the elements
 
-            return harmo
+        return harmo
 
-    def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
-                                time_ind=slice(None), debug=False, **kwarg):
-        '''
-        Description:
-        ----------
+    def Harmonic_reconstruction(self, harmo, time_ind=slice(None), debug=False, **kwargs):
+        """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
-        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
-        (ut_solv) has already been executed.
+        Harmonic_reconstruction calls 'reconstruct'. This function assumes harmonics
+        ('solve') has already been executed.
 
         Inputs:
-        ------
           - Harmo = harmonic coefficient from harmo_analysis
-          - elevation =True means that ut_reconstr will be done for elevation.
-          - velocity =True means that ut_reconst will be done for velocity.
+          - elevation =True means that 'reconstruct' will be done for elevation.
+          - velocity =True means that 'reconstruct' will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
-        ------         
           - Reconstruct = reconstructed signal, dictionary
 
-        Options:
-        -------
-        Options are the same as for ut_reconstr, which are shown below with
+        Utide's options:
+        Options are the same as for 'reconstruct', which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
-        Notes:
-        -----
-        For more detailed information about ut_reconstr, please see
+        *Notes*
+        For more detailed information about 'reconstruct', please see
         https://github.com/wesleybowman/UTide
-
-        '''
+        """
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
         #TR_comments: Add debug flag in Utide: debug=self._debug
-        Reconstruct = {}
-        if velocity:
-            U_recon, V_recon = ut_reconstr(time,harmo)
-            Reconstruct['U'] = U_recon
-            Reconstruct['V'] = V_recon
-        if elevation:
-            elev_recon, _ = ut_reconstr(time,harmo)
-            Reconstruct['el'] = elev_recon
+        Reconstruct = reconstruct(time,harmo)
+
         return Reconstruct  
 
     def verti_shear(self, t_start=[], t_end=[],  time_ind=[],
-                    graph=True, debug=False):
+                    graph=True, dump=False, debug=False, **kwargs):
         """
         Compute vertical shear
 
         Outputs:
-        -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
-        Keywords:
-        --------
+        Utide's options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - graph = plots graph if True
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
 
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -452,7 +452,9 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end) 
 
@@ -463,14 +465,16 @@ class FunctionsAdcp:
         if not argtime==[]:
             U = self._var.east_vel[argtime,:]
             V = self._var.north_vel[argtime,:]
+            depths = depth[argtime,:]
         else:
             U = self._var.east_vel[:,:]
             V = self._var.north_vel[:,:]
+            depths = depth[:,:]
 
-        norm = ne.evaluate('sqrt(U**2 + V**2)')     
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         # Compute shear
-        dz = depth[1:] - depth[:-1]
+        dz = depths[:,1:] - depths[:,:-1]
         dvel = norm[:,1:] - norm[:,:-1]           
         dveldz = dvel / dz
 
@@ -479,36 +483,38 @@ class FunctionsAdcp:
 
         #Plot mean values
         if graph:
-            mean_depth = (depth[1:] + depth[:-1]) / 2.0
+            mean_depth = np.mean((depths[:,1:] + depths[:,:-1]) / 2.0, axis=0)
             mdat = np.ma.masked_array(dveldz,np.isnan(dveldz))
             mean_dveldz = np.mean(mdat,0)
             error = np.std(mdat,axis=0)
             self._plot.plot_xy(mean_dveldz, mean_depth, xerror=error[:],
                                title='Shear profile ',
-                               xLabel='Shear (1/s) ', yLabel='Depth (m) ')
+                               xLabel='Shear (1/s) ', yLabel='Depth (m) ',
+                               dump=dump, **kwargs)
 
         return dveldz             
 
     def velo_norm(self, t_start=[], t_end=[], time_ind=[],
-                  graph=True, debug=False):
+                  graph=True, dump=False, debug=False, **kwargs):
         """
         Compute the velocity norm
 
         Outputs:
-        -------
           - velo_norm = velocity norm, 2D array (time, level)
 
-        Keywords:
-        --------
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - graph = plots vertical profile averaged over time if True
+          - dump = boolean, dump profile data in csv file
+          - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
+                     sep, header, na_rep, index,...etc
+                     Check doc. of "to_csv" for complete list of options
 
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -521,19 +527,21 @@ class FunctionsAdcp:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Computing velocity norm
         if not argtime==[]:          
             U = self._var.east_vel[argtime, :]
             V = self._var.north_vel[argtime, :]
-            velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+            velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         else:            
             U = self._var.east_vel[:, :]
             V = self._var.north_vel[:, :]
-            velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+            velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         if debug:
             print '...passed'
@@ -544,26 +552,24 @@ class FunctionsAdcp:
             mdat = np.ma.masked_array(velo_norm,np.isnan(velo_norm))
             vel = np.mean(mdat,0)
             error = np.std(mdat,axis=0)
-            self._plot.plot_xy(vel, depth, xerror=error[:],
+            self._plot.plot_xy(vel, depth.mean(axis=0), xerror=error[:],
                                title='Velocity norm profile ',
-                               xLabel='Velocity (m/s) ', yLabel='Depth (m) ')
+                               xLabel='Velocity (m/s) ', yLabel='Depth (m) ',
+                               dump=dump, **kwargs)
       
 
         return velo_norm 
 
     def mattime2datetime(self, mattime, debug=False):
         """
-        Description:
-        ----------
         Output the time (yyyy-mm-dd, hh:mm:ss) corresponding to
         a given matlab time
 
         Inputs:
-        ------
           - mattime = matlab time (floats)
         """  
         time = mattime_to_datetime(mattime, debug=debug)   
-        print time[0]
+        return time
 
 #TR_comments: templates
 #    def whatever(self, debug=False):

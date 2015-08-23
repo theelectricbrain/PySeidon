@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import seaborn
 
 def date2py(matlab_datenum):
+    """
+    Converts matlab's datenum time to datetime time
+    """
     python_datetime = datetime.fromordinal(int(matlab_datenum)) + \
         timedelta(days=matlab_datenum%1) - timedelta(days = 366)
 
@@ -16,10 +19,13 @@ def date2py(matlab_datenum):
 
 
 def py2date(dt):
-   mdn = dt + timedelta(days = 366)
-   frac_seconds = (dt-datetime(dt.year,dt.month,dt.day,0,0,0)).seconds / (24.0 * 60.0 * 60.0)
-   frac_microseconds = dt.microsecond / (24.0 * 60.0 * 60.0 * 1000000.0)
-   return mdn.toordinal() + frac_seconds + frac_microseconds
+    """
+    Converts datetime time to matlab's datenum time
+    """
+    mdn = dt + timedelta(days = 366)
+    frac_seconds = (dt-datetime(dt.year,dt.month,dt.day,0,0,0)).seconds / (24.0 * 60.0 * 60.0)
+    frac_microseconds = dt.microsecond / (24.0 * 60.0 * 60.0 * 1000000.0)
+    return mdn.toordinal() + frac_seconds + frac_microseconds
 
 def calc_ensemble(x, ens, ens_dim, debug=False, debug_plot=False):
     if debug: "calc_ensemble..."
@@ -54,11 +60,11 @@ def calc_ensemble(x, ens, ens_dim, debug=False, debug_plot=False):
 
 
 def rotate_coords(x, y, theta, debug=False, debug_plot=False ):
-    '''
+    """
     Similar to "rotate_to_channelcoords.m" code,
     theta is now the angle
     between the old axis and the new x-axis (CCw is positive)
-    '''
+    """
     if debug: "rotate_coords..."
     xnew = x * np.cos(theta) + y * np.sin(theta)
     ynew = -x * np.sin(theta) + y * np.cos(theta)
@@ -67,20 +73,26 @@ def rotate_coords(x, y, theta, debug=False, debug_plot=False ):
 
     return xnew, ynew
 
-def rotate_to_true(X, Y, theta=-19):
-    '''
-    % X,Y are the X and Y coordinates (could be speeds) relative to magnetic
-    % north -- inputs can be vectors
-    % x,y are the coordinates relative to true north
-    % This function assumes the measured location is Nova Scotia where the
-    % declination angle is -19 degrees.
-    %
-    % Sept 29, 2012: Changed print statement
-    %
-    % Sept 20, 2012: Modified the function to allow for theta to be input.
-    % Default will remain at -19 degrees, but this may not be accurate for all
-    % places in Nova Scotia.
-    '''
+def rotate_to_true(X, Y, theta=-19.0):
+    """
+     X,Y are the X and Y coordinates (could be speeds) relative to magnetic
+     north -- inputs can be vectors
+     x,y are the coordinates relative to true north
+     This function assumes the measured location is Nova Scotia where the
+     declination angle is -19 degrees.
+
+
+    Inputs:
+      - X = longitudes in deg., array or list
+      - Y = latitudes in deg., array or list
+
+    Outputs:
+      - X = true-north longitudes in deg., array or list
+      - Y = true-north latitudes in deg., array or list
+
+    Options:
+      - theta = declination angle in deg., float
+    """
 
     print 'Rotating velocities to be relative to true north (declination = {0})'.format(theta)
 
@@ -93,14 +105,14 @@ def rotate_to_true(X, Y, theta=-19):
 
 
 def get_DirFromN(u,v):
-    '''
-    #This function computes the direction from North with the output in degrees
-    #and measured clockwise from north.
-    #
-    # Inputs:
-    #   u: eastward component
-    #   v: northward component
-    '''
+    """
+    This function computes the direction from North with the output in degrees
+    and measured clockwise from north.
+
+    Inputs:
+      - u = eastward component
+      - v = northward component
+    """
 
     theta = np.arctan2(u,v) * 180 / np.pi
 
@@ -109,6 +121,18 @@ def get_DirFromN(u,v):
     return theta
 
 def sign_speed(u_all, v_all, s_all, dir_all, flood_heading):
+    """
+    Computes the signed speed
+    Inputs:
+      - u_all =  u velocity component time series
+      - v_all =  v velocity component time series
+      - s_all = ???
+      - dir_all =  direction time series
+      - flood_heading = direction of flood
+    Outputs:
+      - s_signed_all = signed speed
+      - PA_all = principal axis
+    """
 
     if type(flood_heading)==int:
         flood_heading += np.array([-90, 90])
@@ -149,6 +173,15 @@ def sign_speed(u_all, v_all, s_all, dir_all, flood_heading):
     return s_signed_all, PA_all
 
 def principal_axis(u, v):
+    """
+    Computes the principal axis angle and its variance.
+    Inputs:
+      - u = u velocity component time series
+      - v = v velocity component time series
+    Outputs:
+      - PA = principal axis angle in deg., float
+      - varxp_PA = principal axis variance
+    """
 
     #create velocity matrix
     U = np.vstack((u,v)).T
@@ -188,6 +221,9 @@ class Struct:
 
 
 def save_FlowFile_BPFormat(fileinfo, adcp, rbr, params, options, debug=False):
+    """
+    Processes and formats raw ADCP data into the BP's format defined by Dalhousie university
+    """
 
     comments = ['data is in Polagye Tools format',
                 'data.east_vel and data.north_vel are relative to true north',
@@ -199,12 +235,12 @@ def save_FlowFile_BPFormat(fileinfo, adcp, rbr, params, options, debug=False):
     datenum = datetime(day1.year,1,1) + timedelta(365)
     datenum = datenum.toordinal()
 
-    yd = adcp['mtime'][:].flatten() - datenum
+    yd = adcp['mtime'][:].ravel() - datenum
     tind = np.where((yd > params['tmin']) & (yd < params['tmax']))[0]
 
     pres = {}
     time = {}
-    time['mtime'] = adcp['mtime'][:].flatten()[tind]
+    time['mtime'] = adcp['mtime'][:].ravel()[tind]
     dt = np.nanmean(np.diff(time['mtime']))
 
     if not rbr:
@@ -255,7 +291,7 @@ def save_FlowFile_BPFormat(fileinfo, adcp, rbr, params, options, debug=False):
     ## zlevels
     data = {}
     z = adcp['config']['ranges'][:] + params['dabADCP']
-    z = z.flatten()
+    z = z.ravel()
     zind = np.where((z > params['zmin']) & (z < params['zmax']))[0]
     data['bins'] = z[zind]
 

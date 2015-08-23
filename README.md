@@ -26,11 +26,11 @@ Hydrodynamic model:
 * This package has been primarily developed and designed for post-processing FVCOM outputs. One can download FVCOM from [here](http://fvcom.smast.umassd.edu/fvcom/) 
 
 Requirements:
-* This package ha been designed for Python 2.7: One can download Python from [here](http://www.python.org/download)
-* It recommended to install Anaconda beforehand: One can download Anaconda from [here](http://continuum.io/downloads#all)
+* This package has been designed for Python 2.7: one can download Python from [here](http://www.python.org/download)
+* It is recommended to install Anaconda beforehand: one can download Anaconda from [here](http://continuum.io/downloads#all)
+* The HDF5 library is also needed for this package to work: one can download the HDF5 library from [here](https://www.hdfgroup.org/HDF5/)
 
 Dependencies:
-
 Althought they should be automatically resolved during the installation, this package relies on the following dependencies:
 * setuptools: One can download setuptools from [here](https://pypi.python.org/pypi/setuptools#installation-instructions)
 * UTide: One can download UTide from [here](https://github.com/wesleybowman/UTide)
@@ -54,15 +54,22 @@ Up-dating:
 Recommendations:
 * The tutorials and package functioning have been designed for use in IPython shell: One can download IPython from [here](http://ipython.org/)
 
+### Documentation ###
+Package's documentation can be found [here](http://grumpynounours.github.io/PySeidon/index.html)
 
 ### Contribution guidelines ###
 * [Tutorial 0: First steps](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_0.ipynb)
 * [Tutorial 1: FVCOM class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_1.ipynb)
+* [Tutorial 2: Station class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_2.ipynb)
+* [Tutorial 3: ADCP class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_3.ipynb)
+* [Tutorial 4: TideGauge class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_4.ipynb)
+* [Tutorial 5: Drifter class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_5.ipynb)
+* [Tutorial 6: Validation class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_6.ipynb)
 
 ### Contacts ###
 * Project Leader: [Richard Karsten](richard.karsten@acadiau.ca)
 * Repository Admin & Software Development Manager: [Thomas Roc](thomas.roc@acadiau.ca)
-* Main Developers: [Wesley Bowman](https://github.com/wesleybowman), [Thomas Roc](thomas.roc@acadiau.ca), [Jonathan Smith](https://github.com/LaVieEnRoux)
+* Main Developers: [Thomas Roc](thomas.roc@acadiau.ca), [Jonathan Smith](https://github.com/LaVieEnRoux), [Wesley Bowman](https://github.com/wesleybowman), [Kody Crowell](https://github.com/TheKingInYellow)
 
 ### Contributors ###
 Dr. Richard Karsten, [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, Robie Hennigar, Dr. Joel Culina, Justine McMillan, Dr. Brian Polagye, [Dr. Kristen Thyng](https://github.com/kthyng)...

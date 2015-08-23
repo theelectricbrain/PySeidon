@@ -2,87 +2,99 @@
 # encoding: utf-8
 
 from __future__ import division
-import numpy as np
-import sys
 import numexpr as ne
-from datetime import datetime
-from datetime import timedelta
+import datetime
 from scipy.interpolate import interp1d
-from interpolation_utils import *
-from miscellaneous import *
-from BP_tools import *
-from shortest_element_path import *
+from pyseidon.utilities.interpolation_utils import *
+from pyseidon.utilities.miscellaneous import *
+from pyseidon.utilities.BP_tools import *
+from pyseidon.utilities.shortest_element_path import *
 import time
-import seaborn
+import matplotlib.pyplot as plt
+from pydap.exceptions import ServerError
 
 #TR comment: This all routine needs to be tested and debugged
 class FunctionsFvcomThreeD:
     """
-    Description:
-    -----------
-    'Utils3D' subset of FVCOM class gathers
-    useful methods and functions for 3D runs
+    **'Utils3D' subset of FVCOM class gathers useful methods and functions for 3D runs**
     """
     def __init__(self, variable, grid, plot, util, History, debug):
         #Inheritance
         self._debug = debug
-        self._var = variable
-        self._grid = grid
         self._plot = plot
-        self._History = History
         self._util = util
         self.interpolation_at_point = self._util.interpolation_at_point
+        self.index_finder = self._util.index_finder
         self.hori_velo_norm = self._util.hori_velo_norm
 
         #Create pointer to FVCOM class
-        variable = self._var
-        grid = self._grid
-        History = self._History
+        setattr(self, '_var', variable)
+        setattr(self, '_grid', grid)
+        setattr(self, '_History', History)
+
+        return
 
     def depth(self, debug=False):
         """
         This method computes new grid variable: 'depth' (m)
         -> FVCOM.Grid.depth
 
-        Notes:
-        -----
+        *Notes*
           - depth convention: 0 = free surface
           - Can take time over the full domain
         """
         debug = debug or self._debug
         if debug:
             start = time.time()
-
-        print "Computing depth..."
-        #Compute depth      
-        size = self._grid.nele
-        size1 = self._grid.ntime
-        size2 = self._grid.nlevel
-        elc = np.zeros((size1, size))
-        hc = np.zeros((size))
-        siglay = np.zeros((size2, size))
+            print "Computing depth..."
 
         try:
-            for ind, value in enumerate(self._grid.trinodes):
-                elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
-                hc[ind] = np.mean(self._grid.h[value])
-                siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
-
-            #zeta = self._var.el[:,:] + self._grid.h[None,:]
+            elc = interpN(self._var.el[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
+            hc = interpN(self._grid.h[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
+            siglay = interpN(self._grid.siglay[:], self._grid.trinodes[:], self._grid.aw0[:], debug=debug)
             zeta = elc[:,:] + hc[None,:]
             dep = zeta[:,None,:]*siglay[None,:,:]
+
         except MemoryError:
-            print '---Data too large for machine memory---'
-            print 'Tip: use ax or tx during class initialisation'
-            print '---  to use partial data'
-            raise
+             print '---Data too large for machine memory---'
+             print 'Tip: use ax or tx during class initialisation'
+             print '---  to use partial data'
+             raise
 
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
 
+        # TR: need to find vectorized alternative
+        #Compute depth
+        # size = self._grid.nele
+        # size1 = self._grid.ntime
+        # size2 = self._grid.nlevel
+        #
+        # elc = np.zeros((size1, size))
+        # hc = np.zeros((size)
+        # dep = np.zeros((size1, size2, size))
+        # for ind in range(size):
+        #     d = self.depth_at_point(self._grid.lonc[ind],self._grid.latc[ind],debug=debug)
+        #     dep[:, :, ind] = d[:,:]
+
+        # TR: does not work with netCDF4 lib
+        # elc = np.zeros((size1, size))
+        # hc = np.zeros((size))
+        # siglay = np.zeros((size2, size))
+        #
+        # try:
+        #     for ind, value in enumerate(self._grid.trinodes[:]):
+        #         elc[:, ind] = np.mean(self._var.el[:, value], axis=1)
+        #         hc[ind] = np.mean(self._grid.h[value])
+        #         siglay[:,ind] = np.mean(self._grid.siglay[:,value],1)
+        #
+        #     #zeta = self._var.el[:,:] + self._grid.h[None,:]
+        #     zeta = elc[:,:] + hc[None,:]
+        #     dep = zeta[:,None,:]*siglay[None,:,:]
+
         # Add metadata entry
-        self._grid.depth = dep
+        setattr(self._grid, 'depth', dep)
         self._History.append('depth computed')
         print '-Depth added to FVCOM.Variables.-'
 
@@ -91,21 +103,17 @@ class FunctionsFvcomThreeD:
         This function computes depth at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
-        Keywords:
-        --------
+        Options:
           - index = element index, interger. Use only if closest element
                     index is already known
 
-        Notes:
-        -----
+        *Notes*
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -117,9 +125,7 @@ class FunctionsFvcomThreeD:
 
         #Finding index
         if index==[]:      
-            index = closest_point([pt_lon], [pt_lat],
-                                  self._grid.lonc,
-                                  self._grid.latc, debug=debug)[0]
+            index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         if not hasattr(self._grid, 'depth'):
             #Compute depth
@@ -132,7 +138,7 @@ class FunctionsFvcomThreeD:
             zeta = el + h
             dep = zeta[:,None]*siglay[None,:]
         else:
-            dep = self.interpolation_at_point(self._grid.depth,
+            dep = self.interpolation_at_point(self._grid.depth[:],
                                               pt_lon, pt_lat, index=index,
                                               debug=debug)          
         if debug:
@@ -147,16 +153,13 @@ class FunctionsFvcomThreeD:
         onto a specified depth plan
 
         Inputs:
-        ------
           - var = 3 dimensional (time, sigma level, element) variable, array
           - depth = interpolation depth (float in meters), negative from
                     water column top downwards
-        Keywords:
-        --------
+        Options:
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
 
         Output:
-        ------
           - interpVar = 2 dimensional (time, element) variable, masked array
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
         """
@@ -166,40 +169,101 @@ class FunctionsFvcomThreeD:
         #checking if depth field already calculated
         if not hasattr(self._grid, 'depth'):
             self.depth()
-        dep = self._grid.depth - depth
+        Depth = self._grid.depth[:]#otherwise to slow with netcdf4 lib
+        dep = Depth[:] - depth
         #Finding closest values to specified depth
         if ind==[]:
             if debug: print 'Finding closest indexes to depth...'
-            ind = np.zeros((dep.shape[0],dep.shape[2]))
-            for i in range(dep.shape[0]):
-                for k in range(dep.shape[2]):
-                    test = dep[i,:,k]
-                    if not test[test>0.0].shape==test.shape:
-                        ind[i,k] = test[test>0.0].argmin()
-                    else:
-                        ind[i,k] = np.nan
+            #mask negative value
+            dep = np.ma.masked_where(dep<0.0, dep)
+            #find min argument in masked array
+            ind = dep.argmin(axis=1)
+            ind=ind.astype(float)
+            #set to nan to shallow elements
+            ind[ind==dep.shape[1]-1.0] = np.nan
+
+            #ind = np.zeros((dep.shape[0],dep.shape[2]))
+            #for i in range(dep.shape[0]):
+            #    for k in range(dep.shape[2]):
+            #        test = dep[i,:,k]
+            #        if not test[test>0.0].shape==test.shape:
+            #            ind[i,k] = test[test>0.0].argmin()
+            #        else:
+            #            ind[i,k] = np.nan
                     
         inddown = ind + 1
 
         if debug: print 'Computing weights...'
-        #weight matrix & interp
-        interpVar = np.ones((var.shape[0], var.shape[2]))*np.nan
+        ##weight matrix & interp
+        #interpVar = np.ones((var.shape[0], var.shape[2]))*np.nan
+        #for i in range(ind.shape[0]):
+        #    for j in range(ind.shape[1]):
+        #        iU = ind[i,j]
+        #        iD = inddown[i,j]
+        #        if not np.isnan(iU):
+        #            iU = int(iU)
+        #            iD = int(iD)      
+        #            length = np.abs(self._grid.depth[i,iU,j]\
+        #                          - self._grid.depth[i,iD,j])
+        #            wU = np.abs(depth - self._grid.depth[i,iU,j])/length
+        #            wD = np.abs(depth - self._grid.depth[i,iD,j])/length
+        #            interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
+        #        else:
+        #            interpVar[i,j] = np.nan
+        #if debug: print 'Computing nan mask...'
+        #interpVar = np.ma.masked_array(interpVar,np.isnan(interpVar))
+
+        ##Streamlining
+        I = []; J = []; U = []; D = []
         for i in range(ind.shape[0]):
             for j in range(ind.shape[1]):
                 iU = ind[i,j]
                 iD = inddown[i,j]
-                if not np.isnan(iU):       
-                    length = np.abs(self._grid.depth[i,iU,j]\
-                                  - self._grid.depth[i,iD,j])
-                    wU = np.abs(depth - self._grid.depth[i,iU,j])/length
-                    wD = np.abs(depth - self._grid.depth[i,iD,j])/length
-                    interpVar[i,j] = (wU * var[i,iU,j]) + (wD * var[i,iD,j])
-                else:
-                    interpVar[i,j] = np.nan
+                I.append(i)
+                J.append(j)
+                U.append(iU)
+                D.append(iD)
+        if debug: print 'Convert lists to arrays...'
+        I=np.asarray(I); J=np.asarray(J); U=np.asarray(U); D=np.asarray(D)
+        if debug: print 'Find nan indices...'
+        nanI = np.ones(U.shape)
+        nanU = np.where(np.isnan(U))
+        nanD = np.where(np.isnan(D))
+        nanI[nanU] = np.nan
+        nanI[nanD] = np.nan
+        if debug: print 'convert to integer...'
+        U[nanU] = 0
+        D[nanD] = 0
+        I = I.astype(int)
+        J = J.astype(int)
+        U = U.astype(int)
+        D = D.astype(int)
 
-        if debug: print 'Computing nan mask...'
+        if type(var).__name__=='Variable': #Fix for netcdf4 lib
+            Var = var[:]
+        else:
+            Var = var
+        # dUp = Depth[I,U,J]
+        # varUp = Var[I,U,J]
+        # dDo = Depth[I,D,J]
+        # varDo = Var[I,D,J]
+        # TR: append to speed up caching
+        if debug: print 'Caching...'
+        for i in I:
+            dUp = Depth[i,U,J]
+            varUp = Var[i,U,J]
+            dDo = Depth[i,D,J]
+            varDo = Var[i,D,J]
+        if debug: print 'Compute weights...'
+        lengths = np.abs(dUp - dDo)
+        wU = np.abs(depth - dUp)/lengths
+        wD = np.abs(depth - dDo)/lengths
+        if debug: print 'interpolation...'
+        interpVar = nanI * ((wU * varUp) + (wD * varDo))
+        if debug: print 'reshaping...'
+        interpVar = np.reshape(interpVar, (Var.shape[0], Var.shape[2]))
+        if debug: print 'masking...'        
         interpVar = np.ma.masked_array(interpVar,np.isnan(interpVar))
-
         if debug: print '...Passed'
 
         return interpVar, ind
@@ -209,8 +273,7 @@ class FunctionsFvcomThreeD:
         This method computes a new variable: 'vertical shear' (1/s)
         -> FVCOM.Variables.verti_shear
 
-        Notes:
-        -----
+        *Notes*
           - Can take time over the full doma
         """
         debug = debug or self._debug
@@ -220,12 +283,12 @@ class FunctionsFvcomThreeD:
         #Compute depth if necessary
         if not hasattr(self._grid, 'depth'):        
            depth = self.depth(debug=debug)
-        depth = self._grid.depth
+        depth = self._grid.depth[:]
 
         # Checking if horizontal velocity norm already exists
-        if not hasattr(self._var, 'hori_velo_norm'):
-            self.hori_velo_norm()
-        vel = self._var.hori_velo_norm
+        if not hasattr(self._var, 'velo_norm'):
+            self.velo_norm()
+        vel = self._var.velo_norm[:]
 
         try:
             #Sigma levels to consider
@@ -244,7 +307,7 @@ class FunctionsFvcomThreeD:
             raise
 
         #Custom return
-        self._var.verti_shear = dveldz 
+        setattr(self._var, 'verti_shear', dveldz)
             
         # Add metadata entry
         self._History.append('vertical shear computed')
@@ -254,21 +317,18 @@ class FunctionsFvcomThreeD:
             print '...Passed'
 
     def verti_shear_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[],  time_ind=[],
-                             bot_lvl=[], top_lvl=[], graph=True, debug=False):
+                             bot_lvl=[], top_lvl=[], graph=True, dump=False, debug=False):
         """
         This function computes vertical shear at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
-        Keywords:
-        --------
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
@@ -277,9 +337,9 @@ class FunctionsFvcomThreeD:
           - bot_lvl = index of the bottom level to consider, integer
           - top_lvl = index of the top level to consider, integer
           - graph = plots graph if True
+          - dump = boolean, dump profile data in csv file
 
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -292,14 +352,15 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end) 
 
         # Finding closest point
-        index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
+
         #Compute depth
         depth = self.depth_at_point(pt_lon, pt_lat, index=index, debug=debug)       
 
@@ -312,9 +373,13 @@ class FunctionsFvcomThreeD:
 
 
         # Checking if vertical shear already exists
-        if not hasattr(self._var, 'verti_shear'): 
-            u = self._var.u
-            v = self._var.v
+        if not hasattr(self._var, 'verti_shear'):
+            if type(self._var.u).__name__=='Variable': 
+                u = self._var.u[:]
+                v = self._var.v[:]
+            else:
+                u = self._var.u
+                v = self._var.v
 
             #Extraction at point
             if debug:
@@ -323,16 +388,20 @@ class FunctionsFvcomThreeD:
                                             index=index, debug=debug)  
             V = self.interpolation_at_point(v, pt_lon, pt_lat,
                                             index=index, debug=debug)
-            norm = ne.evaluate('sqrt(U**2 + V**2)')     
+            norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
             # Compute shear
             dz = depth[:,sLvl[1:]] - depth[:,sLvl[:-1]]
             dvel = norm[:,sLvl[1:]] - norm[:,sLvl[:-1]]           
             dveldz = dvel / dz
         else:
-            dveldz = interpolation_at_point(self._var.verti_shear,
-                                            pt_lon, pt_lat,
-                                            index=index, debug=debug)
+            if type(self._var.verti_shear).__name__=='Variable':
+                shear = self._var.verti_shear[:]
+            else:
+                shear = self._var.verti_shear
+            dveldz = self.interpolation_at_point(self._var.verti_shear,
+                                                 pt_lon, pt_lat,
+                                                 index=index, debug=debug)
 
         if debug:
             print '...Passed'
@@ -346,10 +415,11 @@ class FunctionsFvcomThreeD:
             mean_depth = np.mean((depth[:,sLvl[1:]]
                        + depth[:,sLvl[:-1]]) / 2.0, 0)
             mean_dveldz = np.mean(dveldz,0)
-            error = np.std(dveldz,axis=0)
+            error = np.std(dveldz,axis=0)/2.0
             self._plot.plot_xy(mean_dveldz, mean_depth, xerror=error[:],
                                title='Shear profile ',
-                               xLabel='Shear (1/s) ', yLabel='Depth (m) ')
+                               xLabel='Shear (1/s) ', yLabel='Depth (m) ',
+                               dump=dump)
 
         return dveldz             
 
@@ -358,8 +428,7 @@ class FunctionsFvcomThreeD:
         This method computes a new variable: 'velocity norm' (m/s)
         -> FVCOM.Variables.velo_norm
 
-        Notes:
-        -----
+        *Notes*
           -Can take time over the full domain
         """
         if debug or self._debug:
@@ -371,9 +440,10 @@ class FunctionsFvcomThreeD:
                 u = self._var.u[:]
                 v = self._var.v[:]
                 w = self._var.w[:]
-                vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)')
-            except MemoryError:
-                print '---Data too large for machine memory---'
+                vel = ne.evaluate('sqrt(u**2 + v**2 + w**2)').squeeze()
+            except (MemoryError, ServerError) as e:
+                print '---Data too large for machine memory or server---'
+                print 'Tip: Save data on your machine first'
                 print 'Tip: use ax or tx during class initialisation'
                 print '---  to use partial data'
                 raise
@@ -382,15 +452,16 @@ class FunctionsFvcomThreeD:
                 #Computing velocity norm
                 u = self._var.u[:]
                 v = self._var.v[:]
-                vel = ne.evaluate('sqrt(u**2 + v**2)')
-            except MemoryError:
-                print '---Data too large for machine memory---'
+                vel = ne.evaluate('sqrt(u**2 + v**2)').squeeze()
+            except (MemoryError, ServerError) as e:
+                print '---Data too large for machine memory or server---'
+                print 'Tip: Save data on your machine first'
                 print 'Tip: use ax or tx during class initialisation'
                 print '---  to use partial data'
                 raise
 
         #Custom return    
-        self._var.velo_norm = vel 
+        setattr(self._var, 'velo_norm', vel)
        
         # Add metadata entry
         self._History.append('Velocity norm computed')
@@ -400,29 +471,27 @@ class FunctionsFvcomThreeD:
             print '...Passed'
 
     def velo_norm_at_point(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
-                           debug=False):
+                           graph=True, dump=False, debug=False):
         """
         This function computes the velocity norm at any given point.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East, float number
           - pt_lat = latitude in decimal degrees North, float number
 
         Outputs:
-        -------
           - velo_norm = velocity norm, 2D array (time, level)
 
-        Keywords:
-        --------
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
+          - graph = boolean, plots or not veritcal profile
+          - dump = boolean, dump profile data in csv file
 
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -435,29 +504,40 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         try:
-            if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u
-                v = self._var.v
-                w = self._var.w
+            if not hasattr(self._var, 'velo_norm'):
+                if type(self._var.u).__name__=='Variable': #Fix for netcdf4 lib            
+                    u = self._var.u[:]
+                    v = self._var.v[:]
+                    w = self._var.w[:]
+                else:
+                    u = self._var.u
+                    v = self._var.v
+                    w = self._var.w
             else:
                 vel = self._var.velo_norm
         except AttributeError:
-            if not hasattr(self._var, 'velo_norm'):             
-                u = self._var.u
-                v = self._var.v
+            if not hasattr(self._var, 'velo_norm'): 
+                if type(self._var.u).__name__=='Variable': #Fix for netcdf4 lib            
+                    u = self._var.u[:]
+                    v = self._var.v[:]
+                else:
+                    u = self._var.u
+                    v = self._var.v
             else:
-                vel = self._var.velo_norm
-
+                if type(self._var.velo_norm).__name__=='Variable': #Fix for netcdf4 lib:
+                    vel = self._var.velo_norm[:]
+                else:
+                    vel = self._var.velo_norm
 
         # Finding closest point
-        index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         #Computing horizontal velocity norm
         if debug:
@@ -470,9 +550,9 @@ class FunctionsFvcomThreeD:
             if 'w' in locals():
                 W = self.interpolation_at_point(w, pt_lon, pt_lat,
                                                 index=index, debug=debug)
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)').squeeze()
             else:
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         else:
             velo_norm = self.interpolation_at_point(vel, pt_lon, pt_lat,
                                                     index=index, debug=debug)
@@ -481,7 +561,18 @@ class FunctionsFvcomThreeD:
 
         #use only the time indices of interest
         if not argtime==[]:
-            velo_norm = velo_norm[argtime[:],:]  
+            velo_norm = velo_norm[argtime[:],:,:]
+
+        #Plot mean values
+        if graph:
+            depth = self.depth_at_point(pt_lon, pt_lat, index=index)
+            mean_depth = np.mean(depth, 0)
+            mean_vel = np.mean(velo_norm,0)
+            error = np.std(velo_norm,axis=0)/2.0
+            self._plot.plot_xy(mean_vel, mean_depth, xerror=error[:],
+                               title='Flow speed vertical  ',
+                               xLabel='Flow speed (1/s) ', yLabel='Depth (m) ',
+                               dump=dump)
 
         return velo_norm 
 
@@ -493,25 +584,22 @@ class FunctionsFvcomThreeD:
         at any given location.
 
         Inputs:
-        ------
           - pt_lon = longitude in decimal degrees East to find
           - pt_lat = latitude in decimal degrees North to find
 
         Outputs:
-        -------
           - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
           - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
 
-        Keywords:
-        -------
+        Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
           - time_ind = time indices to work in, list of integers
           - vertical = True, compute flowDir for each vertical level
-        Notes:
-        -----
+
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
@@ -521,9 +609,7 @@ class FunctionsFvcomThreeD:
             print 'Computing flow directions at point...'
 
         # Finding closest point
-        index = closest_point([pt_lon], [pt_lat],
-                              self._grid.lonc,
-                              self._grid.latc, debug=debug)[0]
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
 
         # Find time interval to work in
         argtime = []
@@ -531,53 +617,53 @@ class FunctionsFvcomThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
         
-        #Checking if dir_flow already computed
-        if not hasattr(self._var, 'flow_dir'):
-            #Choose the right pair of velocity components
-            if self._var._3D and vertical:
+        #Choose the right pair of velocity components
+        if self._var._3D and vertical:
+            if type(self._var.u).__name__=='Variable': #Fix for netcdf4 lib
+                u = self._var.u[:]
+                v = self._var.v[:]
+            else:
                 u = self._var.u
                 v = self._var.v
+        else:
+            if type(self._var.ua).__name__=='Variable': #Fix for netcdf4 lib:
+                u = self._var.ua[:]
+                v = self._var.va[:]
             else:
                 u = self._var.ua
                 v = self._var.va
 
-            #Extraction at point
-            if debug:
-                print 'Extraction of u and v at point...'
-            U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
-                                                  index=index, debug=debug)  
-            V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
-                                                  index=index, debug=debug)       
+        #Extraction at point
+        if debug:
+            print 'Extraction of u and v at point...'
+        U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
+                                              index=index, debug=debug)  
+        V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
+                                              index=index, debug=debug)       
+        #Compute directions
+        if debug:
+            print 'Computing arctan2...'
+        dirFlow = np.rad2deg(np.arctan2(V,U))
 
-            #Compute directions
-            if debug:
-                print 'Computing arctan2 and norm...'
-            dirFlow = np.rad2deg(np.arctan2(V,U))
-
-        else:
-            dirFlow = self._util.interpolation_at_point(self._var.flow_dir,
-                                                            pt_lon, pt_lat,
-                                                            index=index, debug=debug) 
-         
         if debug: print '...Passed'
         #use only the time indices of interest
         if not argtime==[]:
             dirFlow = dirFlow[argtime[:],:]
-            norm = norm[argtime[:],:] 
 
-        return dirFlow, norm
+        return dirFlow
 
     def flow_dir(self, debug=False):
         """"
         This method computes a new variable: 'flow directions' (deg.)
         -> FVCOM.Variables.flow_dir
 
-        Notes:
-        -----
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - Can take time over the full domain
@@ -586,17 +672,18 @@ class FunctionsFvcomThreeD:
             print 'Computing flow directions...'
 
         try:
-            u = self._var.u
-            v = self._var.v
-            dirFlow = np.rad2deg(np.arctan2(V,U))
-        except MemoryError:
-            print '---Data too large for machine memory---'
+            u = self._var.u[:]
+            v = self._var.v[:]
+            dirFlow = np.rad2deg(np.arctan2(v,u))
+        except (MemoryError, ServerError) as e:
+            print '---Data too large for machine memory or server---'
+            print 'Tip: Save data on your machine'
             print 'Tip: use ax or tx during class initialisation'
             print '---  to use partial data'
             raise
 
         #Custom return    
-        self._var.flow_dir = dirFlow 
+        setattr(self._var, 'flow_dir', dirFlow)
 
         # Add metadata entry
         self._History.append('flow directions computed')
@@ -610,8 +697,7 @@ class FunctionsFvcomThreeD:
         This method creates a new variable: 'depth averaged vorticity' (1/s)
         -> FVCOM.Variables.vorticity
      
-        Notes:
-        -----
+        *Notes*
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -619,16 +705,29 @@ class FunctionsFvcomThreeD:
             print 'Computing vorticity...'
             start = time.time()
 
-        t = arange(self._grid.ntime)  
+        t = np.arange(self._grid.ntime)  
 
         #Surrounding elements
         n1 = self._grid.triele[:,0]
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
-        #TR comment: not quiet sure what this step does
-        n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
-        n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
-        n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+        #No need anymore
+        ##change end bound indices 
+        #test = self._grid.triele.shape[0]
+        #n1[np.where(n1==test)[0]] = 0
+        #n2[np.where(n2==test)[0]] = 0
+        #n3[np.where(n3==test)[0]] = 0
+
+        #TR quick fix: due to error with pydap.proxy.ArrayProxy
+        #              not able to cop with numpy.int
+        N1 = []
+        N2 = []
+        N3 = []
+
+        N1[:] = n1[:]
+        N2[:] = n2[:]
+        N3[:] = n3[:]
+
         if debug:
             end = time.time()
             print "Check element=0, computation time in (s): ", (end - start)
@@ -639,17 +738,26 @@ class FunctionsFvcomThreeD:
         
         dvdx = np.zeros((self._grid.ntime,self._grid.nlevel,self._grid.nele))
         dudy = np.zeros((self._grid.ntime,self._grid.nlevel,self._grid.nele))
+        nele = self._grid.nele
 
         j=0
         for i in t:
-            dvdx[j,:,:] = np.multiply(self._grid.a1u[0,:], self._var.v[i,:,:]) \
-                        + np.multiply(self._grid.a1u[1,:], self._var.v[i,:,n1]) \
-                        + np.multiply(self._grid.a1u[2,:], self._var.v[i,:,n2]) \
-                        + np.multiply(self._grid.a1u[3,:], self._var.v[i,:,n3])
-            dudy[j,:,:] = np.multiply(self._grid.a2u[0,:], self._var.u[i,:,:]) \
-                        + np.multiply(self._grid.a2u[1,:], self._var.u[i,:,n1]) \
-                        + np.multiply(self._grid.a2u[2,:], self._var.u[i,:,n2]) \
-                        + np.multiply(self._grid.a2u[3,:], self._var.u[i,:,n3])
+            dvdx[j,:,:] = np.multiply(self._grid.a1u[0,:].reshape(1,nele),
+                          self._var.v[i,:,:]) \
+                        + np.multiply(self._grid.a1u[1,:].reshape(nele,1),
+                          self._var.v[i,:,N1]).T \
+                        + np.multiply(self._grid.a1u[2,:].reshape(nele,1),
+                          self._var.v[i,:,N2]).T \
+                        + np.multiply(self._grid.a1u[3,:].reshape(nele,1),
+                          self._var.v[i,:,N3]).T
+            dudy[j,:,:] = np.multiply(self._grid.a2u[0,:].reshape(1,nele),
+                          self._var.u[i,:,:]) \
+                        + np.multiply(self._grid.a2u[1,:].reshape(nele,1),
+                          self._var.u[i,:,N1]).T \
+                        + np.multiply(self._grid.a2u[2,:].reshape(nele,1),
+                          self._var.u[i,:,N2]).T \
+                        + np.multiply(self._grid.a2u[3,:].reshape(nele,1),
+                          self._var.u[i,:,N3]).T
             j+=1
         if debug:
             print "loop number ", i
@@ -657,7 +765,7 @@ class FunctionsFvcomThreeD:
         vort = dvdx - dudy
 
         # Add metadata entry
-        self._var.vorticity = vort
+        setattr(self._var, 'vorticity', vort)
         self._History.append('vorticity computed')
         print '-Vorticity added to FVCOM.Variables.-'
 
@@ -670,18 +778,15 @@ class FunctionsFvcomThreeD:
         This function computes the vorticity for a time period.
      
         Outputs:
-        -------
           - vort = horizontal vorticity (1/s), 2D array (time, nele)
 
-        Keywords:
-        -------
+        Options:
           - time_ind = time indices to work in, list of integers
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
                     or time index as an integer
-        Notes:
-        -----
+        *Notes*
           - Can take time over the full domain
         """
         debug = (debug or self._debug)
@@ -695,11 +800,13 @@ class FunctionsFvcomThreeD:
             t = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                t = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                t = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                t = arange(t_start, t_end)
+                t = np.arange(t_start, t_end)
         else:
-            t = arange(self._grid.ntime)  
+            t = np.arange(self._grid.ntime)
 
         #Checking if vorticity already computed
         if not hasattr(self._var, 'vorticity'): 
@@ -707,17 +814,29 @@ class FunctionsFvcomThreeD:
             n1 = self._grid.triele[:,0]
             n2 = self._grid.triele[:,1]
             n3 = self._grid.triele[:,2]
-            #TR comment: not quiet sure what this step does
-            n1[np.where(n1==0)[0]] = self._grid.trinodes.shape[1]
-            n2[np.where(n2==0)[0]] = self._grid.trinodes.shape[1]
-            n3[np.where(n3==0)[0]] = self._grid.trinodes.shape[1]
+            #No need anymore
+            ##change end bound indices 
+            #test = self._grid.triele.shape[0]
+            #n1[np.where(n1==test)[0]] = 0
+            #n2[np.where(n2==test)[0]] = 0
+            #n3[np.where(n3==test)[0]] = 0
+            #TR quick fix: due to error with pydap.proxy.ArrayProxy
+            #              not able to cop with numpy.int
+            N1 = []
+            N2 = []
+            N3 = []
+
+            N1[:] = n1[:]
+            N2[:] = n2[:]
+            N3[:] = n3[:]
+
             if debug:
                 end = time.time()
                 print "Check element=0, computation time in (s): ", (end - start)
                 print "start np.multiply" 
 
-            x0 = self._grid.xc
-            y0 = self._grid.yc
+            x0 = self._grid.xc[:]
+            y0 = self._grid.yc[:]
         
             dvdx = np.zeros((t.shape[0],self._grid.nlevel,self._grid.nele))
             dudy = np.zeros((t.shape[0],self._grid.nlevel,self._grid.nele))
@@ -725,13 +844,13 @@ class FunctionsFvcomThreeD:
             j=0
             for i in t:
                 dvdx[j,:,:] = np.multiply(self._grid.a1u[0,:], self._var.v[i,:,:]) \
-                          + np.multiply(self._grid.a1u[1,:], self._var.v[i,:,n1]) \
-                          + np.multiply(self._grid.a1u[2,:], self._var.v[i,:,n2]) \
-                          + np.multiply(self._grid.a1u[3,:], self._var.v[i,:,n3])
+                          + np.multiply(self._grid.a1u[1,:], self._var.v[i,:,N1]) \
+                          + np.multiply(self._grid.a1u[2,:], self._var.v[i,:,N2]) \
+                          + np.multiply(self._grid.a1u[3,:], self._var.v[i,:,N3])
                 dudy[j,:,:] = np.multiply(self._grid.a2u[0,:], self._var.u[i,:,:]) \
-                          + np.multiply(self._grid.a2u[1,:], self._var.u[i,:,n1]) \
-                          + np.multiply(self._grid.a2u[2,:], self._var.u[i,:,n2]) \
-                          + np.multiply(self._grid.a2u[3,:], self._var.u[i,:,n3])
+                          + np.multiply(self._grid.a2u[1,:], self._var.u[i,:,N1]) \
+                          + np.multiply(self._grid.a2u[2,:], self._var.u[i,:,N2]) \
+                          + np.multiply(self._grid.a2u[3,:], self._var.u[i,:,N3])
                 j+=1
             if debug:
                 print "loop number ", i
@@ -753,8 +872,7 @@ class FunctionsFvcomThreeD:
         The power density (pd) is then calculated as follows:
             pd = 0.5*1025*(u**3)
 
-        Notes:
-        -----
+        *Notes*
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -764,22 +882,22 @@ class FunctionsFvcomThreeD:
         if not hasattr(self._var, 'velo_norm'):
             self.velo_norm(debug=debug)
         if debug: print "Computing power density variable..."
-        #u = self._var.velo_norm
-        #pd = ne.evaluate('0.5*1025.0*(u**3)')
-        pd = 0.5*1025.0*np.power(self._var.velo_norm,3.0)  
+        u = self._var.velo_norm[:]
+        pd = ne.evaluate('0.5*1025.0*(u**3)').squeeze()
+        #pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)  # TR: very slow
+        #pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]
 
         # Add metadata entry
-        self._var.power_density = pd
+        setattr(self._var, 'power_density', pd)
         self._History.append('power density computed')
         print '-Power density to FVCOM.Variables.-' 
 
-    def power_assessment_at_depth(self, power_mat, depth, 
+    def power_assessment_at_depth(self, depth, power_mat, rated_speed, 
                                         cut_in=1.0, cut_out=4.5, debug=False):
         """
         This function computes power assessment (W/m2) at given depth.
 
         Description:
-        -----------
         This function performs tidal turbine power assessment by accounting for
         cut-in and cut-out speed, power curve/function (pc):
             Cp = pc(u)
@@ -789,22 +907,20 @@ class FunctionsFvcomThreeD:
             pd = Cp*(1/2)*1025*(u**3)
 
         Inputs:
-        ------
-          - power_mat = power matrix (u,Ct(u)), 2D array (2,n),
-                        u being power_mat[0,:] and Ct(u) being power_mat[1,:]
           - depth = given depth from the surface, float
+          - power_mat = power matrix (u,Cp(u)), 2D array (2,n),
+                        u being power_mat[0,:] and Ct(u) being power_mat[1,:]
+          - rated_speed = rated speed speed in m/s, float number
+
 
         Output:
-        ------
           - pa = power assessment in (W/m2), 2D masked array (ntime, nele)
 
-        Keywords:
-        --------
+        Options:
           - cut_in = cut-in speed in m/s, float number
           - cut_out = cut-out speed in m/s, float number
 
-        Notes:
-        -----
+        *Notes*
           - This may take some time to compute depending on the size
             of the data set
         """
@@ -817,8 +933,8 @@ class FunctionsFvcomThreeD:
         if debug: print "Initialising power curve..."
         Cp = interp1d(power_mat[0,:],power_mat[1,:])
 
-        u, ind = self.interp_at_depth(self._var.velo_norm, depth, debug=debug)
-        pd, ind2 = self.interp_at_depth(self._var.power_density, depth,
+        u, ind = self.interp_at_depth(self._var.velo_norm[:], depth, debug=debug)
+        pd, ind2 = self.interp_at_depth(self._var.power_density[:], depth,
                                                    ind=ind, debug=debug)
 
         pa = Cp(u)*pd
@@ -828,21 +944,27 @@ class FunctionsFvcomThreeD:
         #ind = np.where(pd<pdin)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = 0.0
-        for i in range(pa.shape[0]):
-            for j in range(pa.shape[1]):
-                if u[i,j] < cut_in:
-                   pa[i,j] = 0.0 
+        #for i in range(pa.shape[0]):
+        #    for j in range(pa.shape[1]):
+        #        if (u[i,j] < cut_in) or (u[i,j] > cut_out):
+        #           pa[i,j] = 0.0
+        
+        inM = np.ma.masked_where(u<cut_in, u).mask
+        outM = np.ma.masked_where(u>cut_out, u).mask
+        ioM = inM * outM * u.mask
+        pa=np.ma.masked_where(ioM, pa)
 
-        if debug: print "finding cut-out..."
-        paout = Cp(cut_out)*0.5*1025.0*(cut_out**3.0)
+        if debug: print "finding rated speed..."
+        parated = Cp(rated_speed)*0.5*1025.0*(rated_speed**3.0)
         #TR comment huge bottleneck here
         #ind = np.where(pd>pdout)[0]
         #if not ind.shape[0]==0:
         #    pd[ind] = pdout
-        for i in range(pa.shape[0]):
-            for j in range(pa.shape[1]):
-                if u[i,j] > cut_out:
-                   pa[i,j] = paout     
+        #for i in range(pa.shape[0]):
+        #    for j in range(pa.shape[1]):
+        #        if u[i,j] > rated_speed:
+        #           pa[i,j] = parated
+        pa[u>rated_speed] = parated     
 
         return pa 
 
@@ -854,13 +976,11 @@ class FunctionsFvcomThreeD:
         start_point, end_pt.
  
         Inputs:
-        ------
           - var = 2D dimensional (sigma level, element) variable, array
           - start_pt = starting point, [longitude, latitude]
           - end_pt = ending point, [longitude, latitude]
 
-        Keywords:
-        --------
+        Options:
           - time_ind = reference time indices for surface elevation, list of integer
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
                       or time index as an integer
@@ -868,7 +988,6 @@ class FunctionsFvcomThreeD:
                     or time index as an integer
 
         Keywords for plot:
-        -----------------
           - title = plot title, string
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
@@ -881,8 +1000,10 @@ class FunctionsFvcomThreeD:
             lons = [start_pt[0], end_pt[0]]
             lats = [start_pt[1], end_pt[1]]
             #Finding the closest elements to start and end points
-            ind = closest_point(lons, lats, self._grid.lonc, self._grid.latc, debug)
-
+            index = closest_points(lons, lats,
+                              self._grid.lonc,
+                              self._grid.latc, debug=debug)
+    
             #Finding the shortest path between start and end points
             if debug : print "Computing shortest path..."
             short_path = shortest_element_path(self._grid.lonc[:],
@@ -891,7 +1012,7 @@ class FunctionsFvcomThreeD:
                                                self._grid.lat[:],
                                                self._grid.trinodes[:],
                                                self._grid.h[:], debug=debug)
-            el, _ = short_path.getTargets([ind])           
+            el, _ = short_path.getTargets([index])
             # Plot shortest path
             short_path.graphGrid(plot=True)
 
@@ -901,10 +1022,11 @@ class FunctionsFvcomThreeD:
                 argtime = time_ind
             elif not t_start==[]:
                 if type(t_start)==str:
-                    argtime = time_to_index(t_start, t_end,
-                                            self._var.matlabTime, debug=debug)
+                    start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                    end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                    argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
                 else:
-                    argtime = arange(t_start, t_end)
+                    argtime = np.arange(t_start, t_end)
  
             #Extract along line
             ele=np.asarray(el[:])[0,:]
@@ -953,14 +1075,14 @@ class FunctionsFvcomThreeD:
             #plt.clf()
             fig = plt.figure(figsize=(18,10))
             plt.rc('font',size='22')
-            fig.add_subplot(111) #,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
+            ax = fig.add_subplot(111) #,aspect=(1.0/np.cos(np.mean(lat)*np.pi/180.0)))
             #levels = np.linspace(0,3.3,34)
             #cs = ax.contourf(line,depth,varP,levels=levels, cmap=plt.cm.jet)
-            cs = plt.contourf(line,depth,varP,levels=levels, vmax=cmax,vmin=cmin,
+            cs = ax.contourf(line,depth,varP,levels=levels, vmax=cmax,vmin=cmin,
                               cmap=plt.get_cmap('jet'))
             cbar = fig.colorbar(cs)
             #cbar.set_label(title, rotation=-90,labelpad=30)
-            plt.contour(line,depth,varP,cs.levels) #, linewidths=0.5,colors='k')
+            ax.contour(line,depth,varP,cs.levels) #, linewidths=0.5,colors='k')
             #ax.set_title()
             plt.title(title)
             #scale = 1

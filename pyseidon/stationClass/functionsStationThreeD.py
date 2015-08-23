@@ -2,34 +2,29 @@
 # encoding: utf-8
 
 from __future__ import division
+
 import numpy as np
-import sys
 import numexpr as ne
-from datetime import datetime
-from datetime import timedelta
-from miscellaneous import *
-from BP_tools import *
+from pyseidon.utilities.miscellaneous import *
+from pyseidon.utilities.BP_tools import *
 import time
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 class FunctionsStationThreeD:
     """
-    Description:
-    -----------
-    'Utils3D' subset of Station class gathers
-    useful functions for 3D runs
+    **'Utils3D' subset of Station class gathers useful functions for 3D runs**
     """
     def __init__(self, variable, grid, plot, History, debug):
         #Inheritance
         self._debug = debug
-        self._var = variable
-        self._grid = grid
         self._plot = plot
-        self._History = History
 
         #Create pointer to FVCOM class
-        variable = self._var
-        grid = self._grid
-        History = self._History
+        setattr(self, '_var', variable)
+        setattr(self, '_grid', grid)
+        setattr(self, '_History', History)
 
     def search_index(self, station):
         """Search for the station index"""
@@ -38,14 +33,12 @@ class FunctionsStationThreeD:
         elif type(station).__name__ in ['str', 'ndarray']:
             station = "".join(station).strip().upper()
             for i in range(self._grid.nele):
-                if station=="".join(self._grid.name[1,:]).strip().upper():
+                if station=="".join(self._grid.name[i]).strip().upper():
                    index=i
         else:
-            print "---Wrong station input---"
-            sys.exit() 
+            raise PyseidonError("---Wrong station input---")
         if not 'index' in locals():
-            print "---Wrong station input---"
-            sys.exit()
+            raise PyseidonError("---Wrong station input---")
 
         return index
 
@@ -54,15 +47,12 @@ class FunctionsStationThreeD:
         Compute depth at given point
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
         Notes:
-        -----
           - depth convention: 0 = free surface
           - index is used in case one knows already at which
             element depth is requested
@@ -80,13 +70,13 @@ class FunctionsStationThreeD:
         el = self._var.el[:,index]
         zeta = el + h
         siglay = self._grid.siglay[:,index]
-        dep = zeta[:,None]*siglay[None,:]
+        dep = zeta[:, np.newaxis]*siglay[np.newaxis, :]
      
         if debug:
             end = time.time()
             print "Computation time in (s): ", (end - start)
 
-        return dep
+        return np.squeeze(dep)
 
     def verti_shear(self, station, t_start=[], t_end=[],  time_ind=[],
                     bot_lvl=[], top_lvl=[], graph=True, debug=False):
@@ -94,26 +84,20 @@ class FunctionsStationThreeD:
         Compute vertical shear at any given location
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - dveldz = vertical shear (1/s), 2D array (time, nlevel - 1)
 
-        Keywords:
-        --------
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - bot_lvl = index of the bottom level to consider, integer
           - top_lvl = index of the top level to consider, integer
           - graph = plots graph if True
 
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -126,7 +110,9 @@ class FunctionsStationThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
                 argtime = np.arange(t_start, t_end) 
 
@@ -156,7 +142,7 @@ class FunctionsStationThreeD:
             U = self._var.u[:,:,index]
             V = self._var.v[:,:,index]
 
-        norm = ne.evaluate('sqrt(U**2 + V**2)')     
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         # Compute shear
         dz = depth[:,sLvl[1:]] - depth[:,sLvl[:-1]]
@@ -176,7 +162,7 @@ class FunctionsStationThreeD:
                                title='Shear profile ',
                                xLabel='Shear (1/s) ', yLabel='Depth (m) ')
 
-        return dveldz             
+        return np.squeeze(dveldz)
 
     def velo_norm(self, station, t_start=[], t_end=[], time_ind=[],
                   graph=True, debug=False):
@@ -184,24 +170,18 @@ class FunctionsStationThreeD:
         Compute the velocity norm at any given location
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - velo_norm = velocity norm, 2D array (time, level)
 
-        Keywords:
-        --------
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - graph = plots vertical profile averaged over time if True
 
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -214,9 +194,11 @@ class FunctionsStationThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Search for the station
         index = self.search_index(station)
@@ -227,36 +209,36 @@ class FunctionsStationThreeD:
                 U = self._var.u[argtime, :, index]
                 V = self._var.v[argtime, :, index]
                 W = self._var.w[argtime, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)').squeeze()
             else:            
                 U = self._var.u[:, :, index]
                 V = self._var.v[:, :, index]
                 W = self._var.w[:, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2 + W**2)').squeeze()
         except AttributeError:
             if not argtime==[]:          
                 U = self._var.u[argtime, :, index]
                 V = self._var.v[argtime, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
             else:            
                 U = self._var.u[:, :, index]
                 V = self._var.v[:, :, index]
-                velo_norm = ne.evaluate('sqrt(U**2 + V**2)')
+                velo_norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
 
         if debug:
             print '...passed'
 
         #Plot mean values
         if graph:
-            depth = np.mean(self.depth(station),0)
-            vel = np.mean(velo_norm,0)
+            depth = np.mean(self.depth(station),axis=0)
+            vel = np.mean(velo_norm,axis=0)
             error = np.std(velo_norm,axis=0)
             self._plot.plot_xy(vel, depth, xerror=error[:],
                                title='Velocity norm profile ',
                                xLabel='Velocity (m/s) ', yLabel='Depth (m) ')
       
 
-        return velo_norm 
+        return velo_norm
 
     def flow_dir(self, station, t_start=[], t_end=[], time_ind=[], 
                           vertical=True, debug=False):
@@ -264,24 +246,18 @@ class FunctionsStationThreeD:
         Compute flow directions and associated norm at any given location.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)
-          - norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)
 
-        Keywords:
-        -------
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - vertical = True, compute flowDir for each vertical level
-        Notes:
-        -----
+
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
           - use time_ind or t_start and t_end, not both
@@ -299,9 +275,11 @@ class FunctionsStationThreeD:
             argtime = time_ind
         elif not t_start==[]:
             if type(t_start)==str:
-                argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
+                start = datetime.datetime.strptime(t_start, '%Y-%m-%d %H:%M:%S')
+                end = datetime.datetime.strptime(t_end, '%Y-%m-%d %H:%M:%S')
+                argtime = time_to_index(start, end, self._var.julianTime[:], debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
         
         #Choose the right pair of velocity components
         if not argtime==[]:
@@ -314,13 +292,12 @@ class FunctionsStationThreeD:
 
         #Compute directions
         if debug: print 'Computing arctan2 and norm...'
-        dirFlow = np.rad2deg(np.arctan2(V,U))
+        dirFlow = np.rad2deg(np.arctan2(v,u))
        
         if debug:
                 print '...Passed'
 
-        return dirFlow, norm
-
+        return np.squeeze(dirFlow)
 
 #TR_comments: templates
 #    def whatever(self, debug=False):

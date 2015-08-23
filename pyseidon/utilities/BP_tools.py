@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+from math import atan2
 #from rawADCPclass import rawADCP
 from datetime import datetime
 from datetime import timedelta
@@ -96,7 +97,8 @@ def get_DirFromN(u,v):
     #   v: northward component
     '''
 
-    theta = np.arctan2(u,v) * 180 / np.pi
+    #theta = np.arctan2(u,v) * 180 / np.pi
+    theta = atan2(u,v) * 180 / np.pi
 
     ind = np.where(theta<0)
     theta[ind] = theta[ind] + 360
@@ -160,6 +162,9 @@ def principal_axis(u, v):
     R = np.dot(U.T, U) / (len(U) - 1)
 
     #calculate eigenvalues and eigenvectors for covariance matrix
+    R[np.where(np.isnan(R))] = 0.0
+    R[np.where(np.isinf(R))] = 0.0
+    R[np.where(np.isneginf(R))] = 0.0
     lamb, V = np.linalg.eig(R)
     #sort eignvalues in descending order so that major axis is given by first eigenvector
     # sort in descending order with indices
@@ -171,9 +176,12 @@ def principal_axis(u, v):
     V = V[:, ilamb]
 
     #rotation angle of major axis in radians relative to cartesian coordiantes
-    ra = np.arctan2(V[0,1], V[1,1])
+    #ra = np.arctan2(V[0,1], V[1,1])
+    ra = atan2(V[0,1], V[1,1])
     #express principal axis in compass coordinates
-    PA = -ra * 180 / np.pi + 90
+    #PA = -ra * 180 / np.pi + 90
+    #TR: still not sure here
+    PA = -ra * 180 / np.pi    
     #variance captured by principal
     varxp_PA = np.diag(lamb[0]) / np.trace(lamb)
 
@@ -192,11 +200,11 @@ def save_FlowFile_BPFormat(fileinfo, adcp, rbr, params, options):
     datenum = datetime(day1.year,1,1) + timedelta(365)
     datenum = datenum.toordinal()
 
-    yd = adcp.mtime[:].flatten() - datenum
+    yd = adcp.mtime[:].ravel() - datenum
     tind = np.where((yd > params.tmin) & (yd < params.tmax))[0]
 
     time = {}
-    time['mtime'] = adcp.mtime[:].flatten()[tind]
+    time['mtime'] = adcp.mtime[:].ravel()[tind]
     dt = np.nanmean(np.diff(time['mtime']))
 
     if not rbr:
@@ -237,13 +245,13 @@ if __name__ == '__main__':
     #date_time = [date2py(tval[0]) for tval in adcp.mtime[:]]
     datenum = datetime(day1.year,1,1) + timedelta(365)
     datenum = datenum.toordinal()
-    #yd = adcp.mtime[:].flatten() - datenum
-    yd = adcp['mtime'][:].flatten() - datenum
+    #yd = adcp.mtime[:].ravel() - datenum
+    yd = adcp['mtime'][:].ravel() - datenum
     #tind = np.where((yd > params.tmin) & (yd < params.tmax))[0]
     tind = np.where((yd > params['tmin']) & (yd < params['tmax']))[0]
 
     time = {}
-    time['mtime'] = adcp['mtime'][:].flatten()[tind]
+    time['mtime'] = adcp['mtime'][:].ravel()[tind]
     dt = np.nanmean(np.diff(time['mtime']))
     pres = {}
 
@@ -311,7 +319,7 @@ if __name__ == '__main__':
     ## zlevels
     data = {}
     z = adcp['config']['ranges'][:] + params['dabADCP']
-    z = z.flatten()
+    z = z.ravel()
     zind = np.where((z > params['zmin']) & (z < params['zmax']))[0]
     data['bins'] = z[zind]
 

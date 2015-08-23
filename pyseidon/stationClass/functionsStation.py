@@ -3,33 +3,27 @@
 
 from __future__ import division
 import numpy as np
-from scipy import linalg as LA
 import sys
 import numexpr as ne
-from datetime import datetime
-from datetime import timedelta
-from miscellaneous import *
-from BP_tools import *
-from utide import ut_solv, ut_reconstr
+from pyseidon.utilities.miscellaneous import *
+from pyseidon.utilities.BP_tools import *
+from utide import solve, reconstruct
 import time
+
+# Custom error
+from pyseidon_error import PyseidonError
 
 class FunctionsStation:
     """
-    Description:
-    -----------
-    'Util2D' subset of Station class gathers
-    useful functions for 2D and 3D runs
+    **'Util2D' subset of Station class gathers useful functions for 2D and 3D runs**
     """
     def __init__(self, variable, grid, plot, History, debug):
         self._debug = debug
-        self._var = variable
-        self._grid = grid
         self._plot = plot
-        self._History = History
-        #Create pointer to FVCOM class
-        variable = self._var
-        grid = self._grid
-        History = self._History
+        #Create pointer to Station class
+        setattr(self, '_var', variable)
+        setattr(self, '_grid', grid)
+        setattr(self, '_History', History)
 
     def search_index(self, station):
         """Search for the station index"""
@@ -38,14 +32,12 @@ class FunctionsStation:
         elif type(station).__name__ in ['str', 'ndarray']:
             station = "".join(station).strip().upper()
             for i in range(self._grid.nele):
-                if station=="".join(self._grid.name[1,:]).strip().upper():
+                if station=="".join(self._grid.name[i]).strip().upper():
                    index=i
         else:
-            print "---Wrong station input---"
-            sys.exit() 
+            raise PyseidonError("---Wrong station input---")
         if not 'index' in locals():
-            print "---Wrong station input---"
-            sys.exit()
+            raise PyseidonError("---Wrong station input---")
 
         return index
 
@@ -55,25 +47,19 @@ class FunctionsStation:
         Flow directions and associated norm at any give location.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
            - flowDir = flowDir at station, 1D array
            - norm = velocity norm at station, 1D array
 
-        Keywords:
-        --------
-          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - time_ind = time indices to work in, list of integers
           - excedance = True, compute associated exceedance curve
 
-        Notes:
-        -----
+        *Notes*
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
         """
@@ -89,7 +75,7 @@ class FunctionsStation:
             if type(t_start)==str:
                 argtime = time_to_index(t_start, t_end, self._var.matlabTime, debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Search for the station
         index = self.search_index(station)
@@ -108,7 +94,7 @@ class FunctionsStation:
         dirFlow = np.rad2deg(np.arctan2(V,U))
 
         #Compute velocity norm
-        norm = ne.evaluate('sqrt(U**2 + V**2)')
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
         if debug:
             print '...Passed'
         #Rose diagram
@@ -125,26 +111,20 @@ class FunctionsStation:
         principal flow directions and associated variances for (lon, lat) point
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - floodIndex = flood time index, 1D array of integers
           - ebbIndex = ebb time index, 1D array of integers
           - pr_axis = principal flow ax1s, float number in degrees
           - pr_ax_var = associated variance, float number
 
-        Keywords:
-        --------
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
-          - time_ind = time indices to work in, 1D array of integers 
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - time_ind = time indices to work in, list of integers
         
-        Notes:
-        -----
+        *Notes*
           - may take time to compute if time period too long
           - directions between -180 and 180 deg., i.e. 0=East, 90=North,
             +/-180=West, -90=South
@@ -166,7 +146,7 @@ class FunctionsStation:
                                         self._var.matlabTime,
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
 
         #Search for the station
         index = self.search_index(station)
@@ -180,54 +160,64 @@ class FunctionsStation:
             V = self._var.va[:,index]
 
         #WB version of BP's principal axis
-        if debug:
-            print 'Computin principal axis at point...'
+        if debug: print 'Computin principal axis at point...'
         pr_axis, pr_ax_var = principal_axis(U, V)
 
         #ebb/flood split
-        if debug:
-            print 'Splitting ebb and flood at point...'
-        # reverse 0-360 deg convention
-        ra = (-pr_axis - 90.0) * np.pi /180.0
-        if ra>np.pi:
-            ra = ra - (2.0*np.pi)
-        elif ra<-np.pi:
-            ra = ra + (2.0*np.pi)    
-        dirFlow = np.arctan2(V,U)
-        #Define bins of angles
-        if ra == 0.0:
-            binP = [0.0, np.pi/2.0]
-            binP = [0.0, -np.pi/2.0]
-        elif ra > 0.0:
-            if ra == np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0 ]        
-            elif ra < (np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [-((np.pi/2.0)-ra), 0.0]
-            else:
-                binP = [ra - (np.pi/2.0), np.pi]
-                binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
-        else:
-            if ra == -np.pi:
-                binP = [np.pi/2.0 , np.pi]
-                binM = [-np.pi, -np.pi/2.0]
-            elif ra > -(np.pi/2.0):
-                binP = [0.0, ra + (np.pi/2.0)]
-                binM = [ ((-np.pi/2.0)+ra), 0.0]
-            else:
-                binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
-                binM = [-np.pi, ra + (np.pi/2.0)]
-                                
-        test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
-                ((dirFlow > binM[0]) * (dirFlow < binM[1])))
-        floodIndex = np.where(test == True)[0]
-        ebbIndex = np.where(test == False)[0]
+        if debug: print 'Splitting ebb and flood at point...'
+        ###TR: version 1
+        ## reverse 0-360 deg convention
+        #ra = (-pr_axis - 90.0) * np.pi /180.0
+        #if ra>np.pi:
+        #    ra = ra - (2.0*np.pi)
+        #elif ra<-np.pi:
+        #    ra = ra + (2.0*np.pi)    
+        #dirFlow = np.arctan2(V,U)
+        ##Define bins of angles
+        #if ra == 0.0:
+        #    binP = [0.0, np.pi/2.0]
+        #    binP = [0.0, -np.pi/2.0]
+        #elif ra > 0.0:
+        #    if ra == np.pi:
+        #        binP = [np.pi/2.0 , np.pi]
+        #        binM = [-np.pi, -np.pi/2.0 ]        
+        #    elif ra < (np.pi/2.0):
+        #        binP = [0.0, ra + (np.pi/2.0)]
+        #        binM = [-((np.pi/2.0)-ra), 0.0]
+        #    else:
+        #        binP = [ra - (np.pi/2.0), np.pi]
+        #        binM = [-np.pi, -np.pi + (ra-(np.pi/2.0))]
+        #else:
+        #    if ra == -np.pi:
+        #        binP = [np.pi/2.0 , np.pi]
+        #        binM = [-np.pi, -np.pi/2.0]
+        #    elif ra > -(np.pi/2.0):
+        #        binP = [0.0, ra + (np.pi/2.0)]
+        #        binM = [ ((-np.pi/2.0)+ra), 0.0]
+        #    else:
+        #        binP = [np.pi - (ra+(np.pi/2.0)) , np.pi]
+        #        binM = [-np.pi, ra + (np.pi/2.0)]
+        #                        
+        #test = (((dirFlow > binP[0]) * (dirFlow < binP[1])) +
+        #        ((dirFlow > binM[0]) * (dirFlow < binM[1])))
+        #floodIndex = np.where(test == True)[0]
+        #ebbIndex = np.where(test == False)[0]
 
-        #TR fit with Rose diagram angle convention
-        #pr_axis = pr_axis - 90.0
-        #if pr_axis<0.0:
-        #    pr_axis[ind] = pr_axis[ind] + 360   
+        #Defines interval
+        flood_heading = np.array([-90, 90]) + pr_axis
+        dir_all = np.rad2deg(np.arctan2(V,U))
+        ind = np.where(dir_all<0)
+        dir_all[ind] = dir_all[ind] + 360     
+
+        # sign speed - eliminating wrap-around
+        dir_PA = dir_all - pr_axis
+        dir_PA[dir_PA < -90] += 360
+        dir_PA[dir_PA > 270] -= 360
+
+        #general direction of flood passed as input argument
+        floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
+        ebbIndex = np.arange(dir_PA.shape[0])
+        ebbIndex = np.delete(ebbIndex,floodIndex[:]) 
 
         if debug:
             end = time.time()
@@ -240,22 +230,18 @@ class FunctionsStation:
         This function calculate the excedence curve of a var(time).
 
         Inputs:
-        ------
           - var = given quantity, 1 or 2D array of n elements, i.e (time) or (time,ele)
 
-        Keywords:
-        --------
+        Options:
           - station = either station index (interger) or name (string)
                       Necessary if var = 2D (i.e. [time, nnode or nele]
           - graph: True->plots curve; False->does not
 
         Outputs:
-        -------
           - Exceedance = list of % of occurences, 1D array
           - Ranges = list of signal amplitude bins, 1D array
 
-        Notes:
-        -----
+        *Notes*
           - This method is not suitable for SSE
         """
         debug = (debug or self._debug)
@@ -308,15 +294,12 @@ class FunctionsStation:
         Compute depth at given point
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - dep = depth, 2D array (ntime, nlevel)
 
-        Notes:
-        -----
+        *Notes*
           - depth convention: 0 = free surface
         """
         debug = debug or self._debug
@@ -344,19 +327,14 @@ class FunctionsStation:
         flow speed at any given point.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
-        Keywords:
-        --------
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                      or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
-          - time_ind = time indices to work in, 1D array of integers 
+        Options:
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - time_ind = time indices to work in, list of integers
         
-        Notes:
-        -----
+        *Notes*
           - use time_ind or t_start and t_end, not both
         """
         debug = debug or self._debug
@@ -392,33 +370,25 @@ class FunctionsStation:
                                    time_ind=[], t_start=[], t_end=[],
                                    elevation=True, velocity=False,
                                    debug=False, **kwarg):
-        '''
-        Description:
-        -----------
+        """
         This function performs a harmonic analysis on the sea surface elevation
         time series or the velocity components timeseries.
 
         Inputs:
-        ------
           - station = either station index (interger) or name (string)
 
         Outputs:
-        -------
           - harmo = harmonic coefficients, dictionary
 
-        Keywords:
-        --------
-          - time_ind = time indices to work in, list of integers
-          - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                     or time index as an integer
-          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'),
-                    or time index as an integer
-          - elevation=True means that ut_solv will be done for elevation.
-          - velocity=True means that ut_solv will be done for velocity.
-
         Options:
-        -------
-        Options are the same as for ut_solv, which are shown below with
+          - t_start = start time, as string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
+          - time_ind = time indices to work in, list of integers
+          - elevation=True means that 'solve' will be done for elevation.
+          - velocity=True means that 'solve' will be done for velocity.
+
+        Utide's options:
+        Options are the same as for 'solve', which are shown below with
         their default values:
             conf_int=True; cnstit='auto'; notrend=0; prefilt=[]; nodsatlint=0;
             nodsatnone=0; gwchlint=0; gwchnone=0; infer=[]; inferaprx=0;
@@ -426,12 +396,11 @@ class FunctionsStation:
             lsfrqosmp=1; nodiagn=0; diagnplots=0; diagnminsnr=2;
             ordercnstit=[]; runtimedisp='yyy'
 
-        Notes:
-        -----
-        For more detailed information about ut_solv, please see
+        *Notes*
+        For more detailed information about 'solve', please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
 
         #Search for the station
@@ -446,7 +415,10 @@ class FunctionsStation:
                                         self._var.matlabTime,
                                         debug=debug)
             else:
-                argtime = arange(t_start, t_end)
+                argtime = np.arange(t_start, t_end)
+
+        if velocity == elevation:
+            raise PyseidonError("---Can only process either velocities or elevation. Change options---")
         
         if velocity:
             time = self._var.matlabTime[:]
@@ -459,7 +431,7 @@ class FunctionsStation:
                 v = v[argtime[:]]
 
             lat = self._grid.lat[index]
-            harmo = ut_solv(time, u, v, lat, **kwarg)
+            harmo = solve(time, u, v, lat, **kwarg)
 
         if elevation:
             time = self._var.matlabTime[:]
@@ -470,53 +442,38 @@ class FunctionsStation:
                 el = el[argtime[:]]
 
             lat = self._grid.lat[index]
-            harmo = ut_solv(time, el, [], lat, **kwarg)
+            harmo = solve(time, el, None, lat, **kwarg)
             #Write meta-data only if computed over all the elements
 
-            return harmo
+        return harmo
 
-    def Harmonic_reconstruction(self, harmo, elevation=True, velocity=False,
-                                time_ind=slice(None), debug=False, **kwarg):
-        '''
-        Description:
-        ----------
+    def Harmonic_reconstruction(self, harmo, time_ind=slice(None), debug=False, **kwarg):
+        """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
-        Harmonic_reconstruction calls ut_reconstr. This function assumes harmonics
-        (ut_solv) has already been executed.
+        Harmonic_reconstruction calls 'reconstruct'. This function assumes harmonics
+        ('solve') has already been executed.
 
         Inputs:
-        ------
           - Harmo = harmonic coefficient from harmo_analysis
-          - elevation =True means that ut_reconstr will be done for elevation.
-          - velocity =True means that ut_reconst will be done for velocity.
           - time_ind = time indices to process, list of integers
         
         Output:
-        ------         
           - Reconstruct = reconstructed signal, dictionary
 
         Options:
-        -------
-        Options are the same as for ut_reconstr, which are shown below with
+        Options are the same as for 'reconstruct', which are shown below with
         their default values:
             cnstit = [], minsnr = 2, minpe = 0
 
-        Notes:
-        -----
-        For more detailed information about ut_reconstr, please see
+        *Notes*
+        For more detailed information about 'reconstruct', please see
         https://github.com/wesleybowman/UTide
 
-        '''
+        """
         debug = (debug or self._debug)
         time = self._var.matlabTime[time_ind]
-        #TR_comments: Add debug flag in Utide: debug=self._debug
-        Reconstruct = {}
-        if velocity:
-            U_recon, V_recon = ut_reconstr(time,harmo)
-            Reconstruct['U'] = U_recon
-            Reconstruct['V'] = V_recon
-        if elevation:
-            elev_recon, _ = ut_reconstr(time,harmo)
-            Reconstruct['el'] = elev_recon
+        Reconstruct = reconstruct(time, harmo)
+
+
         return Reconstruct  

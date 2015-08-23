@@ -1,17 +1,22 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
+
+from __future__ import division
+
 import numpy as np
-from scipy.stats import t
-import matplotlib.pyplot as plt
+from scipy.stats import t, pearsonr
 from datetime import datetime, timedelta
 from scipy.interpolate import interp1d
 from scipy.signal import correlate
 import time
-import seaborn
 import pandas as pd
+from sys import exit
+
+# local imports
+from pyseidon.utilities.BP_tools import principal_axis
 
 class TidalStats:
-    '''
+    """
     An object representing a set of statistics on tidal heights used
     to determine the skill of a model in comparison to observed data.
     Standards are from NOAA's Standard Suite of Statistics.
@@ -25,75 +30,127 @@ class TidalStats:
 
     Functions are used to calculate statistics and to output
     visualizations and tables.
-    '''
-    def __init__(self, model_data, observed_data, time_step, start_time,type='',
-                 debug=False, debug_plot=False):
+    """
+    def __init__(self, gear, model_data, observed_data, time_step, start_time,
+                 model_u = [], observed_u = [], model_v= [], observed_v = [],
+                 model_time = [], observed_time = [],
+                 kind='', debug=False, debug_plot=False):
         if debug: print "TidalStats initialisation..."
         self._debug = debug
         self._debug_plot = debug_plot
+        self.gear = gear # Type of measurement gear (drifter, adcp,...), str
         self.model = np.asarray(model_data)
         self.model = self.model.astype(np.float64)
         self.observed = np.asarray(observed_data)
         self.observed = self.observed.astype(np.float64)
+        self.model_u = np.asarray(model_u)
+        self.model_u = self.model_u.astype(np.float64)
+        self.observed_u = np.asarray(observed_u)
+        self.observed_u = self.observed_u.astype(np.float64)
+        self.model_v = np.asarray(model_v)
+        self.model_v = self.model_v.astype(np.float64)
+        self.observed_v = np.asarray(observed_v)
+        self.observed_v = self.observed_v.astype(np.float64)
+        self.kind = kind
 
-        #TR: fix for interpolation pb when 0 index or -1 index array values = nan
-	if debug: print "...trim nans at start and end of data.."
-        start_index, end_index = 0, -1
-        while (np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index])):
-            start_index += 1
-        while (np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index])):
-            end_index -= 1
+        # TR: pass this step if dealing with Drifter's data
+        if not self.gear == 'Drifter':
+            # TR: fix for interpolation pb when 0 index or -1 index array values = nan
+            if debug: print "...trim nans at start and end of data.."
+            start_index, end_index = 0, -1
+            while np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index]):
+                start_index += 1
+            while np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index]):
+                end_index -= 1
 
-        #Correction for bound index call
-        if end_index == -1:
-             end_index = None
+            # Correction for bound index call
+            if end_index == -1:
+                end_index = None
+            else:
+                end_index += 1
+            if debug: print "Start index: ", start_index
+            if debug: print "End index: ", end_index
+
+            m = self.model[start_index:end_index]
+            o = self.observed[start_index:end_index]
+
+            setattr(self, 'model', m)
+            setattr(self, 'observed', o)
+        
+            # set up array of datetimes corresponding to the data (and timestamps)
+            self.times = start_time + np.arange(self.model.size) * time_step
+            self.step = time_step
+            timestamps = np.zeros(len(self.times))
+            for j, jj in enumerate(self.times):
+                timestamps[j] = time.mktime(jj.timetuple())
+
+            if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
+
+            if True in np.isnan(self.observed):
+                obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
+                time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
+                func = interp1d(time_nonan, obs_nonan)
+                self.observed = func(timestamps)
+            if True in np.isnan(self.model):
+                mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
+                time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
+                func = interp1d(time_nonan, mod_nonan)
+                self.model = func(timestamps)
+
+        # TR: pass this step if dealing with Drifter's data
         else:
-             end_index += 1
-        if debug: print "Start index: ", start_index
-        if debug: print "End index: ", end_index
+            self.step = time_step # needed for getMDPO, getMDNO, getPhase & altPhase
+            self.times = start_time + np.arange(self.model.size) * time_step # needed for plots, en seconds
+            #TR: those are not the real times though
 
-        m = self.model[start_index:end_index]
-        o = self.observed[start_index:end_index]
+        # Error attributes
+        if self.kind in ['cubic speed', 'velocity', 'direction']:
+            # TR: pass this step if dealing with Drifter's data
+            if not self.gear == 'Drifter':
+            # interpolate cubic speed, u and v on same time steps
+                model_timestamps = np.zeros(len(model_time))
+                for j, jj in enumerate(model_time):
+                    model_timestamps[j] = time.mktime(jj.timetuple())
+                obs_timestamps = np.zeros(len(observed_time))
+                for j, jj in enumerate(observed_time):
+                    obs_timestamps[j] = time.mktime(jj.timetuple())
+                func_u = interp1d(model_timestamps, model_u)
+                self.model_u = func_u(timestamps)
+                func_v = interp1d(model_timestamps, model_v)
+                self.model_v = func_v(timestamps)
+                func_u = interp1d(obs_timestamps, observed_u)
+                self.observed_u = func_u(timestamps)
+                func_v = interp1d(obs_timestamps, observed_v)
+                self.observed_v = func_v(timestamps)
 
-	setattr(self, 'model', m)
-	setattr(self, 'observed', o)
-
-        # set up array of datetimes corresponding to the data (and timestamps)
-        self.times = start_time + np.arange(self.model.size) * time_step
-        self.step = time_step
-        timestamps = np.zeros(len(self.times))
-        for j, jj in enumerate(self.times):
-            timestamps[j] = time.mktime(jj.timetuple())
-
-	if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
-	if (True in np.isnan(self.observed)):
-	    obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
-	    time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
-	    func = interp1d(time_nonan, obs_nonan)
-	    self.observed = func(timestamps)
-	if (True in np.isnan(self.model)):
-	    mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
-	    time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
-	    func = interp1d(time_nonan, mod_nonan)
-	    self.model = func(timestamps)
-
-	self.error = self.observed - self.model
-	self.length = self.error.size
-	self.type = type
-
-        '''
-        if debug: print "...establish limits as defined by NOAA standard..."
-        if (type == 'speed' or type == 'velocity'):
-            self.ERROR_BOUND = 0.26
-        elif (type == 'elevation'):
-            self.ERROR_BOUND = 0.15
-        elif (type == 'direction' or type == 'ebb' or type == 'flow'):
-            self.ERROR_BOUND = 22.5
-        elif (type == 'u velocity' or type == 'v velocity'):
-            self.ERROR_BOUND = 0.35
+            if self.kind == 'cubic speed':
+                # R.Karsten formula
+                self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
+                             ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
+            else:
+                self.error = self.observed - self.model
+        elif self.kind in ['speed', 'elevation', 'u velocity', 'v velocity', 'Phase']:
+            self.error = self.observed - self.model
         else:
-            self.ERROR_BOUND = 0.5
-        '''
+            print "---Data kind not supported---"
+            exit()
+        self.length = self.error.size
+
+        # if debug: print "...establish limits as defined by NOAA standard..."
+        # if self.kind == 'velocity':
+        #     self.ERROR_BOUND = 0.26
+        # elif (self.kind == 'speed' or self.kind == 'velocity'):
+        #     self.ERROR_BOUND = 0.26
+        # elif (self.kind == 'elevation'):
+        #     self.ERROR_BOUND = 0.15
+        # elif (self.kind == 'direction'):
+        #     self.ERROR_BOUND = 22.5
+        # elif (self.kind == 'u velocity' or self.kind == 'v velocity'):
+        #     self.ERROR_BOUND = 0.35
+        # elif self.kind == 'cubic speed':
+        #     self.ERROR_BOUND = 0.26**3.0
+        # else:
+        #     self.ERROR_BOUND = 0.5
 
         # instead of using the NOAA errors, use 10% of the data range
         obs_range = 0.1 * (np.max(self.observed) - np.min(self.observed))
@@ -102,12 +159,33 @@ class TidalStats:
 
         if debug: print "...TidalStats initialisation done."
 
+        return
+
+    def getOverUnder(self, debug=False):
+        """
+        Determines if model over or under estimate the reference
+
+        Returns:
+          - ovORun = character, '+' if overestimation and '-' if underestimation
+        """
+        if debug or self._debug: print "...getOverUnder..."
+        if np.var(self.model) > np.var(self.observed[:]):
+            ovORun = '+'
+        else:
+            ovORun = '-'
+        return ovORun
+
     def getRMSE(self, debug=False):
         '''
         Returns the root mean squared error of the data.
         '''
         if debug or self._debug: print "...getRMSE..."
-        return np.sqrt(np.mean(self.error**2))
+        if self.kind == 'velocity':
+            # Special definition of rmse - R.Karsten
+            rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
+        else:
+            rmse = np.sqrt(np.mean(self.error**2))
+        return rmse
 
     def getSD(self, debug=False):
         '''
@@ -115,6 +193,142 @@ class TidalStats:
         '''
         if debug or self._debug: print "...getSD..."
         return np.sqrt(np.mean(abs(self.error - np.mean(self.error)**2)))
+
+    def getBias(self, debug=False):
+        """
+        Returns the bias of the model, a measure of over/under-estimation.
+        """
+        if debug or self._debug: print "...getBias..."
+        return np.mean(self.error)
+
+    def getSI(self, debug=False):
+        """
+        Returns the scatter index of the model, a weighted measure of data
+        scattering.
+        """
+        if debug or self._debug: print "...getSI..."
+        return self.getRMSE() / np.mean(self.observed)
+
+
+    def getNRMSE(self, debug=False):
+        """
+        Returns the normalized root mean squared error between the model and
+        observed data in %.
+        """
+        if debug or self._debug: print "...getNRMSE..."
+        return 100. * self.getRMSE() / (max(self.observed) - min(self.observed))
+
+    def getPBIAS(self, debug=False):
+        """
+        Returns the percent bias between the model and the observed data.
+
+        References:
+          Yapo P. O., Gupta H. V., Sorooshian S., 1996.
+          Automatic calibration of conceptual rainfall-runoff models: sensitivity to calibration data.
+          Journal of Hydrology. v181 i1-4. 23-48
+
+          Sorooshian, S., Q. Duan, and V. K. Gupta. 1993.
+          Calibration of rainfall-runoff models: Application of global optimization
+          to the Sacramento Soil Moisture Accounting Model.
+          Water Resources Research, 29 (4), 1185-1194, doi:10.1029/92WR02617.
+        """
+        if debug or self._debug: print "...getPBIAS..."
+
+        if self.kind in ['elevation', 'direction', 'u velocity', 'v velocity', 'velocity']:
+            norm_error = self.error / self.observed
+            pbias = 100. * np.sum(norm_error) / norm_error.size
+        else:
+            norm_error = self.model - self.observed
+            pbias = 100. * (np.sum(norm_error) / np.sum(self.observed))
+            # TR: this formula may lead to overly large values when used with sinusoidal signals
+        return pbias
+
+
+    def getNSE(self, debug=False):
+        """
+        Returns the Nash-Sutcliffe Efficiency coefficient of the model vs.
+        the observed data. Identifies if the model is better for
+        approximation than the mean of the observed data.
+        """
+        SSE_mod = np.sum((self.observed - self.model)**2)
+        SSE_mean = np.sum((self.observed - np.mean(self.observed))**2)
+        return 1 - SSE_mod / SSE_mean
+
+    def getCORR(self, debug=False):
+        """
+        Returns the Pearson correlation coefficient for the model vs.
+        the observed data, a number between -1 and 1. -1 implies perfect
+        negative correlation, 1 implies perfect correlation.
+        """
+        return pearsonr(self.observed, self.model)[0]
+
+    def statsForDirection(self, debug=False):
+        """
+        Special stats for direction
+
+        Outputs:
+          - err = absolute error
+          - nerr = absolute error divided by standard deviation in %
+        """
+        if debug: print "Computing special stats for direction..."
+        pr_axis_mod, pr_ax_var_mod = principal_axis(self.model_u, self.model_v)
+        pr_axis_obs, pr_ax_var_obs = principal_axis(self.observed_u, self.observed_v)
+
+        # Defines intervals
+        dir_all_mod = self.model[:]
+        dir_all_obs = self.observed[:]
+        ind_mod = np.where(dir_all_mod<0)
+        ind_obs = np.where(dir_all_obs<0)
+        dir_all_mod[ind_mod] = dir_all_mod[ind_mod] + 360
+        dir_all_obs[ind_obs] = dir_all_obs[ind_obs] + 360
+
+        # sign speed - eliminating wrap-around
+        dir_PA_mod = dir_all_mod - pr_axis_mod
+        dir_PA_mod[dir_PA_mod < -90] += 360
+        dir_PA_mod[dir_PA_mod > 270] -= 360
+        dir_PA_obs = dir_all_obs - pr_axis_obs
+        dir_PA_obs[dir_PA_obs < -90] += 360
+        dir_PA_obs[dir_PA_obs > 270] -= 360
+
+        #general direction of flood passed as input argument
+        floodIndex_mod = np.where((dir_PA_mod >= -90) & (dir_PA_mod<90))[0]
+        ebbIndex_mod = np.arange(dir_PA_mod.shape[0])
+        ebbIndex_mod = np.delete(ebbIndex_mod, floodIndex_mod[:])
+        floodIndex_obs = np.where((dir_PA_obs >= -90) & (dir_PA_obs<90))[0]
+        ebbIndex_obs = np.arange(dir_PA_obs.shape[0])
+        ebbIndex_obs = np.delete(ebbIndex_obs, floodIndex_obs[:])
+
+        # principal axis for ebb and flood
+        np.delete(floodIndex_mod, np.where(floodIndex_mod >= self.model_u.shape[0]))
+        np.delete(ebbIndex_mod, np.where(ebbIndex_mod >= self.model_u.shape[0]))
+        np.delete(floodIndex_obs, np.where(floodIndex_obs >= self.observed_u.shape[0]))
+        np.delete(ebbIndex_obs, np.where(ebbIndex_obs >= self.observed_u.shape[0]))
+
+        pr_axis_mod_flood, pr_ax_var_mod_flood = principal_axis(self.model_u[floodIndex_mod],
+                                                                self.model_v[floodIndex_mod])
+        pr_axis_mod_ebb, pr_ax_var_mod_ebb = principal_axis(self.model_u[ebbIndex_mod],
+                                                            self.model_v[ebbIndex_mod])
+        pr_axis_obs_flood, pr_ax_var_obs_flood = principal_axis(self.observed_u[floodIndex_obs],
+                                                                self.observed_v[floodIndex_obs])
+        pr_axis_obs_ebb, pr_ax_var_obs_ebb = principal_axis(self.observed_u[ebbIndex_obs],
+                                                            self.observed_v[ebbIndex_obs])
+        err_flood = np.abs(pr_axis_mod_flood - pr_axis_obs_flood)
+        err_ebb = np.abs(pr_axis_mod_ebb - pr_axis_obs_ebb)
+
+        if debug: print "...ebb direction error: " + str(err_ebb) + " degrees..."
+        if debug: print "...flood direction error: " + str(err_flood) + " degrees..."
+
+        err = 0.5 * (err_flood + err_ebb)
+
+        #std_flood = np.asarray(dir_all_obs[floodIndex_obs]).std()
+        #std_ebb = np.asarray(dir_all_obs[ebbIndex_obs]).std()
+        #std_flood = dir_all_obs[floodIndex_obs].max() - dir_all_obs[floodIndex_obs].min()
+        #std_ebb = dir_all_obs[ebbIndex_obs].max() - dir_all_obs[ebbIndex_obs].min()
+        #nerr = 0.5 * (np.abs(err_flood / std_flood) + np.abs(err_ebb / std_ebb))
+        nerr = err / 90.0
+
+        return err, nerr * 100.0
+
 
     def getCF(self, debug=False):
         '''
@@ -155,7 +369,10 @@ class TidalStats:
         Takes one parameter: the number of minutes between consecutive
         data points.
         '''
-        timestep = self.step.seconds / 60
+        try: #Fix for Drifter's data
+            timestep = self.step.seconds / 60
+        except AttributeError:
+            timestep = self.step * 24.0 * 60.0 # converts matlabtime (in days) to minutes
 
         max_duration = 0
         current_duration = 0
@@ -178,7 +395,10 @@ class TidalStats:
         Takes one parameter: the number of minutes between consecutive
         data points.
         '''
-        timestep = self.step.seconds / 60
+        try: #Fix for Drifter's data
+            timestep = self.step.seconds / 60
+        except AttributeError:
+            timestep = self.step * 24.0 * 60.0 # converts matlabtime (in days) to minutes
 
         max_duration = 0
         current_duration = 0
@@ -208,112 +428,98 @@ class TidalStats:
         return skill
 
     def getPhase(self, max_phase=timedelta(hours=3), debug=False):
-	'''
-	Attempts to find the phase shift between the model data and the
-	observed data.
+        '''
+        Attempts to find the phase shift between the model data and the
+        observed data.
 
-	Iteratively tests different phase shifts, and calculates the RMSE
-	for each one. The shift with the smallest RMSE is returned.
+        Iteratively tests different phase shifts, and calculates the RMSE
+        for each one. The shift with the smallest RMSE is returned.
 
-	Argument max_phase is the span of time across which the phase shifts
-	will be tested. If debug is set to True, a plot of the RMSE for each
-	phase shift will be shown.
-	'''
+        Argument max_phase is the span of time across which the phase shifts
+        will be tested. If debug is set to True, a plot of the RMSE for each
+        phase shift will be shown.
+        '''
         if debug or self._debug: print "getPhase..."
-	# grab the length of the timesteps in seconds
-	max_phase_sec = max_phase.seconds
-	step_sec = self.step.seconds
-	num_steps = max_phase_sec / step_sec
+        # grab the length of the timesteps in seconds
+        max_phase_sec = max_phase.seconds
+        try:  # Fix for Drifter's data
+            step_sec = self.step.seconds
+        except AttributeError:
+            step_sec = self.step * 24.0 * 60.0 * 60.0 # converts matlabtime to seconds
 
-	if debug or self._debug: print "...iterate through the phase shifts and check RMSE..."
-	errors = []
-	phases = np.arange(-num_steps, num_steps)
-	for i in phases:
+        num_steps = max_phase_sec / step_sec
 
-	    # create shifted data
-	    if (i < 0):
-		# left shift
-		shift_mod = self.model[-i:]
-		shift_obs = self.observed[:self.length + i]
-	    if (i > 0):
-		# right shift
-		shift_mod = self.model[:self.length - i]
-		shift_obs = self.observed[i:]
-	    if (i == 0):
-		# no shift
-		shift_mod = self.model
-		shift_obs = self.observed
+        if debug or self._debug: print "...iterate through the phase shifts and check RMSE..."
+        errors = []
+        phases = np.arange(-num_steps, num_steps)
+        for i in phases:
+            # create shifted data
+            if (i < 0):
+                # left shift
+                shift_mod = self.model[-i:]
+                shift_obs = self.observed[:self.length + i]
+            if (i > 0):
+                # right shift
+                shift_mod = self.model[:self.length - i]
+                shift_obs = self.observed[i:]
+            if (i == 0):
+                # no shift
+                shift_mod = self.model
+                shift_obs = self.observed
 
-	    start = self.times[abs(i)]
-	    step = self.times[1] - self.times[0]
+            start = self.times[abs(i)]
+            step = self.times[1] - self.times[0]
 
-	    # create TidalStats class for shifted data and get the RMSE
-	    stats = TidalStats(shift_mod, shift_obs, step, start, type='Phase')
-	    rms_error = stats.getRMSE()
-	    errors.append(rms_error)
+        # create TidalStats class for shifted data and get the RMSE
+        stats = TidalStats(self.gear, shift_mod, shift_obs, step, start, kind='Phase')
 
-	if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
-	min_index = errors.index(min(errors))
-	best_phase = phases[min_index]
-	phase_minutes = best_phase * step_sec / 60
+        rms_error = stats.getRMSE()
+        errors.append(rms_error)
 
-	# plot RMSE vs. the phase shift to ensure we're getting the right one
-	#if self._debug_plot:
-	#    plt.plot(phases, errors, label='Phase Shift vs. RMSE')
-	#    plt.vlines(best_phase, min(errors), max(errors))
-	#    plt.xlabel('Timesteps of Shift')
-	#    plt.ylabel('Root Mean Squared Error')
-	#    plt.show()
+        if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
+        min_index = errors.index(min(errors))
+        best_phase = phases[min_index]
+        phase_minutes = best_phase * step_sec / 60
 
-	#    # plot data on top of shifted data
-	#    if (best_phase < 0):
-	#	plt.plot(self.times[-best_phase:],
-	#		 self.model[-best_phase:])
-	#	plt.plot(self.times[-best_phase:],
-	#		 self.model[:self.length + best_phase], color='k')
-	#	plt.plot(self.times[-best_phase:],
-	#		 self.observed[:self.length + best_phase],
-	#		 color='r')
-	#	plt.xlabel('Times')
-	#	plt.ylabel('Values')
-	#	plt.title('Shifted Data vs. Original Data')
-	#	plt.show()
-        #if debug or self._debug: print "...getPhase done."
-	return phase_minutes
+        return phase_minutes
 
     def altPhase(self, debug=False):
-	'''
-	Alternate version of lag detection using scipy's cross correlation
-	function.
-	'''
+        """
+        Alternate version of lag detection using scipy's cross correlation function.
+        """
         if debug or self._debug: print "altPhase..."
-	# normalize arrays
-	mod = self.model
-	mod -= self.model.mean()
-	mod /= mod.std()
-	obs = self.observed
-	obs -= self.observed.mean()
-	obs /= obs.std()
+        # normalize arrays
+        mod = self.model
+        mod -= self.model.mean()
+        mod /= mod.std()
+        obs = self.observed
+        obs -= self.observed.mean()
+        obs /= obs.std()
 
-	if debug or self._debug: print "...get cross correlation and find number of timesteps of shift..."
-	xcorr = correlate(mod, obs)
-	samples = np.arange(1 - self.length, self.length)
-	time_shift = samples[xcorr.argmax()]
+        if debug or self._debug: print "...get cross correlation and find number of timesteps of shift..."
+        xcorr = correlate(mod, obs)
+        samples = np.arange(1 - self.length, self.length)
+        time_shift = samples[xcorr.argmax()]
 
-	# find number of minutes in time shift
-	step_sec = self.step.seconds
-	lag = time_shift * step_sec / 60
+        # find number of minutes in time shift
+        try: #Fix for Drifter's data
+            step_sec = self.step.seconds
+        except AttributeError:
+            step_sec = self.step * 24.0 * 60.0 * 60.0 # converts matlabtime (in days) to seconds
+        lag = time_shift * step_sec / 60
 
         if debug or self._debug: print "...altPhase done."
 
-	return lag
+        return lag
 
     def getStats(self, debug=False):
-        '''
+        """
         Returns each of the statistics in a dictionary.
-        '''
+        """
 
         stats = {}
+        stats['gear'] = self.gear
+        stats['ovORun'] = self.getOverUnder()
         stats['RMSE'] = self.getRMSE()
         stats['CF'] = self.getCF()
         stats['SD'] = self.getSD()
@@ -322,7 +528,16 @@ class TidalStats:
         stats['MDPO'] = self.getMDPO()
         stats['MDNO'] = self.getMDNO()
         stats['skill'] = self.getWillmott()
-	stats['phase'] = self.getPhase(debug=debug)
+        try: #Fix for Drifter's data
+            stats['phase'] = self.getPhase(debug=debug)
+        except:
+            stats['phase'] = 0.0
+        stats['CORR'] = self.getCORR()
+        stats['NRMSE'] = self.getNRMSE()
+        stats['NSE'] = self.getNSE()
+        stats['bias'] = self.getBias()
+        stats['SI'] = self.getSI()
+        stats['pbias'] = self.getPBIAS()
 
         if debug or self._debug: print "...getStats..."
 
@@ -335,12 +550,12 @@ class TidalStats:
         Gives a 100(1-alpha)% confidence interval for the slope
         '''
         if debug or self._debug: print "linReg..."
-	# set stuff up to make the code cleaner
-	obs = self.observed
-	mod = self.model
+        # set stuff up to make the code cleaner
+        obs = self.observed
+        mod = self.model
         obs_mean = np.mean(obs)
-	mod_mean = np.mean(mod)
-	n = mod.size
+        mod_mean = np.mean(mod)
+        n = mod.size
         df = n - 2
 
         # calculate square sums
@@ -395,8 +610,8 @@ class TidalStats:
         set, and uses the results to attempt to predict the missing datum.
         '''
         if debug or self._debug: print "crossVal..."
-        cross_error = np.zeroes(self.model.size)
-        cross_pred = np.zeroes(self.model.size)
+        cross_error = np.zeros(self.model.size)
+        cross_pred = np.zeros(self.model.size)
         model_orig = self.model
         obs_orig = self.observed
         time_orig = self.time
@@ -433,112 +648,8 @@ class TidalStats:
 
         return data
 
-    def plotRegression(self, lr, save=False, out_f='', debug=False):
-        '''
-        Plots a visualization of the output from linear regression,
-        including confidence intervals for predictands and slope.
-
-	If save is set to True, exports the plot as an image file to out_f.
-        '''
-        df = pd.DataFrame(data={'model': self.model.flatten(),
-                                'observed':self.observed.flatten()})
-        plt.scatter(self.model, self.observed, c='b', marker='+', alpha=0.5)
-
-        ## plot regression line
-        mod_max = np.amax(self.model)
-	mod_min = np.amin(self.model)
-        upper_intercept = lr['intercept'] + lr['pred_CI_width']
-        lower_intercept = lr['intercept'] - lr['pred_CI_width']
-        plt.plot([mod_min, mod_max], [mod_min * lr['slope'] + lr['intercept'],
-				      mod_max * lr['slope'] + lr['intercept']],
-                 color='k', linestyle='-', linewidth=2, label='Linear fit')
-
-        ## plot CI's for slope
-        plt.plot([mod_min, mod_max],
-		 [mod_min * lr['slope_CI'][0] + lr['intercept_CI'][0],
-		  mod_max * lr['slope_CI'][0] + lr['intercept_CI'][0]],
-                 color='r', linestyle='--', linewidth=2)
-        plt.plot([mod_min, mod_max],
-		 [mod_min * lr['slope_CI'][1] + lr['intercept_CI'][1],
-                  mod_max * lr['slope_CI'][1] + lr['intercept_CI'][1]],
-                 color='r', linestyle='--', linewidth=2, label='Slope CI')
-
-        ## plot CI's for predictands
-        plt.plot([mod_min, mod_max],
-		 [mod_min * lr['slope'] + upper_intercept,
-                  mod_max * lr['slope'] + upper_intercept],
-                 color='g', linestyle='--', linewidth=2)
-        plt.plot([mod_min, mod_max],
-		 [mod_min * lr['slope'] + lower_intercept,
-                  mod_max * lr['slope'] + lower_intercept],
-                 color='g', linestyle='--', linewidth=2, label='Predictand CI')
-
-        plt.xlabel('Modeled Data')
-        plt.ylabel('Observed Data')
-        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
-	plt.legend(loc='lower right', shadow=True)
-
-	r_string = 'R Squared: {}'.format(np.around(lr['r_2'], decimals=3))
-	plt.title(r_string)
-
-        #Pretty plot
-        seaborn.set(style="darkgrid")
-        color = seaborn.color_palette()[2]
-        g = seaborn.jointplot("model", "observed", data=df, kind="reg",
-                              xlim=(df.model.min(), df.model.max()),
-                              ylim=(df.observed.min(), df.observed.max()),
-                              color=color, size=7)
-        plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(self.type))
-
-	if save:
-	    plt.savefig(out_f)
-	else:
-	    plt.show()
-
-    def plotData(self, graph='time', save=False, out_f='', debug=False):
-        '''
-        Provides a visualization of the data.
-
-        Takes an option which determines the type of graph to be made.
-        time: plots the model data against the observed data over time
-        scatter : plots the model data vs. observed data
-
-	If save is set to True, saves the image file in out_f.
-        '''
-        if (graph == 'time'):
-            plt.plot(self.times, self.model, label='Model Predictions')
-            plt.plot(self.times, self.observed, color='r',
-                     label='Observed Data')
-            plt.xlabel('Time')
-            if self.type == 'elevation':
-                plt.ylabel('Elevation (m)')
-            if self.type == 'speed':
-                plt.ylabel('Flow speed (m/s)')
-            if self.type == 'direction':
-                plt.ylabel('Flow direction (deg.)')
-            if self.type == 'u velocity':
-                plt.ylabel('U velocity (m/s)')
-            if self.type == 'v velocity':
-                plt.ylabel('V velocity (m/s)')
-            if self.type == 'velocity':
-                plt.ylabel('Signed flow speed (m/s)')
-
-            plt.title('Predicted and Observed {}'.format(self.type))
-	    plt.legend(shadow=True)
-
-        if (graph == 'scatter'):
-            plt.scatter(self.model, self.observed, c='b', alpha=0.5)
-            plt.xlabel('Predicted Height')
-            plt.ylabel('Observed Height')
-            plt.title('Predicted vs. Observed {}'.format(self.type))
-
-	if save:
-	    plt.savefig(out_f)
-	else:
-	    plt.show()
-
-    def save_data(self):
-            df = pd.DataFrame(data={'time': self.times.flatten(),
-                                    'observed':self.observed.flatten(),
-                                    'modeled':self.model.flatten() })
-            df.to_csv(str(self.type)+'.csv')
+    def save_data(self, path=''):
+            df = pd.DataFrame(data={'time': self.times.ravel(),
+                                    'observed':self.observed.ravel(),
+                                    'modeled':self.model.ravel() })
+            df.to_csv(path+str(self.kind)+'.csv')
