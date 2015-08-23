@@ -59,10 +59,10 @@ class Validation:
         else:
             self.History = ['Created from multiple measurement sources' +\
                             ' and ' + simulated._origin_file]
-        self.observed = observed
-        self.simulated = simulated
+        self._observed = observed
+        self._simulated = simulated
         if not self._multi:
-            self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
+            self.Variables = _load_validation(self._observed, self._simulated, flow=self._flow, debug=self._debug)
 
         return
 
@@ -98,6 +98,8 @@ class Validation:
         if filename==[]:
             filename = raw_input('Enter filename for csv file: ')
             filename = str(filename)
+        if type(self._flow) == float:
+            depth = self._flow
         if (depth==[] and self.Variables._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
             depth = float(depth)
@@ -202,17 +204,13 @@ class Validation:
             el =  self.Variables.struct['obs_timeseries']['elev'] [:]
 
             self.Variables.obs.velCoef = solve(time, ua, va, lat,
-                                         #cnstit=ut_constits, rmin=0.95, notrend=True,
-                                         cnstit='auto', rmin=0.95, notrend=True,
-                                         method='ols', nodiagn=True, linci=True,
-                                         coef_int=True)
+                                         constit='auto', trend=False, Rayleigh_min=0.95,
+                                         method='ols', conf_int='linear')
 
 
             self.Variables.obs.elCoef = solve(time, el, None, lat,
-                                        #cnstit=ut_constits, rmin=0.95, notrend=True,
-                                        cnstit='auto', rmin=0.95, notrend=True,
-                                        method='ols', nodiagn=True, linci=True,
-                                        coef_int=True)
+                                         constit='auto', trend=False, Rayleigh_min=0.95,
+                                         method='ols', conf_int='linear')
 
         elif self.Variables._obstype=='tidegauge':
             time = self.Variables.struct['obs_time']
@@ -220,11 +218,8 @@ class Validation:
             el =  self.Variables.struct['obs_timeseries']['elev'] [:]
 
             self.Variables.obs.elCoef = solve(time, el, None, lat,
-                                        #cnstit=ut_constits, notrend=True,
-                                        cnstit='auto', notrend=True,
-                                        rmin=0.95, method='ols', nodiagn=True,
-                                        #linci=True, ordercnstit='frq')
-                                        linci=True, coef_int=True)
+                                         constit='auto', trend=False, Rayleigh_min=0.95,
+                                         method='ols', conf_int='linear')
         else:
             raise PyseidonError("--This kind of observations is not supported---")
 
@@ -234,16 +229,14 @@ class Validation:
             el =  self.Variables.struct['mod_timeseries']['elev'][:]
 
             self.Variables.sim.elCoef = solve(time, el, None, lat,
-                             #cnstit=ut_constits, rmin=0.95, notrend=True,
-                             cnstit='auto', rmin=0.95, notrend=True,
-                             method='ols', nodiagn=True, linci=True, conf_int=True)
+                                         constit='auto', trend=False, Rayleigh_min=0.95,
+                                         method='ols', conf_int='linear')
             if self.Variables._obstype=='adcp':
                 ua =  self.Variables.struct['mod_timeseries']['ua'][:]
                 va =  self.Variables.struct['mod_timeseries']['va'][:]
                 self.Variables.sim.velCoef = solve(time, ua, va, lat,
-                                  #cnstit=ut_constits, rmin=0.95, notrend=True,
-                                  cnstit='auto', rmin=0.95, notrend=True,
-                                  method='ols', nodiagn=True, linci=True, conf_int=True)
+                                         constit='auto', trend=False, Rayleigh_min=0.95,
+                                         method='ols', conf_int='linear')
 
         elif self.Variables._simtype=='station':
             time = self.Variables.struct['mod_time']
@@ -251,16 +244,14 @@ class Validation:
             el = self.Variables.struct['mod_timeseries']['elev'][:]
 
             self.Variables.sim.elCoef = solve(time, el, None, lat,
-                             #cnstit=ut_constits, rmin=0.95, notrend=True,
-                             cnstit='auto', rmin=0.95, notrend=True,
-                             method='ols', nodiagn=True, linci=True, conf_int=True)
+                                         constit='auto', trend=False, Rayleigh_min=0.95,
+                                         method='ols', conf_int='linear')
             if self.Variables._obstype=='adcp':
                 ua = self.Variables.struct['mod_timeseries']['ua'][:]
                 va = self.Variables.struct['mod_timeseries']['va'][:]
                 self.Variables.sim.velCoef = solve(time, ua, va, lat,
-                                  #cnstit=ut_constits, rmin=0.95, notrend=True,
-                                  cnstit='auto', rmin=0.95, notrend=True,
-                                  method='ols', nodiagn=True, linci=True, conf_int=True)
+                                         constit='auto', trend=False, Rayleigh_min=0.95,
+                                         method='ols', conf_int='linear')
 
         # find matching and non-matching coef
         matchElCoef = []
@@ -414,9 +405,9 @@ class Validation:
             self.Benchmarks = self._Benchmarks
         else:
             I=0
-            for meas in self.observed:
+            for meas in self._observed:
                 try:
-                    self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
+                    self.Variables = _load_validation(meas, self._simulated, flow=self._flow, debug=self._debug)
                     self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
                     if I == 0:
                         self.Benchmarks = self._Benchmarks
@@ -443,11 +434,11 @@ class Validation:
                     coefficients into *.csv files (i.e. *_harmo_coef.csv)
         """
         if not self._multi:
-            self.Variables = _load_validation(self.observed, self.simulated, flow=self._flow, debug=self._debug)
+            self.Variables = _load_validation(self._observed, self._simulated, flow=self._flow, debug=self._debug)
             self._validate_harmonics(filename, save_csv, debug, debug_plot)
         else:
-            for i, meas in enumerate(self.observed):
-                self.Variables = _load_validation(meas, self.simulated, flow=self._flow, debug=self._debug)
+            for i, meas in enumerate(self._observed):
+                self.Variables = _load_validation(meas, self._simulated, flow=self._flow, debug=self._debug)
                 if filename == []:
                     filename = 'meas'+str(i)
                 else:
@@ -478,16 +469,16 @@ class Validation:
     Note: this function shall work only if ADCP object(s) and FVCOM object
           have been used as inputs
         """
-        if not self.simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
+        if not self._simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
             raise PyseidonError("---work only with a combination ADCP object(s) and FVCOM object---")
         try:
-            benchmarksMap(self.Benchmarks, self.observed, self.simulated, savepath=savepath, fname=fname, debug=debug)
+            benchmarksMap(self.Benchmarks, self._observed, self._simulated, savepath=savepath, fname=fname, debug=debug)
         except AttributeError:
             raise PyseidonError("---validate_data needs to be run first---")
 
     def save_as(self, filename, fileformat='pickle', debug=False):
         """
-        This method saves the current FVCOM structure as:
+        This method saves the current Validation structure as:
            - *.p, i.e. python file
            - *.mat, i.e. Matlab file
 
