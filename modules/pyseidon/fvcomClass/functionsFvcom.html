@@ -62,6 +62,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">matplotlib.tri</span> <span class="kn">as</span> <span class="nn">Tri</span>
 <span class="kn">from</span> <span class="nn">pydap.exceptions</span> <span class="kn">import</span> <span class="n">ServerError</span>
+<span class="kn">from</span> <span class="nn">pyseidon.utilities.pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
 
 <div class="viewcode-block" id="FunctionsFvcom"><a class="viewcode-back" href="../../../pyseidon.fvcomClass.html#pyseidon.fvcomClass.functionsFvcom.FunctionsFvcom">[docs]</a><span class="k">class</span> <span class="nc">FunctionsFvcom</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -69,14 +70,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">plot</span><span class="p">,</span> <span class="n">History</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">variable</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span> <span class="o">=</span> <span class="n">grid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="n">plot</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_History</span> <span class="o">=</span> <span class="n">History</span>
         <span class="c">#Create pointer to FVCOM class</span>
-        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span>
-        <span class="n">grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span>
-        <span class="n">History</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_History</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_var&#39;</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_grid&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_History&#39;</span><span class="p">,</span> <span class="n">History</span><span class="p">)</span>
+
+        <span class="k">return</span>
 
     <span class="c">#TR comment: I don&#39;t think I need this anymore  </span>
     <span class="k">def</span> <span class="nf">_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -103,8 +103,8 @@
             <span class="n">hc</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">h</span><span class="p">[</span><span class="n">value</span><span class="p">])</span>
 
         <span class="c">#Custom return    </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">hc</span> <span class="o">=</span> <span class="n">hc</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">elc</span> <span class="o">=</span> <span class="n">elc</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="p">,</span> <span class="s">&#39;hc&#39;</span><span class="p">,</span> <span class="n">hc</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">,</span> <span class="s">&#39;elc&#39;</span><span class="p">,</span> <span class="n">elc</span><span class="p">)</span>
           
         <span class="c"># Add metadata entry</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;bathymetry at center points computed&#39;</span><span class="p">)</span>
@@ -129,7 +129,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">ua</span><span class="p">[:]</span>
             <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">va</span><span class="p">[:]</span>
-            <span class="n">vel</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(u**2 + v**2)&#39;</span><span class="p">)</span>  
+            <span class="n">vel</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(u**2 + v**2)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
         <span class="k">except</span> <span class="p">(</span><span class="ne">MemoryError</span><span class="p">,</span> <span class="n">ServerError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">e</span> <span class="o">==</span> <span class="n">ServerError</span><span class="p">:</span>
                 <span class="k">print</span> <span class="s">&#39;---Data too large for server---&#39;</span>
@@ -141,7 +142,7 @@
             <span class="k">raise</span>
 
         <span class="c">#Custom return    </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">hori_velo_norm</span> <span class="o">=</span> <span class="n">vel</span> 
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">,</span> <span class="s">&#39;hori_velo_norm&#39;</span><span class="p">,</span> <span class="n">vel</span><span class="p">)</span>
           
         <span class="c"># Add metadata entry</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;horizontal velocity norm computed&#39;</span><span class="p">)</span>
@@ -178,7 +179,7 @@
             <span class="k">raise</span>
 
         <span class="c">#Custom return    </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">depth_av_flow_dir</span> <span class="o">=</span> <span class="n">dirFlow</span> 
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">,</span> <span class="s">&#39;depth_av_flow_dir&#39;</span><span class="p">,</span> <span class="n">dirFlow</span><span class="p">)</span>
 
         <span class="c"># Add metadata entry</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;depth averaged flow directions computed&#39;</span><span class="p">)</span>
@@ -250,7 +251,7 @@
         <span class="n">dirFlow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">U</span><span class="p">))</span>
 
         <span class="c">#Compute velocity norm</span>
-        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
         <span class="c">#use only the time indices of interest</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
@@ -596,7 +597,7 @@
         <span class="n">Ranges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,(</span><span class="n">Max</span> <span class="o">+</span> <span class="n">dy</span><span class="p">),</span> <span class="n">dy</span><span class="p">)</span>
         <span class="n">Exceedance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Ranges</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">Period</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dt</span>
+        <span class="n">Period</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dt</span>
         <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Period</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
 
         <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>
@@ -685,7 +686,7 @@
         <span class="n">vort</span> <span class="o">=</span> <span class="n">dvdx</span> <span class="o">-</span> <span class="n">dudy</span>
 
         <span class="c"># Add metadata entry</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">depth_av_vorticity</span> <span class="o">=</span> <span class="n">vort</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">,</span> <span class="s">&#39;depth_av_vorticity&#39;</span><span class="p">,</span> <span class="n">vort</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;depth averaged vorticity computed&#39;</span><span class="p">)</span>
         <span class="k">print</span> <span class="s">&#39;-Depth averaged vorticity added to FVCOM.Variables.-&#39;</span>
 
@@ -821,7 +822,7 @@
             <span class="k">print</span> <span class="s">&quot;Computation time in (s): &quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
 
         <span class="c"># Add metadata entry</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">depth2D</span> <span class="o">=</span> <span class="n">dep</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="p">,</span> <span class="s">&#39;depth2D&#39;</span><span class="p">,</span> <span class="n">dep</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;depth 2D computed&#39;</span><span class="p">)</span>
         <span class="k">print</span> <span class="s">&#39;-Depth 2D added to FVCOM.Variables.-&#39;</span>
 </div>
@@ -857,10 +858,10 @@
             <span class="c">#Compute depth</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">h</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="s">&#39;Variable&#39;</span><span class="p">:</span> <span class="c">#Fix for netcdf4 lib</span>
                 <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">h</span><span class="p">[:]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">[:]</span>
+                <span class="n">EL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">[:]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">h</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span>
+                <span class="n">EL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span>
             
             <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation_at_point</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">pt_lon</span><span class="p">,</span> <span class="n">pt_lat</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation_at_point</span><span class="p">(</span><span class="n">EL</span><span class="p">,</span> <span class="n">pt_lon</span><span class="p">,</span> <span class="n">pt_lat</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
@@ -893,12 +894,13 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">,</span> <span class="s">&#39;hori_velo_norm&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hori_velo_norm</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;Computing powers of hori velo norm...&quot;</span>
-        <span class="c">#u = self._var.hori_velo_norm</span>
-        <span class="c">#pd = ne.evaluate(&#39;0.5*1025.0*(u**3)&#39;)</span>
-        <span class="n">pd</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="mf">1025.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">hori_velo_norm</span><span class="p">[:],</span><span class="mf">3.0</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">hori_velo_norm</span><span class="p">[:]</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;0.5*1025.0*(u**3)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="c">#pd = 0.5*1025.0*np.power(self._var.hori_velo_norm[:],3.0)  # TR: very slow</span>
+        <span class="c">#pd = 0.5*1025.0*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]*self._var.hori_velo_norm[:]</span>
     
         <span class="c"># Add metadata entry</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">depth_av_power_density</span> <span class="o">=</span> <span class="n">pd</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">,</span> <span class="s">&#39;depth_av_power_density&#39;</span><span class="p">,</span> <span class="n">pd</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;depth averaged power density computed&#39;</span><span class="p">)</span>
         <span class="k">print</span> <span class="s">&#39;-Depth averaged power density to FVCOM.Variables.-&#39;</span> 
 </div>
@@ -965,7 +967,7 @@
         <span class="n">pa</span><span class="p">[</span><span class="n">u</span><span class="o">&gt;</span><span class="n">rated_speed</span><span class="p">]</span> <span class="o">=</span> <span class="n">parated</span>    
 
         <span class="c"># Add metadata entry</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">depth_av_power_assessment</span> <span class="o">=</span> <span class="n">pd</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">,</span> <span class="s">&#39;depth_av_power_assessment&#39;</span><span class="p">,</span> <span class="n">pd</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_History</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;depth averaged power assessment computed&#39;</span><span class="p">)</span>
         <span class="k">print</span> <span class="s">&#39;-Depth averaged power assessment to FVCOM.Variables.-&#39;</span>   
 </div>
@@ -1018,6 +1020,9 @@
                 <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[:],</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">velocity</span> <span class="o">==</span> <span class="n">elevation</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Can only process either velocities or elevation. Change options---&quot;</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
@@ -1038,7 +1043,7 @@
             <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="s">&#39;Variable&#39;</span><span class="p">:</span> <span class="c">#Fix for netcdf4 lib</span>
                 <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">[:]</span>
@@ -1052,13 +1057,12 @@
                 <span class="n">el</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
 
             <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
             <span class="c">#Write meta-data only if computed over all the elements</span>
 
-            <span class="k">return</span> <span class="n">harmo</span>
+        <span class="k">return</span> <span class="n">harmo</span>
 </div>
-<div class="viewcode-block" id="FunctionsFvcom.Harmonic_reconstruction"><a class="viewcode-back" href="../../../pyseidon.fvcomClass.html#pyseidon.fvcomClass.functionsFvcom.FunctionsFvcom.Harmonic_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                                <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+<div class="viewcode-block" id="FunctionsFvcom.Harmonic_reconstruction"><a class="viewcode-back" href="../../../pyseidon.fvcomClass.html#pyseidon.fvcomClass.functionsFvcom.FunctionsFvcom.Harmonic_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function reconstructs the velocity components or the surface elevation</span>
 <span class="sd">        from harmonic coefficients.</span>
@@ -1067,8 +1071,6 @@
 
 <span class="sd">        Inputs:</span>
 <span class="sd">          - Harmo = harmonic coefficient from harmo_analysis</span>
-<span class="sd">          - elevation =True means that &#39;reconstruct&#39; will be done for elevation.</span>
-<span class="sd">          - velocity =True means that &#39;reconstruct&#39; will be done for velocity.</span>
 <span class="sd">          - time_ind = time indices to process, list of integers</span>
 <span class="sd">        </span>
 <span class="sd">        Output:</span>
@@ -1087,14 +1089,8 @@
         <span class="n">debug</span> <span class="o">=</span> <span class="p">(</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
         <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[</span><span class="n">time_ind</span><span class="p">]</span>
         <span class="c">#TR_comments: Add debug flag in Utide: debug=self._debug</span>
-        <span class="n">Reconstruct</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
-            <span class="n">U_recon</span><span class="p">,</span> <span class="n">V_recon</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;U&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">U_recon</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V_recon</span>
-        <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
-            <span class="n">elev_recon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;el&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elev_recon</span>
+        <span class="n">Reconstruct</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">Reconstruct</span>  </div></div>
 </pre></div>
 

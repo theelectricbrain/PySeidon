@@ -68,14 +68,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">plot</span><span class="p">,</span> <span class="n">History</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">variable</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span> <span class="o">=</span> <span class="n">grid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="n">plot</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_History</span> <span class="o">=</span> <span class="n">History</span>
-        <span class="c">#Create pointer to FVCOM class</span>
-        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span>
-        <span class="n">grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span>
-        <span class="n">History</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_History</span>
+        <span class="c">#Create pointer to Station class</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_var&#39;</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_grid&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_History&#39;</span><span class="p">,</span> <span class="n">History</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FunctionsStation.search_index"><a class="viewcode-back" href="../../../pyseidon.stationClass.html#pyseidon.stationClass.functionsStation.FunctionsStation.search_index">[docs]</a>    <span class="k">def</span> <span class="nf">search_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Search for the station index&quot;&quot;&quot;</span>
@@ -84,7 +81,7 @@
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;ndarray&#39;</span><span class="p">]:</span>
             <span class="n">station</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">station</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">nele</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">station</span><span class="o">==</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">station</span><span class="o">==</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
                    <span class="n">index</span><span class="o">=</span><span class="n">i</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Wrong station input---&quot;</span><span class="p">)</span>
@@ -127,7 +124,7 @@
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
                 <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
 
         <span class="c">#Search for the station</span>
         <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
@@ -146,7 +143,7 @@
         <span class="n">dirFlow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">U</span><span class="p">))</span>
 
         <span class="c">#Compute velocity norm</span>
-        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
             <span class="k">print</span> <span class="s">&#39;...Passed&#39;</span>
         <span class="c">#Rose diagram</span>
@@ -198,7 +195,7 @@
                                         <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span>
                                         <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
 
         <span class="c">#Search for the station</span>
         <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_index</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
@@ -467,7 +464,10 @@
                                         <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">,</span>
                                         <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">argtime</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+                <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">velocity</span> <span class="o">==</span> <span class="n">elevation</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Can only process either velocities or elevation. Change options---&quot;</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
@@ -480,7 +480,7 @@
                 <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
 
             <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">harmo</span> <span class="o">=</span> <span class="n">ut_solv</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
@@ -491,13 +491,12 @@
                 <span class="n">el</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
 
             <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="o">.</span><span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
             <span class="c">#Write meta-data only if computed over all the elements</span>
 
-            <span class="k">return</span> <span class="n">harmo</span>
+        <span class="k">return</span> <span class="n">harmo</span>
 </div>
-<div class="viewcode-block" id="FunctionsStation.Harmonic_reconstruction"><a class="viewcode-back" href="../../../pyseidon.stationClass.html#pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                                <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+<div class="viewcode-block" id="FunctionsStation.Harmonic_reconstruction"><a class="viewcode-back" href="../../../pyseidon.stationClass.html#pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function reconstructs the velocity components or the surface elevation</span>
 <span class="sd">        from harmonic coefficients.</span>
@@ -506,8 +505,6 @@
 
 <span class="sd">        Inputs:</span>
 <span class="sd">          - Harmo = harmonic coefficient from harmo_analysis</span>
-<span class="sd">          - elevation =True means that &#39;reconstruct&#39; will be done for elevation.</span>
-<span class="sd">          - velocity =True means that &#39;reconstruct&#39; will be done for velocity.</span>
 <span class="sd">          - time_ind = time indices to process, list of integers</span>
 <span class="sd">        </span>
 <span class="sd">        Output:</span>
@@ -525,15 +522,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">debug</span> <span class="o">=</span> <span class="p">(</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
         <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[</span><span class="n">time_ind</span><span class="p">]</span>
-        <span class="c">#TR_comments: Add debug flag in Utide: debug=self._debug</span>
-        <span class="n">Reconstruct</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
-            <span class="n">U_recon</span><span class="p">,</span> <span class="n">V_recon</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;U&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">U_recon</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V_recon</span>
-        <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
-            <span class="n">elev_recon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;el&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elev_recon</span>
+        <span class="n">Reconstruct</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">harmo</span><span class="p">)</span>
+
+
         <span class="k">return</span> <span class="n">Reconstruct</span>  </div></div>
 </pre></div>
 

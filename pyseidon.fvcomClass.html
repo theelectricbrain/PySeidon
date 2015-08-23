@@ -108,7 +108,7 @@ For more detailed information about &#8216;solve&#8217;, please see
 
 <dl class="method">
 <dt id="pyseidon.fvcomClass.functionsFvcom.FunctionsFvcom.Harmonic_reconstruction">
-<code class="descname">Harmonic_reconstruction</code><span class="sig-paren">(</span><em>harmo</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/fvcomClass/functionsFvcom.html#FunctionsFvcom.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.fvcomClass.functionsFvcom.FunctionsFvcom.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Harmonic_reconstruction</code><span class="sig-paren">(</span><em>harmo</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/fvcomClass/functionsFvcom.html#FunctionsFvcom.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.fvcomClass.functionsFvcom.FunctionsFvcom.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function reconstructs the velocity components or the surface elevation
 from harmonic coefficients.
 Harmonic_reconstruction calls &#8216;reconstruct&#8217;. This function assumes harmonics
@@ -117,8 +117,6 @@ Harmonic_reconstruction calls &#8216;reconstruct&#8217;. This function assumes h
 <dt>Inputs:</dt>
 <dd><ul class="first last simple">
 <li>Harmo = harmonic coefficient from harmo_analysis</li>
-<li>elevation =True means that &#8216;reconstruct&#8217; will be done for elevation.</li>
-<li>velocity =True means that &#8216;reconstruct&#8217; will be done for velocity.</li>
 <li>time_ind = time indices to process, list of integers</li>
 </ul>
 </dd>
@@ -982,7 +980,7 @@ and therefore reduce memory and cpu use.</p>
 </li>
 <li><dl class="first docutils">
 <dt>tx = defines for a specific temporal period to work with, as such:</dt>
-<dd><p class="first last">tx = [&#8216;2012-11-07T12:00:00&#8217;,&#8216;2012.11.09T12:00:00&#8217;], string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;
+<dd><p class="first last">tx = [&#8216;2012-11-07T12:00:00&#8217;,&#8216;2012.11.09 12:00:00&#8217;], string of &#8216;yyyy-mm-dd hh:mm:ss&#8217;
 Note that this option permits to extract partial data from the overall file
 and therefore reduce memory and cpu use</p>
 </dd>
@@ -995,7 +993,7 @@ and therefore reduce memory and cpu use</p>
 Throughout the package, the following conventions apply:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Date = string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;</li>
+<li>Date = string of &#8216;yyyy-mm-dd hh:mm:ss&#8217;</li>
 <li>Coordinates = decimal degrees East and North</li>
 <li>Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South</li>
 <li>Depth = 0m is the free surface and depth is negative</li>
@@ -1090,7 +1088,7 @@ where x and y are 1D arrays of the same lengths.</p>
 
 <dl class="method">
 <dt id="pyseidon.fvcomClass.plotsFvcom.PlotsFvcom.colormap_var">
-<code class="descname">colormap_var</code><span class="sig-paren">(</span><em>var</em>, <em>title=' '</em>, <em>cmin=[]</em>, <em>cmax=[]</em>, <em>cmap=[]</em>, <em>degree=True</em>, <em>mesh=True</em>, <em>dump=False</em>, <em>debug=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/fvcomClass/plotsFvcom.html#PlotsFvcom.colormap_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.fvcomClass.plotsFvcom.PlotsFvcom.colormap_var" title="Permalink to this definition">¶</a></dt>
+<code class="descname">colormap_var</code><span class="sig-paren">(</span><em>var</em>, <em>title=' '</em>, <em>cmin=[]</em>, <em>cmax=[]</em>, <em>cmap=[]</em>, <em>degree=True</em>, <em>mesh=False</em>, <em>isoline='bathy'</em>, <em>dump=False</em>, <em>debug=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/fvcomClass/plotsFvcom.html#PlotsFvcom.colormap_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.fvcomClass.plotsFvcom.PlotsFvcom.colormap_var" title="Permalink to this definition">¶</a></dt>
 <dd><p>2D xy colormap plot of any given variable and mesh.</p>
 <dl class="docutils">
 <dt>Input:</dt>
@@ -1111,6 +1109,8 @@ where x and y are 1D arrays of the same lengths.</p>
 <li><p class="first">mesh = True, with mesh; False, without mesh</p>
 </li>
 <li><p class="first">degree = boolean, coordinates in degrees (True) or meters (False)</p>
+</li>
+<li><p class="first">isloline = &#8216;bathy&#8217;: bathymetric isolines, &#8216;var&#8217;: variable isolines, &#8216;none&#8217;: no isolines</p>
 </li>
 <li><p class="first">dump = boolean, dump profile data in csv file</p>
 </li>

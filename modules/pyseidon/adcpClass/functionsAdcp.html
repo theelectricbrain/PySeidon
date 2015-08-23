@@ -60,16 +60,19 @@
 <span class="kn">from</span> <span class="nn">utide</span> <span class="kn">import</span> <span class="n">solve</span><span class="p">,</span> <span class="n">reconstruct</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
+<span class="c"># Custom error</span>
+<span class="kn">from</span> <span class="nn">pyseidon_error</span> <span class="kn">import</span> <span class="n">PyseidonError</span>
+
 <div class="viewcode-block" id="FunctionsAdcp"><a class="viewcode-back" href="../../../pyseidon.adcpClass.html#pyseidon.adcpClass.functionsAdcp.FunctionsAdcp">[docs]</a><span class="k">class</span> <span class="nc">FunctionsAdcp</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; **&#39;Utils&#39; subset of FVCOM class gathers useful functions** &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">plot</span><span class="p">,</span> <span class="n">History</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span> <span class="o">=</span> <span class="n">debug</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">variable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="n">plot</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_History</span> <span class="o">=</span> <span class="n">History</span>
         <span class="c">#Create pointer to FVCOM class</span>
-        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span>
-        <span class="n">History</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_History</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_var&#39;</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_History&#39;</span><span class="p">,</span> <span class="n">History</span><span class="p">)</span>
+
+        <span class="k">return</span>
 
 <div class="viewcode-block" id="FunctionsAdcp.flow_dir"><a class="viewcode-back" href="../../../pyseidon.adcpClass.html#pyseidon.adcpClass.functionsAdcp.FunctionsAdcp.flow_dir">[docs]</a>    <span class="k">def</span> <span class="nf">flow_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span> <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span>
                  <span class="n">exceedance</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -122,7 +125,7 @@
         <span class="n">dirFlow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">U</span><span class="p">))</span>
 
         <span class="c">#Compute velocity norm</span>
-        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
             <span class="k">print</span> <span class="s">&#39;...Passed&#39;</span>
         <span class="c">#Rose diagram</span>
@@ -402,6 +405,9 @@
                 <span class="n">argtime</span> <span class="o">=</span> <span class="n">time_to_index</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">julianTime</span><span class="p">[:],</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">argtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">velocity</span> <span class="o">==</span> <span class="n">elevation</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyseidonError</span><span class="p">(</span><span class="s">&quot;---Can only process either velocities or elevation---&quot;</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[:]</span>
@@ -425,13 +431,12 @@
                 <span class="n">el</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="n">argtime</span><span class="p">[:]]</span>
 
             <span class="n">lat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">lat</span>
-            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[],</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="c">#Write meta-data only if computed over all the elements</span>
 
-            <span class="k">return</span> <span class="n">harmo</span>
+        <span class="k">return</span> <span class="n">harmo</span>
 </div>
-<div class="viewcode-block" id="FunctionsAdcp.Harmonic_reconstruction"><a class="viewcode-back" href="../../../pyseidon.adcpClass.html#pyseidon.adcpClass.functionsAdcp.FunctionsAdcp.Harmonic_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                                <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="FunctionsAdcp.Harmonic_reconstruction"><a class="viewcode-back" href="../../../pyseidon.adcpClass.html#pyseidon.adcpClass.functionsAdcp.FunctionsAdcp.Harmonic_reconstruction">[docs]</a>    <span class="k">def</span> <span class="nf">Harmonic_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function reconstructs the velocity components or the surface elevation</span>
 <span class="sd">        from harmonic coefficients.</span>
@@ -459,14 +464,8 @@
         <span class="n">debug</span> <span class="o">=</span> <span class="p">(</span><span class="n">debug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug</span><span class="p">)</span>
         <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[</span><span class="n">time_ind</span><span class="p">]</span>
         <span class="c">#TR_comments: Add debug flag in Utide: debug=self._debug</span>
-        <span class="n">Reconstruct</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">velocity</span><span class="p">:</span>
-            <span class="n">U_recon</span><span class="p">,</span> <span class="n">V_recon</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;U&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">U_recon</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V_recon</span>
-        <span class="k">if</span> <span class="n">elevation</span><span class="p">:</span>
-            <span class="n">elev_recon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
-            <span class="n">Reconstruct</span><span class="p">[</span><span class="s">&#39;el&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elev_recon</span>
+        <span class="n">Reconstruct</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">harmo</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">Reconstruct</span>  
 </div>
 <div class="viewcode-block" id="FunctionsAdcp.verti_shear"><a class="viewcode-back" href="../../../pyseidon.adcpClass.html#pyseidon.adcpClass.functionsAdcp.FunctionsAdcp.verti_shear">[docs]</a>    <span class="k">def</span> <span class="nf">verti_shear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="p">[],</span> <span class="n">t_end</span><span class="o">=</span><span class="p">[],</span>  <span class="n">time_ind</span><span class="o">=</span><span class="p">[],</span>
@@ -515,14 +514,16 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>
             <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">east_vel</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:]</span>
             <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">north_vel</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:]</span>
+            <span class="n">depths</span> <span class="o">=</span> <span class="n">depth</span><span class="p">[</span><span class="n">argtime</span><span class="p">,:]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">east_vel</span><span class="p">[:,:]</span>
             <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">north_vel</span><span class="p">[:,:]</span>
+            <span class="n">depths</span> <span class="o">=</span> <span class="n">depth</span><span class="p">[:,:]</span>
 
-        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>     
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
         <span class="c"># Compute shear</span>
-        <span class="n">dz</span> <span class="o">=</span> <span class="n">depth</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">depth</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="n">depths</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">depths</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">dvel</span> <span class="o">=</span> <span class="n">norm</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">norm</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>           
         <span class="n">dveldz</span> <span class="o">=</span> <span class="n">dvel</span> <span class="o">/</span> <span class="n">dz</span>
 
@@ -531,7 +532,7 @@
 
         <span class="c">#Plot mean values</span>
         <span class="k">if</span> <span class="n">graph</span><span class="p">:</span>
-            <span class="n">mean_depth</span> <span class="o">=</span> <span class="p">(</span><span class="n">depth</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">depth</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">mean_depth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">depths</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">depths</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">mdat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">dveldz</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dveldz</span><span class="p">))</span>
             <span class="n">mean_dveldz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mdat</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">mdat</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -585,11 +586,11 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">argtime</span><span class="o">==</span><span class="p">[]:</span>          
             <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">east_vel</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span> <span class="p">:]</span>
             <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">north_vel</span><span class="p">[</span><span class="n">argtime</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+            <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>            
             <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">east_vel</span><span class="p">[:,</span> <span class="p">:]</span>
             <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">north_vel</span><span class="p">[:,</span> <span class="p">:]</span>
-            <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span>
+            <span class="n">velo_norm</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&#39;sqrt(U**2 + V**2)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
             <span class="k">print</span> <span class="s">&#39;...passed&#39;</span>
@@ -600,7 +601,7 @@
             <span class="n">mdat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">velo_norm</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">velo_norm</span><span class="p">))</span>
             <span class="n">vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mdat</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">mdat</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">plot_xy</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">xerror</span><span class="o">=</span><span class="n">error</span><span class="p">[:],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">plot_xy</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">depth</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">xerror</span><span class="o">=</span><span class="n">error</span><span class="p">[:],</span>
                                <span class="n">title</span><span class="o">=</span><span class="s">&#39;Velocity norm profile &#39;</span><span class="p">,</span>
                                <span class="n">xLabel</span><span class="o">=</span><span class="s">&#39;Velocity (m/s) &#39;</span><span class="p">,</span> <span class="n">yLabel</span><span class="o">=</span><span class="s">&#39;Depth (m) &#39;</span><span class="p">,</span>
                                <span class="n">dump</span><span class="o">=</span><span class="n">dump</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -617,7 +618,7 @@
 <span class="sd">          - mattime = matlab time (floats)</span>
 <span class="sd">        &quot;&quot;&quot;</span>  
         <span class="n">time</span> <span class="o">=</span> <span class="n">mattime_to_datetime</span><span class="p">(</span><span class="n">mattime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>   
-        <span class="k">print</span> <span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">time</span>
 
 <span class="c">#TR_comments: templates</span>
 <span class="c">#    def whatever(self, debug=False):</span>

@@ -103,7 +103,7 @@
 
 <span class="sd">    *Notes*</span>
 <span class="sd">      Throughout the package, the following conventions apply:</span>
-<span class="sd">      - Date = string of &#39;yyyy-mm-ddThh:mm:ss&#39;</span>
+<span class="sd">      - Date = string of &#39;yyyy-mm-dd hh:mm:ss&#39;</span>
 <span class="sd">      - Coordinates = decimal degrees East and North</span>
 <span class="sd">      - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</span>
 <span class="sd">                     +/-180=West, -90=South</span>
@@ -165,6 +165,8 @@
 
         <span class="c">##Re-assignement of utility functions as methods</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dump_profile_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Plots</span><span class="o">.</span><span class="n">_dump_profile_data_as_csv</span>
+
+        <span class="k">return</span>
 
     <span class="k">def</span> <span class="nf">_isMulti</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tells if filename point to a file or a folder&quot;&quot;&quot;</span>
@@ -240,7 +242,7 @@
     <span class="k">def</span> <span class="nf">_load_nc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;loads netcdf file&quot;&quot;&quot;</span>
         <span class="c">#Look for file locally</span>
-        <span class="k">print</span> <span class="s">&quot;Retrieving data from &quot;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot; ...&quot;</span>
+        <span class="c">#print &quot;Retrieving data from &quot; + filename + &quot; ...&quot;</span>
         <span class="c"># WB_Alternative: self.Data = sio.netcdf.netcdf_file(filename, &#39;r&#39;)</span>
         <span class="c"># WB_comments: scipy has causes some errors, and even though can be</span>
         <span class="c">#             faster, can be unreliable</span>

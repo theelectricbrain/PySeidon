@@ -185,7 +185,7 @@ and therefore reduce memory and cpu use.</p>
 </li>
 <li><dl class="first docutils">
 <dt>tx = defines for a specific temporal period to work with, as such:</dt>
-<dd><p class="first last">tx = [&#8216;2012-11-07T12:00:00&#8217;,&#8216;2012.11.09T12:00:00&#8217;], string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;
+<dd><p class="first last">tx = [&#8216;2012-11-07T12:00:00&#8217;,&#8216;2012.11.09 12:00:00&#8217;], string of &#8216;yyyy-mm-dd hh:mm:ss&#8217;
 Note that this option permits to extract partial data from the overall file
 and therefore reduce memory and cpu use</p>
 </dd>
@@ -198,7 +198,7 @@ and therefore reduce memory and cpu use</p>
 Throughout the package, the following conventions apply:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Date = string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;</li>
+<li>Date = string of &#8216;yyyy-mm-dd hh:mm:ss&#8217;</li>
 <li>Coordinates = decimal degrees East and North</li>
 <li>Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North, +/-180=West, -90=South</li>
 <li>Depth = 0m is the free surface and depth is negative</li>
@@ -337,7 +337,7 @@ TideGauge._|_History = Quality Control metadata
 
 <dl class="class">
 <dt id="pyseidon.Validation">
-<em class="property">class </em><code class="descclassname">pyseidon.</code><code class="descname">Validation</code><span class="sig-paren">(</span><em>observed</em>, <em>simulated</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.Validation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyseidon.</code><code class="descname">Validation</code><span class="sig-paren">(</span><em>observed</em>, <em>simulated</em>, <em>flow=[]</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.Validation" title="Permalink to this definition">¶</a></dt>
 <dd><p><strong>Validation class/structure</strong></p>
 <p>Class structured as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre>             _History = Quality Control metadata
@@ -353,13 +353,17 @@ Validation._|_validate_harmonics = validation method/function against
 <dd><ul class="first last simple">
 <li>observed = standalone or tuple of PySeidon measurement object (i.e. ADCP, TideGauge, Drifter,...)</li>
 <li>simulated = any PySeidon simulation object (i.e. FVCOM or Station)</li>
-<li>flow = flow comparison by surface flow (&#8216;sf&#8217;), depth-averaged flow (&#8216;daf&#8217;) or at any depth (float)</li>
+</ul>
+</dd>
+<dt>Option:</dt>
+<dd><ul class="first last simple">
+<li>flow = impose flow comparison by surface flow (&#8216;sf&#8217;), depth-averaged flow (&#8216;daf&#8217;) or at any depth (float)</li>
 </ul>
 </dd>
 </dl>
 <dl class="method">
 <dt id="pyseidon.Validation.benchmarks_map">
-<code class="descname">benchmarks_map</code><span class="sig-paren">(</span><em>savepath=''</em>, <em>fname='taylor_diagram'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.benchmarks_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.Validation.benchmarks_map" title="Permalink to this definition">¶</a></dt>
+<code class="descname">benchmarks_map</code><span class="sig-paren">(</span><em>savepath=''</em>, <em>fname='benchmarks_map'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.benchmarks_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.Validation.benchmarks_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots bathymetric map &amp; model validation benchmarks</p>
 <dl class="docutils">
 <dt>Options:</dt>
@@ -377,7 +381,7 @@ Validation._|_validate_harmonics = validation method/function against
 <dt id="pyseidon.Validation.save_as">
 <code class="descname">save_as</code><span class="sig-paren">(</span><em>filename</em>, <em>fileformat='pickle'</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.save_as"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.Validation.save_as" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
-<dt>This method saves the current FVCOM structure as:</dt>
+<dt>This method saves the current Validation structure as:</dt>
 <dd><ul class="first last simple">
 <li><a href="#id11"><span class="problematic" id="id12">*</span></a>.p, i.e. python file</li>
 <li><a href="#id13"><span class="problematic" id="id14">*</span></a>.mat, i.e. Matlab file</li>
@@ -412,7 +416,7 @@ Validation._|_validate_harmonics = validation method/function against
 
 <dl class="method">
 <dt id="pyseidon.Validation.validate_data">
-<code class="descname">validate_data</code><span class="sig-paren">(</span><em>filename=[]</em>, <em>depth=[]</em>, <em>flow=[]</em>, <em>plot=False</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.validate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.Validation.validate_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">validate_data</code><span class="sig-paren">(</span><em>filename=[]</em>, <em>depth=[]</em>, <em>plot=False</em>, <em>save_csv=False</em>, <em>debug=False</em>, <em>debug_plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/validationClass/validationClass.html#Validation.validate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.Validation.validate_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method computes series of standard validation benchmarks.</p>
 <dl class="docutils">
 <dt>Options:</dt>
@@ -424,8 +428,6 @@ Validation._|_validate_harmonics = validation method/function against
 <dd><p class="first last">Only applicable for 3D simulations.</p>
 </dd>
 </dl>
-</li>
-<li><p class="first">flow = flow comparison by surface flow (&#8216;sf&#8217;), depth-averaged flow (&#8216;daf&#8217;) or at any depth (float)</p>
 </li>
 <li><p class="first">plot = plot series of validation graphs, boolean.</p>
 </li>
@@ -512,7 +514,7 @@ Note that the file can be a pickle file (i.e. <a href="#id23"><span class="probl
 </dd>
 <dt><em>Notes</em></dt>
 <dd><p class="first">Throughout the package, the following conventions apply:
-- Date = string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;
+- Date = string of &#8216;yyyy-mm-dd hh:mm:ss&#8217;
 - Coordinates = decimal degrees East and North
 - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
 <blockquote>

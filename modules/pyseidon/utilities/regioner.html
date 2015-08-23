@@ -63,7 +63,7 @@
                             <span class="p">(</span><span class="n">lat</span> <span class="o">&gt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span>
                             <span class="p">(</span><span class="n">lat</span> <span class="o">&lt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
 
-    <span class="n">region_n</span> <span class="o">=</span> <span class="n">region_n</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">region_n</span> <span class="o">=</span> <span class="n">region_n</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">region_n</span>
 </div>
@@ -74,7 +74,7 @@
                             <span class="p">(</span><span class="n">latc</span> <span class="o">&gt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span>
                             <span class="p">(</span><span class="n">latc</span> <span class="o">&lt;=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
 
-    <span class="n">region_e</span> <span class="o">=</span> <span class="n">region_e</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">region_e</span> <span class="o">=</span> <span class="n">region_e</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">region_e</span>
 

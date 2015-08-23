@@ -107,7 +107,7 @@ For more detailed information about &#8216;solve&#8217;, please see
 
 <dl class="method">
 <dt id="pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_reconstruction">
-<code class="descname">Harmonic_reconstruction</code><span class="sig-paren">(</span><em>harmo</em>, <em>elevation=True</em>, <em>velocity=False</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Harmonic_reconstruction</code><span class="sig-paren">(</span><em>harmo</em>, <em>time_ind=slice(None</em>, <em>None</em>, <em>None)</em>, <em>debug=False</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="modules/pyseidon/stationClass/functionsStation.html#FunctionsStation.Harmonic_reconstruction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyseidon.stationClass.functionsStation.FunctionsStation.Harmonic_reconstruction" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function reconstructs the velocity components or the surface elevation
 from harmonic coefficients.
 Harmonic_reconstruction calls &#8216;reconstruct&#8217;. This function assumes harmonics
@@ -116,8 +116,6 @@ Harmonic_reconstruction calls &#8216;reconstruct&#8217;. This function assumes h
 <dt>Inputs:</dt>
 <dd><ul class="first last simple">
 <li>Harmo = harmonic coefficient from harmo_analysis</li>
-<li>elevation =True means that &#8216;reconstruct&#8217; will be done for elevation.</li>
-<li>velocity =True means that &#8216;reconstruct&#8217; will be done for velocity.</li>
 <li>time_ind = time indices to process, list of integers</li>
 </ul>
 </dd>
@@ -346,7 +344,6 @@ element depth is requested</li>
 <dt>Outputs:</dt>
 <dd><ul class="first last simple">
 <li>flowDir = flowDir at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
-<li>norm = velocity norm at (pt_lon, pt_lat), 2D array (ntime, nlevel)</li>
 </ul>
 </dd>
 <dt>Options:</dt>
@@ -586,7 +583,7 @@ Note that the file can be a pickle file (i.e. <a href="#id1"><span class="proble
 </dd>
 <dt><em>Notes</em></dt>
 <dd><p class="first">Throughout the package, the following conventions apply:
-- Date = string of &#8216;yyyy-mm-ddThh:mm:ss&#8217;
+- Date = string of &#8216;yyyy-mm-dd hh:mm:ss&#8217;
 - Coordinates = decimal degrees East and North
 - Directions = in degrees, between -180 and 180 deg., i.e. 0=East, 90=North,</p>
 <blockquote>

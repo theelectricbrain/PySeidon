@@ -60,12 +60,10 @@
 <span class="sd">    **&#39;Utils&#39; subset of TideGauge class gathers useful functions**</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">plot</span><span class="p">,</span> <span class="n">History</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">variable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="n">plot</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_History</span> <span class="o">=</span> <span class="n">History</span>
         <span class="c">#Create pointer to FVCOM class</span>
-        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span>
-        <span class="n">History</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_History</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_var&#39;</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_History&#39;</span><span class="p">,</span> <span class="n">History</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FunctionsTidegauge.harmonics"><a class="viewcode-back" href="../../../pyseidon.tidegaugeClass.html#pyseidon.tidegaugeClass.functionsTidegauge.FunctionsTidegauge.harmonics">[docs]</a>    <span class="k">def</span> <span class="nf">harmonics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_ind</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -92,7 +90,7 @@
 <span class="sd">        https://github.com/wesleybowman/UTide</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">harmo</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[</span><span class="n">time_ind</span><span class="p">],</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">,</span> <span class="p">[],</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">el</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>
                       <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">harmo</span>
 </div>
@@ -106,7 +104,7 @@
 <span class="sd">        Inputs:</span>
 <span class="sd">          - Harmo = harmonic coefficient from harmo_analysis</span>
 
-<span class="sd">        Options:</span>
+<span class="sd">        Output:</span>
 <span class="sd">          - Reconstruct = reconstructed signal, dictionary</span>
 
 <span class="sd">        Keywords:</span>
@@ -122,7 +120,7 @@
 <span class="sd">        https://github.com/wesleybowman/UTide</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="o">.</span><span class="n">matlabTime</span><span class="p">[</span><span class="n">time_ind</span><span class="p">]</span>
-        <span class="n">ts_recon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+        <span class="n">ts_recon</span> <span class="o">=</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">harmo</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ts_recon</span>
 </div>
 <div class="viewcode-block" id="FunctionsTidegauge.mattime2datetime"><a class="viewcode-back" href="../../../pyseidon.tidegaugeClass.html#pyseidon.tidegaugeClass.functionsTidegauge.FunctionsTidegauge.mattime2datetime">[docs]</a>    <span class="k">def</span> <span class="nf">mattime2datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mattime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -135,7 +133,7 @@
 <span class="sd">          - mattime = matlab time (floats)</span>
 <span class="sd">        &quot;&quot;&quot;</span>  
         <span class="n">time</span> <span class="o">=</span> <span class="n">mattime_to_datetime</span><span class="p">(</span><span class="n">mattime</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>   
-        <span class="k">print</span> <span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">time</span>
 
 <span class="c">#TR_comments: templates</span>
 <span class="c">#    def whatever(self, debug=False):</span>
