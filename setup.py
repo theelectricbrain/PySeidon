@@ -16,7 +16,7 @@ if option=='n':
       description='Suite of tools for tidal-energy and FVCOM-user communities',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',
-      author='Wesley Bowman, Thomas Roc, Jon Smith',
+      author='Thomas Roc, Jon Smith, Wesley Bowman',
       author_email='thomas.roc@acadiau.ca,wesley.bowman23@gmail.com,'+\
                    'lavieenroux20@gmail.com',
       maintainer='Thomas Roc',
@@ -30,7 +30,7 @@ else:
       description='Suite of tools for tidal-energy and FVCOM-user communities',
       long_description=readme(),
       url='https://github.com/GrumpyNounours/PySeidon',
-      author='Wesley Bowman, Thomas Roc, Jon Smith',
+      author='Thomas Roc, Jon Smith, Wesley Bowman',
       author_email='thomas.roc@acadiau.ca,wesley.bowman23@gmail.com,'+\
                    'lavieenroux20@gmail.com',
       maintainer='Thomas Roc',

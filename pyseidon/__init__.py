@@ -24,12 +24,12 @@ from fvcomClass import *
 from validationClass import *
 
 # Custom error
-from pyseidon_error import PyseidonError
+from pyseidon.utilities.pyseidon_error import PyseidonError
 
 #Permission info for OpenDap server
 #print "OpenDap server connexion info:"
 
-__version__ = 'dvt-v2'
+__version__ = '2.0'
 __all__ = ["FVCOM", "ADCP", "Drifter", "TideGauge",\
            "Validation", "Station", "utilities", "PyseidonError"]
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']

@@ -2,8 +2,6 @@
 # encoding: utf-8
 
 from __future__ import division
-import os
-import sys
 
 
 __authors__ = ['Wesley Bowman, Thomas Roc, Jonathan Smith']

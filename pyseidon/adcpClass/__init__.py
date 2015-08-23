@@ -1,10 +1,6 @@
 #!/usr/bin/python2.7
 # encoding: utf-8
 
-from __future__ import division
-import os
-import sys
-
 #Local import
 from adcpClass import ADCP
 
