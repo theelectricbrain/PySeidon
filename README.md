@@ -61,6 +61,10 @@ Package's documentation can be found [here](http://grumpynounours.github.io/PySe
 * [Tutorial 0: First steps](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_0.ipynb)
 * [Tutorial 1: FVCOM class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/master/PySeidon_tuto_1.ipynb)
 * [Tutorial 2: Station class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_2.ipynb)
+* [Tutorial 3: ADCP class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_3.ipynb)
+* [Tutorial 4: TideGauge class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_4.ipynb)
+* [Tutorial 5: Drifter class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_5.ipynb)
+* [Tutorial 6: Validation class](http://nbviewer.ipython.org/github/GrumpyNounours/PySeidon/blob/development/PySeidon_tuto_6.ipynb)
 
 ### Contacts ###
 * Project Leader: [Richard Karsten](richard.karsten@acadiau.ca)
