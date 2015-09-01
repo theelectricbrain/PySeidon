@@ -5,8 +5,9 @@ from __future__ import division
 from itertools import groupby
 from operator import itemgetter
 import datetime
+import gc
 # Parallel computing
-import multiprocessing as mp
+#import multiprocessing as mp
 #Local import
 from pyseidon.utilities.regioner import *
 from pyseidon.utilities.miscellaneous import time_to_index
@@ -152,10 +153,12 @@ class _load_var:
 
             # Loading 2D variables
             for key, aliaS in zip(self._kwl2D, self._al2D):
+                gc.collect()  # force garbage collector in an attempt to free up some RAM
                 loadVar(data, grid, key, aliaS, debug=debug)
 
             # Loading 3D variables
             for key, aliaS in zip(self._kwl3D, self._al3D):
+                gc.collect()  # force garbage collector in an attempt to free up some RAM
                 loadVar(data, grid, key, aliaS, debug=debug)
 
             ##-------Parallelized loading block-------
