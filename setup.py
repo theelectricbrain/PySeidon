@@ -39,6 +39,6 @@ else:
       package_dir={'PySeidon' :'pyseidon'},
       install_requires=['setuptools', 'utide', 'numpy', 'pandas', 'pydap', 'pydap',
                         'networkx', 'seaborn', 'scipy','matplotlib', 'h5py', 'numexpr',
-                        'datetime', 'netCDF4'],
+                        'datetime', 'netCDF4', 'gdal'],
       zip_safe=False)
 

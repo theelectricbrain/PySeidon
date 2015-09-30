@@ -3,12 +3,16 @@
 
 from __future__ import division
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 import matplotlib.tri as Tri
 import matplotlib.ticker as ticker
 import matplotlib.patches as mpatches
 import seaborn
 import pandas as pd
+from osgeo import ogr
+from osgeo import osr
+# Local import
 from pyseidon.utilities.windrose import WindroseAxes
 from pyseidon.utilities.interpolation_utils import *
 #from miscellaneous import depth_at_FVCOM_element as depth_at_ind
@@ -33,7 +37,7 @@ class PlotsFvcom:
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
                      degree=True, mesh=False, isoline = 'bathy',
-                     dump=False, debug=False, **kwargs):
+                     dump=False, shapefile=False, debug=False, **kwargs):
         """
         2D xy colormap plot of any given variable and mesh.
 
@@ -49,6 +53,7 @@ class PlotsFvcom:
           - degree = boolean, coordinates in degrees (True) or meters (False)
           - isloline = 'bathy': bathymetric isolines, 'var': variable isolines, 'none': no isolines
           - dump = boolean, dump profile data in csv file
+          - shapefile = boolean, save map as shapefile
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
@@ -171,6 +176,7 @@ class PlotsFvcom:
         self._ax.grid()
         self._fig.show()
 
+        # Saving
         if dump:
             if degree:
                 self._dump_map_data_as_csv(var, self._grid.lonc, self._grid.latc,
@@ -181,6 +187,20 @@ class PlotsFvcom:
                                            varLabel='map', xLabel=' ', yLabel=' ', **kwargs)
         if debug or self._debug:
             print '...Passed'
+
+        if shapefile:
+            if var.shape[0] == self._grid.nnode:
+                if debug: print "Interpolating var..."
+                var = interpN(var, self._grid.trinodes, self._grid.aw0, debug=debug)
+            if degree:
+                self._save_map_as_shapefile(var, self._grid.lon, self._grid.lat,
+                                            title=title, varLabel='map',
+                                            xLabel=' ', yLabel=' ', debug=debug)
+            else:
+                self._save_map_as_shapefile(var, self._grid.x, self._grid.y,
+                                            title=title, varLabel='map',
+                                            xLabel=' ', yLabel=' ', debug=debug)
+
 
     def rose_diagram(self, direction, norm):
 
@@ -364,8 +384,6 @@ class PlotsFvcom:
           - y = coordinates, 1 D numpy array (nele or nnode)
 
         Options:
-          - xerror = error on 'x', 1D array
-          - yerror = error on 'y', 1D array
           - title = file name, string
           - xLabel = name of the x-data, string
           - yLabel = name of the y-data, string
@@ -380,3 +398,78 @@ class PlotsFvcom:
         if yLabel == ' ': yLabel = 'Y'
         df = pd.DataFrame({xLabel:x[:], yLabel:y[:], varLabel: var[:]})
         df.to_csv(filename, encoding='utf-8', **kwargs)
+
+    def _save_map_as_shapefile(self, var, x, y,
+                               title=' ', varLabel=' ', xLabel=' ', yLabel=' ', debug=False):
+        """
+        Saves map as shapefile
+
+        Inputs:
+          - var = gridded variable, 1 D numpy array (nele or nnode)
+          - x = coordinates, 1 D numpy array (nele or nnode)
+          - y = coordinates, 1 D numpy array (nele or nnode)
+
+        Options:
+          - title = file name, string
+          - xLabel = name of the x-data, string
+          - yLabel = name of the y-data, string
+          - kwargs = keyword options associated with ???
+        """
+
+        debug = debug or self._debug
+        if debug:
+            print 'Converting map to shapefile...'
+        if title == ' ': title = 'save_map_data'
+        filename=title + '.shp'
+        epsg_in=4326
+
+        # give alternative file name is already exists
+        driver = ogr.GetDriverByName('ESRI Shapefile')
+        if os.path.exists(filename):
+            filename = filename[:-4] + "_bis.shp"
+
+        shapeData = driver.CreateDataSource(filename)
+
+        spatialRefi = osr.SpatialReference()
+        spatialRefi.ImportFromEPSG(epsg_in)
+
+        lyr = shapeData.CreateLayer("poly_layer", spatialRefi, ogr.wkbPolygon )
+
+        #Features
+        if varLabel==' ': valLabel = 'var'
+        lyr.CreateField(ogr.FieldDefn(varLabel, ogr.OFTReal))
+
+        if debug: print "Writing ESRI Shapefile %s..." % filename
+        lon = x[:]
+        lat = y[:]
+        trinodes = self._grid.trinodes[:]
+
+        if debug: print "Writing Node Array"
+        cnt = 0
+        for row in trinodes:
+            val1 = -999
+            ring = ogr.Geometry(ogr.wkbLinearRing)
+            for val in row:
+                if val1 == -999:
+                    val1 = val
+                ring.AddPoint(lon[val], lat[val])
+            #Add 1st point to close ring
+            ring.AddPoint(lon[val1], lat[val1])
+
+            poly = ogr.Geometry(ogr.wkbPolygon)
+            poly.AddGeometry(ring)
+
+            #Now add field values from array
+            feat = ogr.Feature(lyr.GetLayerDefn())
+            feat.SetGeometry(poly)
+            feat.SetField(varLabel, var[cnt])
+
+            lyr.CreateFeature(feat)
+            feat.Destroy()
+            poly.Destroy()
+
+            val1 = -999
+            cnt += 1
+
+        shapeData.Destroy()
+        if debug: print "Finished writing Shapefile Mesh. [Total Nodes: %d]" % cnt
