@@ -9,7 +9,7 @@ import sys
 import netCDF4 as nc
 #from scipy.io import netcdf
 
-def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
+def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=False):
     """
     Saves fvcom object in a pickle file
 
@@ -19,9 +19,18 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
     options:
       - exceptions = list of variables to exclude from output file
                      , list of strings
+      - compresion = compresses data with zlib and uses at least 3 significant digits, boolean
+        Note: Works only with netcdf format
     """
     #Define bounding box
     if debug: print "Computing bounding box..."
+    if compression:
+        zlib = True
+        least_significant_digit = 3
+    else:
+        zlib = False
+        least_significant_digit = None
+
     if fvcom.Grid._ax == []:
         lon = fvcom.Grid.lon[:]
         lat = fvcom.Grid.lat[:]
@@ -75,7 +84,8 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
                        'hori_velo_norm', 'tauc']:
                 try:
                     if hasattr(fvcom.Variables, var):
-                        tmp_var = f.createVariable(var, 'float', ('time','nele'))
+                        tmp_var = f.createVariable(var, 'float', ('time','nele'),
+                                                   zlib=zlib, least_significant_digit=least_significant_digit)
                         tmp_var[:] = getattr(fvcom.Variables, var)[:]
                 except (AttributeError, IndexError) as e:
                     pass
@@ -89,7 +99,9 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
             if var == 'el':
                 try:
                     if hasattr(fvcom.Variables, var):
-                        tmp_var = f.createVariable('zeta', 'float', ('time','node'))
+                        tmp_var = f.createVariable('zeta', 'float', ('time','node'),
+                                                   zlib=zlib, least_significant_digit=least_significant_digit)
+                        tmp_var.set_auto_maskandscale(True)
                         tmp_var[:] = getattr(fvcom.Variables, var)[:]
                 except (AttributeError, IndexError) as e:
                     pass
@@ -98,7 +110,8 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
                            'vorticity', 'power_density']:
                     try:
                         if hasattr(fvcom.Variables, var):
-                            tmp_var = f.createVariable(var,'float',('time','siglay','nele'))
+                            tmp_var = f.createVariable(var,'float',('time','siglay','nele'),
+                                                       zlib=zlib, least_significant_digit=least_significant_digit)
                             tmp_var[:] = getattr(fvcom.Variables, var)[:]
                     except (AttributeError, IndexError) as e:
                         pass
@@ -106,15 +119,16 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
                     try:
                         if hasattr(fvcom.Variables, var):
                             tmp_var = f.createVariable(var,'float',
-                                                          ('time','vertshear','nele'))
+                                                          ('time','vertshear','nele'),
+                                                           zlib=zlib, least_significant_digit=least_significant_digit)
                             tmp_var[:] = getattr(fvcom.Variables, var)[:]
                     except (AttributeError, IndexError) as e:
                         pass
                 if var in ['w']:
                     try:
                         if hasattr(fvcom.Variables, var):
-                            tmp_var = f.createVariable('ww','float',
-                                                          ('time','siglay','nele'))
+                            tmp_var = f.createVariable('ww','float', ('time','siglay','nele'),
+                                                       zlib=zlib, least_significant_digit=least_significant_digit)
                             tmp_var[:] = getattr(fvcom.Variables, var)[:]
                     except (AttributeError, IndexError) as e:
                         pass
@@ -182,7 +196,8 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
             if grd == 'depth':
                 try:
                     if hasattr(fvcom.Grid, grd):
-                        tmp_var = f.createVariable(grd,'float', ('time','siglay','nele'))
+                        tmp_var = f.createVariable(grd,'float', ('time','siglay','nele'),
+                                                   zlib=zlib, least_significant_digit=least_significant_digit)
                         tmp_var[:] = getattr(fvcom.Grid, grd)[:]
                 except (AttributeError, IndexError) as e:
                     pass

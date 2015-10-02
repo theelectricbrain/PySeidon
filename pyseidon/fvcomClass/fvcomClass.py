@@ -282,7 +282,7 @@ class FVCOM:
         return newself
 
     #Methods
-    def save_as(self, filename, fileformat='netcdf', exceptions=[], debug=False):
+    def save_as(self, filename, fileformat='netcdf', exceptions=[], compression=False, debug=False):
         """
         This method saves the current FVCOM structure as:
            - *.nc, i.e. netcdf file
@@ -296,6 +296,8 @@ class FVCOM:
           - fileformat = format of the file to be saved, i.e. 'pickle', .netcdf. or 'matlab'
           - exceptions = list of variables to exclude from output file
                      , list of strings
+          - compresion = compresses data with zlib and uses at least 3 significant digits, boolean
+            Note: Works only with netcdf format
         """
         debug = debug or self._debug
         if debug:
@@ -306,7 +308,7 @@ class FVCOM:
         elif fileformat=='matlab':
             pyseidon_to_matlab(self, filename, exceptions=exceptions, debug=debug)
         elif fileformat=='netcdf':
-            pyseidon_to_netcdf(self, filename, exceptions=exceptions, debug=debug)
+            pyseidon_to_netcdf(self, filename, exceptions=exceptions, compression=compression, debug=debug)
         else:
             print "---Wrong file format---"
 
