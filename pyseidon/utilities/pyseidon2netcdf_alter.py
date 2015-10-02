@@ -9,13 +9,16 @@ import sys
 import netCDF4 as nc
 #from scipy.io import netcdf
 
-def pyseidon_to_netcdf(fvcom, filename, debug):
+def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
     """
     Saves fvcom object in a pickle file
 
     inputs:
       - fvcom = fvcom pyseidon object
       - filename = file name, string
+    options:
+      - exceptions = list of variables to exclude from output file
+                     , list of strings
     """
     #Define bounding box
     if debug: print "Computing bounding box..."
@@ -66,122 +69,124 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
     #load in netcdf file
     if debug: print "Loading variables' matrices in nc file..."
     for var in varname:
-        if debug: print "...loading "+var+"..."
-        if var in ['ua', 'va','depth_av_flow_dir','depth_av_vorticity',
-                   'depth_av_power_density','depth_av_power_assessment',
-                   'hori_velo_norm', 'tauc']:
-            try:
-                if hasattr(fvcom.Variables, var):
-                    tmp_var = f.createVariable(var, 'float', ('time','nele'))
-                    tmp_var[:] = getattr(fvcom.Variables, var)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if var in ['julianTime', 'matlabTime']:
-            try:
-                if hasattr(fvcom.Variables, var):
-                    tmp_var = f.createVariable(var, 'float', ('time',))
-                    tmp_var[:] = getattr(fvcom.Variables, var)[:]
-            except AttributeError:
-                pass
-        if var == 'el':
-            try:
-                if hasattr(fvcom.Variables, var):
-                    tmp_var = f.createVariable('zeta', 'float', ('time','node'))
-                    tmp_var[:] = getattr(fvcom.Variables, var)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if fvcom.Variables._3D:
-            if var in ['u', 'v', 'flow_dir', 'velo_norm',
-                       'vorticity', 'power_density']:
+        if not var in exceptions: # check if in list of exceptions
+            if var in ['ua', 'va','depth_av_flow_dir','depth_av_vorticity',
+                       'depth_av_power_density','depth_av_power_assessment',
+                       'hori_velo_norm', 'tauc']:
                 try:
                     if hasattr(fvcom.Variables, var):
-                        tmp_var = f.createVariable(var,'float',('time','siglay','nele'))
+                        tmp_var = f.createVariable(var, 'float', ('time','nele'))
                         tmp_var[:] = getattr(fvcom.Variables, var)[:]
                 except (AttributeError, IndexError) as e:
                     pass
-            if var in ['verti_shear']:
+            if var in ['julianTime', 'matlabTime']:
                 try:
                     if hasattr(fvcom.Variables, var):
-                        tmp_var = f.createVariable(var,'float',
-                                                      ('time','vertshear','nele'))
+                        tmp_var = f.createVariable(var, 'float', ('time',))
+                        tmp_var[:] = getattr(fvcom.Variables, var)[:]
+                except AttributeError:
+                    pass
+            if var == 'el':
+                try:
+                    if hasattr(fvcom.Variables, var):
+                        tmp_var = f.createVariable('zeta', 'float', ('time','node'))
                         tmp_var[:] = getattr(fvcom.Variables, var)[:]
                 except (AttributeError, IndexError) as e:
                     pass
-            if var in ['w']:
-                try:
-                    if hasattr(fvcom.Variables, var):
-                        tmp_var = f.createVariable('ww','float',
-                                                      ('time','siglay','nele'))
-                        tmp_var[:] = getattr(fvcom.Variables, var)[:]
-                except (AttributeError, IndexError) as e:
-                    pass
+            if fvcom.Variables._3D:
+                if var in ['u', 'v', 'flow_dir', 'velo_norm',
+                           'vorticity', 'power_density']:
+                    try:
+                        if hasattr(fvcom.Variables, var):
+                            tmp_var = f.createVariable(var,'float',('time','siglay','nele'))
+                            tmp_var[:] = getattr(fvcom.Variables, var)[:]
+                    except (AttributeError, IndexError) as e:
+                        pass
+                if var in ['verti_shear']:
+                    try:
+                        if hasattr(fvcom.Variables, var):
+                            tmp_var = f.createVariable(var,'float',
+                                                          ('time','vertshear','nele'))
+                            tmp_var[:] = getattr(fvcom.Variables, var)[:]
+                    except (AttributeError, IndexError) as e:
+                        pass
+                if var in ['w']:
+                    try:
+                        if hasattr(fvcom.Variables, var):
+                            tmp_var = f.createVariable('ww','float',
+                                                          ('time','siglay','nele'))
+                            tmp_var[:] = getattr(fvcom.Variables, var)[:]
+                    except (AttributeError, IndexError) as e:
+                        pass
+                if debug: print "..."+var+" loaded..."
 
     if debug: print "Loading grid' matrices in nc file..."
     for grd in gridname:
-        if debug: print "...loading "+grd+"..."
-        if grd in ['xc', 'yc', 'lonc', 'latc', 'hc']:
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'float', ('nele',))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd == 'depth2D':
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'float', ('time','nele'))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd in ['x', 'y', 'lon', 'lat', 'h']:
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'float', ('node',)) 
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd in ['triele','trinodes']:
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'i', ('nele','three'))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd in ['a1u', 'a2u']:
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'float', ('four','nele'))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd in ['aw0', 'awy', 'awx']:
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd, 'float', ('three','nele'))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd == 'siglay':
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd,'float', ('siglay','node'))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd == 'siglev':
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd,'float', ('siglev','node'))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-        if grd == 'depth':
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    tmp_var = f.createVariable(grd,'float', ('time','siglay','nele'))
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
+        if not grd in exceptions: # check if in list of exceptions
+            if grd in ['xc', 'yc', 'lonc', 'latc', 'hc']:
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd, 'float', ('nele',))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd == 'depth2D':
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd, 'float', ('time','nele'))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd in ['x', 'y', 'lon', 'lat', 'h']:
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd, 'float', ('node',))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd in ['triele','trinodes']:
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd, 'i', ('nele','three'))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd in ['a1u', 'a2u']:
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd, 'float', ('four','nele'))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd in ['aw0', 'awy', 'awx']:
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd, 'float', ('three','nele'))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd == 'siglay':
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd,'float', ('siglay','node'))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd == 'siglev':
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd,'float', ('siglev','node'))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if grd == 'depth':
+                try:
+                    if hasattr(fvcom.Grid, grd):
+                        tmp_var = f.createVariable(grd,'float', ('time','siglay','nele'))
+                        tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                except (AttributeError, IndexError) as e:
+                    pass
+            if debug: print "..."+grd+" loaded..."
     f.close()
     if debug: print "...done"    
 

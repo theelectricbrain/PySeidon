@@ -11,13 +11,16 @@ from functionsFvcomThreeD import *
 # Custom error
 from pyseidon_error import PyseidonError
 
-def pyseidon_to_pickle(fvcom, filename, debug):
+def pyseidon_to_pickle(fvcom, filename, exceptions=[], debug=False):
     """
     Saves fvcom object in a pickle file
 
     inputs:
       - fvcom = fvcom pyseidon object
       - filename = file name, string
+    options:
+      - exceptions = list of variables to exclude from output file
+                     , list of strings
     """
     #Define bounding box
     if debug:
@@ -34,6 +37,9 @@ def pyseidon_to_pickle(fvcom, filename, debug):
     data['History'] = fvcom.History
     data['Grid'] = fvcom.Grid.__dict__
     data['Variables'] = fvcom.Variables.__dict__
+    # delete exceptions
+    for key in exceptions: data['Variables'].pop(key, None)
+    for key in exceptions: data['Grid'].pop(key, None)
     #TR: Force caching Variables otherwise error during loading
     #    with 'netcdf4.Variable' type (see above)
     for key in data['Variables']:

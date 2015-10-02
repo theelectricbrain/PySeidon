@@ -9,13 +9,16 @@ import sys
 #import netCDF4 as nc
 from scipy.io import netcdf
 
-def pyseidon_to_netcdf(fvcom, filename, debug):
+def pyseidon_to_netcdf(fvcom, filename, exceptions=[], debug=False):
     """
     saves fvcom object in a pickle file
 
     inputs:
       - fvcom = fvcom pyseidon object
       - filename = file name, string
+    options:
+      - exceptions = list of variables to exclude from output file
+                     , list of strings
     """
     #Define bounding box
     if debug: print "Computing bounding box..."
@@ -66,100 +69,102 @@ def pyseidon_to_netcdf(fvcom, filename, debug):
     #load in netcdf file
     if debug: print "Loading variables' matrices in nc file..."
     for var in varname:
-        if var in ['ua', 'va','depth_av_flow_dir','depth_av_vorticity',
-                   'depth_av_power_density','depth_av_power_assessment',
-                   'hori_velo_norm']:
-            try:
-                tmp_var = f.createVariable(var, 'float', ('time','nele'))
-                f.variables[var][:] = getattr(fvcom.Variables, var)[:]
-            except AttributeError:
-                pass
-        if var in ['julianTime', 'matlabTime']:
-            try:
-                tmp_var = f.createVariable(var, 'float', ('time',))
-                f.variables[var][:] = getattr(fvcom.Variables, var)[:]
-            except AttributeError:
-                pass
-        if var == 'el':
-            try:
-                tmp_var = f.createVariable(var, 'float', ('time','node'))
-                f.variables[var][:] = getattr(fvcom.Variables, var)[:]
-            except AttributeError:
-                pass
-        if fvcom.Variables._3D:
-            if var in ['u', 'v', 'flow_dir', 'velo_norm',
-                       'vorticity', 'power_density']:
+        if not var in exceptions: # check if in list of exceptions
+            if var in ['ua', 'va','depth_av_flow_dir','depth_av_vorticity',
+                       'depth_av_power_density','depth_av_power_assessment',
+                       'hori_velo_norm']:
                 try:
-                    tmp_var = f.createVariable(var,'float',('time','siglay','nele'))
+                    tmp_var = f.createVariable(var, 'float', ('time','nele'))
                     f.variables[var][:] = getattr(fvcom.Variables, var)[:]
                 except AttributeError:
                     pass
-            if var in ['verti_shear']:
+            if var in ['julianTime', 'matlabTime']:
                 try:
-                    tmp_var = f.createVariable(var,'float',
-                                                      ('time','vertshear','nele'))
+                    tmp_var = f.createVariable(var, 'float', ('time',))
                     f.variables[var][:] = getattr(fvcom.Variables, var)[:]
                 except AttributeError:
                     pass
+            if var == 'el':
+                try:
+                    tmp_var = f.createVariable(var, 'float', ('time','node'))
+                    f.variables[var][:] = getattr(fvcom.Variables, var)[:]
+                except AttributeError:
+                    pass
+            if fvcom.Variables._3D:
+                if var in ['u', 'v', 'flow_dir', 'velo_norm',
+                           'vorticity', 'power_density']:
+                    try:
+                        tmp_var = f.createVariable(var,'float',('time','siglay','nele'))
+                        f.variables[var][:] = getattr(fvcom.Variables, var)[:]
+                    except AttributeError:
+                        pass
+                if var in ['verti_shear']:
+                    try:
+                        tmp_var = f.createVariable(var,'float',
+                                                          ('time','vertshear','nele'))
+                        f.variables[var][:] = getattr(fvcom.Variables, var)[:]
+                    except AttributeError:
+                        pass
 
     if debug: print "Loading grid' matrices in nc file..."
     for grd in gridname:
-        if grd in ['xc', 'yc', 'lonc', 'latc', 'hc']:
-            try:
-                tmp_var = f.createVariable(grd, 'float', ('nele',))
-                tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-                #f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
-            except AttributeError:
-                pass
-        if grd == 'depth2D':
-            try:
-                depth2D = f.createVariable(grd, 'float', ('time','nele'))
-                f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
-            except AttributeError:
-                pass
-        if grd in ['x', 'y', 'lon', 'lat', 'h']:
-            try:
-                tmp_var = f.createVariable(grd, 'float', ('node',)) 
-                f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
-            except AttributeError:
-                pass
-        if grd in ['triele','trinodes']:
-            try:
-                tmp_var = f.createVariable(grd, 'i', ('nele','three'))
-                f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
-            except AttributeError:
-                pass
-        if grd in ['a1u', 'a2u']:
-            try:
-                tmp_var = f.createVariable(grd, 'i', ('four','nele'))
-                f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
-            except AttributeError:
-                pass
-        if grd in ['aw0', 'awy', 'awx']:
-            try:
-                tmp_var = f.createVariable(grd, 'i', ('three','nele'))
-                f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
-            except AttributeError:
-                pass
-        if fvcom.Variables._3D:
-            if grd == 'siglay':
+        if not grd in exceptions: # check if in list of exceptions
+            if grd in ['xc', 'yc', 'lonc', 'latc', 'hc']:
                 try:
-                    siglay = f.createVariable(grd,'float', ('siglay','node'))
+                    tmp_var = f.createVariable(grd, 'float', ('nele',))
+                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
+                    #f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
+                except AttributeError:
+                    pass
+            if grd == 'depth2D':
+                try:
+                    depth2D = f.createVariable(grd, 'float', ('time','nele'))
                     f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
                 except AttributeError:
                     pass
-            if grd == 'siglev':
+            if grd in ['x', 'y', 'lon', 'lat', 'h']:
                 try:
-                    siglev = f.createVariable(grd,'float', ('siglev','node'))
+                    tmp_var = f.createVariable(grd, 'float', ('node',))
                     f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
                 except AttributeError:
                     pass
-            if grd == 'depth':
+            if grd in ['triele','trinodes']:
                 try:
-                    depth = f.createVariable(grd,'float', ('time','siglay','nele'))
+                    tmp_var = f.createVariable(grd, 'i', ('nele','three'))
                     f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
                 except AttributeError:
                     pass
+            if grd in ['a1u', 'a2u']:
+                try:
+                    tmp_var = f.createVariable(grd, 'i', ('four','nele'))
+                    f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
+                except AttributeError:
+                    pass
+            if grd in ['aw0', 'awy', 'awx']:
+                try:
+                    tmp_var = f.createVariable(grd, 'i', ('three','nele'))
+                    f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
+                except AttributeError:
+                    pass
+            if fvcom.Variables._3D:
+                if grd == 'siglay':
+                    try:
+                        siglay = f.createVariable(grd,'float', ('siglay','node'))
+                        f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
+                    except AttributeError:
+                        pass
+                if grd == 'siglev':
+                    try:
+                        siglev = f.createVariable(grd,'float', ('siglev','node'))
+                        f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
+                    except AttributeError:
+                        pass
+                if grd == 'depth':
+                    try:
+                        depth = f.createVariable(grd,'float', ('time','siglay','nele'))
+                        f.variables[grd][:] = getattr(fvcom.Grid, grd)[:]
+                    except AttributeError:
+                        pass
     f.close()
     if debug: print "...done"    
 

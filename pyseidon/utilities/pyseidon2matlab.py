@@ -7,13 +7,16 @@ import numpy as np
 import sys
 from scipy.io import savemat
 
-def pyseidon_to_matlab(fvcom, filename, debug):
+def pyseidon_to_matlab(fvcom, filename, exceptions=[], debug=False):
     """
     Saves fvcom object in a pickle file
 
     inputs:
       - fvcom = fvcom pyseidon object
       - filename = file name, string
+    options:
+      - exceptions = list of variables to exclude from output file
+                     , list of strings
     """
     #Define bounding box
     if debug:
@@ -34,6 +37,9 @@ def pyseidon_to_matlab(fvcom, filename, debug):
     data['History'] = fvcom.History
     Grd = fvcom.Grid.__dict__
     Var = fvcom.Variables.__dict__
+    # delete exceptions
+    for key in exceptions: Var.pop(key, None)
+    for key in exceptions: Grd.pop(key, None)
     #TR: Force caching Variables otherwise error during loading
     #    with 'netcdf4.Variable' type (see above)
     for key in Var:
