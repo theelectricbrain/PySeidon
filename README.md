@@ -72,7 +72,7 @@ Package's documentation can be found [here](http://grumpynounours.github.io/PySe
 * Main Developers: [Thomas Roc](thomas.roc@acadiau.ca), [Jonathan Smith](https://github.com/LaVieEnRoux), [Wesley Bowman](https://github.com/wesleybowman), [Kody Crowell](https://github.com/TheKingInYellow)
 
 ### Contributors ###
-Dr. Richard Karsten, [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, Robie Hennigar, Dr. Joel Culina, Justine McMillan, Dr. Brian Polagye, [Dr. Kristen Thyng](https://github.com/kthyng)...
+Dr. Richard Karsten, [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, Robie Hennigar, [Robert Covill](http://tekmap.ns.ca/), Dr. Joel Culina, Justine McMillan, Dr. Brian Polagye, [Dr. Kristen Thyng](https://github.com/kthyng)...
 
 ### Legal Information ###
 * Authorship attributed to Wesley Bowman, Thomas Roc and Jonathan Smith
