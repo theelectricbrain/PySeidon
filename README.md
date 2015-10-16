@@ -7,16 +7,16 @@ PySeidon
   based packages. This project can be seen as two folded. On the one 
   hand, it aims to enhance data accessibility for all the partners of 
   the EcoEII consortium thanks to simple client protocols. On the other 
-  hand, it aims to develop standardised numerical toolbox gathering 
+  hand, it aims to develop a standardised numerical toolbox gathering 
   specific analysis functions for measured and simulated data (FVCOM model)
   to the EcoEII partners.
 * Additionally, this project was the ideal opportunity to transport various
   scripts and packages accumulated over the years into Python. These scripts
   and packages have been extensively used by the tidal energy community for
   more than a decade. The 'Contributors' section of this document is a 
-  mere attempt to acknowledge the work of those who participated more or
-  less indirectly to the development of this tool box. We are consciously
-  standing on the shoulders of a multitude giants...so please forgive us
+  mere attempt to acknowledge the work of those who participated directly or
+  indirectly to the development of this tool box. We are consciously
+  standing on the shoulders of a multitude of giants...so please forgive us
   if we forgot one of them.  
 * The present package is still a work in progress, so the more feedback,
   the better
@@ -27,7 +27,7 @@ Hydrodynamic model:
 
 Requirements:
 * This package has been designed for Python 2.7: one can download Python from [here](http://www.python.org/download)
-* It is recommended to install Anaconda beforehand: one can download Anaconda from [here](http://continuum.io/downloads#all)
+* It is also recommended to install Anaconda beforehand: one can download Anaconda from [here](http://continuum.io/downloads#all)
 * The HDF5 library is also needed for this package to work: one can download the HDF5 library from [here](https://www.hdfgroup.org/HDF5/)
 
 Dependencies:
@@ -38,6 +38,8 @@ Althought they should be automatically resolved during the installation, this pa
 * NetworkX: One can download NetworkX from [here](http://networkx.github.io/documentation/latest/install.html)
 * Pandas: One can download Pandas from [here](http://pandas.pydata.org/pandas-docs/stable/install.html)
 * Seaborn: One can download Seaborn from [here](http://web.stanford.edu/~mwaskom/software/seaborn/installing.html)
+* netCDF4: One can download netCDF4 from [here](https://pypi.python.org/pypi/netCDF4/0.8.2)
+* gdal: One can download gdal from [here](https://pypi.python.org/pypi/GDAL/)
 
 Installation:
 * Step 1a: Download PySeidon package, save it on your machine and Unzip
@@ -45,11 +47,12 @@ Installation:
 * Step 2: from a shell, change directory to PySeidon-master folder
 * Step 3: from the shell, as superuser/admin, type `python setup.py install`
   or `python setup.py install --user`
+* Step 4: choose to automatically resolve (y) or not (n) the dependencies
 * Finally, in order to test the installation, type `from pyseidon import *` in Ipython shell.
 
 Up-dating:
-* The code will evolve and improve with time. To up-date, simply go through
-  the installation procedure again.
+* The code will evolve and improve with time. To up-date, simply "git pull" or download the package
+  and go through the installation procedure again.
 
 Recommendations:
 * The tutorials and package functioning have been designed for use in IPython shell: One can download IPython from [here](http://ipython.org/)
@@ -75,6 +78,6 @@ Package's documentation can be found [here](http://grumpynounours.github.io/PySe
 Dr. Richard Karsten, [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, Robie Hennigar, [Robert Covill](http://tekmap.ns.ca/), Dr. Joel Culina, Justine McMillan, Dr. Brian Polagye, [Dr. Kristen Thyng](https://github.com/kthyng)...
 
 ### Legal Information ###
-* Authorship attributed to Wesley Bowman, Thomas Roc and Jonathan Smith
+* Original authorship attributed to Thomas Roc, Wesley Bowman and Jonathan Smith
 * Copyright (c) 2014 [EcoEnergyII](http://tidalenergy.acadiau.ca/EcoEII.html)
 * Licensed under an Affero GPL style license v3.0 (see License_PySeidon.txt)
