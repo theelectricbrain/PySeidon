@@ -219,9 +219,9 @@ class FunctionsFvcom:
 
         return dirFlow, norm
 
-    def bidirectionality(self, pt_lon, pt_lat, debug=False):
+    def bidirectionality_at_point(self, pt_lon, pt_lat, debug=False):
         """"
-        This function computes the depth averaged bidirectionality (deg.)
+        This function computes the depth averaged bidirectionality (deg.) at any given point
 
         Inputs:
           - pt_lon = longitude in decimal degrees East of the reference point, float number 
