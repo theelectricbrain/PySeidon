@@ -123,12 +123,13 @@ class TidalStats:
                 func_v = interp1d(obs_timestamps, observed_v)
                 self.observed_v = func_v(timestamps)
 
-            if self.kind == 'cubic speed':
-                # R.Karsten formula
-                self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
-                             ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
-            else:
-                self.error = self.observed - self.model
+            # if self.kind == 'cubic speed':
+            #     # R.Karsten formula
+            #     self.error = ((self.model_u**2.0 + self.model_v**2.0)**(3.0/2.0)) - \
+            #                  ((self.observed_u**2.0 + self.observed_v**2.0)**(3.0/2.0))
+            # else:
+            #     self.error = self.observed - self.model
+            self.error = self.observed - self.model
         elif self.kind in ['speed', 'elevation', 'u velocity', 'v velocity', 'Phase']:
             self.error = self.observed - self.model
         else:
