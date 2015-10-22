@@ -2,14 +2,14 @@ PySeidon
 ================
 
 ### Project description ###
-* This project aims to meet multiple objectives of the EcoEII consortium
+* This project aims to meet multiple objectives of the [EcoEnergyII](http://tidalenergy.acadiau.ca/EcoEII.html) consortium
   through the setting of a dedicated server and the development of Python
   based packages. This project can be seen as two folded. On the one 
   hand, it aims to enhance data accessibility for all the partners of 
-  the EcoEII consortium thanks to simple client protocols. On the other 
+  the [EcoEII](http://tidalenergy.acadiau.ca/EcoEII.html) consortium thanks to simple client protocols. On the other 
   hand, it aims to develop a standardised numerical toolbox gathering 
   specific analysis functions for measured and simulated data (FVCOM model)
-  to the EcoEII partners.
+  to the [EcoEII](http://tidalenergy.acadiau.ca/EcoEII.html) partners.
 * Additionally, this project was the ideal opportunity to transport various
   scripts and packages accumulated over the years into Python. These scripts
   and packages have been extensively used by the tidal energy community for
