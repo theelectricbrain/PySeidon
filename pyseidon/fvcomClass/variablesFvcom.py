@@ -524,10 +524,20 @@ class _load_grid:
             print 'Loading grid...'
         #Pointer to History
         setattr(self, '_History', History)
-        #list of grid variable
+
+        #list of required grid variable
         gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
                    'a1u','a2u','aw0','awx','awy']
+
+        # Figure out which quantity to treat
+        self._gridvar = []
         for key in gridvar:
+            if key in data.variables.keys():
+                self._gridvar.append(key)
+            else:
+                if debug: print "Grid related field "+key+" is missing !"
+
+        for key in self._gridvar:
             try:
                 setattr(self, key, data.variables[key].data)
             except AttributeError: #exception for nc.dataset type data
@@ -590,7 +600,16 @@ class _load_grid:
             #list of grid variable
             gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
                        'a1u','a2u','aw0','awx','awy','nv','nbe']
+
+            # Figure out which quantity to treat
+            self._gridvar = []
             for key in gridvar:
+                if key in data.variables.keys():
+                    self._gridvar.append(key)
+                else:
+                    if debug: print "Grid related field "+key+" is missing !"
+
+            for key in self._gridvar:
                 setattr(self, key, Data[key][:])
             #Special treatment here
             self.trinodes = Data['nv'][:]
