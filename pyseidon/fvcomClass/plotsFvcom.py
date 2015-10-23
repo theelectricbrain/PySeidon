@@ -440,12 +440,8 @@ class PlotsFvcom:
         lyr.CreateField(ogr.FieldDefn(varLabel, ogr.OFTReal))
 
         if debug: print "Writing ESRI Shapefile %s..." % filename
-        #lon = x[:]
-        #lat = y[:]
-        # quick fix
-        lon = y[:]
-        lat = x[:]
-        # end quick fix
+        lon = x[:]
+        lat = y[:]
         trinodes = self._grid.trinodes[:]
 
         if debug: print "Writing Node Array"
