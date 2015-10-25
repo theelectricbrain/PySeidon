@@ -10,8 +10,13 @@ import matplotlib.ticker as ticker
 import matplotlib.patches as mpatches
 import seaborn
 import pandas as pd
-from osgeo import ogr
-from osgeo import osr
+try:
+    from osgeo import ogr
+    from osgeo import osr
+    havegdal=True
+except ImportError:
+    print 'Gdal is not installed, osgeo cannot be imported. Saving to shape files will not be possible.'
+    havegdal=False
 # Local import
 from pyseidon.utilities.windrose import WindroseAxes
 from pyseidon.utilities.interpolation_utils import *
@@ -188,7 +193,7 @@ class PlotsFvcom:
         if debug or self._debug:
             print '...Passed'
 
-        if shapefile:
+        if shapefile and havegdal:
             if var.shape[0] == self._grid.nnode:
                 if debug: print "Interpolating var..."
                 var = interpN(var, self._grid.trinodes, self._grid.aw0, debug=debug)
@@ -200,6 +205,8 @@ class PlotsFvcom:
                 self._save_map_as_shapefile(var, self._grid.x, self._grid.y,
                                             title=title, varLabel='map',
                                             xLabel=' ', yLabel=' ', debug=debug)
+        elif shapefile and not havegdal:
+            print 'Shape file cannot be saved. Missing gdal.'
 
 
     def rose_diagram(self, direction, norm):
@@ -472,4 +479,4 @@ class PlotsFvcom:
             cnt += 1
 
         shapeData.Destroy()
-        if debug: print "Finished writing Shapefile Mesh. [Total Nodes: %d]" % cnt
+        if debug: print "Finished writing Shapefile Mesh. [Total Nodes: %d]" % cnt           
