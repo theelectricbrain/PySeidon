@@ -80,6 +80,7 @@ class _load_var:
             else:
                 if debug: print key, " is missing !"
 
+
         self._kwl3D = []
         self._al3D = []
         for key, aliaS in zip(kwl3D, al3D):
@@ -93,18 +94,28 @@ class _load_var:
 
         #Loading time stamps
         try:
-            self.julianTime = data.variables['time']
-        except KeyError: #exeception due to Save_as(netcdf)
-            self.julianTime = data.variables['julianTime']      
+            julianTime = data.variables['julianTime']
+        except KeyError:
+            #exeception due to Save_as(netcdf)
+            julianTime=data.variables['time']
+
+        # Work out if time is in julian time
+        timeFlag = 0.0
+        for key in julianTime.attributes:
+            if "julian" in julianTime.attributes[key].lower():
+                timeFlag += 1.0
+        # if not julian time, convert in days in needed
+        if timeFlag == 0.0:
+            for key in julianTime.attributes:
+                if "second" in julianTime.attributes[key].lower():
+                    timeFlag += 1.0
+        if not timeFlag == 0.0:
+            dayTime = julianTime[:] / (24*60*60) # convert in days
+            julianTime = dayTime
+
         if tx==[]:
             # get time and adjust it to matlab datenum
-            try:
-                self.julianTime = data.variables['time'].data
-            except (KeyError, AttributeError) as e:
-                #exeception due to Save_as(netcdf)
-                if e==KeyError: self.julianTime=data.variables['julianTime']
-                #exception for nc.dataset type data
-                if e==AttributeError: self.julianTime = data.variables['time'][:]
+            self.julianTime = julianTime[:]
             self.matlabTime = self.julianTime[:] + 678942.0
             #-Append message to History field
             start = mattime_to_datetime(self.matlabTime[0])
@@ -122,7 +133,7 @@ class _load_var:
             ts = self._region_time[0]
             te = self._region_time[-1] + 1
             # get time and adjust it to matlab datenum
-            self.julianTime = data.variables['time'][ts:te]
+            self.julianTime = julianTime[ts:te]
             self.matlabTime = self.julianTime + 678942.0
             #-Append message to History field
             start = mattime_to_datetime(self.matlabTime[0])
@@ -231,6 +242,10 @@ class _load_var:
             # #-------end-------
 
         if debug: print '...Passed'
+
+        # Define method loadvar for use in import
+        self._loadVar = loadVar
+
         return
 
     def _load_full_time_full_region(self, data, key, aliaS, debug=False):
@@ -488,6 +503,7 @@ class _load_var:
         print '-Now working in time box-'
         return region_t
 
+
 class _load_grid:
     """
     **'Grid' subset in FVCOM class contains grid related quantities**
@@ -550,7 +566,7 @@ class _load_grid:
                 setattr(self, 'trinodes', data.variables['trinodes'].data)
             except AttributeError: #exception for nc.dataset type data
                 setattr(self, 'trinodes', data.variables['trinodes'])#[:])
-        else:
+        elif "nv" in datavar:
             try:
                 self.trinodes = np.transpose(data.variables['nv'].data) - 1
             except AttributeError: #exception for nc.dataset type data
@@ -560,7 +576,7 @@ class _load_grid:
                 setattr(self, 'triele', data.variables['triele'].data)
             except AttributeError: #exception for nc.dataset type data
                 setattr(self, 'triele', data.variables['triele'])#[:])
-        else:
+        elif "nbe" in datavar:
             try:
                 self.triele = np.transpose(data.variables['nbe'].data) - 1
             except AttributeError: #exception for nc.dataset type data
@@ -578,12 +594,30 @@ class _load_grid:
             text = 'Full spatial domain'
             self._History.append(text)
             #Define the rest of the grid variables
-            self.h = data.variables['h'][:]
-            self.siglay = data.variables['siglay'][:]
-            self.siglev = data.variables['siglev'][:]
-            self.nlevel = self.siglay.shape[0]
-            self.nele = self.lonc.shape[0]
-            self.nnode = self.lon.shape[0]
+            try:
+                self.h = data.variables['h'][:]
+            except KeyError:
+                pass
+            try:
+                self.siglay = data.variables['siglay'][:]
+            except KeyError:
+                pass
+            try:
+                self.siglev = data.variables['siglev'][:]
+            except:
+                pass
+            try:
+                self.nlevel = self.siglay.shape[0]
+            except AttributeError:
+                pass
+            try:
+                self.nele = self.lonc.shape[1]
+            except AttributeError:
+                pass
+            try:
+                self.nnode = self.lon.shape[0]
+            except:
+                pass
         else:
             #Checking for pre-defined regions
             if ax=='GP':
