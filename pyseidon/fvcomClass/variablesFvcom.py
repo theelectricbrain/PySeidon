@@ -13,6 +13,224 @@ from pyseidon.utilities.regioner import *
 from pyseidon.utilities.miscellaneous import time_to_index
 from pyseidon.utilities.miscellaneous import mattime_to_datetime
 
+class _load_grid:
+    """
+    **'Grid' subset in FVCOM class contains grid related quantities**
+
+    Some grid data are directly passed on from FVCOM output: ::
+                  _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
+                 |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
+                 |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
+                 |_latc = latitudes at elements (deg.), 2D array (ntime, nele)
+                 |_x = x coordinates at nodes (m), 2D array (ntime, nnode)
+                 |_xc = x coordinates at elements (m), 2D array (ntime, nele)
+                 |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
+                 |_yc = y coordinates at nodes (m), 2D array (ntime, nele)
+     FVCOM.Grid._|_h = bathymetry (m), 2D array (ntime, nnode)
+                 |_nele = element dimension, integer
+                 |_nnode = node dimension, integer
+                 |_nlevel = vertical level dimension, integer
+                 |_ntime = time dimension, integer
+                 |_trinodes = surrounding node indices, 2D array (3, nele)
+                 |_triele = surrounding element indices, 2D array (3, nele)
+                 |_siglay = sigma layers, 2D array (nlevel, nnode)
+                 |_siglay = sigma levels, 2D array (nlevel+1, nnode)
+                 |_and a all bunch of grid parameters...
+                 | i.e. a1u, a2u, aw0, awx, awy
+
+    Some others shall be generated as methods are being called, ex: ::
+                 ...
+                 |_triangle = triangulation object for plotting purposes
+
+    """
+    def __init__(self, data, ax, History, debug=False):
+        self._debug = debug
+        if debug:
+            print 'Loading grid...'
+        #Pointer to History
+        setattr(self, '_History', History)
+
+        #list of required grid variable
+        gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
+                   'a1u','a2u','aw0','awx','awy']
+
+        # Figure out which quantity to treat
+        self._gridvar = []
+        for key in gridvar:
+            if key in data.variables.keys():
+                self._gridvar.append(key)
+            else:
+                if key in ["a1u", "a2u", "aw0", "awx", "awy"]:
+                    print "--- "+key+" is missing. Some interpolation functions will not work ---"
+                if key in ["lonc", "latc", "xc", "yc"]:
+                    print "--- "+key+" is missing. Some element based functions will not work ---"
+
+        for key in self._gridvar:
+            try:
+                setattr(self, key, data.variables[key].data)
+            except AttributeError: #exception for nc.dataset type data
+                setattr(self, key, data.variables[key])#[:])
+
+        #special treatment for triele & trinodes due to Save_as(netcdf)
+        datavar = data.variables.keys()
+        if "trinodes" in datavar:
+            try:
+                setattr(self, 'trinodes', data.variables['trinodes'].data)
+            except AttributeError: #exception for nc.dataset type data
+                setattr(self, 'trinodes', data.variables['trinodes'])#[:])
+        elif "nv" in datavar:
+            try:
+                self.trinodes = np.transpose(data.variables['nv'].data) - 1
+            except AttributeError: #exception for nc.dataset type data
+                self.trinodes = np.transpose(data.variables['nv'][:]) - 1
+        else:
+            print "--- surrounding node indices (nv) missing. Some functions will not work ---"
+        if "triele" in datavar:
+            try:
+                setattr(self, 'triele', data.variables['triele'].data)
+            except AttributeError: #exception for nc.dataset type data
+                setattr(self, 'triele', data.variables['triele'])#[:])
+        elif "nbe" in datavar:
+            try:
+                self.triele = np.transpose(data.variables['nbe'].data) - 1
+            except AttributeError: #exception for nc.dataset type data
+                self.triele = np.transpose(data.variables['nbe'][:]) - 1
+        else:
+            print "--- surrounding element indices (nbe) missing. Some functions will not work ---"
+            
+        #special treatment for depth2D & depth due to Save_as(netcdf)
+        if "depth2D" in datavar:
+            setattr(self, "depth2D", data.variables["depth2D"])#[:])
+        if "depth" in datavar:
+            setattr(self, "depth", data.variables["depth"])#[:])
+
+        if ax==[]:
+            #Define bounding box
+            self._ax = []
+            #Append message to History field
+            text = 'Full spatial domain'
+            self._History.append(text)
+            #Define the rest of the grid variables
+            try:
+                self.h = data.variables['h'][:]
+            except KeyError:
+                pass
+            try:
+                self.siglay = data.variables['siglay'][:]
+            except KeyError:
+                pass
+            try:
+                self.siglev = data.variables['siglev'][:]
+            except:
+                pass
+            try:
+                self.nlevel = self.siglay.shape[0]
+            except AttributeError:
+                pass
+            try:
+                self.nele = self.lonc.shape[0]
+            except AttributeError:
+                pass
+            try:
+                self.nnode = self.lon.shape[0]
+            except:
+                pass
+        else:
+            #Checking for pre-defined regions
+            if ax=='GP':
+                ax=[-66.36, -66.31, 44.24, 44.3]
+            elif ax=='PP':
+                ax=[-66.23, -66.19, 44.37, 44.41]
+            elif ax=='DG':
+                ax=[-65.84, -65.73, 44.64, 44.72]
+            elif ax=='MP':
+                ax=[-65.5, -63.3, 45.0, 46.0]
+
+            print 'Re-indexing may take some time...'
+            Data = regioner(self, ax, debug=debug)
+            #list of grid variable
+            gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
+                       'a1u','a2u','aw0','awx','awy','nv','nbe']
+
+            # Figure out which quantity to treat
+            self._gridvar = []
+            for key in gridvar:
+                if key in data.variables.keys():
+                    self._gridvar.append(key)
+                else:
+                    if debug: print "Grid related field "+key+" is missing !"
+
+            for key in self._gridvar:
+                setattr(self, key, Data[key][:])
+            #Special treatment here
+            self.trinodes = Data['nv'][:]
+            self.triele = Data['nbe'][:]
+            self.triangle = Data['triangle']
+            #Only load the element within the box
+            self._node_index = Data['node_index']
+            self._element_index = Data['element_index']
+
+            #different loading technique if using OpenDap server
+            if type(data.variables).__name__=='DatasetType':
+                #Split into consecutive integers to optimise loading
+                #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
+                #            work with non consecutive indices
+                H=0
+                for k, g in groupby(enumerate(self._node_index), lambda (i,x):i-x):
+                    ID = map(itemgetter(1), g)
+                    #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
+                    if H==0:
+                        try:
+                            self.h = data.variables['h'].data[ID[0]:(ID[-1]+1)]
+                            self.siglay = data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]
+                            self.siglev = data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]
+                        except AttributeError: #exception for nc.dataset type data
+                            self.h = data.variables['h'][ID[0]:(ID[-1]+1)]
+                            self.siglay = data.variables['siglay'][:,ID[0]:(ID[-1]+1)]
+                            self.siglev = data.variables['siglev'][:,ID[0]:(ID[-1]+1)]
+                    else:
+                        try:
+                            self.h = np.hstack((self.h,
+                            data.variables['h'].data[ID[0]:(ID[-1]+1)]))
+                            self.siglay = np.hstack((self.siglay,
+                            data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]))
+                            self.siglev = np.hstack((self.siglev,
+                            data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]))
+                        except AttributeError: #exception for nc.dataset type data
+                            self.h = np.hstack((self.h,
+                            data.variables['h'][ID[0]:(ID[-1]+1)]))
+                            self.siglay = np.hstack((self.siglay,
+                            data.variables['siglay'][:,ID[0]:(ID[-1]+1)]))
+                            self.siglev = np.hstack((self.siglev,
+                            data.variables['siglev'][:,ID[0]:(ID[-1]+1)]))
+                    H=1
+            else:
+                try:
+                    self.h = data.variables['h'].data[self._node_index]
+                    self.siglay = data.variables['siglay'].data[:,self._node_index]
+                    self.siglev = data.variables['siglev'].data[:,self._node_index]
+                except AttributeError: #exception for nc.dataset type data
+                    self.h = data.variables['h'][self._node_index]
+                    self.siglay = data.variables['siglay'][:,self._node_index]
+                    self.siglev = data.variables['siglev'][:,self._node_index]
+            #Dimensions
+            self.nlevel = self.siglay.shape[0]
+            self.nele = Data['element_index'].shape[0]
+            self.nnode = Data['node_index'].shape[0]
+
+            del Data
+            #Define bounding box
+            self._ax = ax
+            # Add metadata entry
+            text = 'Bounding box =' + str(ax)
+            self._History.append(text)
+            print '-Now working in bounding box-'
+
+        if debug:
+            print '...Passed'
+
+        return
+
 class _load_var:
     """
     **'Variables' subset in FVCOM class contains the numpy arrays**
@@ -502,214 +720,3 @@ class _load_var:
         if debug: print '...Passed'
         print '-Now working in time box-'
         return region_t
-
-
-class _load_grid:
-    """
-    **'Grid' subset in FVCOM class contains grid related quantities**
-
-    Some grid data are directly passed on from FVCOM output: ::
-                  _lon = longitudes at nodes (deg.), 2D array (ntime, nnode)
-                 |_lonc = longitudes at elements (deg.), 2D array (ntime, nele)
-                 |_lat = latitudes at nodes (deg.), 2D array (ntime, nnode)
-                 |_latc = latitudes at elements (deg.), 2D array (ntime, nele)
-                 |_x = x coordinates at nodes (m), 2D array (ntime, nnode)
-                 |_xc = x coordinates at elements (m), 2D array (ntime, nele)
-                 |_y = y coordinates at nodes (m), 2D array (ntime, nnode)
-                 |_yc = y coordinates at nodes (m), 2D array (ntime, nele)
-     FVCOM.Grid._|_h = bathymetry (m), 2D array (ntime, nnode)
-                 |_nele = element dimension, integer
-                 |_nnode = node dimension, integer
-                 |_nlevel = vertical level dimension, integer
-                 |_ntime = time dimension, integer
-                 |_trinodes = surrounding node indices, 2D array (3, nele)
-                 |_triele = surrounding element indices, 2D array (3, nele)
-                 |_siglay = sigma layers, 2D array (nlevel, nnode)
-                 |_siglay = sigma levels, 2D array (nlevel+1, nnode)
-                 |_and a all bunch of grid parameters...
-                 | i.e. a1u, a2u, aw0, awx, awy
-
-    Some others shall be generated as methods are being called, ex: ::
-                 ...
-                 |_triangle = triangulation object for plotting purposes
-
-    """
-    def __init__(self, data, ax, History, debug=False):
-        self._debug = debug   
-        if debug:
-            print 'Loading grid...'
-        #Pointer to History
-        setattr(self, '_History', History)
-
-        #list of required grid variable
-        gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
-                   'a1u','a2u','aw0','awx','awy']
-
-        # Figure out which quantity to treat
-        self._gridvar = []
-        for key in gridvar:
-            if key in data.variables.keys():
-                self._gridvar.append(key)
-            else:
-                if debug: print "Grid related field "+key+" is missing !"
-
-        for key in self._gridvar:
-            try:
-                setattr(self, key, data.variables[key].data)
-            except AttributeError: #exception for nc.dataset type data
-                setattr(self, key, data.variables[key])#[:])
-
-        #special treatment for triele & trinodes due to Save_as(netcdf)
-        datavar = data.variables.keys()
-        if "trinodes" in datavar:
-            try:
-                setattr(self, 'trinodes', data.variables['trinodes'].data)
-            except AttributeError: #exception for nc.dataset type data
-                setattr(self, 'trinodes', data.variables['trinodes'])#[:])
-        elif "nv" in datavar:
-            try:
-                self.trinodes = np.transpose(data.variables['nv'].data) - 1
-            except AttributeError: #exception for nc.dataset type data
-                self.trinodes = np.transpose(data.variables['nv'][:]) - 1
-        if "triele" in datavar:
-            try:
-                setattr(self, 'triele', data.variables['triele'].data)
-            except AttributeError: #exception for nc.dataset type data
-                setattr(self, 'triele', data.variables['triele'])#[:])
-        elif "nbe" in datavar:
-            try:
-                self.triele = np.transpose(data.variables['nbe'].data) - 1
-            except AttributeError: #exception for nc.dataset type data
-                self.triele = np.transpose(data.variables['nbe'][:]) - 1
-        #special treatment for depth2D & depth due to Save_as(netcdf)
-        if "depth2D" in datavar:
-            setattr(self, "depth2D", data.variables["depth2D"])#[:])
-        if "depth" in datavar:
-            setattr(self, "depth", data.variables["depth"])#[:])
-
-        if ax==[]:
-            #Define bounding box
-            self._ax = []
-            #Append message to History field
-            text = 'Full spatial domain'
-            self._History.append(text)
-            #Define the rest of the grid variables
-            try:
-                self.h = data.variables['h'][:]
-            except KeyError:
-                pass
-            try:
-                self.siglay = data.variables['siglay'][:]
-            except KeyError:
-                pass
-            try:
-                self.siglev = data.variables['siglev'][:]
-            except:
-                pass
-            try:
-                self.nlevel = self.siglay.shape[0]
-            except AttributeError:
-                pass
-            try:
-                self.nele = self.lonc.shape[0]
-            except AttributeError:
-                pass
-            try:
-                self.nnode = self.lon.shape[0]
-            except:
-                pass
-        else:
-            #Checking for pre-defined regions
-            if ax=='GP':
-                ax=[-66.36, -66.31, 44.24, 44.3]
-            elif ax=='PP':
-                ax=[-66.23, -66.19, 44.37, 44.41]
-            elif ax=='DG':
-                ax=[-65.84, -65.73, 44.64, 44.72]
-            elif ax=='MP':
-                ax=[-65.5, -63.3, 45.0, 46.0]
-           
-            print 'Re-indexing may take some time...'   
-            Data = regioner(self, ax, debug=debug)
-            #list of grid variable
-            gridvar = ['lon','lat','lonc','latc','x','y','xc','yc',
-                       'a1u','a2u','aw0','awx','awy','nv','nbe']
-
-            # Figure out which quantity to treat
-            self._gridvar = []
-            for key in gridvar:
-                if key in data.variables.keys():
-                    self._gridvar.append(key)
-                else:
-                    if debug: print "Grid related field "+key+" is missing !"
-
-            for key in self._gridvar:
-                setattr(self, key, Data[key][:])
-            #Special treatment here
-            self.trinodes = Data['nv'][:]
-            self.triele = Data['nbe'][:]
-            self.triangle = Data['triangle']
-            #Only load the element within the box
-            self._node_index = Data['node_index']
-            self._element_index = Data['element_index']
-
-            #different loading technique if using OpenDap server
-            if type(data.variables).__name__=='DatasetType':
-                #Split into consecutive integers to optimise loading
-                #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
-                #            work with non consecutive indices
-                H=0
-                for k, g in groupby(enumerate(self._node_index), lambda (i,x):i-x):
-                    ID = map(itemgetter(1), g)
-                    #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
-                    if H==0:
-                        try:
-                            self.h = data.variables['h'].data[ID[0]:(ID[-1]+1)]
-                            self.siglay = data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]
-                            self.siglev = data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]
-                        except AttributeError: #exception for nc.dataset type data
-                            self.h = data.variables['h'][ID[0]:(ID[-1]+1)]
-                            self.siglay = data.variables['siglay'][:,ID[0]:(ID[-1]+1)]
-                            self.siglev = data.variables['siglev'][:,ID[0]:(ID[-1]+1)]
-                    else:
-                        try:
-                            self.h = np.hstack((self.h,
-                            data.variables['h'].data[ID[0]:(ID[-1]+1)]))
-                            self.siglay = np.hstack((self.siglay,
-                            data.variables['siglay'].data[:,ID[0]:(ID[-1]+1)]))
-                            self.siglev = np.hstack((self.siglev,
-                            data.variables['siglev'].data[:,ID[0]:(ID[-1]+1)]))
-                        except AttributeError: #exception for nc.dataset type data
-                            self.h = np.hstack((self.h,
-                            data.variables['h'][ID[0]:(ID[-1]+1)]))
-                            self.siglay = np.hstack((self.siglay,
-                            data.variables['siglay'][:,ID[0]:(ID[-1]+1)]))
-                            self.siglev = np.hstack((self.siglev,
-                            data.variables['siglev'][:,ID[0]:(ID[-1]+1)]))
-                    H=1
-            else:
-                try:  
-                    self.h = data.variables['h'].data[self._node_index]
-                    self.siglay = data.variables['siglay'].data[:,self._node_index]
-                    self.siglev = data.variables['siglev'].data[:,self._node_index]
-                except AttributeError: #exception for nc.dataset type data
-                    self.h = data.variables['h'][self._node_index]
-                    self.siglay = data.variables['siglay'][:,self._node_index]
-                    self.siglev = data.variables['siglev'][:,self._node_index]
-            #Dimensions
-            self.nlevel = self.siglay.shape[0]
-            self.nele = Data['element_index'].shape[0]
-            self.nnode = Data['node_index'].shape[0]
-
-            del Data
-            #Define bounding box
-            self._ax = ax
-            # Add metadata entry
-            text = 'Bounding box =' + str(ax)
-            self._History.append(text)
-            print '-Now working in bounding box-'
-    
-        if debug:
-            print '...Passed'
-
-        return
