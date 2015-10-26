@@ -611,7 +611,7 @@ class _load_grid:
             except AttributeError:
                 pass
             try:
-                self.nele = self.lonc.shape[1]
+                self.nele = self.lonc.shape[0]
             except AttributeError:
                 pass
             try:
