@@ -97,7 +97,7 @@ class _load_grid:
                 self.triele = np.transpose(data.variables['nbe'][:]) - 1
         else:
             print "--- surrounding element indices (nbe) missing. Some functions will not work ---"
-            
+
         #special treatment for depth2D & depth due to Save_as(netcdf)
         if "depth2D" in datavar:
             setattr(self, "depth2D", data.variables["depth2D"])#[:])
@@ -319,13 +319,21 @@ class _load_var:
 
         # Work out if time is in julian time
         timeFlag = 0.0
-        for key in julianTime.attributes:
-            if "julian" in julianTime.attributes[key].lower():
+        try:
+            for key in julianTime.attributes:
+                if "julian" in julianTime.attributes[key].lower():
+                    timeFlag += 1.0
+        except AttributeError:  # pydap lib error
+            if "julian" in julianTime.format.lower():
                 timeFlag += 1.0
         # if not julian time, convert in days in needed
         if timeFlag == 0.0:
-            for key in julianTime.attributes:
-                if "second" in julianTime.attributes[key].lower():
+            try:
+                for key in julianTime.attributes:
+                    if "second" in julianTime.attributes[key].lower():
+                        timeFlag += 1.0
+            except AttributeError:  # pydap lib error
+                if "second" in julianTime.units.lower():
                     timeFlag += 1.0
         if not timeFlag == 0.0:
             dayTime = julianTime[:] / (24*60*60) # convert in days
