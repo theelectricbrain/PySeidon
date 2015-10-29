@@ -314,30 +314,29 @@ class _load_var:
         try:
             julianTime = data.variables['julianTime']
         except KeyError:
-            #exeception due to Save_as(netcdf)
+            # exception due to Save_as(netcdf)
             julianTime=data.variables['time']
-
-        # Work out if time is in julian time
-        timeFlag = 0.0
-        try:
-            for key in julianTime.attributes:
-                if "julian" in julianTime.attributes[key].lower():
-                    timeFlag += 1.0
-        except AttributeError:  # pydap lib error
-            if "julian" in julianTime.format.lower():
-                timeFlag += 1.0
-        # if not julian time, convert in days in needed
-        if timeFlag == 0.0:
+            #  Work out if time is in julian time
+            timeFlag = 0.0
             try:
                 for key in julianTime.attributes:
-                    if "second" in julianTime.attributes[key].lower():
+                    if "julian" in julianTime.attributes[key].lower():
                         timeFlag += 1.0
             except AttributeError:  # pydap lib error
-                if "second" in julianTime.units.lower():
+                if "julian" in julianTime.format.lower():
                     timeFlag += 1.0
-        if not timeFlag == 0.0:
-            dayTime = julianTime[:] / (24*60*60) # convert in days
-            julianTime = dayTime
+            # if not julian time, convert in days in needed
+            if timeFlag == 0.0:
+                try:
+                    for key in julianTime.attributes:
+                        if "second" in julianTime.attributes[key].lower():
+                            timeFlag += 1.0
+                except AttributeError:  # pydap lib error
+                    if "second" in julianTime.units.lower():
+                        timeFlag += 1.0
+            if not timeFlag == 0.0:
+                dayTime = julianTime[:] / (24*60*60) # convert in days
+                julianTime = dayTime
 
         if tx==[]:
             # get time and adjust it to matlab datenum
