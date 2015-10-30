@@ -25,7 +25,7 @@ PySeidon
 Hydrodynamic model:
 * This package has been primarily developed and designed for post-processing FVCOM outputs. One can download FVCOM from [here](http://fvcom.smast.umassd.edu/fvcom/) 
 
-Requirements & Installation Guidance:
+# Requirements & Installation Guidance: #
 * This package has been designed for Python 2.7: one can download Python from [here](http://www.python.org/download)
 * It is recommended to install Anaconda beforehand: one can download Anaconda from [here](http://continuum.io/downloads#all)
 * The HDF5 library is also needed for this package to work: one can download the HDF5 library from [here](https://www.hdfgroup.org/HDF5/)
@@ -33,7 +33,7 @@ Requirements & Installation Guidance:
 * From Anaconda Command Prompt type `conda install -c ioos pyseidon`
 * ...you are all set
 
-Dependencies:
+# Dependencies: #
 Althought they should be automatically resolved during the installation, this package relies on the following dependencies:
 * setuptools: One can download setuptools from [here](https://pypi.python.org/pypi/setuptools#installation-instructions)
 * UTide: One can download UTide from [here](https://github.com/wesleybowman/UTide)
@@ -42,7 +42,7 @@ Althought they should be automatically resolved during the installation, this pa
 * Pandas: One can download Pandas from [here](http://pandas.pydata.org/pandas-docs/stable/install.html)
 * Seaborn: One can download Seaborn from [here](http://web.stanford.edu/~mwaskom/software/seaborn/installing.html)
 
-Manual Installation:
+# Manual Installation: #
 In case you need to manually install the package, use the following steps:
 * Step 1a: Download PySeidon package, save it on your machine and Unzip
 * Step 1b: or clone the repository
@@ -51,11 +51,11 @@ In case you need to manually install the package, use the following steps:
   or `python setup.py install --user`
 * Finally, in order to test the installation, type `from pyseidon import *` in Ipython shell.
 
-Up-dating:
+# Up-dating: #
 * The code will evolve and improve with time. To up-date, simply go through
   the installation procedure again.
 
-Recommendations:
+# Recommendations: #
 * The tutorials and package functioning have been designed for use in IPython shell: One can download IPython from [here](http://ipython.org/)
 
 ### Documentation ###
