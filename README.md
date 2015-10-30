@@ -25,10 +25,13 @@ PySeidon
 Hydrodynamic model:
 * This package has been primarily developed and designed for post-processing FVCOM outputs. One can download FVCOM from [here](http://fvcom.smast.umassd.edu/fvcom/) 
 
-Requirements:
+Requirements & Installation Guidance:
 * This package has been designed for Python 2.7: one can download Python from [here](http://www.python.org/download)
 * It is recommended to install Anaconda beforehand: one can download Anaconda from [here](http://continuum.io/downloads#all)
 * The HDF5 library is also needed for this package to work: one can download the HDF5 library from [here](https://www.hdfgroup.org/HDF5/)
+* Set-up the [IOOS channel](https://github.com/ioos/conda-recipes/wiki) on your machine
+* From Anaconda Command Prompt type 'conda install -c ioos pyseidon'
+* ...you are all set
 
 Dependencies:
 Althought they should be automatically resolved during the installation, this package relies on the following dependencies:
@@ -39,7 +42,8 @@ Althought they should be automatically resolved during the installation, this pa
 * Pandas: One can download Pandas from [here](http://pandas.pydata.org/pandas-docs/stable/install.html)
 * Seaborn: One can download Seaborn from [here](http://web.stanford.edu/~mwaskom/software/seaborn/installing.html)
 
-Installation:
+Manual Installation:
+In case you need to manually install the package, use the following steps:
 * Step 1a: Download PySeidon package, save it on your machine and Unzip
 * Step 1b: or clone the repository
 * Step 2: from a shell, change directory to PySeidon-master folder
@@ -72,7 +76,7 @@ Package's documentation can be found [here](http://grumpynounours.github.io/PySe
 * Main Developers: [Thomas Roc](thomas.roc@acadiau.ca), [Jonathan Smith](https://github.com/LaVieEnRoux), [Wesley Bowman](https://github.com/wesleybowman), [Kody Crowell](https://github.com/TheKingInYellow)
 
 ### Contributors ###
-Dr. Richard Karsten, [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, Robie Hennigar, Dr. Joel Culina, Justine McMillan, Dr. Brian Polagye, [Dr. Kristen Thyng](https://github.com/kthyng)...
+Dr. Richard Karsten, [Aidan Bharath](https://github.com/Aidan-Bharath), Mitchell O'Flaherty-Sproul, Robie Hennigar, Dr. Joel Culina, Justine McMillan, Dr. Brian Polagye, [Dr. Kristen Thyng](https://github.com/kthyng), the [IOOS group](https://github.com/ioos)...
 
 ### Legal Information ###
 * Authorship attributed to Wesley Bowman, Thomas Roc and Jonathan Smith
