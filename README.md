@@ -30,7 +30,7 @@ Requirements & Installation Guidance:
 * It is recommended to install Anaconda beforehand: one can download Anaconda from [here](http://continuum.io/downloads#all)
 * The HDF5 library is also needed for this package to work: one can download the HDF5 library from [here](https://www.hdfgroup.org/HDF5/)
 * Set-up the [IOOS channel](https://github.com/ioos/conda-recipes/wiki) on your machine
-* From Anaconda Command Prompt type 'conda install -c ioos pyseidon'
+* From Anaconda Command Prompt type `conda install -c ioos pyseidon`
 * ...you are all set
 
 Dependencies:
