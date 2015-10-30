@@ -121,11 +121,15 @@ class _load_adcp:
 
 
         #-Append message to History field
-        start = mattime_to_datetime(self.matlabTime[0])
-        end = mattime_to_datetime(self.matlabTime[-1])
-        text = 'Temporal domain from ' + str(start) +\
-                ' to ' + str(end)
-        self._History.append(text)
+        try:
+            start = mattime_to_datetime(self.matlabTime[0])
+            end = mattime_to_datetime(self.matlabTime[-1])
+            text = 'Temporal domain from ' + str(start) +\
+                    ' to ' + str(end)
+            self._History.append(text)
+        except AttributeError:
+            if debug:
+                print 'Missing time variable failed to add history note'
 
         #Find the depth average of a variable based on percent_of_depth
         #choosen by the user. Currently only working for east_vel (u) and
