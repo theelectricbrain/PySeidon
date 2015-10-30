@@ -111,40 +111,24 @@ class _load_grid:
             text = 'Full spatial domain'
             self._History.append(text)
             #Define the rest of the grid variables
-            try:
-                self.h = data.variables['h'][:]
-            except KeyError:
-                pass
-            try:
-                self.siglay = data.variables['siglay'][:]
-            except KeyError:
-                pass
-            try:
-                self.siglev = data.variables['siglev'][:]
-            except:
-                pass
-            try:
-                self.nlevel = self.siglay.shape[0]
-            except AttributeError:
-                pass
-            try:
-                self.nele = self.lonc.shape[0]
-            except AttributeError:
-                pass
-            try:
-                self.nnode = self.lon.shape[0]
-            except:
-                pass
+            try: self.h = data.variables['h'][:]
+            except KeyError: pass
+            try: self.siglay = data.variables['siglay'][:]
+            except KeyError: pass
+            try: self.siglev = data.variables['siglev'][:]
+            except KeyError: pass
+            try: self.nlevel = self.siglay.shape[0]
+            except AttributeError: pass
+            try: self.nele = self.lonc.shape[0]
+            except AttributeError: pass
+            try: self.nnode = self.lon.shape[0]
+            except: pass
         else:
             #Checking for pre-defined regions
-            if ax=='GP':
-                ax=[-66.36, -66.31, 44.24, 44.3]
-            elif ax=='PP':
-                ax=[-66.23, -66.19, 44.37, 44.41]
-            elif ax=='DG':
-                ax=[-65.84, -65.73, 44.64, 44.72]
-            elif ax=='MP':
-                ax=[-65.5, -63.3, 45.0, 46.0]
+            if ax=='GP': ax=[-66.36, -66.31, 44.24, 44.3]
+            elif ax=='PP': ax=[-66.23, -66.19, 44.37, 44.41]
+            elif ax=='DG': ax=[-65.84, -65.73, 44.64, 44.72]
+            elif ax=='MP': ax=[-65.5, -63.3, 45.0, 46.0]
 
             print 'Re-indexing may take some time...'
             Data = regioner(self, ax, debug=debug)
@@ -162,23 +146,23 @@ class _load_grid:
 
             for key in self._gridvar:
                 setattr(self, key, Data[key][:])
-            #Special treatment here
+            # Special treatment here
             self.trinodes = Data['nv'][:]
             self.triele = Data['nbe'][:]
             self.triangle = Data['triangle']
-            #Only load the element within the box
+            # Only load the element within the box
             self._node_index = Data['node_index']
             self._element_index = Data['element_index']
 
-            #different loading technique if using OpenDap server
-            if type(data.variables).__name__=='DatasetType':
-                #Split into consecutive integers to optimise loading
-                #TR comment: data.variables['ww'].data[:,:,region_n] doesn't
+            # different loading technique if using OpenDap server
+            if type(data.variables).__name__ == 'DatasetType':
+                # Split into consecutive integers to optimise loading
+                # TR comment: data.variables['ww'].data[:,:,region_n] doesn't
                 #            work with non consecutive indices
                 H=0
                 for k, g in groupby(enumerate(self._node_index), lambda (i,x):i-x):
                     ID = map(itemgetter(1), g)
-                    #if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
+                    # if debug: print 'Index bound: ' + str(ID[0]) + '-' + str(ID[-1]+1)
                     if H==0:
                         try:
                             self.h = data.variables['h'].data[ID[0]:(ID[-1]+1)]
@@ -334,9 +318,9 @@ class _load_var:
                 except AttributeError:  # pydap lib error
                     if "second" in julianTime.units.lower():
                         timeFlag += 1.0
-            if not timeFlag == 0.0:
-                dayTime = julianTime[:] / (24*60*60) # convert in days
-                julianTime = dayTime
+                if not timeFlag == 0.0:
+                    dayTime = julianTime[:] / (24*60*60) # convert in days
+                    julianTime = dayTime
 
         if tx==[]:
             # get time and adjust it to matlab datenum
