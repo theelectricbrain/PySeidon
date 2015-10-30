@@ -51,11 +51,12 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     mod_time = data['mod_time']
     if not data['type'] == 'Drifter':
         obs_time = data['obs_time']
-
-        mod_el = data['mod_timeseries']['elev']
-        obs_el = data['obs_timeseries']['elev']
     else:
         obs_time = data['mod_time']
+        
+    if 'el' in data['_commonlist']:    
+        mod_el = data['mod_timeseries']['el']
+        obs_el = data['obs_timeseries']['el']
 
     # Save path & create folder
     name = data['name']
@@ -105,7 +106,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
     mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
     obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
-    if not data['type'] == 'Drifter':
+    if 'el' in data['_commonlist']:
         obs_el = obs_el - np.mean(obs_el[~np.isnan(obs_el)])
     # Chose the component with the biggest variance as sign reference
     if np.var(mod_v) > np.var(mod_u):
@@ -123,8 +124,9 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
         if debug: print "...interpolate the data onto a common time step for each data type..."
         if not data['type'] == 'Drifter':
             # elevation
-            (mod_el_int, obs_el_int, step_el_int, start_el_int) = smooth(mod_el, mod_dt, obs_el, obs_dt,
-                                                                         debug=debug, debug_plot=debug_plot)
+            if 'el' in data['_commonlist']:
+                (mod_el_int, obs_el_int, step_el_int, start_el_int) = smooth(mod_el, mod_dt, obs_el, obs_dt,
+                                                                             debug=debug, debug_plot=debug_plot)
             # speed
             (mod_sp_int, obs_sp_int, step_sp_int, start_sp_int) = smooth(mod_spd, mod_dt, obs_spd, obs_dt,
                                                                          debug=debug, debug_plot=debug_plot)
@@ -189,41 +191,46 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
 
     if debug: print "...get stats for each tidal variable..."
     gear = data['type'] # Type of measurement gear (drifter, adcp,...)
-    if not gear == 'Drifter':
-        elev_suite = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
+    
+    suites={}
+    
+    
+    if 'el' in data['_commonlist']:
+        suites['elev_val'] = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
                                 [], [], [], [], [], [],
                                 kind='elevation', plot=plot,
                                 save_csv=save_csv, save_path=save_path,
                                 debug=debug, debug_plot=debug_plot)
     else:
-        elev_suite = []
-    speed_suite = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
+        suites['elev_val'] = []
+        
+    suites['speed_val'] = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
                              [], [], [], [], [], [],
                              kind='speed', plot=plot,
                              save_csv=save_csv, save_path=save_path,
                              debug=debug, debug_plot=debug_plot)
-    dir_suite = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
+    suites['dir_val'] = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='direction', plot=plot,
                            save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)
-    u_suite = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
+    suites['u_val'] = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
                          [], [], [], [], [], [],
                          kind='u velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                          debug=debug, debug_plot=debug_plot)
-    v_suite = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
+    suites['v_val'] = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
                          [], [], [], [], [], [],
                          kind='v velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                          debug=debug, debug_plot=debug_plot)
 
     # TR: requires special treatments from here on
-    vel_suite = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
+    suites['vel_val'] = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)
-    csp_suite = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
+    suites['cubic_speed_val'] = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='cubic speed', plot=plot, save_csv=save_csv, save_path=save_path,
@@ -234,7 +241,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     if debug: print "...CompareUV done."
 
 
-    return (elev_suite, speed_suite, dir_suite, u_suite, v_suite, vel_suite, csp_suite)
+    return suites
 
 def compareTG(data, plot=False, save_csv=False, debug=False, debug_plot=False):
     """

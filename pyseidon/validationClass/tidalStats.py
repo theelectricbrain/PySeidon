@@ -87,15 +87,26 @@ class TidalStats:
             if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
 
             if True in np.isnan(self.observed):
-                obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
+                obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]                
                 func = interp1d(time_nonan, obs_nonan)
                 self.observed = func(timestamps)
             if True in np.isnan(self.model):
-                mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
+                mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]                
                 func = interp1d(time_nonan, mod_nonan)
                 self.model = func(timestamps)
+            if True in np.isnan(self.observed_u):
+                time_nonan = observed_time[np.where(~np.isnan(self.observed_u))[0]]
+                obs_nonan = self.observed_u[np.where(~np.isnan(self.observed_u))[0]]                
+                func = interp1d(time_nonan, obs_nonan)
+                self.observed_u = func(timestamps)
+            if True in np.isnan(self.observed_v):
+                time_nonan = observed_time[np.where(~np.isnan(self.observed_v))[0]]
+                obs_nonan = self.observed_u[np.where(~np.isnan(self.observed_v))[0]]                
+                func = interp1d(time_nonan, obs_nonan)
+                self.observed_v = func(timestamps)
+            
 
         # TR: pass this step if dealing with Drifter's data
         else:

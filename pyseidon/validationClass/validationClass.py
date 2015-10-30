@@ -112,18 +112,13 @@ class Validation:
         if self._flow == 'daf': threeD = False
 
         if self.Variables.struct['type'] == 'ADCP':
-            (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
-             vel_suite, csp_suite) = compareUV(self.Variables.struct, threeD,
+            suites = compareUV(self.Variables.struct, threeD,
                                     plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
-            self.Variables.struct['elev_val'] = elev_suite
-            self.Variables.struct['speed_val'] = speed_suite
-            self.Variables.struct['dir_val'] = dir_suite
-            self.Variables.struct['u_val'] = u_suite
-            self.Variables.struct['v_val'] = v_suite
-            self.Variables.struct['vel_val'] = vel_suite
-            # custom benchmark
-            self.Variables.struct['cubic_speed_val'] = csp_suite
+                                    
+            for key in suites:
+                self.Variables.struct[key] = suites[key]
+
             # Variable to processed
             vars.append('elev')
             vars.append('speed')
@@ -143,18 +138,12 @@ class Validation:
             vars.append('tg')
 
         elif self.Variables.struct['type'] == 'Drifter':
-            (elev_suite, speed_suite, dir_suite, u_suite, v_suite,
-             vel_suite, csp_suite) = compareUV(self.Variables.struct, self.Variables._3D,
+            suites = compareUV(self.Variables.struct, self.Variables._3D,
                                     depth=depth, plot=plot, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
 
-            self.Variables.struct['speed_val'] = speed_suite
-            self.Variables.struct['dir_val'] = dir_suite
-            self.Variables.struct['u_val'] = u_suite
-            self.Variables.struct['v_val'] = v_suite
-            # custom benchmark
-            self.Variables.struct['vel_val'] = vel_suite
-            self.Variables.struct['cubic_speed_val'] = csp_suite
+            for key in suites:
+                self.Variables.struct[key] = suites[key]
 
             # Variable to processed
             vars.append('speed')

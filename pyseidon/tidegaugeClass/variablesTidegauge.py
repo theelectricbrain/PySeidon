@@ -22,9 +22,8 @@ class _load_tidegauge:
 
         # Pointer to History
         setattr(self, '_History', History)
-
-        self.RBR = cls['RBR']
-        data = self.RBR.data
+        
+        self.data = self.RBR.data
         self.matlabTime = self.RBR.date_num_Z
         self.lat = self.RBR.lat
         self.lon = self.RBR.lon

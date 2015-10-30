@@ -75,6 +75,8 @@ class _load_adcp:
         try:
             self.north_vel = cls.Data['data']['north_vel'][:].T
             self.east_vel = cls.Data['data']['east_vel'][:].T
+            self.v = self.north_vel
+            self.u = self.east_vel
         except KeyError:
             if debug:
                 print 'Missing horizontal velocities (north_vel, east_vel)'
