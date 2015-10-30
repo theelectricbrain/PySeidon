@@ -27,7 +27,7 @@ PySeidon
 
 ### Requirements & Installation Guidance: ###
 * Follow the instructions for setting up Anaconda with the [IOOS channel](https://github.com/ioos/conda-recipes/wiki) on your machine
-* From Anaconda Command Prompt type `conda install pyseidon` or `conda install -c ioos pyseidon` from a regular command prompt/shell
+* From Anaconda Command Prompt type `conda install pyseidon`
 * ...you are all set
 
 ### Dependencies: ###
