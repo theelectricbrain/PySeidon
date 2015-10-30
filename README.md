@@ -26,11 +26,8 @@ PySeidon
 * This package has been primarily developed and designed for post-processing FVCOM outputs. One can download FVCOM from [here](http://fvcom.smast.umassd.edu/fvcom/) 
 
 ### Requirements & Installation Guidance: ###
-* Install Python 2.7: one can download Python from [here](http://www.python.org/download)
-* Install Anaconda: one can download Anaconda from [here](http://continuum.io/downloads#all)
-* The HDF5 library is also needed for this package to work: one can download the HDF5 library from [here](https://www.hdfgroup.org/HDF5/)
-* Set-up the [IOOS channel](https://github.com/ioos/conda-recipes/wiki) on your machine
-* From Anaconda Command Prompt type `conda install -c ioos pyseidon`
+* Follow the instructions for setting up Anaconda with the [IOOS channel](https://github.com/ioos/conda-recipes/wiki) on your machine
+* From Anaconda Command Prompt type `conda install pyseidon` or `conda install -c ioos pyseidon` from a regular command prompt/shell
 * ...you are all set
 
 ### Dependencies: ###
