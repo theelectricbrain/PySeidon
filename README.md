@@ -22,7 +22,7 @@ PySeidon
   the better
 
 ## Installation ##
-Hydrodynamic model:
+### Hydrodynamic model: ###
 * This package has been primarily developed and designed for post-processing FVCOM outputs. One can download FVCOM from [here](http://fvcom.smast.umassd.edu/fvcom/) 
 
 ### Requirements & Installation Guidance: ###
