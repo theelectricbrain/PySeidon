@@ -40,86 +40,138 @@ class _load_adcp:
 
         # TR: fudge factor, squeeze out the 5 top % of the water column
         self.percent_of_depth=0.95
-
-        #Test if load with h5py or scipy
+       
+        # Convert some mat_struct objects into a dictionaries.
+        # This will enable compatible syntax to h5py files.
         if not type(cls.Data)==h5py._hl.files.File:
-            self.lat = cls.Data['lat']
-            self.lon = cls.Data['lon']
-            self.bins = cls.Data['data'].bins[:].ravel()
-            self.north_vel = cls.Data['data'].north_vel[:]
-            self.east_vel = cls.Data['data'].east_vel[:]
-            self.vert_vel = cls.Data['data'].vert_vel[:]
-            self.dir_vel = cls.Data['data'].dir_vel[:]
-            self.mag_signed_vel = cls.Data['data'].mag_signed_vel[:]
-            self.pressure = cls.Data['pres']
-            self.surf = self.pressure.surf[:].ravel()
-            self.el = self.surf
-            self.time = cls.Data['time']
-            self.matlabTime = self.time.mtime[:].ravel()
             try:
-                self.ucross = cls.Data['data'].ucross[:]
-                self.ualong = cls.Data['data'].ualong[:]
-            except AttributeError:
-                pass
-
-        else:
-            self.lat = cls.Data['lat'][0][0]
-            self.lon = cls.Data['lon'][0][0]
+                cls.Data['data']=cls.Data['data'].__dict__
+            except KeyError:
+                raise PyseidonError("Missing 'data' field from ADCP file.")
+            for key in cls.Data['data']:
+                if key is not '_fieldnames':
+                    cls.Data['data'][key]=cls.Data['data'][key].T
+            
+            # Convert other fields to dictionaries if they exist.
+            if 'pres' in cls.Data:
+                cls.Data['pres']=cls.Data['pres'].__dict__
+            if 'time' in cls.Data:
+                cls.Data['time']=cls.Data['time'].__dict__
+            
+            
+        try:
+            self.lat = np.ravel(cls.Data['lat'])[0]
+            self.lon = np.ravel(cls.Data['lon'])[0]
+        except KeyError:
+            if debug:
+                print 'Missing lon and/or lat data'
+                
+        try:
             self.bins = cls.Data['data']['bins'][:].ravel()
+        except KeyError:
+            if debug:
+                print 'Missing bins'   
+                             
+        try:
             self.north_vel = cls.Data['data']['north_vel'][:].T
             self.east_vel = cls.Data['data']['east_vel'][:].T
+        except KeyError:
+            if debug:
+                print 'Missing horizontal velocities (north_vel, east_vel)'
+                                
+        try:
             self.vert_vel = cls.Data['data']['vert_vel'][:].T
+        except KeyError:
+            if debug:
+                print 'Missing vertical velocity (vert_vel)'  
+                              
+        try:
             self.dir_vel = cls.Data['data']['dir_vel'][:].T
+        except KeyError:
+            if debug:
+                print 'Missing dir_vel'  
+                                            
+        try:
             self.mag_signed_vel = cls.Data['data']['mag_signed_vel'][:].T
+        except KeyError:
+            if debug:
+                print 'Missing mag_signed_vel'   
+                                           
+        try:
             self.pressure = cls.Data['pres']
             self.surf = self.pressure['surf'][:].ravel()
             self.el = self.surf
+        except KeyError:
+            if debug:
+                print 'Missing elevation data (pres.surf)' 
+                                             
+        try:
             self.time = cls.Data['time']
             self.matlabTime = self.time['mtime'][:].ravel()
-            try:
-                self.ucross = cls.Data['data']['Ucross'][:].T
-                self.ualong = cls.Data['data']['Ualong'][:].T
-            except KeyError:
-                pass
+        except KeyError:
+            if debug:
+                print 'Missing time data (time.mtime)' 
+                                             
+        try:
+            self.ucross = cls.Data['data']['Ucross'][:].T
+            self.ualong = cls.Data['data']['Ualong'][:].T
+        except KeyError:
+            if debug:
+                print 'Missing along/cross velocities (Ucross, Ualong)'
+
 
         #-Append message to History field
-        start = mattime_to_datetime(self.matlabTime[0])
-        end = mattime_to_datetime(self.matlabTime[-1])
-        text = 'Temporal domain from ' + str(start) +\
-                ' to ' + str(end)
-        self._History.append(text)
+        try:
+            start = mattime_to_datetime(self.matlabTime[0])
+            end = mattime_to_datetime(self.matlabTime[-1])
+            text = 'Temporal domain from ' + str(start) +\
+                    ' to ' + str(end)
+            self._History.append(text)
+        except AttributeError:
+            if debug:
+                print 'Missing time variable failed to add history note'
 
         #Find the depth average of a variable based on percent_of_depth
         #choosen by the user. Currently only working for east_vel (u) and
         #north_vel (v)
-        #TR: alaternative with percent of the depth
-        ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,np.newaxis])
-        #ind = np.argwhere(self.bins < self.surf[:,np.newaxis])
-        index = ind[np.r_[ind[1:,0] != ind[:-1,0], True]]
         try:
-            data_ma_u = np.ma.array(self.east_vel,
-                        mask=np.arange(self.east_vel.shape[1]) > index[:, 1, np.newaxis])
-            data_ma_u=np.ma.masked_array(data_ma_u,np.isnan(data_ma_u))
-        except MaskError:
-            data_ma_u=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
+            #TR: alternative with percent of the depth
+            ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,np.newaxis])
+            #ind = np.argwhere(self.bins < self.surf[:,np.newaxis])
+            index = ind[np.r_[ind[1:,0] != ind[:-1,0], True]]
+            try:
+                data_ma_u = np.ma.array(self.east_vel,
+                            mask=np.arange(self.east_vel.shape[1]) > index[:, 1, np.newaxis])
+                data_ma_u=np.ma.masked_array(data_ma_u,np.isnan(data_ma_u))
+            except MaskError:
+                data_ma_u=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
 
-        try:
-            data_ma_v = np.ma.array(self.north_vel,
-                        mask=np.arange(self.north_vel.shape[1]) > index[:, 1, np.newaxis])
-            data_ma_v=np.ma.masked_array(data_ma_v,np.isnan(data_ma_v))
-        except MaskError:
-            data_ma_v=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))
-        
-        self.ua = np.array(data_ma_u.mean(axis=1))
-        self.va = np.array(data_ma_v.mean(axis=1))
+            try:
+                data_ma_v = np.ma.array(self.north_vel,
+                            mask=np.arange(self.north_vel.shape[1]) > index[:, 1, np.newaxis])
+                data_ma_v=np.ma.masked_array(data_ma_v,np.isnan(data_ma_v))
+            except MaskError:
+                data_ma_v=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))
+            
+            self.ua = np.array(data_ma_u.mean(axis=1))
+            self.va = np.array(data_ma_v.mean(axis=1))
+        except AttributeError:
+            if debug:
+                print 'Missing atleast one variable required ' + \
+                      'to compute depth averaged velocities'
 
         # Compute depth with fvcom convention, negative from surface down
-        self.depth = np.ones(self.north_vel.shape) * np.nan
-        for t in range(self.matlabTime.shape[0]):
-            #i = np.where(np.isnan(self.north_vel[t,:]))[0][0]
-            #z = self.bins[i]
-            self.depth[t, :] = self.bins[:] - self.surf[t]
-        self.depth[np.where(self.depth>0.0)] = np.nan
+        try:
+            self.depth = np.ones(self.north_vel.shape) * np.nan
+            for t in range(self.matlabTime.shape[0]):
+                #i = np.where(np.isnan(self.north_vel[t,:]))[0][0]
+                #z = self.bins[i]
+                self.depth[t, :] = self.bins[:] - self.surf[t]
+            self.depth[np.where(self.depth>0.0)] = np.nan
+        except AttributeError:
+            if debug:
+                print 'Missing atleast one variable required ' + \
+                  'to compute depth with fvcom convention'
 
         if debug:
             print '...Passed'
