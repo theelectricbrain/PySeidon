@@ -6,7 +6,7 @@ from pyseidon.utilities.pyseidon_error import PyseidonError
 
 # ALTERNATE VERSION FOR ANDY
 
-def valTable(struct, filename, vars, save_csv=False, debug=False, debug_plot=False):
+def valTable(struct, suites, filename, vars, save_csv=False, debug=False, debug_plot=False):
     '''
     Takes validation data from the struct and saves it into a .csv file .
 
@@ -20,7 +20,7 @@ def valTable(struct, filename, vars, save_csv=False, debug=False, debug_plot=Fal
     # append to the lists the stats from each site for each variable
     for var in vars:
         (kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase, bias, pbias, NRMSE, NSE, corr, SI, gear) \
-            = siteStats(struct, var, kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase,
+            = siteStats(struct, suites, var, kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase,
                         bias, pbias, NRMSE, NSE, corr, SI, gear, debug=False, debug_plot=False)
 
     # put stats into dict and create dataframe
@@ -36,7 +36,7 @@ def valTable(struct, filename, vars, save_csv=False, debug=False, debug_plot=Fal
         table.to_csv(out_file)
     return table
 
-def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase,
+def siteStats(site, suites, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase,
               bias, pbias, NRMSE, NSE, corr, SI, gear, debug=False, debug_plot=False):
     """
     Takes in the run (an array of dictionaries) and the type of the run (a
@@ -45,7 +45,7 @@ def siteStats(site, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, 
     if debug: print "siteStats..."
     # check if it's a tidegauge site
     if ((site['type'] != 'TideGauge') and (variable != 'tg')):
-        stats = site['{}_val'.format(variable)]
+        stats = suites['{}'.format(variable)]
         type.append(variable)
         name.append(site['name'].split('/')[-1].split('.')[0])
 

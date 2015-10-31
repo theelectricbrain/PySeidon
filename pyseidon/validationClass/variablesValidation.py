@@ -243,15 +243,29 @@ class _load_validation:
             else:
                 raise PyseidonError("---This type of measurements is not supported yet---")
             
-            # Specify list of variables from observations that should be used.    
-            dictlist=['ua','va','u','v','el','bins','data'] 
-            self._commonlist=[var for var in self._obs_vars if var in dictlist]  
+            
+            # This had to be split into two parts so that a time subset could be used.
+            # Specify list of data variables from observations that should be used.    
+            dictlist=['ua','va','u','v','el'] 
+            self._commonlist_data=[var for var in self._obs_vars if var in dictlist]  
             if debug:
-                print 'Variables being used'
-                print self._commonlist             
+                print 'Data variables being used'
+                print self._commonlist_data         
             obs_mod={}    
-            for key in (self._commonlist):
+            for key in (self._commonlist_data):
                 obs_mod[key]=getattr(self.obs,key)
+                obs_mod[key]=obs_mod[key][c,]
+                
+            # Specify list of nondata variables that should be used.    
+            dictlist=['bins','data'] 
+            self._commonlist_nondata=[var for var in self._obs_vars if var in dictlist]  
+            if debug:
+                print 'Non data variables being used'
+                print self._commonlist_nondata    
+            for key in (self._commonlist_nondata):
+                obs_mod[key]=getattr(self.obs,key)    
+                
+                
                 
         else:
             self._obstype = 'drifter'
@@ -268,7 +282,8 @@ class _load_validation:
                            'mod_timeseries':sim_mod,
                            'obs_time':self.obs.matlabTime[c],
                            'mod_time':self.sim.matlabTime[C],
-                           '_commonlist':self._commonlist}
+                           '_commonlist_data':self._commonlist_data,
+                           '_commonlist_nondata':self._commonlist_nondata}
         else:#Drifter's case
             self.struct = {'name': observed.History[0].split(' ')[-1],
                            'type':obstype,

@@ -108,6 +108,7 @@ class Validation:
 
         #initialisation
         vars = []
+        self.Suites={}
         threeD = self.Variables.sim._3D
         if self._flow == 'daf': threeD = False
 
@@ -117,17 +118,8 @@ class Validation:
                                     debug=debug, debug_plot=debug_plot)
                                     
             for key in suites:
-                self.Variables.struct[key] = suites[key]
-
-            # Variable to processed
-            vars.append('elev')
-            vars.append('speed')
-            vars.append('dir')
-            vars.append('u')
-            vars.append('v')
-            vars.append('vel')
-            # custom var
-            vars.append('cubic_speed')
+                self.Suites[key] = suites[key]
+                vars.append(key)
 
         elif self.Variables.struct['type'] == 'TideGauge':
             elev_suite_dg = compareTG(self.Variables.struct,
@@ -143,23 +135,14 @@ class Validation:
                                     debug=debug, debug_plot=debug_plot)
 
             for key in suites:
-                self.Variables.struct[key] = suites[key]
-
-            # Variable to processed
-            vars.append('speed')
-            vars.append('dir')
-            vars.append('u')
-            vars.append('v')
-            vars.append('vel')
-            # custom var
-            vars.append('vel')
-            vars.append('cubic_speed')
+                self.Suites[key] = suites[key]
+                vars.append(key)
 
         else:
             raise PyseidonError("-This kind of measurements is not supported yet-")
 
         # Make csv file
-        self._Benchmarks = valTable(self.Variables.struct, filename,  vars,
+        self._Benchmarks = valTable(self.Variables.struct, self.Suites, filename,  vars,
                                     debug=debug, debug_plot=debug_plot)
 
         # Display csv

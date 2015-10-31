@@ -54,7 +54,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     else:
         obs_time = data['mod_time']
         
-    if 'el' in data['_commonlist']:    
+    if 'el' in data['_commonlist_data']:    
         mod_el = data['mod_timeseries']['el']
         obs_el = data['obs_timeseries']['el']
 
@@ -106,7 +106,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     obs_spd = np.sqrt(obs_u**2.0 + obs_v**2.0)
     mod_dir = np.arctan2(mod_v, mod_u) * 180.0 / np.pi
     obs_dir = np.arctan2(obs_v, obs_u) * 180.0 / np.pi
-    if 'el' in data['_commonlist']:
+    if 'el' in data['_commonlist_data']:
         obs_el = obs_el - np.mean(obs_el[~np.isnan(obs_el)])
     # Chose the component with the biggest variance as sign reference
     if np.var(mod_v) > np.var(mod_u):
@@ -124,7 +124,7 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
         if debug: print "...interpolate the data onto a common time step for each data type..."
         if not data['type'] == 'Drifter':
             # elevation
-            if 'el' in data['_commonlist']:
+            if 'el' in data['_commonlist_data']:
                 (mod_el_int, obs_el_int, step_el_int, start_el_int) = smooth(mod_el, mod_dt, obs_el, obs_dt,
                                                                              debug=debug, debug_plot=debug_plot)
             # speed
@@ -194,43 +194,40 @@ def compareUV(data, threeDim, depth=5, plot=False, save_csv=False,
     
     suites={}
     
-    
-    if 'el' in data['_commonlist']:
-        suites['elev_val'] = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
+    if 'el' in data['_commonlist_data']:
+        suites['el'] = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
                                 [], [], [], [], [], [],
                                 kind='elevation', plot=plot,
                                 save_csv=save_csv, save_path=save_path,
                                 debug=debug, debug_plot=debug_plot)
-    else:
-        suites['elev_val'] = []
         
-    suites['speed_val'] = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
+    suites['speed'] = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
                              [], [], [], [], [], [],
                              kind='speed', plot=plot,
                              save_csv=save_csv, save_path=save_path,
                              debug=debug, debug_plot=debug_plot)
-    suites['dir_val'] = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
+    suites['dir'] = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='direction', plot=plot,
                            save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)
-    suites['u_val'] = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
+    suites['u'] = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
                          [], [], [], [], [], [],
                          kind='u velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                          debug=debug, debug_plot=debug_plot)
-    suites['v_val'] = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
+    suites['v'] = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
                          [], [], [], [], [], [],
                          kind='v velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                          debug=debug, debug_plot=debug_plot)
 
     # TR: requires special treatments from here on
-    suites['vel_val'] = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
+    suites['vel'] = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='velocity', plot=plot, save_csv=save_csv, save_path=save_path,
                            debug=debug, debug_plot=debug_plot)
-    suites['cubic_speed_val'] = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
+    suites['cubic_speed'] = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
                            mod_u, obs_u, mod_v, obs_v,
                            mod_dt, obs_dt,
                            kind='cubic speed', plot=plot, save_csv=save_csv, save_path=save_path,

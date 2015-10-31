@@ -77,6 +77,13 @@ class _load_adcp:
             self.east_vel = cls.Data['data']['east_vel'][:].T
             self.v = self.north_vel
             self.u = self.east_vel
+            try:
+                self.north_vel=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))
+                self.east_vel=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
+                self.v=self.north_vel
+                self.u=self.east_vel
+            except MaskError:
+                print 'Failed to mask horizontal velocities (north_vel, east_vel)'
         except KeyError:
             if debug:
                 print 'Missing horizontal velocities (north_vel, east_vel)'

@@ -96,17 +96,7 @@ class TidalStats:
                 mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]                
                 func = interp1d(time_nonan, mod_nonan)
                 self.model = func(timestamps)
-            if True in np.isnan(self.observed_u):
-                time_nonan = observed_time[np.where(~np.isnan(self.observed_u))[0]]
-                obs_nonan = self.observed_u[np.where(~np.isnan(self.observed_u))[0]]                
-                func = interp1d(time_nonan, obs_nonan)
-                self.observed_u = func(timestamps)
-            if True in np.isnan(self.observed_v):
-                time_nonan = observed_time[np.where(~np.isnan(self.observed_v))[0]]
-                obs_nonan = self.observed_u[np.where(~np.isnan(self.observed_v))[0]]                
-                func = interp1d(time_nonan, obs_nonan)
-                self.observed_v = func(timestamps)
-            
+
 
         # TR: pass this step if dealing with Drifter's data
         else:
