@@ -426,7 +426,15 @@ class PlotsFvcom:
         debug = debug or self._debug
         if debug:
             print 'Converting map to shapefile...'
-        if title == ' ': title = 'save_map_data'
+        if title == ' ':
+            title = 'save_map_data'
+        else:  # reformat file name
+            title.replace(" ", "_")
+            title.replace("(", "_")
+            title.replace(")", "_")
+            title.replace("-", "_")
+            title.replace("/", "_")
+
         filename=title + '.shp'
         epsg_in=4326
 

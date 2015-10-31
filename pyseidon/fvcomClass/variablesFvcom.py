@@ -318,7 +318,7 @@ class _load_var:
                 except AttributeError:  # pydap lib error
                     if "second" in julianTime.units.lower():
                         timeFlag += 1.0
-                if not timeFlag == 0.0:
+                if not timeFlag == 0.0:  # TR: this conversion needs to be improved by introducing the right epoch
                     dayTime = julianTime[:] / (24*60*60) # convert in days
                     julianTime = dayTime
 
