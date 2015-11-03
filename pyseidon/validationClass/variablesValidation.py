@@ -276,8 +276,10 @@ class _load_validation:
         if not observed.__module__=='pyseidon.drifterClass.drifterClass':
             self.struct = {'name': observed.History[0].split(' ')[-1],
                            'type':obstype,
-                           'lat':self.obs.lat,
-                           'lon':self.obs.lon,
+                           'obs_lat':self.obs.lat,
+                           'obs_lon':self.obs.lon,
+                           'mod_lat':self.obs.lat,
+                           'mod_lon':self.obs.lon,
                            'obs_timeseries':obs_mod,
                            'mod_timeseries':sim_mod,
                            'obs_time':self.obs.matlabTime[c],

@@ -90,18 +90,30 @@ class _load_adcp:
                                 
         try:
             self.vert_vel = cls.Data['data']['vert_vel'][:].T
+            try:
+                self.vert_vel=np.ma.masked_array(self.vert_vel,np.isnan(self.vert_vel))
+            except MaskError:
+                print 'Failed to mask vertical velocity (vert_vel)'
         except KeyError:
             if debug:
                 print 'Missing vertical velocity (vert_vel)'  
                               
         try:
             self.dir_vel = cls.Data['data']['dir_vel'][:].T
+            try:
+                self.dir_vel=np.ma.masked_array(self.dir_vel,np.isnan(self.dir_vel))
+            except MaskError:
+                print 'Failed to mask dir_vel'
         except KeyError:
             if debug:
                 print 'Missing dir_vel'  
                                             
         try:
             self.mag_signed_vel = cls.Data['data']['mag_signed_vel'][:].T
+            try:
+                self.mag_signed_vel=np.ma.masked_array(self.mag_signed_vel,np.isnan(self.mag_signed_vel))
+            except MaskError:
+                print 'Failed to mask mag_signed_vel'
         except KeyError:
             if debug:
                 print 'Missing mag_signed_vel'   
@@ -127,6 +139,18 @@ class _load_adcp:
         except KeyError:
             if debug:
                 print 'Missing along/cross velocities (Ucross, Ualong)'
+                
+        try:
+            self.ua = cls.Data['data']['ua'][:].T
+            self.va = cls.Data['data']['va'][:].T
+            try:
+                self.ua=np.ma.masked_array(self.ua,np.isnan(self.ua))
+                self.va=np.ma.masked_array(self.va,np.isnan(self.va))
+            except MaskError:
+                print 'Failed to mask depth averaged velocities (ua, va)'
+        except KeyError:
+            if debug:
+                print 'Missing depth averaged velocities (ua, va)'
 
 
         #-Append message to History field
@@ -141,33 +165,35 @@ class _load_adcp:
                 print 'Missing time variable failed to add history note'
 
         #Find the depth average of a variable based on percent_of_depth
-        #choosen by the user. Currently only working for east_vel (u) and
-        #north_vel (v)
-        try:
-            #TR: alternative with percent of the depth
-            ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,np.newaxis])
-            #ind = np.argwhere(self.bins < self.surf[:,np.newaxis])
-            index = ind[np.r_[ind[1:,0] != ind[:-1,0], True]]
+        #choosen by the user but only if not loaded from file directly.
+        # Currently only working for east_vel (u) and north_vel (v)
+        if (('ua' not in dir(self)) and ('va' not in dir(self))):
             try:
-                data_ma_u = np.ma.array(self.east_vel,
-                            mask=np.arange(self.east_vel.shape[1]) > index[:, 1, np.newaxis])
-                data_ma_u=np.ma.masked_array(data_ma_u,np.isnan(data_ma_u))
-            except MaskError:
-                data_ma_u=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
+                #TR: alternative with percent of the depth
+                ind = np.argwhere(self.bins < self.percent_of_depth * self.surf[:,np.newaxis])
+                #ind = np.argwhere(self.bins < self.surf[:,np.newaxis])
+                index = ind[np.r_[ind[1:,0] != ind[:-1,0], True]]
+                try:
+                    data_ma_u = np.ma.array(self.east_vel,
+                                mask=np.arange(self.east_vel.shape[1]) > index[:, 1, np.newaxis])
+                    data_ma_u=np.ma.masked_array(data_ma_u,np.isnan(data_ma_u))
+                except MaskError:
+                    data_ma_u=np.ma.masked_array(self.east_vel,np.isnan(self.east_vel))
 
-            try:
-                data_ma_v = np.ma.array(self.north_vel,
-                            mask=np.arange(self.north_vel.shape[1]) > index[:, 1, np.newaxis])
-                data_ma_v=np.ma.masked_array(data_ma_v,np.isnan(data_ma_v))
-            except MaskError:
-                data_ma_v=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))
-            
-            self.ua = np.array(data_ma_u.mean(axis=1))
-            self.va = np.array(data_ma_v.mean(axis=1))
-        except AttributeError:
-            if debug:
-                print 'Missing atleast one variable required ' + \
-                      'to compute depth averaged velocities'
+                try:
+                    data_ma_v = np.ma.array(self.north_vel,
+                                mask=np.arange(self.north_vel.shape[1]) > index[:, 1, np.newaxis])
+                    data_ma_v=np.ma.masked_array(data_ma_v,np.isnan(data_ma_v))
+                except MaskError:
+                    data_ma_v=np.ma.masked_array(self.north_vel,np.isnan(self.north_vel))
+                
+                self.ua = np.array(data_ma_u.mean(axis=1))
+                self.va = np.array(data_ma_v.mean(axis=1))
+            except AttributeError:
+                if debug:
+                    print 'Missing atleast one variable required ' + \
+                          'to compute depth averaged velocities'
+        
 
         # Compute depth with fvcom convention, negative from surface down
         try:

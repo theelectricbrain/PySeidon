@@ -23,11 +23,12 @@ class _load_tidegauge:
         # Pointer to History
         setattr(self, '_History', History)
         
+        self.RBR = cls['RBR']
         self.data = self.RBR.data
         self.matlabTime = self.RBR.date_num_Z
         self.lat = self.RBR.lat
         self.lon = self.RBR.lon
-        self.el = data - np.mean(data)
+        self.el = self.data - np.mean(self.data)
 
         #-Append message to History field
         start = mattime_to_datetime(self.matlabTime[0])

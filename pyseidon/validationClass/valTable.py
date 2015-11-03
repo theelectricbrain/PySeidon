@@ -43,20 +43,11 @@ def siteStats(site, suites, variable, type, name, ovORun, RMSE, CF, SD, POF, NOF
     string). Also takes in the list representing each statistic.
     """
     if debug: print "siteStats..."
-    # check if it's a tidegauge site
-    if ((site['type'] != 'TideGauge') and (variable != 'tg')):
-        stats = suites['{}'.format(variable)]
-        type.append(variable)
-        name.append(site['name'].split('/')[-1].split('.')[0])
 
-    elif ((site['type'] == 'TideGauge') and (variable == 'tg')):
-        stats = site['tg_val']
-        type.append('elev')
-        name.append(site['name'].split('/')[-1].split('.')[0])
+    stats = suites['{}'.format(variable)]
+    type.append(variable)
+    name.append(site['name'].split('/')[-1].split('.')[0])
 
-    # do nothing if a tidegauge is encountered but variable isn't tg
-    else:
-        raise PyseidonError("---The variable tg is missing---")
    
     # add the statistics to the list, round to 2 decimal places
     ovORun.append(stats['ovORun'])
