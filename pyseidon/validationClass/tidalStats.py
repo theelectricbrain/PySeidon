@@ -87,15 +87,16 @@ class TidalStats:
             if debug: print "...uses linear interpolation to eliminate any NaNs in the data..."
 
             if True in np.isnan(self.observed):
-                obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.observed))[0]]
+                obs_nonan = self.observed[np.where(~np.isnan(self.observed))[0]]                
                 func = interp1d(time_nonan, obs_nonan)
                 self.observed = func(timestamps)
             if True in np.isnan(self.model):
-                mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]
                 time_nonan = timestamps[np.where(~np.isnan(self.model))[0]]
+                mod_nonan = self.model[np.where(~np.isnan(self.model))[0]]                
                 func = interp1d(time_nonan, mod_nonan)
                 self.model = func(timestamps)
+
 
         # TR: pass this step if dealing with Drifter's data
         else:

@@ -36,32 +36,43 @@ class _load_validation:
             self._3D = False
         else:
             self._3D = simulated.Variables._3D
+            
+        try:
+            #Check if times coincide
+            obsMax = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].max()
+            obsMin = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].min()
+            simMax = self.sim.matlabTime.max()
+            simMin = self.sim.matlabTime.min()
+            absMin = max(obsMin, simMin)
+            absMax = min(obsMax, simMax)
+            A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist())
+            B = set(np.where(self.sim.matlabTime[:] <= absMax)[0].tolist())
+            C = list(A.intersection(B))
+            #-Correction by J.Culina 2014-
+            C = sorted(C)
+            #-end-
+            self._C = np.asarray(C)
 
-        #Check if times coincide
-        obsMax = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].max()
-        obsMin = self.obs.matlabTime[~np.isnan(self.obs.matlabTime)].min()
-        simMax = self.sim.matlabTime.max()
-        simMin = self.sim.matlabTime.min()
-        absMin = max(obsMin, simMin)
-        absMax = min(obsMax, simMax)
-        A = set(np.where(self.sim.matlabTime[:] >= absMin)[0].tolist())
-        B = set(np.where(self.sim.matlabTime[:] <= absMax)[0].tolist())
-        C = list(A.intersection(B))
-        #-Correction by J.Culina 2014-
-        C = sorted(C)
-        #-end-
-        self._C = np.asarray(C)
+            a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist())
+            b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
+            c = list(a.intersection(b))
+            #-Correction by J.Culina 2014-
+            c = sorted(c)
+            #-end-
+            self._c = np.asarray(c)
 
-        a = set(np.where(self.obs.matlabTime[:] >= absMin)[0].tolist())
-        b = set(np.where(self.obs.matlabTime[:] <= absMax)[0].tolist())
-        c = list(a.intersection(b))
-        #-Correction by J.Culina 2014-
-        c = sorted(c)
-        #-end-
-        self._c = np.asarray(c)
-
-        if len(C) == 0:
-            raise PyseidonError("---Time between simulation and measurement does not match up---")
+            if len(C) == 0:
+                raise PyseidonError("---Time between simulation and measurement does not match up---")
+        except AttributeError:
+            raise PyseidonError("---Observations missing matlabTime comparison is impossible---")
+            
+            
+        # Check which variables are available in the observations for comparison
+        self._obs_vars=dir(self.obs)
+        if ('lon' and 'lat') not in self._obs_vars:
+            raise PyseidonError("---Observations missing lon/lat comparison is impossible---")  
+        
+        
 
         #Check what kind of simulated data it is
         if simulated.__module__=='pyseidon.stationClass.stationClass':
@@ -215,9 +226,9 @@ class _load_validation:
         #Store in dict structure for compatibility purposes (except for drifters)
         if not observed.__module__=='pyseidon.drifterClass.drifterClass':
             if not self._3D:
-                sim_mod={'ua':ua[C],'va':va[C],'elev':el[C]}
+                sim_mod={'ua':ua[C],'va':va[C],'el':el[C]}
             else:
-                sim_mod={'ua':ua[C],'va':va[C],'elev':el[C],'u':u[C,:],
+                sim_mod={'ua':ua[C],'va':va[C],'el':el[C],'u':u[C,:],
                          'v':v[C,:],'siglay':sig[:]}
 
 
@@ -225,18 +236,37 @@ class _load_validation:
             if observed.__module__=='pyseidon.adcpClass.adcpClass' or observed.__module__ == 'adcpClass':
                 self._obstype = 'adcp'
                 obstype='ADCP'
-                obs_mod={'ua':self.obs.ua[c],'va':self.obs.va[c],'elev':self.obs.surf[c],
-                         'u':self.obs.east_vel[c,:],'v':self.obs.north_vel[c,:],
-                         'bins':self.obs.bins[:]}
-
             #Alternative measurement type
             elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
                 self._obstype = 'tidegauge'
-                obstype='TideGauge'
-                obs_mod = {'data':self.obs.RBR.data, 'elev':self.obs.el[c]}
-
+                obstype='TideGauge'           
             else:
                 raise PyseidonError("---This type of measurements is not supported yet---")
+            
+            
+            # This had to be split into two parts so that a time subset could be used.
+            # Specify list of data variables from observations that should be used.    
+            dictlist=['ua','va','u','v','el'] 
+            self._commonlist_data=[var for var in self._obs_vars if var in dictlist]  
+            if debug:
+                print 'Data variables being used'
+                print self._commonlist_data         
+            obs_mod={}    
+            for key in (self._commonlist_data):
+                obs_mod[key]=getattr(self.obs,key)
+                obs_mod[key]=obs_mod[key][c,]
+                
+            # Specify list of nondata variables that should be used.    
+            dictlist=['bins','data'] 
+            self._commonlist_nondata=[var for var in self._obs_vars if var in dictlist]  
+            if debug:
+                print 'Non data variables being used'
+                print self._commonlist_nondata    
+            for key in (self._commonlist_nondata):
+                obs_mod[key]=getattr(self.obs,key)    
+                
+                
+                
         else:
             self._obstype = 'drifter'
             obstype='Drifter'
@@ -246,12 +276,16 @@ class _load_validation:
         if not observed.__module__=='pyseidon.drifterClass.drifterClass':
             self.struct = {'name': observed.History[0].split(' ')[-1],
                            'type':obstype,
-                           'lat':self.obs.lat,
-                           'lon':self.obs.lon,
+                           'obs_lat':self.obs.lat,
+                           'obs_lon':self.obs.lon,
+                           'mod_lat':self.obs.lat,
+                           'mod_lon':self.obs.lon,
                            'obs_timeseries':obs_mod,
                            'mod_timeseries':sim_mod,
                            'obs_time':self.obs.matlabTime[c],
-                           'mod_time':self.sim.matlabTime[C]}
+                           'mod_time':self.sim.matlabTime[C],
+                           '_commonlist_data':self._commonlist_data,
+                           '_commonlist_nondata':self._commonlist_nondata}
         else:#Drifter's case
             self.struct = {'name': observed.History[0].split(' ')[-1],
                            'type':obstype,
