@@ -42,7 +42,7 @@ class Validation:
     Option:
       - flow = impose flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
     """
-    def __init__(self, observed, simulated, flow=[], debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow=[], nn=True, debug=False, debug_plot=False):
         self._debug = debug
         self._flow = flow
         if type(observed) in [tuple, list]:
@@ -50,7 +50,9 @@ class Validation:
         else:
             self._multi = False
         self._debug_plot = debug_plot
-        if debug: print '-Debug mode on-'
+        if debug: print '-Debug mode on-'   
+        self._nn=nn    
+        if debug and nn: print '-Using nearest neighbour-'
 
         #Metadata
         if not self._multi:
@@ -62,7 +64,7 @@ class Validation:
         self._observed = observed
         self._simulated = simulated
         if not self._multi:
-            self.Variables = _load_validation(self._observed, self._simulated, flow=self._flow, debug=self._debug)
+            self.Variables = _load_validation(self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
 
         return
 

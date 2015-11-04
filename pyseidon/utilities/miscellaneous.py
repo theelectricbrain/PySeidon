@@ -156,4 +156,19 @@ def date_to_julian_day(my_date):
     # day = 24.0*60.0*60.0
     # jtime = my_date.day + ((153*m + 2)//5) + 365*y + y//4 - y//100 + y//400 - 32045 + s/day
     jtime = datetime_to_mattime(my_date) - 678942.0
-    return jtime
+    return jtime    
+    
+def distance(locs,loce):
+    """Returns the distance in meters between two locations in long/lat."""
+    TPI=111194.92664455874
+    y0c = TPI * (loce[1] - locs[1])
+    dx_sph = loce[0] - locs[0]
+    if (dx_sph > 180.0):
+        dx_sph=dx_sph-360.0
+    elif (dx_sph < -180.0):
+        dx_sph =dx_sph+360.0
+    x0c = TPI * np.cos(np.deg2rad(loce[1] + locs[1])*0.5) * dx_sph
+
+    dist=np.linalg.norm([x0c, y0c])
+
+    return dist
