@@ -41,6 +41,7 @@ class Validation:
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
     Option:
       - flow = impose flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
+      - nn   = if True then use the nearest location in the grid if the location is outside the grid.
     """
     def __init__(self, observed, simulated, flow=[], nn=True, debug=False, debug_plot=False):
         self._debug = debug

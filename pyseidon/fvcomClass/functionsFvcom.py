@@ -456,7 +456,7 @@ class FunctionsFvcom:
         Options:
           - index = element index, integer. Use only if closest element index
                     is already known
-          - nn    = if True then use the nearest location in the grid
+          - nn    = if True then use the nearest location in the grid if the location is outside the grid.
 
         *Notes*
           - use index if closest element already known
