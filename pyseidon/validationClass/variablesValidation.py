@@ -294,7 +294,8 @@ class _load_validation:
                            'obs_timeseries':{'u': uObs, 'v': vObs},
                            'mod_timeseries':{'u': uSimInterp, 'v': vSimInterp},
                            'obs_time':self.obs.matlabTime[uniqCloInd],
-                           'mod_time':self.sim.matlabTime[C]}
+                           'mod_time':self.sim.matlabTime[C],
+                           '_commonlist_data': ['u', 'v']}
 
         if debug: print "..done"
 

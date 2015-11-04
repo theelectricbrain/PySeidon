@@ -168,9 +168,13 @@ class Validation:
             
         hasEL=False
         hasUV=False
-        if 'el' in self.Variables._commonlist_data: 
+        commonlist_data = self.Variables.struct['_commonlist_data']
+        if 'el' in commonlist_data:
             hasEL=True
-        if (('ua' or 'u') and ('va'or 'v')) in self.Variables._commonlist_data:
+
+        ulist=[var for var in ['ua', 'u'] if var in commonlist_data ]
+        vlist=[var for var in ['va', 'v'] if var in commonlist_data ]
+        if len(ulist)>0 and len(vlist)>0:
             hasUV=True
 
         # Harmonic analysis over matching time

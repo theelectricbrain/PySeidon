@@ -52,7 +52,10 @@ def compareOBS(data, threeDim=False, depth=5, plot=False, save_csv=False,
     hasUV=False
     if 'el' in data['_commonlist_data']: 
         hasEL=True
-    if (('ua' or 'u') and ('va'or 'v')) in data['_commonlist_data']:
+
+    ulist=[var for var in ['ua', 'u'] if var in data['_commonlist_data']]
+    vlist=[var for var in ['va', 'v'] if var in data['_commonlist_data']]
+    if len(ulist)>0 and len(vlist)>0:
         hasUV=True
     
     # take data from input dictionary

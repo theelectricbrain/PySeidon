@@ -484,7 +484,7 @@ class FunctionsFvcom:
             latweight = (lat[int(trinodes[index,0])]\
                        + lat[int(trinodes[index,1])]\
                        + lat[int(trinodes[index,2])]) / 3.0
-            TPI=111194.92664455874 #No sure what is this coeff, yet comes from FVCOM
+            TPI=111194.92664455874  # earth radius * pi/180.0
             pt_y = TPI * (pt_lat - latweight)
             dx_sph = pt_lon - lonweight
             if (dx_sph > 180.0):
