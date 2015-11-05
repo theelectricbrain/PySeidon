@@ -56,6 +56,7 @@ class Validation:
         self._nn=nn    
         if debug and nn: print '-Using nearest neighbour-'        
         if debug: print '-Saving results to {}-'.format(outpath)
+        outpath=outpath.replace(" ","_")
         if outpath[-1] is not '/':
             self._outpath=outpath+'/'
         else:
