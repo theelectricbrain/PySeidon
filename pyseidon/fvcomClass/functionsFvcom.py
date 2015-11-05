@@ -441,7 +441,7 @@ class FunctionsFvcom:
 
         return index
 
-    def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], debug=False):
+    def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], nn=True, debug=False):
         """
         This function interpolates any given variables at any give location.
 
@@ -456,6 +456,7 @@ class FunctionsFvcom:
         Options:
           - index = element index, integer. Use only if closest element index
                     is already known
+          - nn    = if True then use the nearest location in the grid if the location is outside the grid.
 
         *Notes*
           - use index if closest element already known
@@ -468,9 +469,23 @@ class FunctionsFvcom:
         if index == []:
             index = self.index_finder(pt_lon, pt_lat, debug=False)
 
-        if index == -1:
+        if ((index == -1) and (nn==False)):
             # nan array if outside of domain
             varInterp = np.ones(var.shape[:-1]) * np.nan
+        elif ((index == -1) and (nn==True)):
+            #outside of domain with nn true use the closest node or element          
+            if var.shape[-1] == self._grid.nnode:
+                idx=np.argmin((self._grid.lon[:]-pt_lon)**2+(self._grid.lat[:]-pt_lat)**2)
+                varInterp = var[:,idx]
+                obsloc=[pt_lon, pt_lat]
+                simloc=[self._grid.lon[idx], self._grid.lat[idx]]
+                print 'Using nearest location {} m from observation location'.format(distance(simloc, obsloc)) 
+            else:
+                idx=np.argmin((self._grid.lonc[:]-pt_lon)**2+(self._grid.latc[:]-pt_lat)**2)
+                varInterp = var[:,idx]    
+                obsloc=[pt_lon, pt_lat]
+                simloc=[self._grid.lonc[idx], self._grid.latc[idx]]
+                print 'Using nearest location {} m from observation location'.format(distance(simloc, obsloc))     
         else:
             lon = self._grid.lon
             lat = self._grid.lat
