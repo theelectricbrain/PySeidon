@@ -4,6 +4,8 @@
 from __future__ import division
 import numpy as np
 from datetime import datetime, timedelta
+from os import makedirs
+from os.path import exists
 
 #Local import
 from pyseidon.utilities.interpolation_utils import *
@@ -22,7 +24,7 @@ class _load_validation:
                             |_struct. = dictionnary structure for validation purposes
 
     """
-    def __init__(self, observed, simulated, flow='sf', nn=True, debug=False, debug_plot=False):
+    def __init__(self, outpath, observed, simulated, flow='sf', nn=True, debug=False, debug_plot=False):
         if debug: print "..variables.."
         self.obs = observed.Variables
         self.sim = simulated.Variables
@@ -299,5 +301,24 @@ class _load_validation:
                            '_commonlist_data': ['u', 'v']}
 
         if debug: print "..done"
+        
+        #find save_path
+        self._save_path=''
+        for s in observed.History:
+            if 'Create save_path ' not in s:
+                continue
+            else:
+                self._save_path=s.split()[2]
+                
+        if '' is self._save_path:        
+            name = self.struct['name']
+            self._save_path = outpath+name.split('/')[-1].split('.')[0]+'/'
+            while exists(self._save_path):
+                self._save_path = self._save_path[:-1] + '_bis/'
+            makedirs(self._save_path)
+            observed.History.append('Create save_path {}'.format(self._save_path))
+        
+        
+        
 
         return

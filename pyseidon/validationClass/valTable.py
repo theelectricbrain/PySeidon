@@ -6,7 +6,7 @@ from pyseidon.utilities.pyseidon_error import PyseidonError
 
 # ALTERNATE VERSION FOR ANDY
 
-def valTable(struct, suites, filename, vars, save_csv=False, debug=False, debug_plot=False):
+def valTable(struct, suites, save_path, filename, vars, save_csv=False, debug=False, debug_plot=False):
     '''
     Takes validation data from the struct and saves it into a .csv file .
 
@@ -32,7 +32,7 @@ def valTable(struct, suites, filename, vars, save_csv=False, debug=False, debug_
 
     # export as .csv file
     if save_csv:
-        out_file = '{}_val.csv'.format(filename)
+        out_file = '{}{}_val.csv'.format(save_path, filename)
         table.to_csv(out_file)
     return table
 
