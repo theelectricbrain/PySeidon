@@ -11,7 +11,7 @@ option = raw_input("Resolve dependencies (y) or (n): ")
 option = option.lower()
 
 if option=='n':
-    setup(name='PySeidon',
+    setup(name='PySeidon_dvt',
       version='2.1',
       description='Suite of tools for tidal-energy and FVCOM-user communities',
       long_description=readme(),
@@ -22,10 +22,10 @@ if option=='n':
       maintainer='Thomas Roc',
       license='GNU Affero GPL v3.0',
       packages=find_packages(),
-      package_dir={'PySeidon' :'pyseidon'},
+      package_dir={'PySeidon_dvt' :'pyseidon_dvt'},
       zip_safe=False)
 else:
-    setup(name='PySeidon',
+    setup(name='PySeidon_dvt',
       version='2.1',
       description='Suite of tools for tidal-energy and FVCOM-user communities',
       long_description=readme(),
@@ -36,7 +36,7 @@ else:
       maintainer='Thomas Roc',
       license='GNU Affero GPL v3.0',
       packages=find_packages(),
-      package_dir={'PySeidon' :'pyseidon'},
+      package_dir={'PySeidon_dvt' :'pyseidon_dvt'},
       install_requires=['setuptools', 'utide', 'numpy', 'pandas', 'pydap', 'pydap',
                         'networkx', 'seaborn', 'scipy','matplotlib', 'h5py', 'numexpr',
                         'datetime', 'netCDF4', 'gdal'],
