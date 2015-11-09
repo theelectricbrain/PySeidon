@@ -63,8 +63,6 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
     iterlist = gridname[:]  # getting rid of the "_var" kind
     for key in iterlist:
         if key[0] == "_": gridname.remove(key)
-    #   exceptions which need name replacement
-    if 'w' in varname: varname[varname.index('w')] = 'ww'
 
     #load in netcdf file
     if debug: print "Loading variables' matrices in nc file..."
@@ -82,7 +80,12 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
                                 else:
                                     dim.append(key)
                     dim = tuple(dim)
-                    tmp_var = f.createVariable(var, 'float', dim,
+                    #   exceptions which need name replacement
+                    if var in ['w']:
+                        keyAlias = 'ww'
+                    else:
+                        keyAlias = var
+                    tmp_var = f.createVariable(keyAlias, 'float', dim,
                                                zlib=zlib, least_significant_digit=least_significant_digit)
                     tmp_var[:] = getattr(fvcom.Variables, var)[:]
             except (AttributeError, IndexError) as e:
