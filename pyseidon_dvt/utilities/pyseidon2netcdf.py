@@ -63,15 +63,22 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
     iterlist = gridname[:]  # getting rid of the "_var" kind
     for key in iterlist:
         if key[0] == "_": gridname.remove(key)
+    mstrList = varname + gridname
 
     #load in netcdf file
-    if debug: print "Loading variables' matrices in nc file..."
-    for var in varname:
+    if debug: print "Loading in nc file..."
+    for var in mstrList:
         if not var in exceptions: # check if in list of exceptions
+            if var in varname:
+                data = fvcom.Variables
+            else:
+                data = fvcom.Grid
+                zlib = False
+                least_significant_digit = None
             try:
-                if hasattr(fvcom.Variables, var):
+                if hasattr(data, var):
                     dim = []
-                    s = getattr(fvcom.Variables, var).shape
+                    s = getattr(data, var).shape
                     for d in s:
                         flag = 1
                         count = 0
@@ -98,47 +105,7 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
                         keyAlias = var
                     tmp_var = f.createVariable(keyAlias, 'float', dim,
                                                zlib=zlib, least_significant_digit=least_significant_digit)
-                    tmp_var[:] = getattr(fvcom.Variables, var)[:]
+                    tmp_var[:] = getattr(data, var)[:]
             except (AttributeError, IndexError) as e:
                 pass
             if debug: print "..."+var+" loaded..."
-
-    if debug: print "Loading grid' matrices in nc file..."
-    for grd in gridname:
-        if not grd in exceptions: # check if in list of exceptions
-            try:
-                if hasattr(fvcom.Grid, grd):
-                    dim = []
-                    s = getattr(fvcom.Grid, grd).shape
-                    for d in s:
-                        flag = 1
-                        count = 0
-                        while flag:
-                            key = dims.keys()[count]
-                            if dims[key] == d:
-                                if len(dim) == len(s):  # in case of similar dims
-                                    count += 1
-                                    pass
-                                else:
-                                    if key not in dim:  # make sure dimension doesn't get recorded twice
-                                        dim.append(key)
-                                        flag = 0
-                                        count += 1
-                                    else:
-                                        count += 1
-                            else:
-                                count += 1
-                    dim = tuple(dim)
-                    tmp_var = f.createVariable(grd, 'float', dim)
-                    tmp_var[:] = getattr(fvcom.Grid, grd)[:]
-            except (AttributeError, IndexError) as e:
-                pass
-            if debug: print "..."+grd+" loaded..."
-    f.close()
-    if debug: print "...done"    
-
-
-
-
-
-
