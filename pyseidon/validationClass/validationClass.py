@@ -402,7 +402,7 @@ class Validation:
             self._validate_harmonics(filename, save_csv, debug, debug_plot)
         else:
             for i, meas in enumerate(self._observed):
-                self.Variables = _load_validation(self._output, meas, self._simulated, flow=self._flow, debug=self._debug)
+                self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
                 if filename == []:
                     filename = 'meas'+str(i)
                 else:
