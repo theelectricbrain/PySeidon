@@ -1,5 +1,6 @@
-PySeidon
+PySeidon_dvt
 ================
+##Warning: this is the development branch of PySeidon and it is subject to daily changes!##
 
 ### Project description ###
 * This project aims to meet multiple objectives of the [EcoEnergyII](http://tidalenergy.acadiau.ca/EcoEII.html) consortium
@@ -48,7 +49,7 @@ Installation:
 * Step 3: from the shell, as superuser/admin, type `python setup.py install`
   or `python setup.py install --user`
 * Step 4: choose to automatically resolve (y) or not (n) the dependencies
-* Finally, in order to test the installation, type `from pyseidon import *` in Ipython shell.
+* Finally, in order to test the installation, type `from pyseidon_dvt import *` in Ipython shell.
 
 Up-dating:
 * The code will evolve and improve with time. To up-date, simply "git pull" or download the package
