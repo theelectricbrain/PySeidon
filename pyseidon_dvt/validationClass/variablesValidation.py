@@ -30,8 +30,8 @@ class _load_validation:
         self.sim = simulated.Variables
         self._nn=nn
         # Compatibility test
-        if (observed.__module__=='pyseidon.drifterClass.drifterClass' and
-            simulated.__module__=='pyseidon.stationClass.stationClass'):
+        if (observed.__module__.split('.')[-1] == 'drifterClass' and
+            simulated.__module__.split('.')[-1] == 'stationClass'):
             raise PyseidonError("---Station and Drifter are incompatible objects---")
 
         self.struct = np.array([])
@@ -78,7 +78,7 @@ class _load_validation:
         
 
         #Check what kind of simulated data it is
-        if simulated.__module__=='pyseidon.stationClass.stationClass':
+        if simulated.__module__ .split('.')[-1] == 'stationClass':
             self._simtype = 'station'
             #Find closest point to ADCP
             ind = closest_points([self.obs.lon], [self.obs.lat],
@@ -99,10 +99,10 @@ class _load_validation:
                 sig = np.squeeze(simulated.Grid.siglay[:, ind])
 
         #Alternative simulation type
-        elif simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
+        elif simulated.__module__.split('.')[-1] == 'fvcomClass':
             self._simtype = 'fvcom'
             #Different treatment measurements come from drifter
-            if not observed.__module__=='pyseidon.drifterClass.drifterClass':
+            if not observed.__module__.split('.')[-1] == 'drifterClass':
                 if debug: print "...Interpolation at measurement location..."
                 el = simulated.Util2D.interpolation_at_point(self.sim.el,
                                                              self.obs.lon, self.obs.lat, nn=self._nn)
@@ -227,7 +227,7 @@ class _load_validation:
             raise PyseidonError("-This type of simulations is not supported yet-")
 
         #Store in dict structure for compatibility purposes (except for drifters)
-        if not observed.__module__=='pyseidon.drifterClass.drifterClass':
+        if not observed.__module__.split('.')[-1] == 'drifterClass':
             if not self._3D:
                 sim_mod={'ua':ua[C],'va':va[C],'el':el[C]}
             else:
@@ -236,11 +236,11 @@ class _load_validation:
 
 
             #Check what kind of observed data it is
-            if observed.__module__=='pyseidon.adcpClass.adcpClass' or observed.__module__ == 'adcpClass':
+            if observed.__module__.split('.')[-1] == 'adcpClass' or observed.__module__ == 'adcpClass':
                 self._obstype = 'adcp'
                 obstype='ADCP'
             #Alternative measurement type
-            elif observed.__module__=='pyseidon.tidegaugeClass.tidegaugeClass':
+            elif observed.__module__.split('.')[-1] == 'tidegaugeClass':
                 self._obstype = 'tidegauge'
                 obstype='TideGauge'           
             else:
@@ -276,7 +276,7 @@ class _load_validation:
 
         #Store in dict structure for compatibility purposes
         #Common block for 'struct'
-        if not observed.__module__=='pyseidon.drifterClass.drifterClass':
+        if not observed.__module__.split('.')[-1] == 'drifterClass':
             self.struct = {'name': observed.History[0].split(' ')[-1],
                            'type':obstype,
                            'obs_lat':self.obs.lat,

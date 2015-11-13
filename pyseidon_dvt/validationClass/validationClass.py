@@ -433,7 +433,7 @@ class Validation:
     Note: this function shall work only if ADCP object(s) and FVCOM object
           have been used as inputs
         """
-        if not self._simulated.__module__=='pyseidon.fvcomClass.fvcomClass':
+        if not self._simulated.__module__.split('.')[-1] == 'fvcomClass':
             raise PyseidonError("---work only with a combination ADCP object(s) and FVCOM object---")
         try:
             benchmarksMap(self.Benchmarks, self._observed, self._simulated, savepath=savepath, fname=fname, debug=debug)
