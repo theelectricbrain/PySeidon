@@ -23,7 +23,7 @@ def dn2dt(datenum):
     return datetime.fromordinal(int(datenum)) + timedelta(days=datenum%1) - \
            timedelta(days=366)
 
-def compareOBS(data, threeDim=False, depth=5, plot=False, save_csv=False,
+def compareOBS(data, save_path, threeDim=False, depth=5, plot=False, save_csv=False,
               debug=False, debug_plot=False):
     """
     Does a comprehensive validation process between modeled and observed.
@@ -68,13 +68,6 @@ def compareOBS(data, threeDim=False, depth=5, plot=False, save_csv=False,
     if hasEL:    
         mod_el = data['mod_timeseries']['el']
         obs_el = data['obs_timeseries']['el']
-
-    # Save path & create folder
-    name = data['name']
-    save_path = name.split('/')[-1].split('.')[0]+'/'
-    while exists(save_path):
-        save_path = save_path[:-1] + '_bis/'
-    mkdir(save_path)
 
     # Check if 3D simulation and for velocity data
     if hasUV:
