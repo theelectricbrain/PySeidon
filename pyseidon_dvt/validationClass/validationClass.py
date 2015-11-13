@@ -42,8 +42,9 @@ class Validation:
     Option:
       - flow = impose flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
       - nn   = if True then use the nearest location in the grid if the location is outside the grid.
+      - outpath = specify a path to save validation results (default = './')
     """
-    def __init__(self, observed, simulated, flow=[], nn=True, debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow=[], nn=True, outpath='./', debug=False, debug_plot=False):
         self._debug = debug
         self._flow = flow
         if type(observed) in [tuple, list]:
@@ -53,7 +54,13 @@ class Validation:
         self._debug_plot = debug_plot
         if debug: print '-Debug mode on-'   
         self._nn=nn    
-        if debug and nn: print '-Using nearest neighbour-'
+        if debug and nn: print '-Using nearest neighbour-'        
+        if debug: print '-Saving results to {}-'.format(outpath)
+        outpath=outpath.replace(" ","_")
+        if outpath[-1] is not '/':
+            self._outpath=outpath+'/'
+        else:
+            self._outpath=outpath
 
         #Metadata
         if not self._multi:
@@ -65,7 +72,7 @@ class Validation:
         self._observed = observed
         self._simulated = simulated
         if not self._multi:
-            self.Variables = _load_validation(self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
+            self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
 
         return
 
@@ -116,7 +123,7 @@ class Validation:
         if self._flow == 'daf': threeD = False
 
         if self.Variables.struct['type'] == 'ADCP':
-            suites = compareOBS(self.Variables.struct, threeD,
+            suites = compareOBS(self.Variables.struct, self.Variables._save_path, threeD,
                                     plot=plot, depth=depth, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
                                     
@@ -125,7 +132,7 @@ class Validation:
                 vars.append(key)
 
         elif self.Variables.struct['type'] == 'TideGauge':
-            suites = compareOBS(self.Variables.struct,
+            suites = compareOBS(self.Variables.struct, self.Variables._save_path,
                                       plot=plot, save_csv=save_csv,
                                       debug=debug, debug_plot=debug_plot)
             for key in suites:
@@ -133,7 +140,7 @@ class Validation:
                 vars.append(key)
 
         elif self.Variables.struct['type'] == 'Drifter':
-            suites = compareOBS(self.Variables.struct, self.Variables._3D,
+            suites = compareOBS(self.Variables.struct, self.Variables._save_path, self.Variables._3D,
                                     depth=depth, plot=plot, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
 
@@ -145,8 +152,8 @@ class Validation:
             raise PyseidonError("-This kind of measurements is not supported yet-")
 
         # Make csv file
-        self._Benchmarks = valTable(self.Variables.struct, self.Suites, filename,  vars,
-                                    debug=debug, debug_plot=debug_plot)
+        self._Benchmarks = valTable(self.Variables.struct, self.Suites, self.Variables._save_path, filename,  vars,
+                                    save_csv=save_csv, debug=debug, debug_plot=debug_plot)
 
         # Display csv
         print "---Validation benchmarks---"
@@ -249,7 +256,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=self.Variables.obs.elCoef['name'],
                                  columns=columns)
             # export as .csv file
-            out_file = '{}_obs_el_harmo_coef.csv'.format(filename)
+            out_file = '{}{}_obs_el_harmo_coef.csv'.format(self.Variables._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -259,7 +266,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=self.Variables.sim.elCoef['name'],
                                  columns=columns)
             # export as .csv file
-            out_file = '{}_sim_el_harmo_coef.csv'.format(filename)
+            out_file = '{}{}_sim_el_harmo_coef.csv'.format(self.Variables._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -275,7 +282,7 @@ class Validation:
                 ##create table
                 table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)
                 ##export as .csv file
-                out_file = '{}_el_harmo_error.csv'.format(filename)
+                out_file = '{}{}_el_harmo_error.csv'.format(self.Variables._save_path, filename)
                 table.to_csv(out_file)
                 ##print non-matching coefs
                 if not noMatchElCoef.shape[0]==0:
@@ -296,7 +303,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=self.Variables.obs.velCoef['name'],
                                  columns=columns)
             ##export as .csv file
-            out_file = '{}_obs_velo_harmo_coef.csv'.format(filename)
+            out_file = '{}{}_obs_velo_harmo_coef.csv'.format(self.Variables._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -306,7 +313,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=self.Variables.sim.velCoef['name'],
                                  columns=columns)
             ##export as .csv file
-            out_file = '{}_sim_velo_harmo_coef.csv'.format(filename)
+            out_file = '{}{}_sim_velo_harmo_coef.csv'.format(self.Variables._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -322,7 +329,7 @@ class Validation:
                 ##create table
                 table = pd.DataFrame(data=data, index=matchVelCoef, columns=columns)
                 ##export as .csv file
-                out_file = '{}_vel0_harmo_error.csv'.format(filename)
+                out_file = '{}{}_vel0_harmo_error.csv'.format(self.Variables._save_path, filename)
                 table.to_csv(out_file)
                 ##print non-matching coefs
                 if not noMatchVelCoef.shape[0]==0:
@@ -364,7 +371,7 @@ class Validation:
             I=0
             for meas in self._observed:
                 try:
-                    self.Variables = _load_validation(meas, self._simulated, flow=self._flow, debug=self._debug)
+                    self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
                     self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
                     if I == 0:
                         self.Benchmarks = self._Benchmarks
@@ -375,7 +382,7 @@ class Validation:
                     pass
         if save_csv:
             try:
-                out_file = '{}_val.csv'.format(filename)
+                out_file = '{}{}_benchmarks.csv'.format(self.Variables._save_path, filename)
                 self.Benchmarks.to_csv(out_file)
             except AttributeError:
                 raise PyseidonError("-No matching measurement-")
@@ -391,11 +398,11 @@ class Validation:
                     coefficients into *.csv files (i.e. *_harmo_coef.csv)
         """
         if not self._multi:
-            self.Variables = _load_validation(self._observed, self._simulated, flow=self._flow, debug=self._debug)
+            self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, debug=self._debug)
             self._validate_harmonics(filename, save_csv, debug, debug_plot)
         else:
             for i, meas in enumerate(self._observed):
-                self.Variables = _load_validation(meas, self._simulated, flow=self._flow, debug=self._debug)
+                self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
                 if filename == []:
                     filename = 'meas'+str(i)
                 else:
@@ -479,7 +486,7 @@ class Validation:
             f.close()
         elif fileformat=='matlab':
             filename = filename + ".mat"
-            #TR comment: based on MitchellO'Flaherty-Sproul's code
+            #TR comment: based on Mitchell O'Flaherty-Sproul's code
             dtype = float
             data = {}
             Grd = {}
