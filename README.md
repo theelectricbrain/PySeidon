@@ -1,6 +1,7 @@
 PySeidon_dvt
 ================
-##Warning: this is the development branch of PySeidon and it is subject to daily changes!##
+###Warning###
+####This is the development branch of PySeidon and it is subject to daily changes!###
 
 ### Project description ###
 * This project aims to meet multiple objectives of the [EcoEnergyII](http://tidalenergy.acadiau.ca/EcoEII.html) consortium
