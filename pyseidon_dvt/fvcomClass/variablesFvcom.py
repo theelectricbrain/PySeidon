@@ -337,7 +337,7 @@ class _load_var:
             if debug: print 'Full temporal domain'
         else:
             #Time period           
-            region_t = self._t_region(tx, debug=debug)
+            region_t = self._t_region(tx, julianTime, debug=debug)
             self._region_time = region_t
             ts = self._region_time[0]
             te = self._region_time[-1] + 1
@@ -701,13 +701,13 @@ class _load_var:
                         getattr(self, aliaS)[I,:,:] = (data.variables[key][i, :, :])
                     I += 1
 
-    def _t_region(self, tx, debug=False):
+    def _t_region(self, tx, julianTime, debug=False):
         """Return time indices included in time period, aka tx"""
         debug = debug or self._debug      
         if debug: print 'Computing region_t...'
         start = datetime.datetime.strptime(tx[0], '%Y-%m-%d %H:%M:%S')
         end = datetime.datetime.strptime(tx[1], '%Y-%m-%d %H:%M:%S')
-        region_t = time_to_index(start, end, self.julianTime[:], debug=debug)
+        region_t = time_to_index(start, end, julianTime[:], debug=debug)
         if debug: print '...Passed'
         print '-Now working in time box-'
         return region_t
