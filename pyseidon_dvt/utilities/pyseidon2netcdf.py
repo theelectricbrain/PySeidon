@@ -83,6 +83,9 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
                         flag = 1
                         count = 0
                         while flag:
+                            if count == len(dims.keys()):  # when two dimensions are the same by coincidence
+                                dim.append(dim[-1])
+                                pass
                             key = dims.keys()[count]
                             if dims[key] == d:
                                 if len(dim) == len(s):  # in case of similar dims
@@ -97,9 +100,6 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
                                         count += 1
                             else:
                                 count += 1
-                                if count == len(dims.keys()):  # when two dimensions are the same by coincidence
-                                    dim.append(dim[-1])
-                                    pass
                     dim = tuple(dim)
                     #   exceptions which need name replacement
                     if var in ['w']:
