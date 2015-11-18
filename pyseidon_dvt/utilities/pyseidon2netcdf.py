@@ -30,8 +30,10 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
     else:
         zlib = False
         least_significant_digit = None
-
-    filename = filename + ".nc"
+        
+    # Check if netcdffilename has an extension
+    if not filename[-3:] == '.nc':
+        filename = filename + '.nc'
     f = nc.Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     #history attribut
     f.history = fvcom.History[:]
