@@ -171,6 +171,10 @@ class Validation:
           save_csv: will save both observed and modeled harmonic
                     coefficients into *.csv files (i.e. *_harmo_coef.csv)
         """
+        # check if measurement object is a Drifter
+        if self.Variables.struct['type'] == 'Drifter':
+            print "--- Harmonic analysis does not work with Drifter's data ---"
+            return
         # User input
         if filename==[]:
             filename = raw_input('Enter filename for csv file: ')
@@ -246,14 +250,16 @@ class Validation:
 
         # Compare obs. vs. sim. elevation harmo coef
         data = {}
-        columns = ['A', 'g', 'A_ci', 'g_ci']
+        columns = ['name', 'A', 'g', 'A_ci', 'g_ci']
+        measname = self.Variables.struct['name'].split('/')[-1].split('.')[0]
 
         # Store harmonics in csv files
         if save_csv and hasEL:
             # observed elevation coefs
             for key in columns:
                 data[key] = self.Variables.obs.elCoef[key]
-            table = pd.DataFrame(data=data, index=self.Variables.obs.elCoef['name'],
+            measlist = [measname] * len(data['name'])
+            table = pd.DataFrame(data=data, index=measlist,
                                  columns=columns)
             # export as .csv file
             out_file = '{}{}_obs_el_harmo_coef.csv'.format(self.Variables._save_path, filename)
@@ -263,7 +269,7 @@ class Validation:
             #modeled elevation coefs
             for key in columns:
                 data[key] = self.Variables.sim.elCoef[key]
-            table = pd.DataFrame(data=data, index=self.Variables.sim.elCoef['name'],
+            table = pd.DataFrame(data=data, index=measname,
                                  columns=columns)
             # export as .csv file
             out_file = '{}{}_sim_el_harmo_coef.csv'.format(self.Variables._save_path, filename)
@@ -272,15 +278,18 @@ class Validation:
 
         # error in %
         if hasEL:
+            if not hasattr(self, "_HarmonicBenchmarks"):
+                self._HarmonicBenchmarks = HarmonicBenchmarks()
             if not matchElCoef==[]:
-                for key in columns:
+                for key in columns[1:]:
                     b=self.Variables.sim.elCoef[key][matchElCoefInd[:,0]]
                     a=self.Variables.obs.elCoef[key][matchElCoefInd[:,1]]
                     err = abs((a-b)/a) * 100.0
                     data[key] = err
-
+                data['constituent'] = matchElCoef
+                measlist = [measname] * len(matchElCoef)
                 ##create table
-                table = pd.DataFrame(data=data, index=matchElCoef, columns=columns)
+                table = pd.DataFrame(data=data, index=measlist, columns=columns)
                 ##export as .csv file
                 out_file = '{}{}_el_harmo_error.csv'.format(self.Variables._save_path, filename)
                 table.to_csv(out_file)
@@ -290,9 +299,12 @@ class Validation:
             else:
                 print "-No matching harmonic coefficients for elevation-"
 
+            # save dataframe in attribute
+            self._HarmonicBenchmarks.elevation = table
+
         #Compare obs. vs. sim. velocity harmo coef
         data = {}
-        columns = ['Lsmaj', 'g', 'theta_ci', 'Lsmin_ci',
+        columns = ['name', 'Lsmaj', 'g', 'theta_ci', 'Lsmin_ci',
                    'Lsmaj_ci', 'theta', 'g_ci']
 
         #Store harmonics in csv files
@@ -300,7 +312,8 @@ class Validation:
             #observed elevation coefs
             for key in columns:
                 data[key] = self.Variables.obs.velCoef[key]
-            table = pd.DataFrame(data=data, index=self.Variables.obs.velCoef['name'],
+            measlist = [measname] * len(data['name'])
+            table = pd.DataFrame(data=data, index=measlist,
                                  columns=columns)
             ##export as .csv file
             out_file = '{}{}_obs_velo_harmo_coef.csv'.format(self.Variables._save_path, filename)
@@ -310,7 +323,8 @@ class Validation:
             #modeled elevation coefs
             for key in columns:
                 data[key] = self.Variables.sim.velCoef[key]
-            table = pd.DataFrame(data=data, index=self.Variables.sim.velCoef['name'],
+            measlist = [measname] * len(data['name'])
+            table = pd.DataFrame(data=data, index=measlist,
                                  columns=columns)
             ##export as .csv file
             out_file = '{}{}_sim_velo_harmo_coef.csv'.format(self.Variables._save_path, filename)
@@ -319,15 +333,18 @@ class Validation:
 
         ##error in %
         if hasUV:
+            if not hasattr(self, "_HarmonicBenchmarks"):
+                self._HarmonicBenchmarks = HarmonicBenchmarks()
             if not matchVelCoef==[]:
-                for key in columns:
+                for key in columns[1:]:
                     b=self.Variables.sim.velCoef[key][matchVelCoefInd[:,0]]
                     a=self.Variables.obs.velCoef[key][matchVelCoefInd[:,1]]
                     err = abs((a-b)/a) * 100.0
                     data[key] = err
-
+                data['constituent'] = matchVelCoef
+                measlist = [measname] * len(matchVelCoef)
                 ##create table
-                table = pd.DataFrame(data=data, index=matchVelCoef, columns=columns)
+                table = pd.DataFrame(data=data, index=measlist, columns=columns)
                 ##export as .csv file
                 out_file = '{}{}_vel0_harmo_error.csv'.format(self.Variables._save_path, filename)
                 table.to_csv(out_file)
@@ -336,6 +353,9 @@ class Validation:
                     print "Non-matching harmonic coefficients for velocity: ", noMatchVelCoef
             else:
                 print "-No matching harmonic coefficients for velocity-"
+
+            # save dataframe in attribute
+            self._HarmonicBenchmarks.velocity = table
 
     def validate_data(self, filename=[], depth=[], plot=False, save_csv=False, debug=False, debug_plot=False):
         """
@@ -400,14 +420,48 @@ class Validation:
         if not self._multi:
             self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, debug=self._debug)
             self._validate_harmonics(filename, save_csv, debug, debug_plot)
+            self.HarmonicBenchmarks = self._HarmonicBenchmarks
         else:
-            for i, meas in enumerate(self._observed):
-                self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
-                if filename == []:
-                    filename = 'meas'+str(i)
-                else:
-                    filename = filename + '_meas'+str(i)
-                self._validate_harmonics(filename, save_csv, debug, debug_plot)
+            I=0
+            for meas in self._observed:
+                try:
+                    self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
+                    self._validate_harmonics(filename, save_csv, debug, debug_plot)
+                    try:
+                        if I == 0:
+                            self.HarmonicBenchmarks.elevation = self._HarmonicBenchmarks.elevation
+                            I += 1
+                        else:
+                            self.HarmonicBenchmarks.elevation = pd.concat([self.HarmonicBenchmarks.elevation,
+                                                                           self._HarmonicBenchmarks.elevation])
+                    except AttributeError:
+                        pass
+                    try:
+                        if I == 0:
+                            self.HarmonicBenchmarks.velocity = self._HarmonicBenchmarks.velocity
+                            I += 1
+                        else:
+                            self.HarmonicBenchmarks.velocity = pd.concat([self.HarmonicBenchmarks.velocity,
+                                                                          self._HarmonicBenchmarks.velocity])
+                    except AttributeError:
+                        pass
+                except PyseidonError:
+                    pass
+        if save_csv:
+            try:
+                out_file = '{}{}_harmonic_benchmarks.csv'.format(self.Variables._save_path, filename)
+                self.HarmonicBenchmarks.elevation.to_csv("elevation_"+out_file)
+                self.HarmonicBenchmarks.velocity.to_csv("velocity_"+out_file)
+            except AttributeError:
+                raise PyseidonError("-No matching measurement-")
+        #else:
+        #    for i, meas in enumerate(self._observed):
+        #        self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
+        #        if filename == []:
+        #            filename = 'meas'+str(i)
+        #        else:
+        #            filename = filename + '_meas'+str(i)
+        #        self._validate_harmonics(filename, save_csv, debug, debug_plot)
 
     def taylor_diagram(self, savepath='', fname="taylor_diagram", debug=False):
         """
@@ -517,3 +571,12 @@ class Validation:
         else:
             print "---Wrong file format---"
 
+# utility classes
+class HarmonicBenchmarks:
+    """
+    Storage for hamonic benchmarks
+    """
+    def __init__(self):
+        self.elevation = 'No harmonic benchmarks for the elevation yet. Run validate_harmonics'
+        self.velocity = 'No harmonic benchmarks for the velocity yet. Run validate_harmonics'
+        return
