@@ -86,7 +86,11 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
                         count = 0
                         while flag:
                             if count == len(dims.keys()):  # when two dimensions are the same by coincidence
-                                dim.append(dim[-1])  # TODO search in the entire list == d rather than last index
+                                #dim.append(dim[-1])  # TODO search in the entire list == d rather than last index
+                                for k in dim:
+                                    if dims[k] == d:
+                                        newkey = k
+                                dim.append(newkey)
                                 flag = 0
                             else:
                                 key = dims.keys()[count]

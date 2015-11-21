@@ -178,6 +178,9 @@ class Validation:
         # define attributes
         if not hasattr(self, "_HarmonicBenchmarks"):
             self._HarmonicBenchmarks = HarmonicBenchmarks()
+        else:
+            delattr(self, '_HarmonicBenchmarks')
+            self._HarmonicBenchmarks = HarmonicBenchmarks()
         # User input
         if filename==[]:
             filename = raw_input('Enter filename for csv file: ')
@@ -405,8 +408,12 @@ class Validation:
                 except PyseidonError:
                     pass
         if save_csv:
+            if self._multi:
+                savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
+            else:
+                savepath = self.Variables._save_path
             try:
-                out_file = '{}{}_benchmarks.csv'.format(self.Variables._save_path, filename)
+                out_file = '{}{}_benchmarks.csv'.format(savepath, filename)
                 self.Benchmarks.to_csv(out_file)
             except AttributeError:
                 raise PyseidonError("-No matching measurement-")
@@ -427,40 +434,40 @@ class Validation:
             self.HarmonicBenchmarks = self._HarmonicBenchmarks
         else:
             I=0
+            J=0
             for meas in self._observed:
                 try:
                     self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
                     self._validate_harmonics(filename, save_csv, debug, debug_plot)
-                    self.HarmonicBenchmarks = self._HarmonicBenchmarks
-                    try:
-                        if I == 0:
-                            self.HarmonicBenchmarks.elevation = self._HarmonicBenchmarks.elevation
-                            I += 1
-                        else:
-                            self.HarmonicBenchmarks.elevation = pd.concat([self.HarmonicBenchmarks.elevation,
-                                                                           self._HarmonicBenchmarks.elevation])
-                    except AttributeError:
-                        pass
-                    try:
-                        if I == 0:
-                            self.HarmonicBenchmarks.velocity = self._HarmonicBenchmarks.velocity
-                            I += 1
-                        else:
-                            self.HarmonicBenchmarks.velocity = pd.concat([self.HarmonicBenchmarks.velocity,
-                                                                          self._HarmonicBenchmarks.velocity])
-                    except AttributeError:
-                        pass
+                    if I == 0 and J == 0:
+                        self.HarmonicBenchmarks = HarmonicBenchmarks()
+                    if I == 0 and type(self._HarmonicBenchmarks.elevation) != str:
+                        self.HarmonicBenchmarks.elevation = self._HarmonicBenchmarks.elevation
+                        I += 1
+                    elif I != 0 and type(self._HarmonicBenchmarks.elevation) != str:
+                        self.HarmonicBenchmarks.elevation = pd.concat([self.HarmonicBenchmarks.elevation,
+                                                                       self._HarmonicBenchmarks.elevation])
+                    if J == 0 and type(self._HarmonicBenchmarks.velocity) != str:
+                        self.HarmonicBenchmarks.velocity = self._HarmonicBenchmarks.velocity
+                        J += 1
+                    elif J != 0 and type(self._HarmonicBenchmarks.velocity) != str:
+                        self.HarmonicBenchmarks.velocity = pd.concat([self.HarmonicBenchmarks.velocity,
+                                                                      self._HarmonicBenchmarks.velocity])
                 except PyseidonError:
                     pass
         if save_csv:
+            if self._multi:
+                savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
+            else:
+                savepath = self.Variables._save_path
             try:
                 try:
-                    out_file = '{}{}_elevation_harmonic_benchmarks.csv'.format(self.Variables._save_path, filename)
+                    out_file = '{}{}_elevation_harmonic_benchmarks.csv'.format(savepath, filename)
                     self.HarmonicBenchmarks.elevation.to_csv(out_file)
                 except AttributeError:
                     pass
                 try:
-                    out_file = '{}{}_velocity_harmonic_benchmarks.csv'.format(self.Variables._save_path, filename)
+                    out_file = '{}{}_velocity_harmonic_benchmarks.csv'.format(savepath, filename)
                     self.HarmonicBenchmarks.velocity.to_csv(out_file)
                 except AttributeError:
                     pass
