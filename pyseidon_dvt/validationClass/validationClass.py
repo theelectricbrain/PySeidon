@@ -58,9 +58,9 @@ class Validation:
         if debug: print '-Saving results to {}-'.format(outpath)
         outpath=outpath.replace(" ","_")
         if outpath[-1] is not '/':
-            self._outpath=outpath+'/'
+            self._outpath = outpath+'/'
         else:
-            self._outpath=outpath
+            self._outpath = outpath
 
         #Metadata
         if not self._multi:
@@ -104,17 +104,18 @@ class Validation:
         """
         debug = debug or self._debug
         debug_plot = debug_plot or self._debug_plot
-        #User input
-        if filename==[]:
+        # User input
+        if filename == []:
             filename = raw_input('Enter filename for csv file: ')
             filename = str(filename)
         if type(self._flow) == float:
             depth = self._flow
-        if (depth==[] and self.Variables._3D):
+        if (depth == [] and self.Variables._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
             depth = float(depth)
-            if depth < 0.0: depth = -1.0 * depth
-        if depth==[]: depth=5.0
+            if depth < 0.0:
+                depth = -1.0 * depth
+        if depth == []: depth = 5.0
 
         #initialisation
         vars = []
@@ -455,6 +456,11 @@ class Validation:
                                                                       self._HarmonicBenchmarks.velocity])
                 except PyseidonError:
                     pass
+
+        # Drop duplicated lines
+        self.HarmonicBenchmarks.velocity.drop_duplicates(inplace=True)
+        self.HarmonicBenchmarks.elevation.drop_duplicates(inplace=True)
+
         if save_csv:
             if self._multi:
                 savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
@@ -473,14 +479,6 @@ class Validation:
                     pass
             except AttributeError:
                 raise PyseidonError("-No matching measurement-")
-        #else:
-        #    for i, meas in enumerate(self._observed):
-        #        self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
-        #        if filename == []:
-        #            filename = 'meas'+str(i)
-        #        else:
-        #            filename = filename + '_meas'+str(i)
-        #        self._validate_harmonics(filename, save_csv, debug, debug_plot)
 
     def taylor_diagram(self, savepath='', fname="taylor_diagram", debug=False):
         """
