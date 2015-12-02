@@ -579,7 +579,7 @@ class Validation:
             #    with 'netcdf4.Variable' type (see above)
             for key in Var:
                 listkeys=['Variable', 'ArrayProxy', 'BaseType']
-                if any([type(Var[key]).__name__==x for x in listkeys]):
+                if any([type(Var[key]).__name__ == x for x in listkeys]):
                     if debug:
                         print "Force caching for " + key
                     Var[key] = Var[key][:]

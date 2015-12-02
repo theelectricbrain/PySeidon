@@ -3,6 +3,8 @@
 
 import os
 import datetime
+import matplotlib.cm as cm
+import numpy as np
 from decimal import Decimal
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_JUSTIFY
@@ -177,14 +179,15 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     valClass._simulated.Plots.colormap_var(valClass._simulated.Grid.h,
                                            title='Bathymetric Map & Measurement location(s)',
                                            mesh=False)
+    color = cm.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
     for ii, coor in enumerate(valClass._coordinates):
         lon = coor[0]
         lat = coor[1]
         name = coor[2]
         txt = str(ii)
         valClass._simulated.Plots._ax.scatter(lon, lat, label=name,
-                                              lw=2, s=100, color='red')
-        valClass._simulated.Plots._ax.annotate(txt, (lon, lat))
+                                              lw=2, s=50, color=color[ii])
+        valClass._simulated.Plots._ax.annotate(txt, (lon, lat), size=14)
     valClass._simulated.Plots._ax.legend()
     valClass._simulated.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
     image = Image(savename, width=doc.width, height=doc.height / 1.5)
