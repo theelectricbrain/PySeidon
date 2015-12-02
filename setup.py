@@ -39,6 +39,6 @@ else:
       package_dir={'PySeidon_dvt' :'pyseidon_dvt'},
       install_requires=['setuptools', 'utide', 'numpy', 'pandas', 'pydap', 'pydap',
                         'networkx', 'seaborn', 'scipy','matplotlib', 'h5py', 'numexpr',
-                        'datetime', 'netCDF4', 'gdal'],
+                        'datetime', 'netCDF4', 'gdal', 'reportlab'],
       zip_safe=False)
 

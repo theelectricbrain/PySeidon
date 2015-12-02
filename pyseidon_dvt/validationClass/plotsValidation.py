@@ -17,6 +17,9 @@ def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
 
     If a savepath and filename is defined, exports the plot as an image file
     to that location. Filenames should include the image file name and extension.
+
+    Returns:
+      fig, ax: maplotlib objects
     """
     if debug : print "Plotting linear regression"
 
@@ -79,6 +82,8 @@ def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
     else:
         fig.show()
         plt.show()
+
+    return fig, ax
 
 def plotData(tidalStatClass, graph='time', savepath='', fname='', debug=False):
     """
@@ -221,11 +226,13 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
 
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
-            fig.savefig(savepath+fname)
+            fig.savefig(savepath+fname, bbox_inches='tight')
             plt.close(fig)
     else:
         fig.show()
         plt.show()
+
+    return fig, ax
 
 def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
     """
@@ -303,7 +310,7 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
 
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
-            fvcom.Plots._fig.savefig(savepath+fname)
+            fvcom.Plots._fig.savefig(savepath+fname, bbox_inches='tight')
             plt.close(fvcom.Plots._fig)
     else:
         fvcom.Plots._fig.show()

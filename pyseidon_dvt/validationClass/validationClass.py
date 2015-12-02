@@ -19,6 +19,7 @@ from pyseidon_dvt.utilities.interpolation_utils import *
 
 # Local import
 from plotsValidation import taylorDiagram, benchmarksMap
+from valReport import write_report
 # Custom error
 from pyseidon_dvt.utilities.pyseidon_error import PyseidonError
 
@@ -47,6 +48,9 @@ class Validation:
     def __init__(self, observed, simulated, flow=[], nn=True, outpath='./', debug=False, debug_plot=False):
         self._debug = debug
         self._flow = flow
+        self._coordinates = []
+        self._fig = None
+        self._ax = None
         if type(observed) in [tuple, list]:
             self._multi = True
         else:
@@ -73,6 +77,7 @@ class Validation:
         self._simulated = simulated
         if not self._multi:
             self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
+            self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
 
         return
 
@@ -400,6 +405,7 @@ class Validation:
             for meas in self._observed:
                 try:
                     self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
+                    self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
                     self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
                     if I == 0:
                         self.Benchmarks = self._Benchmarks
@@ -489,7 +495,7 @@ class Validation:
           - fname = filename for saving plot, string
         """
         try:
-            taylorDiagram(self.Benchmarks, savepath=savepath, fname=fname, debug=debug)
+            self._fig, self._ax = taylorDiagram(self.Benchmarks, savepath=savepath, fname=fname, debug=debug)
         except AttributeError:
             raise PyseidonError("-validate_data needs to be run first-")
 
@@ -587,6 +593,17 @@ class Validation:
             savemat(filename, data, oned_as='column')
         else:
             print "---Wrong file format---"
+
+    def write_validation_report(self, report_title="validation_report.pdf", debug=False):
+        """
+        This method writes a report (*.pdf) based on the validation methods' results
+
+        Kargs:
+          report_title (str): file name
+          debug (bool): debug flag
+        """
+        debug = debug or self._debug
+        write_report(self, report_title=report_title, debug=debug)
 
 # utility classes
 class HarmonicBenchmarks:
