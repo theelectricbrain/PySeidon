@@ -3,16 +3,17 @@
 
 import os
 import datetime
-import matplotlib.cm as cm
+import matplotlib.cm as cmap
 import numpy as np
 from decimal import Decimal
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.pagesizes import A4, landscape
-from reportlab.platypus import BaseDocTemplate, Frame, Paragraph, NextPageTemplate, PageBreak, PageTemplate
-from reportlab.platypus import Spacer, Table, Image
+from reportlab.platypus import BaseDocTemplate, Frame, Paragraph, PageTemplate
+from reportlab.platypus import Spacer, Table, Image, NextPageTemplate, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, cm
+from reportlab.lib.utils import ImageReader
 
 # Custom error
 from pyseidon_dvt.utilities.pyseidon_error import PyseidonError
@@ -20,9 +21,14 @@ from pyseidon_dvt.utilities.pyseidon_error import PyseidonError
 
 def write_report(valClass, report_title="validation_report.pdf", debug=False):
     """
-    :param valClass:
-    :param debug:
-    :return:
+    Write automatically and dynamically a report based on the validation processed
+
+    Args:
+      valClass (pyseidon.Validation): Validation object
+
+    Kwargs:
+      report_title (str): report file name
+      debug (bool): debug flag
     """
     # tests
     if not (hasattr(valClass, "Benchmarks") or hasattr(valClass, "HarmonicBenchmarks")):
@@ -53,7 +59,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
 
     #normal frame as for SimpleFlowDocument
     frameP = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='normal')  # portray frame
-    frameL = Frame(doc.leftMargin * 0.75, doc.bottomMargin, doc.height, doc.width, id='normal')  # landscape frame
+    frameL = Frame(doc.leftMargin * 0.75,  doc.bottomMargin, doc.height, doc.width, id='normal')  # landscape frame
 
     #Two Columns
     frame1 = Frame(doc.leftMargin, doc.bottomMargin, doc.width/2-6, doc.height, id='col1')
@@ -113,12 +119,15 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                                , styles['Bullet'], bulletText='-'))
         story.append(Paragraph("constituent: tidal constituent's name"
                                , styles['Bullet'], bulletText='-'))
-
-    pgtemp.append(PageTemplate(id='OneCol', frames=frameP, onPage=footpagenumber))
+    story.append(Spacer(1, 12))
+    if benchflag and harmoflag:
+        pgtemp.append(PageTemplate(id='OneCol', frames=frameP, onPage=footpagenumber))
 
     # Statistics
-    story.append(NextPageTemplate('OneCol'))
-    story.append(PageBreak())
+    if benchflag and harmoflag:
+        story.append(NextPageTemplate('OneCol'))
+        story.append(PageBreak())
+
     story.append(Paragraph("Statistics", styles['Heading1']))
     if benchflag:
         story.append(Paragraph("Following is a list of the statistics used to evaluate model skill, separated \
@@ -173,13 +182,14 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     story.append(Paragraph("The following map displays the location(s) as well as the type(s) of the measurement(s)  \
                            used in this validation report.",
                            styles['BodyText']))
+    story.append(Spacer(1, 12))
     # Map: measurement's locations
     imNb += 1
     savename = 'tmp_'+str(imNb)+'_plot.png'
     valClass._simulated.Plots.colormap_var(valClass._simulated.Grid.h,
                                            title='Bathymetric Map & Measurement location(s)',
                                            mesh=False)
-    color = cm.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
+    color = cmap.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
     for ii, coor in enumerate(valClass._coordinates):
         lon = coor[0]
         lat = coor[1]
@@ -187,11 +197,12 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
         txt = str(ii)
         valClass._simulated.Plots._ax.scatter(lon, lat, label=name,
                                               lw=2, s=50, color=color[ii])
-        valClass._simulated.Plots._ax.annotate(txt, (lon, lat), size=14)
+        # valClass._simulated.Plots._ax.annotate(txt, (lon, lat), size=20)
     valClass._simulated.Plots._ax.legend()
     valClass._simulated.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
-    image = Image(savename, width=doc.width, height=doc.height / 1.5)
-    story.append(image)
+    # image = Image(savename, width=doc.width, height=doc.height / 1.5)
+    # story.append(image)
+    story.append(get_image(savename, width=16*cm))
 
     pgtemp.append(PageTemplate(id='OneCol', frames=frameP, onPage=footpagenumber))
 
@@ -254,12 +265,13 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                                 other in terms of their correlation, their root-mean-square difference and the ratio of \
                                 their variances.",
                                styles['BodyText']))
-
+        story.append(Spacer(1, 12))
         imNb += 1
         savename = 'tmp_'+str(imNb)+'_plot.png'
         valClass.taylor_diagram(savepath="./", fname=savename)
-        image = Image(savename, width=doc.width , height=doc.height / 2.25)
-        story.append(image)
+        # image = Image(savename, width=doc.width , height=doc.height / 2.25)
+        # story.append(image)
+        story.append(get_image(savename, width=16*cm))
 
         pgtemp.append(PageTemplate(id='OneCol', frames=frameP, onPage=footpagenumber))
 
@@ -314,3 +326,9 @@ def make_landscape(canvas,doc):
     canvas.setFont('Times-Roman', 9)
     canvas.drawString(A4[1]/2.0, 0.75 * inch, "-%d-" % doc.page)
     canvas.restoreState()
+
+def get_image(path, width=1*cm):
+    img = ImageReader(path)
+    iw, ih = img.getSize()
+    aspect = ih / float(iw)
+    return Image(path, width=width, height=(width * aspect))

@@ -166,7 +166,7 @@ class PlotsFvcom:
         if isoline == 'bathy':
             cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
             plt.clabel(cs, fontsize=11, inline=1)
-            plt.figtext(.12, .9,"Notes: white lines = bathymetric isolines", size='x-small')
+            plt.figtext(.12, .95, "Notes: white lines = bathymetric isolines", size='x-small')
         elif isoline == 'var':
             if var.shape[0] == self._grid.nele:
                 vari = interp_linear_to_nodes(var, self._grid.xc, self._grid.yc, self._grid.x, self._grid.y)
@@ -175,7 +175,7 @@ class PlotsFvcom:
             bounds=np.linspace(cmin,cmax,11)
             cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
             plt.clabel(cs, fontsize=11, inline=1)
-            plt.figtext(.12, .9,"Notes: white lines = isolines", size='x-small')
+            plt.figtext(.12, .95, "Notes: white lines = isolines", size='x-small')
 
         # Show plot
         self._ax.grid()

@@ -598,7 +598,7 @@ class Validation:
         """
         This method writes a report (*.pdf) based on the validation methods' results
 
-        Kargs:
+        Kwargs:
           report_title (str): file name
           debug (bool): debug flag
         """
