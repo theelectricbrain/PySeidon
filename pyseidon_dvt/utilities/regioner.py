@@ -96,6 +96,7 @@ def regioner(gridVar, ax, debug=False):
 
     #TR needs to be inside the loop?
     node_index = np.unique(nv[element_index,:])
+    node_index.astype(int)
     #create new linkage arrays
     nv_tmp = nv[element_index,:]
     L = len(nv_tmp[:,0])
