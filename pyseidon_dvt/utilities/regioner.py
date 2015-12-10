@@ -93,11 +93,10 @@ def regioner(gridVar, ax, debug=False):
         inds = nv_sortedind[i1:i2]
         element_index_tmp[inds % l] = 1
         element_index = np.where(element_index_tmp == 1)[0]
-    element_index.astype(int)
+    element_index = element_index.astype(int)
 
     #TR needs to be inside the loop?
-    node_index = np.unique(nv[element_index,:])
-    node_index.astype(int)
+    node_index = np.unique(nv[element_index,:]).astype(int)
     #create new linkage arrays
     nv_tmp = nv[element_index,:]
     L = len(nv_tmp[:,0])
