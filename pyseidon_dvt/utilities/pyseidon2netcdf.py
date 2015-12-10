@@ -109,8 +109,10 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
                                     count += 1
                     dim = tuple(dim)
                     #   exceptions which need name replacement
-                    if var in ['w']:
+                    if var == 'w':
                         keyAlias = 'ww'
+                    elif var == 'el':
+                        keyAlias = 'zeta'
                     else:
                         keyAlias = var
                     tmp_var = f.createVariable(keyAlias, 'float', dim,

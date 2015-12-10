@@ -299,7 +299,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
 
     pgtemp.append(PageTemplate(id='OneCol', frames=frameP, onPage=footpagenumber))
 
-    #start the construction of the pdf
+    # start the construction of the pdf
     doc.addPageTemplates(pgtemp)
     doc.build(story)
     # remove tmp plots
@@ -311,23 +311,26 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
 def footpagenumber(canvas, doc):
     """
     Foot note and page number
-    :param canvas:
-    :param doc:
-    :return:
     """
     canvas.saveState()
     canvas.setFont('Times-Roman', 9)
-    canvas.drawString(A4[0]/2.0, 0.75 * inch, "-%d-" % doc.page)
+    canvas.drawString(A4[0]/2.0, 0.75 * inch, "%d" % doc.page)
     canvas.restoreState()
 
 def make_landscape(canvas,doc):
+    """
+    Foot note and page number plus landscape page formatting
+    """
     canvas.saveState()
     canvas.setPageSize(landscape(A4))
     canvas.setFont('Times-Roman', 9)
-    canvas.drawString(A4[1]/2.0, 0.75 * inch, "-%d-" % doc.page)
+    canvas.drawString(A4[1]/2.0, 0.75 * inch, "%d" % doc.page)
     canvas.restoreState()
 
 def get_image(path, width=1*cm):
+    """
+    Read image from file and fit its size to the given width
+    """
     img = ImageReader(path)
     iw, ih = img.getSize()
     aspect = ih / float(iw)

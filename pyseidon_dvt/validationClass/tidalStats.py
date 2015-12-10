@@ -236,13 +236,16 @@ class TidalStats:
         """
         if debug or self._debug: print "...getPBIAS..."
 
-        if self.kind in ['elevation', 'direction', 'u velocity', 'v velocity', 'velocity']:
-            norm_error = self.error / self.observed
-            pbias = 100. * np.sum(norm_error) / norm_error.size
-        else:
-            norm_error = self.model - self.observed
-            pbias = 100. * (np.sum(norm_error) / np.sum(self.observed))
-            # TR: this formula may lead to overly large values when used with sinusoidal signals
+        # if self.kind in ['elevation', 'direction', 'u velocity', 'v velocity', 'velocity']:
+        #     norm_error = self.error / self.observed
+        #     pbias = 100. * np.sum(norm_error) / norm_error.size
+        # else:
+        #     norm_error = self.model - self.observed
+        #     pbias = 100. * (np.sum(norm_error) / np.sum(self.observed))
+        #     # TR: this formula may lead to overly large values when used with sinusoidal signals
+
+        pbias = 100. * (np.sum(self.error) / np.sum(self.observed))
+
         return pbias
 
 
