@@ -56,7 +56,7 @@ class _load_adcp:
                         cls.Data['data'][key] = cls.Data['data'][key].__dict__
                         for kk in cls.Data['data'][key]:
                             if kk is not '_fieldnames':
-                                cls.Data['data'][key+"_"+kk] = cls.Data['data'][key][kk].T
+                                cls.Data['data'][key][kk] = cls.Data['data'][key][kk].T
                     else:
                         cls.Data['data'][key] = cls.Data['data'][key].T
             
