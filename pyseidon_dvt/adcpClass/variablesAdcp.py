@@ -43,14 +43,21 @@ class _load_adcp:
        
         # Convert some mat_struct objects into a dictionaries.
         # This will enable compatible syntax to h5py files.
-        if not type(cls.Data)==h5py._hl.files.File:
+        if not type(cls.Data) == h5py._hl.files.File:
             try:
-                cls.Data['data']=cls.Data['data'].__dict__
+                cls.Data['data'] = cls.Data['data'].__dict__
             except KeyError:
                 raise PyseidonError("Missing 'data' field from ADCP file.")
             for key in cls.Data['data']:
                 if key is not '_fieldnames':
-                    cls.Data['data'][key]=cls.Data['data'][key].T
+                    # in ther is a mat_struct in the mat_struct, like 'surf'
+                    if type(cls.Data['data'][key])=='scipy.io.matlab.mio5_params.mat_struct':
+                        cls.Data['data'][key] = cls.Data['data'][key].__dict__
+                        for kk in cls.Data['data'][key]:
+                            if key is not '_fieldnames':
+                                cls.Data['data'][kk] = cls.Data['data'][key][kk].T
+                    else:
+                        cls.Data['data'][key] = cls.Data['data'][key].T
             
             # Convert other fields to dictionaries if they exist.
             if 'pres' in cls.Data:
