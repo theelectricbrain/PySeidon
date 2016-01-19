@@ -54,7 +54,7 @@ class _load_adcp:
                     if cls.Data['data']['surf'].__module__ == 'scipy.io.matlab.mio5_params':
                         cls.Data['data'][key] = cls.Data['data'][key].__dict__
                         for kk in cls.Data['data'][key]:
-                            if key is not '_fieldnames':
+                            if kk is not '_fieldnames':
                                 cls.Data['data'][kk] = cls.Data['data'][key][kk].T
                     else:
                         cls.Data['data'][key] = cls.Data['data'][key].T
