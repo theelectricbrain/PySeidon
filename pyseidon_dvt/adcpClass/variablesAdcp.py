@@ -51,7 +51,7 @@ class _load_adcp:
             for key in cls.Data['data']:
                 if key is not '_fieldnames':
                     # in ther is a mat_struct in the mat_struct, like 'surf'
-                    if type(cls.Data['data'][key])=='scipy.io.matlab.mio5_params.mat_struct':
+                    if cls.Data['data']['surf'].__module__ == 'scipy.io.matlab.mio5_params':
                         cls.Data['data'][key] = cls.Data['data'][key].__dict__
                         for kk in cls.Data['data'][key]:
                             if key is not '_fieldnames':
