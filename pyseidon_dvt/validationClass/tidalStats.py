@@ -189,6 +189,21 @@ class TidalStats:
             rmse = np.sqrt(np.mean(self.error**2))
         return rmse
 
+
+    def getNRMSE(self, debug=False):
+        """
+        Returns the normalized root mean squared error between the model and
+        observed data in %.
+        """
+        if debug or self._debug: print "...getNRMSE..."
+        if self.kind == 'velocity':
+            # Special definition of rmse - R.Karsten
+            rmse0 = np.sqrt(np.nanmean((self.observed_u)**2.0 + (self.observed_v)**2.0))
+        else:
+            rmse0 = np.sqrt(np.mean(self.observed**2.0))
+        # return 100. * self.getRMSE() / (max(self.observed) - min(self.observed))
+        return 100. * self.getRMSE() / rmse0
+
     def getSD(self, debug=False):
         '''
         Returns the standard deviation of the error.
@@ -210,15 +225,6 @@ class TidalStats:
         """
         if debug or self._debug: print "...getSI..."
         return self.getRMSE() / np.mean(self.observed)
-
-    def getNRMSE(self, debug=False):
-        """
-        Returns the normalized root mean squared error between the model and
-        observed data in %.
-        """
-        if debug or self._debug: print "...getNRMSE..."
-        # return 100. * self.getRMSE() / (max(self.observed) - min(self.observed))
-        return 100. * self.getRMSE() / (np.nansum(self.observed)/float(self.observed.shape[0]))
 
     def getPBIAS(self, debug=False):
         """
@@ -429,8 +435,8 @@ class TidalStats:
         """
         Returns the normalized mean square error in % (float)
         """
-        mse = self.getMSE(debug=debug)
-        nmse = 100. * mse / (np.nansum(self.observed)/float(self.observed.shape[0]))
+        mse0 = np.nanmean(self.observed**2.0)
+        nmse = 100. * self.getMSE() / mse0
         if debug or self._debug: print "...getNMSE..."
         return nmse
 
