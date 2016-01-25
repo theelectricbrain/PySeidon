@@ -15,7 +15,7 @@ def valTable(struct, suites, save_path, filename, vars, save_csv=False, debug=Fa
     # initialize  lists
     kind, name, ovORun, RMSE, CF, SD, POF, NOF, MDPO, MDNO, skill, r2, phase = \
     [], [], [], [], [], [], [], [], [], [], [], [], []
-    bias, pbias, NRMSE, NSE, MSE, NMSE, corr, SI, gear = [], [], [], [], [], [], []
+    bias, pbias, NRMSE, NSE, MSE, NMSE, corr, SI, gear = [], [], [], [], [], [], [], [], []
 
     # append to the lists the stats from each site for each variable
     for var in vars:
