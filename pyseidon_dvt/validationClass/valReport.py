@@ -137,6 +137,12 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
         story.append(Paragraph("SSS", styles['Heading2']))
         story.append(Paragraph("RMSE: Root Mean Squared Error"
                                , styles['Bullet'], bulletText='-'))
+        story.append(Paragraph("NRMSE: Normalized Root Mean Squared Error (in %)"
+                               , styles['Bullet'], bulletText='-'))
+        story.append(Paragraph("MSE: Mean Square Error"
+                               , styles['Bullet'], bulletText='-'))
+        story.append(Paragraph("NMSE: Normalized Mean Square Error (in %)"
+                               , styles['Bullet'], bulletText='-'))
         story.append(Paragraph("SD: Standard Deviation of Error"
                                , styles['Bullet'], bulletText='-'))
         story.append(Paragraph("CF(X): Central Frequency; percentage of error values that fall within the \

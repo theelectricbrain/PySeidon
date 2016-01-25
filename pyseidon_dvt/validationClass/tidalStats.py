@@ -211,14 +211,14 @@ class TidalStats:
         if debug or self._debug: print "...getSI..."
         return self.getRMSE() / np.mean(self.observed)
 
-
     def getNRMSE(self, debug=False):
         """
         Returns the normalized root mean squared error between the model and
         observed data in %.
         """
         if debug or self._debug: print "...getNRMSE..."
-        return 100. * self.getRMSE() / (max(self.observed) - min(self.observed))
+        # return 100. * self.getRMSE() / (max(self.observed) - min(self.observed))
+        return 100. * self.getRMSE() / (np.nansum(self.observed)/float(self.observed.shape[0]))
 
     def getPBIAS(self, debug=False):
         """
@@ -417,13 +417,31 @@ class TidalStats:
         if debug or self._debug: print "...getMDNO..."
         return max(max_duration, current_duration)
 
+    def getMSE(self, debug=False):
+        """
+        Returns the mean square error (float)
+        """
+        mse = np.mean(self.error**2.0)
+        if debug or self._debug: print "...getMSE..."
+        return mse
+
+    def getNMSE(self, debug=False):
+        """
+        Returns the normalized mean square error in % (float)
+        """
+        mse = self.getMSE(debug=debug)
+        nmse = 100. * mse / (np.nansum(self.observed)/float(self.observed.shape[0]))
+        if debug or self._debug: print "...getNMSE..."
+        return nmse
+
+
     def getWillmott(self, debug=False):
         '''
         Returns the Willmott skill statistic.
         '''
 
         # start by calculating MSE
-        MSE = np.mean(self.error**2)
+        MSE = self.getMSE()
 
         # now calculate the rest of it
         obs_mean = np.mean(self.observed)
@@ -543,6 +561,8 @@ class TidalStats:
         stats['bias'] = self.getBias()
         stats['SI'] = self.getSI()
         stats['pbias'] = self.getPBIAS()
+        stats['MSE'] = self.getMSE()
+        stats['NMSE'] = self.getNMSE()
 
         if debug or self._debug: print "...getStats..."
 
