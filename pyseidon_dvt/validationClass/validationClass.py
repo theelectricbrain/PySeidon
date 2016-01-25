@@ -81,7 +81,7 @@ class Validation:
 
         return
 
-    def _validate_data(self, filename=[], depth=[], plot=False,  save_csv=False, debug=False, debug_plot=False):
+    def _validate_data(self, filename=[], depth=[], slack_velo=0.1,  plot=False,  save_csv=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -89,6 +89,7 @@ class Validation:
           - filename = file name of the .csv file to be saved, string.
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
+          - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
           - plot = plot series of validation graphs, boolean.
           - flow = flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
 
@@ -130,7 +131,7 @@ class Validation:
 
         if self.Variables.struct['type'] == 'ADCP':
             suites = compareOBS(self.Variables.struct, self.Variables._save_path, threeD,
-                                    plot=plot, depth=depth, save_csv=save_csv,
+                                    plot=plot, depth=depth, slack_velo=slack_velo, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
                                     
             for key in suites:
@@ -139,7 +140,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'TideGauge':
             suites = compareOBS(self.Variables.struct, self.Variables._save_path,
-                                      plot=plot, save_csv=save_csv,
+                                      plot=plot, slack_velo=slack_velo, save_csv=save_csv,
                                       debug=debug, debug_plot=debug_plot)
             for key in suites:
                 self.Suites[key] = suites[key]
@@ -147,7 +148,7 @@ class Validation:
 
         elif self.Variables.struct['type'] == 'Drifter':
             suites = compareOBS(self.Variables.struct, self.Variables._save_path, self.Variables._3D,
-                                    depth=depth, plot=plot, save_csv=save_csv,
+                                    depth=depth, plot=plot, slack_velo=slack_velo, save_csv=save_csv,
                                     debug=debug, debug_plot=debug_plot)
 
             for key in suites:
@@ -370,7 +371,7 @@ class Validation:
             # save dataframe in attribute
             self._HarmonicBenchmarks.velocity = table
 
-    def validate_data(self, filename=[], depth=[], plot=False, save_csv=False, debug=False, debug_plot=False):
+    def validate_data(self, filename=[], depth=[], slack_velo=0.1, plot=False, save_csv=False, debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -378,6 +379,7 @@ class Validation:
           - filename = file name of the .csv file to be saved, string.
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
+          - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
           - plot = plot series of validation graphs, boolean.
           - save_csv = will save benchmark values into *.csv file
                        as well as associated plots in specific folderssta
@@ -406,7 +408,7 @@ class Validation:
                 try:
                     self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
                     self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
-                    self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
+                    self._validate_data(filename, depth, slack_velo, plot, save_csv, debug, debug_plot)
                     if I == 0:
                         self.Benchmarks = self._Benchmarks
                         I += 1

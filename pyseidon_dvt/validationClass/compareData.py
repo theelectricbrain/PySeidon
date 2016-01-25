@@ -23,7 +23,7 @@ def dn2dt(datenum):
     return datetime.fromordinal(int(datenum)) + timedelta(days=datenum%1) - \
            timedelta(days=366)
 
-def compareOBS(data, save_path, threeDim=False, depth=5, plot=False, save_csv=False,
+def compareOBS(data, save_path, threeDim=False, depth=5, slack_velo=0.8, plot=False, save_csv=False,
               debug=False, debug_plot=False):
     """
     Does a comprehensive validation process between modeled and observed.
@@ -43,6 +43,7 @@ def compareOBS(data, save_path, threeDim=False, depth=5, plot=False, save_csv=Fa
        - csp_suite = dictionary of useful statistics for cubic flow speed
     Options:
        - depth = interpolation depth from surface, float
+       - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
        - plot = boolean flag for plotting results
        - save_csv = boolean flag for saving statistical benchmarks in csv file
     """
@@ -182,7 +183,7 @@ def compareOBS(data, save_path, threeDim=False, depth=5, plot=False, save_csv=Fa
 
     if debug: print "...remove directions where velocities are small..."
     if hasUV:
-        MIN_VEL = 0.1
+        MIN_VEL = slack_velo
         indexMin = np.where(obs_sp_int < MIN_VEL)
         obs_dr_int[indexMin] = np.nan
         obs_u_int[indexMin] = np.nan
