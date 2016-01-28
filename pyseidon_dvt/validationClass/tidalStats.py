@@ -155,8 +155,8 @@ class TidalStats:
         #     self.ERROR_BOUND = 0.5
 
         # instead of using the NOAA errors, use 10% of the data range
-        obs_range = 0.1 * (np.max(self.observed) - np.min(self.observed))
-        mod_range = 0.1 * (np.max(self.model) - np.min(self.model))
+        obs_range = 0.1 * (np.nanmax(self.observed) - np.nanmin(self.observed))
+        mod_range = 0.1 * (np.nanmax(self.model) - np.nanmin(self.model))
         self.ERROR_BOUND = (obs_range + mod_range) / 2.
 
         if debug: print "...TidalStats initialisation done."
@@ -184,9 +184,9 @@ class TidalStats:
         if debug or self._debug: print "...getRMSE..."
         if self.kind == 'velocity':
             # Special definition of rmse - R.Karsten
-            rmse = np.sqrt(np.mean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
+            rmse = np.sqrt(np.nanmean((self.model_u - self.observed_u)**2.0 + (self.model_v - self.observed_v)**2.0))
         else:
-            rmse = np.sqrt(np.mean(self.error**2))
+            rmse = np.sqrt(np.nanmean(self.error**2))
         return rmse
 
 
@@ -209,14 +209,14 @@ class TidalStats:
         Returns the standard deviation of the error.
         '''
         if debug or self._debug: print "...getSD..."
-        return np.sqrt(np.mean(abs(self.error - np.mean(self.error)**2)))
+        return np.sqrt(np.nanmean(abs(self.error - np.nanmean(self.error)**2)))
 
     def getBias(self, debug=False):
         """
         Returns the bias of the model, a measure of over/under-estimation.
         """
         if debug or self._debug: print "...getBias..."
-        return np.mean(self.error)
+        return np.nanmean(self.error)
 
     def getSI(self, debug=False):
         """
@@ -224,7 +224,7 @@ class TidalStats:
         scattering.
         """
         if debug or self._debug: print "...getSI..."
-        return self.getRMSE() / np.mean(self.observed)
+        return self.getRMSE() / np.nanmean(self.observed)
 
     def getPBIAS(self, debug=False):
         """
@@ -250,7 +250,7 @@ class TidalStats:
         #     pbias = 100. * (np.sum(norm_error) / np.sum(self.observed))
         #     # TR: this formula may lead to overly large values when used with sinusoidal signals
 
-        pbias = 100. * (np.sum(self.error) / np.sum(self.observed))
+        pbias = 100. * (np.nansum(self.error) / np.nansum(self.observed))
 
         return pbias
 
@@ -261,8 +261,8 @@ class TidalStats:
         the observed data. Identifies if the model is better for
         approximation than the mean of the observed data.
         """
-        SSE_mod = np.sum((self.observed - self.model)**2)
-        SSE_mean = np.sum((self.observed - np.mean(self.observed))**2)
+        SSE_mod = np.nansum((self.observed - self.model)**2)
+        SSE_mean = np.nansum((self.observed - np.nanmean(self.observed))**2)
         return 1 - SSE_mod / SSE_mean
 
     def getCORR(self, debug=False):
@@ -427,7 +427,7 @@ class TidalStats:
         """
         Returns the mean square error (float)
         """
-        mse = np.mean(self.error**2.0)
+        mse = np.nanmean(self.error**2.0)
         if debug or self._debug: print "...getMSE..."
         return mse
 
@@ -450,8 +450,8 @@ class TidalStats:
         MSE = self.getMSE()
 
         # now calculate the rest of it
-        obs_mean = np.mean(self.observed)
-        skill = 1 - MSE / np.mean((abs(self.model - obs_mean) +
+        obs_mean = np.nanmean(self.observed)
+        skill = 1 - MSE / np.nanmean((abs(self.model - obs_mean) +
                                    abs(self.observed - obs_mean))**2)
         if debug or self._debug: print "...getWillmott..."
         return skill
