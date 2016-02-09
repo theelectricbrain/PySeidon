@@ -287,7 +287,7 @@ class PlotsFvcom:
                                                 title=title, xLabel=xLabel,
                                                 yLabel=yLabel, **kwargs)
 
-    def Histogram(self, y, title=' ', xLabel=' ', yLabel=' ', dump=False, **kwargs):
+    def Histogram(self, y, title=' ', xLabel=' ', yLabel=' ', bins=50, dump=False, **kwargs):
         """
         Histogram plot
 
@@ -299,6 +299,7 @@ class PlotsFvcom:
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
+          - bins = number of bins, integer
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
@@ -308,7 +309,7 @@ class PlotsFvcom:
         #fig = plt.figure(figsize=(18,10))
         self._def_fig()
         self._ax = self._fig.add_subplot(111)        
-        density, bins = np.histogram(y, bins=50, normed=True, density=True)
+        density, bins = np.histogram(y, bins=bins, normed=True, density=True)
         unity_density = density / density.sum()
         widths = bins[:-1] - bins[1:]
         # To plot correct percentages in the y axis 

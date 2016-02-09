@@ -362,7 +362,7 @@ class FunctionsFvcom:
 
         return floodIndex[0], ebbIndex, pr_axis, pr_ax_var
 
-    def speed_histogram(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[],
+    def speed_histogram(self, pt_lon, pt_lat, t_start=[], t_end=[], time_ind=[], bins=50,
                         debug=False, dump=False, **kwargs):
         """
         This function plots the histogram of occurrences for the signed
@@ -375,7 +375,8 @@ class FunctionsFvcom:
         Options:
           - t_start = start time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
           - t_end = end time, as a string ('yyyy-mm-ddThh:mm:ss'), or time index as an integer
-          - time_ind = time indices to work in, 1D array of integers 
+          - time_ind = time indices to work in, 1D array of integers
+          - bins = number of bins, integer
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
@@ -408,6 +409,7 @@ class FunctionsFvcom:
                              title='Flow speed histogram',
                              xLabel='Signed flow speed (m/s)',
                              yLabel='Occurrences (%)',
+                             bins=int(bins),
                              dump=dump, **kwargs)
    
         if debug:

@@ -96,7 +96,7 @@ class FunctionsFvcomThreeD:
         # Add metadata entry
         setattr(self._grid, 'depth', dep)
         self._History.append('depth computed')
-        print '-Depth added to FVCOM.Variables.-'
+        print '-Depth added to FVCOM.Grid.-'
 
     def depth_at_point(self, pt_lon, pt_lat, index=[], debug=False):
         """
