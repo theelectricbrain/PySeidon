@@ -526,6 +526,42 @@ class FunctionsFvcom:
 
         return varInterp
 
+    def degree2metric_coordinates(self, pt_lon, pt_lat):
+        """
+        Converts  degree coordinates to relative coordinates in meters
+
+        Inputs:
+          - pt_lon = longitude in deg., float
+          - pt_lat = latitude in deg., float
+        Outputs:
+          - pt_x = longitude in m, float
+          - pt_y = latitude in m, float
+        """
+        index = self.index_finder(pt_lon, pt_lat, debug=False)
+        if type(index)==list:
+            index = index[0]
+
+        lon = self._grid.lon
+        lat = self._grid.lat
+        trinodes = self._grid.trinodes
+
+        lonweight = (lon[int(trinodes[index,0])]\
+                   + lon[int(trinodes[index,1])]\
+                   + lon[int(trinodes[index,2])]) / 3.0
+        latweight = (lat[int(trinodes[index,0])]\
+                   + lat[int(trinodes[index,1])]\
+                   + lat[int(trinodes[index,2])]) / 3.0
+        TPI=111194.92664455874  # earth radius * pi/180.0
+        pt_y = TPI * (pt_lat - latweight)
+        dx_sph = pt_lon - lonweight
+        if (dx_sph > 180.0):
+            dx_sph=dx_sph-360.0
+        elif (dx_sph < -180.0):
+            dx_sph =dx_sph+360.0
+        pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
+
+        return pt_x, pt_y
+
     def exceedance(self, var, pt_lon=[], pt_lat=[],
                    graph=True, dump=False, debug=False, **kwargs):
         """
