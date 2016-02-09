@@ -560,7 +560,7 @@ class FunctionsFvcom:
             dx_sph =dx_sph+360.0
         pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
 
-        return pt_x, pt_y
+        return pt_x + self._grid.xc[index], pt_y + self._grid.yc[index]
 
     def exceedance(self, var, pt_lon=[], pt_lat=[],
                    graph=True, dump=False, debug=False, **kwargs):
