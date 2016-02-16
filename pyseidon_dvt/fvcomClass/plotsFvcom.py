@@ -213,7 +213,7 @@ class PlotsFvcom:
         elif shapefile and not havegdal:
             print 'Shape file cannot be saved. Missing gdal.'
 
-    def rose_diagram(self, direction, norm, png=False):
+    def rose_diagram(self, direction, norm, png=False, title="rose_diagram"):
 
         """
         Plots rose diagram
