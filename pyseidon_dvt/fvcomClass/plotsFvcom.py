@@ -42,7 +42,7 @@ class PlotsFvcom:
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
                      degree=True, mesh=False, isoline = 'bathy',
-                     dump=False, shapefile=False, debug=False, **kwargs):
+                     dump=False, png=False, shapefile=False, debug=False, **kwargs):
         """
         2D xy colormap plot of any given variable and mesh.
 
@@ -58,6 +58,7 @@ class PlotsFvcom:
           - degree = boolean, coordinates in degrees (True) or meters (False)
           - isloline = 'bathy': bathymetric isolines, 'var': variable isolines, 'none': no isolines
           - dump = boolean, dump profile data in csv file
+          - png = boolean, save map as png
           - shapefile = boolean, save map as shapefile
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
@@ -182,13 +183,17 @@ class PlotsFvcom:
         self._fig.show()
 
         # Saving
+        savename=title.lower().replace(" ","_")
+        if png:
+            self._fig.savefig(savename+".png", bbox_inches='tight')
+
         if dump:
             if degree:
                 self._dump_map_data_as_csv(var, self._grid.lonc, self._grid.latc,
-                                           title=title, varLabel='map',
+                                           title=savename, varLabel='map',
                                            xLabel=' ', yLabel=' ', **kwargs)
             else:
-                self._dump_map_data_as_csv(var, self._grid.xc, self._grid.yc, title=title,
+                self._dump_map_data_as_csv(var, self._grid.xc, self._grid.yc, title=savename,
                                            varLabel='map', xLabel=' ', yLabel=' ', **kwargs)
         if debug or self._debug:
             print '...Passed'
@@ -199,17 +204,16 @@ class PlotsFvcom:
                 var = interpN(var, self._grid.trinodes, self._grid.aw0, debug=debug)
             if degree:
                 self._save_map_as_shapefile(var, self._grid.lon, self._grid.lat,
-                                            title=title, varLabel='map',
+                                            title=savename, varLabel='map',
                                             xLabel=' ', yLabel=' ', debug=debug)
             else:
                 self._save_map_as_shapefile(var, self._grid.x, self._grid.y,
-                                            title=title, varLabel='map',
+                                            title=savename, varLabel='map',
                                             xLabel=' ', yLabel=' ', debug=debug)
         elif shapefile and not havegdal:
             print 'Shape file cannot be saved. Missing gdal.'
 
-
-    def rose_diagram(self, direction, norm):
+    def rose_diagram(self, direction, norm, png=False):
 
         """
         Plots rose diagram
@@ -217,6 +221,9 @@ class PlotsFvcom:
         Inputs:
           - direction = 1D array
           - norm = 1D array
+
+        Options:
+          - png = boolean, saves rose diagram as png
         """
         #Convertion
         #TR: not quite sure here, seems to change from location to location
@@ -238,8 +245,14 @@ class PlotsFvcom:
         plt.xlabel('Rose diagram in % of occurrences - Colormap of norms')
         self._fig.show()
 
+        # Saving
+        savename=title.lower().replace(" ","_")
+        if png:
+            self._fig.savefig(savename+".png", bbox_inches='tight')
+
     def plot_xy(self, x, y, xerror=[], yerror=[],
-                title=' ', xLabel=' ', yLabel=' ', dump=False, **kwargs):
+                title='xy_plot', xLabel=' ', yLabel=' ',
+                png=False, dump=False, **kwargs):
         """
         Simple X vs Y plot
 
@@ -253,6 +266,7 @@ class PlotsFvcom:
           - title = plot title, string
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
+          - png = boolean, saves map as png
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
@@ -283,11 +297,17 @@ class PlotsFvcom:
             #plt.legend([blue_patch],loc=1, fontsize=12)
 
         self._fig.show()
+        # Saving
+        savename=title.lower().replace(" ","_")
+        if png:
+            self._fig.savefig(savename+".png", bbox_inches='tight')
+
         if dump: self._dump_profile_data_as_csv(x, y,xerror=xerror, yerror=yerror,
-                                                title=title, xLabel=xLabel,
+                                                title=savename, xLabel=xLabel,
                                                 yLabel=yLabel, **kwargs)
 
-    def Histogram(self, y, title=' ', xLabel=' ', yLabel=' ', bins=50, dump=False, **kwargs):
+    def Histogram(self, y, title='Histogram', xLabel=' ', yLabel=' ', bins=50,
+                  png=False, dump=False, **kwargs):
         """
         Histogram plot
 
@@ -300,6 +320,7 @@ class PlotsFvcom:
           - xLabel = title of the x-axis, string
           - yLabel = title of the y-axis, string
           - bins = number of bins, integer
+          - png = boolean, saves histogram as png
           - dump = boolean, dump profile data in csv file
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
@@ -326,8 +347,12 @@ class PlotsFvcom:
 
         self._fig.show() 
 
+        # Saving
+        savename=title.lower().replace(" ","_")
+        if png:
+            self._fig.savefig(savename+".png", bbox_inches='tight')
         if dump: self._dump_profile_data_as_csv(bins[1:], unity_density,
-                                                title=title, xLabel=xLabel,
+                                                title=savename, xLabel=xLabel,
                                                 yLabel=yLabel, **kwargs)
 
     def add_points(self, x, y, label=' ', color='black'):
