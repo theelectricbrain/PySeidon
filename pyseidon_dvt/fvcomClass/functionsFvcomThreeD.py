@@ -645,7 +645,11 @@ class FunctionsFvcomThreeD:
         U = self._util.interpolation_at_point(u, pt_lon, pt_lat,
                                               index=index, debug=debug)  
         V = self._util.interpolation_at_point(v, pt_lon, pt_lat,
-                                              index=index, debug=debug)       
+                                              index=index, debug=debug)
+
+        #Compute velocity norm
+        norm = ne.evaluate('sqrt(U**2 + V**2)').squeeze()
+
         #Compute directions
         if debug:
             print 'Computing arctan2...'
@@ -656,7 +660,7 @@ class FunctionsFvcomThreeD:
         if not argtime==[]:
             dirFlow = dirFlow[argtime[:],:]
 
-        return dirFlow
+        return dirFlow, norm
 
     def flow_dir(self, debug=False):
         """"
