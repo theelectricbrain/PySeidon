@@ -332,18 +332,17 @@ class FunctionsFvcom:
             U = U[argtime[:]]
             V = V[argtime[:]] 
 
-        #WB version of BP's principal axis
-        #Assuming principal axis = flood heading
-        #determine principal axes - potentially a problem if axes are very kinked
-        #   since this would misclassify part of ebb and flood
+        # WB version of BP's principal axis
+        # Assuming principal axis = flood heading
+        # determine principal axes - potentially a problem if axes are very kinked
+        # since this would misclassify part of ebb and flood
         if debug: print 'Computing principal axis at point...'
         pr_axis, pr_ax_var = principal_axis(U, V)
 
         if debug: print 'Computing ebb/flood intervals...'
         #Defines interval
-        flood_heading = np.array([-90, 90]) + pr_axis
         dir_all = np.rad2deg(np.arctan2(V,U))
-        ind = np.where(dir_all<0)
+        ind = np.where(dir_all < 0)
         dir_all[ind] = dir_all[ind] + 360     
 
         # sign speed - eliminating wrap-around
@@ -352,9 +351,9 @@ class FunctionsFvcom:
         dir_PA[dir_PA > 270] -= 360
 
         #general direction of flood passed as input argument
-        floodIndex = np.where((dir_PA >= -90) & (dir_PA<90))
+        floodIndex = np.where((dir_PA >= -90) & (dir_PA < 90))
         ebbIndex = np.arange(dir_PA.shape[0])
-        ebbIndex = np.delete(ebbIndex,floodIndex[:]) 
+        ebbIndex = np.delete(ebbIndex, floodIndex[:])
 
         if debug:
             end = time.time()

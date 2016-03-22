@@ -223,6 +223,7 @@ class PlotsFvcom:
           - norm = 1D array
 
         Options:
+          - title = plot title, string
           - png = boolean, saves rose diagram as png
         """
         #Convertion

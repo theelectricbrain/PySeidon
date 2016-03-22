@@ -7,6 +7,9 @@ from numpy.ma import MaskError
 import h5py
 from pyseidon_dvt.utilities.miscellaneous import mattime_to_datetime
 
+# Custom error
+from pyseidon_error import PyseidonError
+
 class _load_adcp:
     """
     **'Variables' subset in ADCP class**
