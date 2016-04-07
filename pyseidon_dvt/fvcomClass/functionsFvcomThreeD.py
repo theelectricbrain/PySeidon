@@ -154,8 +154,8 @@ class FunctionsFvcomThreeD:
 
         Inputs:
           - var = 3 dimensional (time, sigma level, element) variable, array
-          - depth = interpolation depth (float in meters), negative from
-                    water column top downwards, positive from sea bottom upwards
+          - depth = interpolation depth (float in meters), if negative = from
+                    water column top downwards, if positive = from sea bottom upwards
         Options:
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
 
@@ -170,10 +170,11 @@ class FunctionsFvcomThreeD:
         if not hasattr(self._grid, 'depth'):
             self.depth()
         Depth = self._grid.depth[:]#otherwise to slow with netcdf4 lib
-        if depth > 0.0:
+        if depth > 0.0:  # Changing vertical axis convention
             for tt in range(Depth.shape[0]):
                 for ii in range(Depth.shape[2]):
-                    Depth[tt, :, ii] = Depth[tt, :, ii] - np.min(Depth[tt, :, ii])
+                    mini = np.min(np.squeeze(Depth[tt, :, ii]))
+                    Depth[tt, :, ii] = Depth[tt, :, ii] - mini
         dep = Depth[:] - depth
         #Finding closest values to specified depth
         if ind==[]:
