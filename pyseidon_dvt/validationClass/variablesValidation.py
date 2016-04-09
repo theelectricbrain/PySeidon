@@ -156,7 +156,7 @@ class _load_validation:
                         elif type(userInp) == float:
                             if debug:
                                 print 'flow comparison at depth level ', float
-                            if userInp > 0.0: userInp = userInp*-1.0
+                            # if userInp > 0.0: userInp = userInp*-1.0
                             uInterp = simulated.Util3D.interp_at_depth(self.sim.u[:], userInp, debug=debug)
                             vInterp = simulated.Util3D.interp_at_depth(self.sim.v[:], userInp, debug=debug)
                             # TR: temporary fix for proxy access

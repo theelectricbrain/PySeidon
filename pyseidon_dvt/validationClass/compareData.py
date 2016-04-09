@@ -42,7 +42,8 @@ def compareOBS(data, save_path, threeDim=False, depth=5, slack_velo=0.8, plot=Fa
        - vel_suite = dictionary of useful statistics for signed flow velocity
        - csp_suite = dictionary of useful statistics for cubic flow speed
     Options:
-       - depth = interpolation depth from surface, float
+       - depth = interpolation depth (float in meters), if negative = from
+         water column top downwards, if positive = from sea bottom upwards
        - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
        - plot = boolean flag for plotting results
        - save_csv = boolean flag for saving statistical benchmarks in csv file
@@ -81,12 +82,20 @@ def compareOBS(data, save_path, threeDim=False, depth=5, slack_velo=0.8, plot=Fa
             siglay = data['mod_timeseries']['siglay']
             # use depth interpolation to get a single timeseries
             mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
-            (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
-                                           obs_u_all, obs_el, bins, depth=depth,
-                                           debug=debug, debug_plot=debug_plot)
-            (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
-                                           obs_v_all, obs_el, bins, depth=depth,
-                                           debug=debug, debug_plot=debug_plot)
+            if depth < 0.0:
+                (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
+                                               obs_u_all, obs_el, bins, depth=depth,
+                                               debug=debug, debug_plot=debug_plot)
+                (mod_v, obs_v) = depthFromSurf(mod_v_all, mod_depth, siglay,
+                                               obs_v_all, obs_el, bins, depth=depth,
+                                               debug=debug, debug_plot=debug_plot)
+            else:
+                (mod_u, obs_u) = depthFromBott(mod_u_all, mod_depth, siglay,
+                                               obs_u_all, obs_el, bins, depth=depth,
+                                               debug=debug, debug_plot=debug_plot)
+                (mod_v, obs_v) = depthFromBott(mod_v_all, mod_depth, siglay,
+                                               obs_v_all, obs_el, bins, depth=depth,
+                                               debug=debug, debug_plot=debug_plot)
         else:
             if not data['type'] == 'Drifter':
                 obs_u = data['obs_timeseries']['ua']

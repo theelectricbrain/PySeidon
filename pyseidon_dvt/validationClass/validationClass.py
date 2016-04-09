@@ -42,7 +42,8 @@ class Validation:
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
     Option:
       - flow = impose flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
-      - nn   = if True then use the nearest location in the grid if the location is outside the grid.
+               , if negative = from sea surface downwards, if positive = from sea bottom upwards
+      - nn = if True then use the nearest location in the grid if the location is outside the grid.
       - outpath = specify a path to save validation results (default = './')
     """
     def __init__(self, observed, simulated, flow=[], nn=True, outpath='./', debug=False, debug_plot=False):
@@ -119,8 +120,6 @@ class Validation:
         if (depth == [] and self.Variables._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
             depth = float(depth)
-            if depth < 0.0:
-                depth = -1.0 * depth
         if depth == []: depth = 5.0
 
         #initialisation
@@ -379,6 +378,7 @@ class Validation:
           - filename = file name of the .csv file to be saved, string.
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
+                   If negative = from sea surface downwards, if positive = from sea bottom upwards
           - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
           - plot = plot series of validation graphs, boolean.
           - save_csv = will save benchmark values into *.csv file
