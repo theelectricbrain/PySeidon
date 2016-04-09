@@ -192,9 +192,22 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     # Map: measurement's locations
     imNb += 1
     savename = 'tmp_'+str(imNb)+'_plot.png'
+    lonmax = 0.0
+    lonmin = 0.0
+    latmax = 0.0
+    latmin = 0.0
+    for ii, coor in enumerate(valClass._coordinates):
+        lon = coor[0]
+        lat = coor[1]
+        if lon > lonmax: lonmax = lon
+        if lat > latmax: latmax = lat
+        if lon < lonmin: lonmin = lon
+        if lat < latmin: latmin = lat
     valClass._simulated.Plots.colormap_var(valClass._simulated.Grid.h,
                                            title='Bathymetric Map & Measurement location(s)',
                                            mesh=False)
+    valClass._simulated.Plots._ax.set_xlim([lonmin - 0.01, lonmax + 0.01])
+    valClass._simulated.Plots._ax.set_ylim([latmin - 0.01, latmax + 0.01])
     color = cmap.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
     for ii, coor in enumerate(valClass._coordinates):
         lon = coor[0]
@@ -206,6 +219,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
         # valClass._simulated.Plots._ax.annotate(txt, (lon, lat), size=20)
     valClass._simulated.Plots._ax.legend()
     valClass._simulated.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
+    valClass._simulated.Plots._fig.clear()
     # image = Image(savename, width=doc.width, height=doc.height / 1.5)
     # story.append(image)
     story.append(get_image(savename, width=16*cm))
