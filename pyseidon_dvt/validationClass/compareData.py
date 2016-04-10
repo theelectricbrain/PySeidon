@@ -7,7 +7,7 @@ from os import mkdir
 from os.path import exists
 from tidalStats import TidalStats
 from smooth import smooth
-from depthInterp import depthFromSurf
+from depthInterp import depthFromSurf, depthFromBott
 from datetime import datetime, timedelta
 
 # Custom error
