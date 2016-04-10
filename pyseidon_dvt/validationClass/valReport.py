@@ -192,10 +192,10 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     # Map: measurement's locations
     imNb += 1
     savename = 'tmp_'+str(imNb)+'_plot.png'
-    lonmax = 0.0
-    lonmin = 0.0
-    latmax = 0.0
-    latmin = 0.0
+    lonmax = -1.0 * np.inf
+    lonmin = np.inf
+    latmax = -1.0 * np.inf
+    latmin = np.inf
     for ii, coor in enumerate(valClass._coordinates):
         lon = coor[0]
         lat = coor[1]
