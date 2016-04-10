@@ -417,10 +417,11 @@ class Validation:
                 except PyseidonError:
                     pass
         if save_csv:
-            if self._multi:
-                savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
-            else:
-                savepath = self.Variables._save_path
+            #if self._multi:
+            #    savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
+            #else:
+            #    savepath = self.Variables._save_path
+            savepath = self._outpath
             try:
                 out_file = '{}{}_benchmarks.csv'.format(savepath, filename)
                 self.Benchmarks.to_csv(out_file)
