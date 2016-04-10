@@ -104,12 +104,16 @@ def depthFromSurf(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
         #TR: quick fix
         try:
             f_mod = interp1d(np.abs(siglay), step, bounds_error=False)
+            # find location of specified depth and perform interpolation
+            location = mod_depth[i] - depth
+            sig_loc = float(location) / float(mod_depth[i])
+            new_mod[i] = f_mod(sig_loc)
         except ValueError:
             f_mod = interp1d(np.abs(siglay)[::-1], step[::-1], bounds_error=False)
-        # find location of specified depth and perform interpolation
-        location = mod_depth[i] - depth
-        sig_loc = float(location) / float(mod_depth[i])
-        new_mod[i] = f_mod(sig_loc)
+            # find location of specified depth and perform interpolation
+            location = mod_depth[i] - depth
+            sig_loc = float(location) / float(mod_depth[i])
+            new_mod[i] = f_mod(sig_loc)
 
     if debug: print "...loop through measurement columns and interpol at specified depth..."
     # loop over obs_data columns
@@ -122,10 +126,12 @@ def depthFromSurf(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
             # find location of specified depth and perform interpolation
             try:
                 f_obs = interp1d(bin_nonan, col_nonan)
+                location = obs_depth[ii] - depth
+                new_obs[ii] = f_obs(location)
             except ValueError:
                 f_obs = interp1d(bin_nonan[::-1], col_nonan[::-1])
-            location = obs_depth[ii] - depth
-            new_obs[ii] = f_obs(location)
+                location = obs_depth[ii] - depth
+                new_obs[ii] = f_obs(location)
         else:
             new_obs[ii] = np.nan
 
@@ -165,11 +171,14 @@ def depthFromBott(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
         #TR: quick fix
         try:
             f_mod = interp1d(np.abs(siglay), step, bounds_error=False)
+            # find location of specified depth and perform interpolation
+            sig_loc = float(depth) / float(mod_depth[i])
+            new_mod[i] = f_mod(sig_loc)
         except ValueError:
             f_mod = interp1d(np.abs(siglay)[::-1], step[::-1], bounds_error=False)
-        # find location of specified depth and perform interpolation
-        sig_loc = float(depth) / float(mod_depth[i])
-        new_mod[i] = f_mod(sig_loc)
+            # find location of specified depth and perform interpolation
+            sig_loc = float(depth) / float(mod_depth[i])
+            new_mod[i] = f_mod(sig_loc)
 
     if debug: print "...loop through measurement columns and interpol at specified depth..."
     # loop over obs_data columns
@@ -182,9 +191,10 @@ def depthFromBott(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
             # find location of specified depth and perform interpolation
             try:
                 f_obs = interp1d(bin_nonan, col_nonan)
+                new_obs[ii] = f_obs(depth)
             except ValueError:
                 f_obs = interp1d(bin_nonan[::-1], col_nonan[::-1])
-            new_obs[ii] = f_obs(depth)
+                new_obs[ii] = f_obs(depth)
         else:
             new_obs[ii] = np.nan
 
