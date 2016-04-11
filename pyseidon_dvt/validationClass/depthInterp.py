@@ -103,13 +103,13 @@ def depthFromSurf(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
         # create interpolation function
         #TR: quick fix
         try:
-            f_mod = interp1d(np.abs(siglay), step, bounds_error=False)
+            f_mod = interp1d(np.abs(siglay), step) #, bounds_error=False)
             # find location of specified depth and perform interpolation
             location = mod_depth[i] - depth
             sig_loc = float(location) / float(mod_depth[i])
             new_mod[i] = f_mod(sig_loc)
         except ValueError:
-            f_mod = interp1d(np.abs(siglay)[::-1], step[::-1], bounds_error=False)
+            f_mod = interp1d(np.abs(siglay)[::-1], step[::-1])  #, bounds_error=False)
             # find location of specified depth and perform interpolation
             location = mod_depth[i] - depth
             sig_loc = float(location) / float(mod_depth[i])
@@ -170,12 +170,12 @@ def depthFromBott(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
         # create interpolation function
         #TR: quick fix
         try:
-            f_mod = interp1d(np.abs(siglay), step, bounds_error=False)
+            f_mod = interp1d(np.abs(siglay), step) #, bounds_error=False)
             # find location of specified depth and perform interpolation
             sig_loc = float(depth) / float(mod_depth[i])
             new_mod[i] = f_mod(sig_loc)
         except ValueError:
-            f_mod = interp1d(np.abs(siglay)[::-1], step[::-1], bounds_error=False)
+            f_mod = interp1d(np.abs(siglay)[::-1], step[::-1]) # , bounds_error=False)
             # find location of specified depth and perform interpolation
             sig_loc = float(depth) / float(mod_depth[i])
             new_mod[i] = f_mod(sig_loc)

@@ -6,6 +6,8 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import cPickle as pkl
+from os import makedirs
+from os.path import exists
 
 #Quick fix
 from scipy.io import savemat
@@ -60,12 +62,17 @@ class Validation:
         if debug: print '-Debug mode on-'   
         self._nn=nn    
         if debug and nn: print '-Using nearest neighbour-'        
-        if debug: print '-Saving results to {}-'.format(outpath)
+        # creates folder to store outputs
         outpath=outpath.replace(" ","_")
         if outpath[-1] is not '/':
             self._outpath = outpath+'/'
         else:
             self._outpath = outpath
+        if not self._outpath == './':
+            while exists(self._outpath):
+                self._outpath = self._outpath[:-1] + '_bis/'
+            makedirs(self._outpath)
+            if debug: print '-Saving results to {}-'.format(self._outpath)
 
         #Metadata
         if not self._multi:
