@@ -234,7 +234,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     ts = [('ALIGN', (1,1), (-1,-1), 'CENTER'),
           ('LINEABOVE', (0,0), (-1,0), 1, colors.black),
           ('LINEBELOW', (0,0), (-1,0), 1, colors.black),
-          ('FONT', (0,0), (-1,0), 10, 'Times-Bold')]
+          ('FONT', (0,0), (-1,0), 'Times-Bold')]
 
     if benchflag:
         story.append(NextPageTemplate('landscape'))
