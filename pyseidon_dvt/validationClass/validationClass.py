@@ -409,7 +409,7 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         if not self._multi:
-            self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
+            self._validate_data(filename, depth, slack_velo, plot, save_csv, debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
             I=0
