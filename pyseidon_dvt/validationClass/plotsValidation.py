@@ -4,13 +4,14 @@
 from __future__ import division
 
 import os.path as os
+from os import makedirs
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.projections import PolarAxes
 import mpl_toolkits.axisartist.floating_axes as fa
 import mpl_toolkits.axisartist.grid_finder as gf
 
-def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
+def plotRegression(tidalStatClass, lr, savepath='', fname=None, debug=False):
     """
     Plots a visualization of the output from linear regression,
     including confidence intervals for predictands and slope.
@@ -75,17 +76,18 @@ def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
     # plt.suptitle('Modeled vs. Observed {}: Linear Fit'.format(tidalStatClass.kind))
     # KC: Changed save parameter to be a savepath - making a huge assumption here
     # that people are able to enter in the savepath correctly / exists etc.
-    if savepath.strip() and fname.strip():
-        if os.exists(savepath):
-            fig.savefig(savepath+fname)
-            plt.close(fig)
+    if not fname == None:
+        if not os.exists(savepath):
+            makedirs(savepath)
+        fig.savefig(savepath+fname)
+        plt.close(fig)
     else:
         fig.show()
         plt.show()
 
     return fig, ax
 
-def plotData(tidalStatClass, graph='time', savepath='', fname='', debug=False):
+def plotData(tidalStatClass, graph='time', savepath='', fname=None, debug=False):
     """
     Provides a visualization of the data.
 
@@ -131,10 +133,11 @@ def plotData(tidalStatClass, graph='time', savepath='', fname='', debug=False):
         ax.set_ylabel('Observed Height')
         fig.suptitle('Predicted vs. Observed {}'.format(tidalStatClass.kind))
 
-    if savepath.strip() and fname.strip():
-        if os.exists(savepath):
-            fig.savefig(savepath+fname)
-            plt.close(fig)
+    if not fname == None:
+        if not os.exists(savepath):
+            makedirs(savepath)
+        fig.savefig(savepath+fname)
+        plt.close(fig)
     else:
         fig.show()
         plt.show()

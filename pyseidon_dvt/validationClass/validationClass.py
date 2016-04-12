@@ -71,8 +71,6 @@ class Validation:
         if not self._outpath == './':
             while exists(self._outpath):
                 self._outpath = self._outpath[:-1] + '_bis/'
-            makedirs(self._outpath)
-            if debug: print '-Saving results to {}-'.format(self._outpath)
 
         #Metadata
         if not self._multi:
@@ -87,6 +85,10 @@ class Validation:
             self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
             self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
 
+        # Creates folder once compatibility test passed
+        if not self._outpath == './':
+            makedirs(self._outpath)
+            if debug: print '-Saving results to {}-'.format(self._outpath)
         return
 
     def _validate_data(self, filename=[], depth=[], slack_velo=0.1,  plot=False,  save_csv=False, debug=False, debug_plot=False):
