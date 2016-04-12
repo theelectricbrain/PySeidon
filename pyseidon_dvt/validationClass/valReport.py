@@ -172,6 +172,10 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                                 correlation between the model data and the observed data between 0 \
                                 and 1, with 0 being no correlation, and 1 being perfect correlation"
                                , styles['Bullet'], bulletText='-'))
+        story.append(Paragraph("bias: bias of the model, a measure of over/under-estimation"
+                               , styles['Bullet'], bulletText='-'))
+        story.append(Paragraph("Pbias: percent bias between the model and the observed data"
+                               , styles['Bullet'], bulletText='-'))
 
     if harmoflag:
         story.append(Paragraph("The statistics reported in the 'Harmonic Analysis' section, \
@@ -230,7 +234,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     ts = [('ALIGN', (1,1), (-1,-1), 'CENTER'),
           ('LINEABOVE', (0,0), (-1,0), 1, colors.black),
           ('LINEBELOW', (0,0), (-1,0), 1, colors.black),
-          ('FONT', (0,0), (-1,0), 'Times-Bold')]
+          ('FONT', (0,0), (-1,0), 10, 'Times-Bold')]
 
     if benchflag:
         story.append(NextPageTemplate('landscape'))
