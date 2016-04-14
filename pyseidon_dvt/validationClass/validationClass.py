@@ -431,6 +431,7 @@ class Validation:
             #else:
             #    savepath = self.Variables._save_path
             savepath = self._outpath
+            #savepath = self.Variables._save_path
             try:
                 out_file = '{}{}_benchmarks.csv'.format(savepath, filename)
                 self.Benchmarks.to_csv(out_file)
@@ -484,6 +485,7 @@ class Validation:
                 savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
             else:
                 savepath = self.Variables._save_path
+            savepath = self.Variables._save_path
             try:
                 try:
                     out_file = '{}{}_elevation_harmonic_benchmarks.csv'.format(savepath, filename)
