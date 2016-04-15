@@ -218,7 +218,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     cmin = valClass._simulated.Grid.h[indices].min()
     valClass._simulated.Plots.colormap_var(valClass._simulated.Grid.h,
                                            title='Bathymetric Map & Measurement location(s)',
-                                           cmax=cmax, cmin=cmin, mesh=False)
+                                           cmax=cmax, cmin=cmin, isoline='var', mesh=False)
     #  redefine frame
     valClass._simulated.Plots._ax.set_xlim([lonmin - margin, lonmax + margin])
     valClass._simulated.Plots._ax.set_ylim([latmin - margin, latmax + margin])
