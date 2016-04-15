@@ -485,11 +485,11 @@ class TidalStats:
             start = self.times[abs(i)]
             step = self.times[1] - self.times[0]
 
-        # create TidalStats class for shifted data and get the RMSE
-        stats = TidalStats(self.gear, shift_mod, shift_obs, step, start, kind='Phase')
+            # create TidalStats class for shifted data and get the RMSE
+            stats = TidalStats(self.gear, shift_mod, shift_obs, step, start, kind='Phase')
 
-        rms_error = stats.getRMSE()
-        errors.append(rms_error)
+            rms_error = stats.getRMSE()
+            errors.append(rms_error)
 
         if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
         min_index = errors.index(min(errors))
