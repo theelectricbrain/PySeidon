@@ -6,6 +6,8 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import cPickle as pkl
+from os import makedirs
+from os.path import exists
 
 #Quick fix
 from scipy.io import savemat
@@ -42,7 +44,8 @@ class Validation:
       - simulated = any PySeidon simulation object (i.e. FVCOM or Station)
     Option:
       - flow = impose flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
-      - nn   = if True then use the nearest location in the grid if the location is outside the grid.
+               , if negative = from sea surface downwards, if positive = from sea bottom upwards
+      - nn = if True then use the nearest location in the grid if the location is outside the grid.
       - outpath = specify a path to save validation results (default = './')
     """
     def __init__(self, observed, simulated, flow=[], nn=True, outpath='./', debug=False, debug_plot=False):
@@ -59,12 +62,15 @@ class Validation:
         if debug: print '-Debug mode on-'   
         self._nn=nn    
         if debug and nn: print '-Using nearest neighbour-'        
-        if debug: print '-Saving results to {}-'.format(outpath)
+        # creates folder to store outputs
         outpath=outpath.replace(" ","_")
         if outpath[-1] is not '/':
             self._outpath = outpath+'/'
         else:
             self._outpath = outpath
+        if not self._outpath == './':
+            while exists(self._outpath):
+                self._outpath = self._outpath[:-1] + '_bis/'
 
         #Metadata
         if not self._multi:
@@ -79,6 +85,10 @@ class Validation:
             self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
             self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
 
+        # Creates folder once compatibility test passed
+        if not self._outpath == './':
+            makedirs(self._outpath)
+            if debug: print '-Saving results to {}-'.format(self._outpath)
         return
 
     def _validate_data(self, filename=[], depth=[], slack_velo=0.1,  plot=False,  save_csv=False, debug=False, debug_plot=False):
@@ -119,8 +129,6 @@ class Validation:
         if (depth == [] and self.Variables._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
             depth = float(depth)
-            if depth < 0.0:
-                depth = -1.0 * depth
         if depth == []: depth = 5.0
 
         #initialisation
@@ -379,6 +387,7 @@ class Validation:
           - filename = file name of the .csv file to be saved, string.
           - depth = depth at which the validation will be performed, float.
                    Only applicable for 3D simulations.
+                   If negative = from sea surface downwards, if positive = from sea bottom upwards
           - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
           - plot = plot series of validation graphs, boolean.
           - save_csv = will save benchmark values into *.csv file
@@ -400,7 +409,7 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         if not self._multi:
-            self._validate_data(filename, depth, plot, save_csv, debug, debug_plot)
+            self._validate_data(filename, depth, slack_velo, plot, save_csv, debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
             I=0
@@ -417,10 +426,12 @@ class Validation:
                 except PyseidonError:
                     pass
         if save_csv:
-            if self._multi:
-                savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
-            else:
-                savepath = self.Variables._save_path
+            #if self._multi:
+            #    savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
+            #else:
+            #    savepath = self.Variables._save_path
+            savepath = self._outpath
+            #savepath = self.Variables._save_path
             try:
                 out_file = '{}{}_benchmarks.csv'.format(savepath, filename)
                 self.Benchmarks.to_csv(out_file)
@@ -474,6 +485,7 @@ class Validation:
                 savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
             else:
                 savepath = self.Variables._save_path
+            savepath = self.Variables._save_path
             try:
                 try:
                     out_file = '{}{}_elevation_harmonic_benchmarks.csv'.format(savepath, filename)

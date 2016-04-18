@@ -155,7 +155,7 @@ class FunctionsFvcomThreeD:
         Inputs:
           - var = 3 dimensional (time, sigma level, element) variable, array
           - depth = interpolation depth (float in meters), if negative = from
-                    water column top downwards, if positive = from sea bottom upwards
+                    sea surface downwards, if positive = from sea bottom upwards
         Options:
           - ind = array of closest indexes to depth, 2D array (ntime, nele)
 

@@ -163,20 +163,6 @@ class TidalStats:
 
         return
 
-    def getOverUnder(self, debug=False):
-        """
-        Determines if model over or under estimate the reference
-
-        Returns:
-          - ovORun = character, '+' if overestimation and '-' if underestimation
-        """
-        if debug or self._debug: print "...getOverUnder..."
-        if np.var(self.model) > np.var(self.observed[:]):
-            ovORun = '+'
-        else:
-            ovORun = '-'
-        return ovORun
-
     def getRMSE(self, debug=False):
         '''
         Returns the root mean squared error of the data.
@@ -499,11 +485,11 @@ class TidalStats:
             start = self.times[abs(i)]
             step = self.times[1] - self.times[0]
 
-        # create TidalStats class for shifted data and get the RMSE
-        stats = TidalStats(self.gear, shift_mod, shift_obs, step, start, kind='Phase')
+            # create TidalStats class for shifted data and get the RMSE
+            stats = TidalStats(self.gear, shift_mod, shift_obs, step, start, kind='Phase')
 
-        rms_error = stats.getRMSE()
-        errors.append(rms_error)
+            rms_error = stats.getRMSE()
+            errors.append(rms_error)
 
         if debug or self._debug: print "...find the minimum rmse, and thus the minimum phase..."
         min_index = errors.index(min(errors))
@@ -548,7 +534,6 @@ class TidalStats:
 
         stats = {}
         stats['gear'] = self.gear
-        stats['ovORun'] = self.getOverUnder()
         stats['RMSE'] = self.getRMSE()
         stats['CF'] = self.getCF()
         stats['SD'] = self.getSD()
@@ -557,10 +542,11 @@ class TidalStats:
         stats['MDPO'] = self.getMDPO()
         stats['MDNO'] = self.getMDNO()
         stats['skill'] = self.getWillmott()
-        try: #Fix for Drifter's data
-            stats['phase'] = self.getPhase(debug=debug)
-        except:
-            stats['phase'] = 0.0
+        #try: #Fix for Drifter's data
+        #    stats['phase'] = self.getPhase(debug=debug)
+        #except:
+        stats['phase'] = 0.0
+        stats['phase'] = self.getPhase()
         stats['CORR'] = self.getCORR()
         stats['NRMSE'] = self.getNRMSE()
         stats['NSE'] = self.getNSE()

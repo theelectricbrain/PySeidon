@@ -78,6 +78,7 @@ def plotRegression(tidalStatClass, lr, savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fig.savefig(savepath+fname)
+            fig.clear()
             plt.close(fig)
     else:
         fig.show()
@@ -134,6 +135,7 @@ def plotData(tidalStatClass, graph='time', savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fig.savefig(savepath+fname)
+            fig.clear()
             plt.close(fig)
     else:
         fig.show()
@@ -227,6 +229,7 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fig.savefig(savepath+fname, bbox_inches='tight')
+            fig.clear()
             plt.close(fig)
     else:
         fig.show()
@@ -311,6 +314,7 @@ def benchmarksMap(benchmarks, adcps, fvcom, savepath='', fname='', debug=False):
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
             fvcom.Plots._fig.savefig(savepath+fname, bbox_inches='tight')
+            fvcom.Plots._fig.clear()
             plt.close(fvcom.Plots._fig)
     else:
         fvcom.Plots._fig.show()

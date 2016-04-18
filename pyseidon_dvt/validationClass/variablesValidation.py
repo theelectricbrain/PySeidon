@@ -156,7 +156,7 @@ class _load_validation:
                         elif type(userInp) == float:
                             if debug:
                                 print 'flow comparison at depth level ', float
-                            if userInp > 0.0: userInp = userInp*-1.0
+                            # if userInp > 0.0: userInp = userInp*-1.0
                             uInterp = simulated.Util3D.interp_at_depth(self.sim.u[:], userInp, debug=debug)
                             vInterp = simulated.Util3D.interp_at_depth(self.sim.v[:], userInp, debug=debug)
                             # TR: temporary fix for proxy access
@@ -298,19 +298,24 @@ class _load_validation:
         if debug: print "..done"
         
         # find save_path
-        self._save_path = ''
-        for s in observed.History:
-            if 'Create save_path ' not in s:
-                continue
-            else:
-                self._save_path=s.split()[2]
-                
-        if '' is self._save_path:        
-            name = self.struct['name']
-            self._save_path = outpath+name.split('/')[-1].split('.')[0]+'/'
-            while exists(self._save_path):
-                self._save_path = self._save_path[:-1] + '_bis/'
-            makedirs(self._save_path)
-            observed.History.append('Create save_path {}'.format(self._save_path))
+        # self._save_path = ''
+        # for s in observed.History:
+        #     if 'Create save_path ' not in s:
+        #         continue
+        #     else:
+        #         self._save_path=s.split()[2]
+        #
+        # if '' is self._save_path:
+        #     name = self.struct['name']
+        #     self._save_path = outpath+name.split('/')[-1].split('.')[0]+'/'
+        #     while exists(self._save_path):
+        #         self._save_path = self._save_path[:-1] + '_bis/'
+        #     makedirs(self._save_path)
+        #     observed.History.append('Create save_path {}'.format(self._save_path))
+        name = self.struct['name']
+        self._save_path = outpath+name.split('/')[-1].split('.')[0]+'/'
+        while exists(self._save_path):
+            self._save_path = self._save_path[:-1] + '_bis/'
+        makedirs(self._save_path)
 
         return

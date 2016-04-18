@@ -172,6 +172,10 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                                 correlation between the model data and the observed data between 0 \
                                 and 1, with 0 being no correlation, and 1 being perfect correlation"
                                , styles['Bullet'], bulletText='-'))
+        story.append(Paragraph("bias: bias of the model, a measure of over/under-estimation"
+                               , styles['Bullet'], bulletText='-'))
+        story.append(Paragraph("Pbias: percent bias between the model and the observed data"
+                               , styles['Bullet'], bulletText='-'))
 
     if harmoflag:
         story.append(Paragraph("The statistics reported in the 'Harmonic Analysis' section, \
@@ -192,9 +196,32 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     # Map: measurement's locations
     imNb += 1
     savename = 'tmp_'+str(imNb)+'_plot.png'
+    lonmax = -1.0 * np.inf
+    lonmin = np.inf
+    latmax = -1.0 * np.inf
+    latmin = np.inf
+    for ii, coor in enumerate(valClass._coordinates):
+        lon = coor[0]
+        lat = coor[1]
+        if lon > lonmax: lonmax = lon
+        if lat > latmax: latmax = lat
+        if lon < lonmin: lonmin = lon
+        if lat < latmin: latmin = lat
+    #  redefine colorbar min/max
+    margin = 0.01
+    indices = np.where(np.logical_and(
+                       np.logical_and(valClass._simulated.Grid.lon[:] < lonmax + margin,
+                                      valClass._simulated.Grid.lon[:] > lonmin - margin),
+                       np.logical_and(valClass._simulated.Grid.lat[:] < latmax + margin,
+                                      valClass._simulated.Grid.lat[:] > latmin - margin)))[0]
+    cmax = valClass._simulated.Grid.h[indices].max()
+    cmin = valClass._simulated.Grid.h[indices].min()
     valClass._simulated.Plots.colormap_var(valClass._simulated.Grid.h,
                                            title='Bathymetric Map & Measurement location(s)',
-                                           mesh=False)
+                                           cmax=cmax, cmin=cmin, isoline='var', mesh=False)
+    #  redefine frame
+    valClass._simulated.Plots._ax.set_xlim([lonmin - margin, lonmax + margin])
+    valClass._simulated.Plots._ax.set_ylim([latmin - margin, latmax + margin])
     color = cmap.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
     for ii, coor in enumerate(valClass._coordinates):
         lon = coor[0]
@@ -206,6 +233,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
         # valClass._simulated.Plots._ax.annotate(txt, (lon, lat), size=20)
     valClass._simulated.Plots._ax.legend()
     valClass._simulated.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
+    valClass._simulated.Plots._fig.clear()
     # image = Image(savename, width=doc.width, height=doc.height / 1.5)
     # story.append(image)
     story.append(get_image(savename, width=16*cm))
