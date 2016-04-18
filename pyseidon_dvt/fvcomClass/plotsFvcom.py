@@ -204,12 +204,10 @@ class PlotsFvcom:
                 var = interpN(var, self._grid.trinodes, self._grid.aw0, debug=debug)
             if degree:
                 self._save_map_as_shapefile(var, self._grid.lon, self._grid.lat,
-                                            title=savename, varLabel='map',
-                                            xLabel=' ', yLabel=' ', debug=debug)
+                                            title=savename, varLabel='map', debug=debug)
             else:
                 self._save_map_as_shapefile(var, self._grid.x, self._grid.y,
-                                            title=savename, varLabel='map',
-                                            xLabel=' ', yLabel=' ', debug=debug)
+                                            title=savename, varLabel='map', debug=debug)
         elif shapefile and not havegdal:
             print 'Shape file cannot be saved. Missing gdal.'
 
@@ -433,8 +431,7 @@ class PlotsFvcom:
         df = pd.DataFrame({xLabel:x[:], yLabel:y[:], varLabel: var[:]})
         df.to_csv(filename, encoding='utf-8', **kwargs)
 
-    def _save_map_as_shapefile(self, var, x, y,
-                               title=' ', varLabel=' ', xLabel=' ', yLabel=' ', debug=False):
+    def _save_map_as_shapefile(self, var, x, y, title=' ', varLabel=' ', debug=False):
         """
         Saves map as shapefile
 
@@ -445,8 +442,6 @@ class PlotsFvcom:
 
         Options:
           - title = file name, string
-          - xLabel = name of the x-data, string
-          - yLabel = name of the y-data, string
           - kwargs = keyword options associated with ???
         """
 
@@ -463,7 +458,10 @@ class PlotsFvcom:
             title.replace("/", "_")
 
         filename=title + '.shp'
-        epsg_in=4326
+
+        # Projection
+        #epsg_in=4326
+        epsg_in = 3857  # Google Projection
 
         # give alternative file name is already exists
         driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -475,7 +473,7 @@ class PlotsFvcom:
         spatialRefi = osr.SpatialReference()
         spatialRefi.ImportFromEPSG(epsg_in)
 
-        lyr = shapeData.CreateLayer("poly_layer", spatialRefi, ogr.wkbPolygon )
+        lyr = shapeData.CreateLayer("poly_layer", spatialRefi, ogr.wkbPolygon)
 
         #Features
         if varLabel==' ': valLabel = 'var'
