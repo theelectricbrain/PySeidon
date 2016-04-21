@@ -17,10 +17,45 @@ try:
 except ImportError:
     print 'Gdal is not installed, osgeo cannot be imported. Saving to shape files will not be possible.'
     havegdal=False
+import zipfile
 # Local import
 from pyseidon_dvt.utilities.windrose import WindroseAxes
 from pyseidon_dvt.utilities.interpolation_utils import *
 #from miscellaneous import depth_at_FVCOM_element as depth_at_ind
+
+# Kml header
+###
+kml_groundoverlay = '''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.0">
+<Document>
+<GroundOverlay>
+  <name>__NAME__</name>
+  <color>__COLOR__</color>
+  <visibility>__VISIBILITY__</visibility>
+  <Icon>
+    <href>overlay.png</href>
+  </Icon>
+  <LatLonBox>
+    <south>__SOUTH__</south>
+    <north>__NORTH__</north>
+    <west>__WEST__</west>
+    <east>__EAST__</east>
+  </LatLonBox>
+</GroundOverlay>
+<ScreenOverlay>
+    <name>Legend</name>
+    <Icon>
+        <href>legend.png</href>
+    </Icon>
+    <overlayXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+    <screenXY x="0.015" y="0.075" xunits="fraction" yunits="fraction"/>
+    <rotationXY x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+    <size x="0" y="0" xunits="pixels" yunits="pixels"/>
+</ScreenOverlay>
+</Document>
+</kml>
+'''
+###
 
 class PlotsFvcom:
     """
@@ -42,7 +77,7 @@ class PlotsFvcom:
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
                      degree=True, mesh=False, isoline = 'bathy',
-                     dump=False, png=False, shapefile=False, debug=False, **kwargs):
+                     dump=False, png=False, shapefile=False, kml=False, debug=False, **kwargs):
         """
         2D xy colormap plot of any given variable and mesh.
 
@@ -60,6 +95,7 @@ class PlotsFvcom:
           - dump = boolean, dump profile data in csv file
           - png = boolean, save map as png
           - shapefile = boolean, save map as shapefile
+          - kml = boolean, save map as kml
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
@@ -185,6 +221,8 @@ class PlotsFvcom:
         # Saving
         savename=title.lower().replace(" ","_")
         if png:
+            if kml:
+                self._fig.savefig("overlay.png", bbox_inches='tight', transparent=True)
             self._fig.savefig(savename+".png", bbox_inches='tight')
 
         if dump:
@@ -210,6 +248,85 @@ class PlotsFvcom:
                                             title=savename, varLabel='map', debug=debug)
         elif shapefile and not havegdal:
             print 'Shape file cannot be saved. Missing gdal.'
+
+        if kml:
+            name = kwargs.pop('name', title)
+            color = kwargs.pop('color', '9effffff')
+            visibility = str( kwargs.pop('visibility', 1) )
+            kmzfile = kwargs.pop('kmzfile', savename+'.kmz')
+            pixels = kwargs.pop('pixels', 2048)  # pixels of the max. dimension
+            units = kwargs.pop('units', '-')
+
+            # Deformation dur to projection
+            if degree:
+                geo_aspect = np.cos(lat.mean()*np.pi/180.0)
+                xsize = lon.ptp()*geo_aspect
+                ysize = lat.ptp()
+                xmax = lon.max()
+                ymax = lat.max()
+                xmin = lon.min()
+                ymin = lat.min()
+            else:
+                geo_aspect = np.cos(self._grid.lat.mean()*np.pi/180.0)
+                xsize = x.ptp()*geo_aspect
+                ysize = y.ptp()
+                xmax = x.max()
+                ymax = y.max()
+                xmin = x.min()
+                ymin = y.min()
+
+            aspect = ysize/xsize
+            if aspect > 1.0:
+                figsize = (30.0/aspect, 30.0)
+            else:
+                figsize = (30.0, 30.0*aspect)
+
+            plt.ioff()
+            fig = plt.figure(figsize=figsize, facecolor=None, frameon=False, dpi=pixels // 5)
+            # fig = figure(facecolor=None, frameon=False, dpi=pixels//10)
+            ax = fig.add_axes([0, 0, 1, 1])
+            if cmap == []:
+                pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=plt.cm.gist_earth)
+            else:
+                pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=cmap)
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
+            ax.set_axis_off()
+            plt.savefig('overlay.png', transparent=True)
+
+            # Write kmz
+            fz = zipfile.ZipFile(kmzfile, 'w')
+            if degree:
+                fz.writestr(savename+'.kml', kml_groundoverlay.replace('__NAME__', name)\
+                                                              .replace('__COLOR__', color)\
+                                                              .replace('__VISIBILITY__', visibility)\
+                                                              .replace('__SOUTH__', str(lat.min()))\
+                                                              .replace('__NORTH__', str(lat.max()))\
+                                                              .replace('__EAST__', str(lon.max()))\
+                                                              .replace('__WEST__', str(lon.min())))
+            else:
+                fz.writestr(savename+'.kml', kml_groundoverlay.replace('__NAME__', name)\
+                                                              .replace('__COLOR__', color)\
+                                                              .replace('__VISIBILITY__', visibility)\
+                                                              .replace('__SOUTH__', str(y.min()))\
+                                                              .replace('__NORTH__', str(y.max()))\
+                                                              .replace('__EAST__', str(x.max()))\
+                                                              .replace('__WEST__', str(x.min())))
+            fz.write('overlay.png')
+            os.remove('overlay.png')
+
+            # colorbar png
+            fig = plt.figure(figsize=(1.0, 4.0), facecolor=None, frameon=False)
+            ax = fig.add_axes([0.0, 0.05, 0.2, 0.9])
+            cb = fig.colorbar(pc, cax=ax)
+            cb.set_label(units, color='0.9')
+            for lab in cb.ax.get_yticklabels():
+                plt.setp(lab, 'color', '0.9')
+
+            plt.savefig('legend.png', transparent=True)
+            fz.write('legend.png')
+            os.remove('legend.png')
+            fz.close()
 
     def rose_diagram(self, direction, norm, png=False, title="rose_diagram"):
 
