@@ -263,23 +263,25 @@ class PlotsFvcom:
             units = kwargs.pop('units', '-')
 
             # Deformation dur to projection
-            if degree:
-                geo_aspect = np.cos(lat.mean()*np.pi/180.0)
-                xsize = lon.ptp()*geo_aspect
-                ysize = lat.ptp()
-                xmax = lon.max()
-                ymax = lat.max()
-                xmin = lon.min()
-                ymin = lat.min()
-            else:
-                geo_aspect = np.cos(self._grid.lat.mean()*np.pi/180.0)
-                xsize = x.ptp()*geo_aspect
-                ysize = y.ptp()
-                xmax = x.max()
-                ymax = y.max()
-                xmin = x.min()
-                ymin = y.min()
-
+            # if degree:
+            #     geo_aspect = np.cos(lat.mean()*np.pi/180.0)
+            #     xsize = lon.ptp()*geo_aspect
+            #     ysize = lat.ptp()
+            #     xmax = lon.max()
+            #     ymax = lat.max()
+            #     xmin = lon.min()
+            #     ymin = lat.min()
+            # else:
+            #     geo_aspect = np.cos(self._grid.lat.mean()*np.pi/180.0)
+            #     xsize = x.ptp()*geo_aspect
+            #     ysize = y.ptp()
+            #     xmax = x.max()
+            #     ymax = y.max()
+            #     xmin = x.min()
+            #     ymin = y.min()
+            geo_aspect = np.cos(self._grid.lat.mean()*np.pi/180.0)
+            xsize = np.abs(bb[1] - bb[0]) * geo_aspect
+            ysize = np.abs(bb[3] - bb[2])
             aspect = ysize/xsize
             if aspect > 1.0:
                 figsize = (30.0/aspect, 30.0)
@@ -294,8 +296,10 @@ class PlotsFvcom:
                 pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=plt.cm.gist_earth)
             else:
                 pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=cmap)
-            ax.set_xlim(xmin, xmax)
-            ax.set_ylim(ymin, ymax)
+            #ax.set_xlim(xmin, xmax)
+            #ax.set_ylim(ymin, ymax)
+            ax.set_xlim([bb[0], bb[1]])
+            ax.set_ylim([bb[2], bb[3]])
             ax.set_axis_off()
             plt.savefig('overlay.png', transparent=True)
 
