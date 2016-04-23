@@ -75,9 +75,9 @@ class PlotsFvcom:
         plt.rc('font',size='22')
 
 
-    def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[],
+    def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[], bb = None,
                      degree=True, mesh=False, isoline = 'bathy',
-                     dump=False, png=False, shapefile=False, kml=False, debug=False, **kwargs):
+                     dump=False, png=False, shapefile=False, kmz=False, debug=False, **kwargs):
         """
         2D xy colormap plot of any given variable and mesh.
 
@@ -89,13 +89,16 @@ class PlotsFvcom:
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
           - cmap = matplolib colormap
+          - bb = bounding box, ex.:
+                 bb = [minimun longitude, maximun longitude, minimun latitude, maximum latitude]
+                 bb = [minimun x, maximun x, minimun y, maximum y]
           - mesh = True, with mesh; False, without mesh
           - degree = boolean, coordinates in degrees (True) or meters (False)
           - isloline = 'bathy': bathymetric isolines, 'var': variable isolines, 'none': no isolines
           - dump = boolean, dump profile data in csv file
           - png = boolean, save map as png
           - shapefile = boolean, save map as shapefile
-          - kml = boolean, save map as kml
+          - kmz = boolean, save map as kmz
           - kwargs = keyword options associated with pandas.DataFrame.to_csv, such as:
                      sep, header, na_rep, index,...etc
                      Check doc. of "to_csv" for complete list of options
@@ -118,10 +121,11 @@ class PlotsFvcom:
             lat = self._grid.lat[:]
             if debug:
                 print "Computing bounding box..."
-            if self._grid._ax == []:
-                self._grid._ax = [lon.min(), lon.max(),
-                                 lat.min(), lat.max()]
-            bb = self._grid._ax  
+            if bb is None:
+                if self._grid._ax == []:
+                    self._grid._ax = [lon.min(), lon.max(),
+                                     lat.min(), lat.max()]
+                bb = self._grid._ax
 
             if not hasattr(self._grid, 'triangleLL'):        
                 # Mesh triangle
@@ -138,7 +142,8 @@ class PlotsFvcom:
             y = self._grid.y[:]
             if debug:
                 print "Computing bounding box..."
-            bb = [x.min(), x.max(), y.min(), y.max()] 
+            if bb is not None:
+                bb = [x.min(), x.max(), y.min(), y.max()]
 
             if not hasattr(self._grid, 'triangleXY'):        
                 # Mesh triangle
@@ -221,7 +226,7 @@ class PlotsFvcom:
         # Saving
         savename=title.lower().replace(" ","_")
         if png:
-            if kml:
+            if kmz:
                 self._fig.savefig("overlay.png", bbox_inches='tight', transparent=True)
             self._fig.savefig(savename+".png", bbox_inches='tight')
 
@@ -249,7 +254,7 @@ class PlotsFvcom:
         elif shapefile and not havegdal:
             print 'Shape file cannot be saved. Missing gdal.'
 
-        if kml:
+        if kmz:
             name = kwargs.pop('name', title)
             color = kwargs.pop('color', '9effffff')
             visibility = str( kwargs.pop('visibility', 1) )
