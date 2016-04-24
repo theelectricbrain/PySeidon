@@ -272,14 +272,14 @@ class PlotsFvcom:
             #     xmin = lon.min()
             #     ymin = lat.min()
             # else:
-            #     geo_aspect = np.cos(self._grid.lat.mean()*np.pi/180.0)
+            #     geo_aspect = np.cos(self._grid.lat[:].mean()*np.pi/180.0)
             #     xsize = x.ptp()*geo_aspect
             #     ysize = y.ptp()
             #     xmax = x.max()
             #     ymax = y.max()
             #     xmin = x.min()
             #     ymin = y.min()
-            geo_aspect = np.cos(self._grid.lat.mean()*np.pi/180.0)
+            geo_aspect = np.cos(self._grid.lat[:].mean()*np.pi/180.0)
             xsize = np.abs(bb[1] - bb[0]) * geo_aspect
             ysize = np.abs(bb[3] - bb[2])
             aspect = ysize/xsize
@@ -301,26 +301,17 @@ class PlotsFvcom:
             ax.set_xlim([bb[0], bb[1]])
             ax.set_ylim([bb[2], bb[3]])
             ax.set_axis_off()
-            plt.savefig('overlay.png', transparent=True)
+            plt.savefig('overlay.png', dpi=300, transparent=True)
 
             # Write kmz
             fz = zipfile.ZipFile(kmzfile, 'w')
-            if degree:
-                fz.writestr(savename+'.kml', kml_groundoverlay.replace('__NAME__', name)\
-                                                              .replace('__COLOR__', color)\
-                                                              .replace('__VISIBILITY__', visibility)\
-                                                              .replace('__SOUTH__', str(lat.min()))\
-                                                              .replace('__NORTH__', str(lat.max()))\
-                                                              .replace('__EAST__', str(lon.max()))\
-                                                              .replace('__WEST__', str(lon.min())))
-            else:
-                fz.writestr(savename+'.kml', kml_groundoverlay.replace('__NAME__', name)\
-                                                              .replace('__COLOR__', color)\
-                                                              .replace('__VISIBILITY__', visibility)\
-                                                              .replace('__SOUTH__', str(y.min()))\
-                                                              .replace('__NORTH__', str(y.max()))\
-                                                              .replace('__EAST__', str(x.max()))\
-                                                              .replace('__WEST__', str(x.min())))
+            fz.writestr(savename+'.kml', kml_groundoverlay.replace('__NAME__', name)\
+                                                          .replace('__COLOR__', color)\
+                                                          .replace('__VISIBILITY__', visibility)\
+                                                          .replace('__SOUTH__', str(bb[2]))\
+                                                          .replace('__NORTH__', str(bb[3]))\
+                                                          .replace('__EAST__', str(bb[1]))\
+                                                          .replace('__WEST__', str(bb[0])))
             fz.write('overlay.png')
             os.remove('overlay.png')
 
