@@ -81,7 +81,8 @@ def compareOBS(data, save_path, threeDim=False, depth=5, slack_velo=0.8, plot=Fa
             bins = data['obs_timeseries']['bins']
             siglay = data['mod_timeseries']['siglay']
             # use depth interpolation to get a single timeseries
-            mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
+            #mod_depth = mod_el + np.mean(obs_el[~np.isnan(obs_el)])
+            mod_depth = mod_el + data['mod_timeseries']['h']
             if depth < 0.0:
                 (mod_u, obs_u) = depthFromSurf(mod_u_all, mod_depth, siglay,
                                                obs_u_all, obs_el, bins, depth=depth,

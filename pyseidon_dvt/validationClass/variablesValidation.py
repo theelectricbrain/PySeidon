@@ -94,6 +94,7 @@ class _load_validation:
                 u = np.squeeze(self.sim.u[:, :,ind])
                 v = np.squeeze(self.sim.v[:, :,ind])
                 sig = np.squeeze(simulated.Grid.siglay[:, ind])
+                h = simulated.Grid.h[:]
 
         # Alternative simulation type
         elif simulated.__module__.split('.')[-1] == 'fvcomClass':
@@ -114,6 +115,8 @@ class _load_validation:
                                                                 self.obs.lon, self.obs.lat, nn=self._nn)
                     sig = simulated.Util3D.interpolation_at_point(simulated.Grid.siglay,
                                                                   self.obs.lon, self.obs.lat, nn=self._nn)
+                    h = simulated.Util3D.interpolation_at_point(simulated.Grid.h[:],
+                                                                self.obs.lon, self.obs.lat, nn=self._nn)
             else:  # Interpolation for drifter
                 if debug: print "...Interpolation at measurement locations & times..."
                 if self._3D:
@@ -229,7 +232,7 @@ class _load_validation:
                 sim_mod = {'ua': ua[C], 'va': va[C], 'el': el[C]}
             else:
                 sim_mod = {'ua': ua[C], 'va': va[C], 'el': el[C], 'u': u[C,:],
-                           'v': v[C,:], 'siglay': sig[:]}
+                           'v': v[C,:], 'siglay': sig[:], 'h': h}
 
             # Check what kind of observed data it is
             if observed.__module__.split('.')[-1] == 'adcpClass' or observed.__module__ == 'adcpClass':

@@ -159,7 +159,7 @@ def depthFromBott(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
         - (new_mod, new_obs) = timeseries representing model and observed data
                                at 'depth' metres from the surface.
     '''
-    if debug: print "depthFromSurf..."
+    if debug: print "depthFromBott..."
     new_mod = np.zeros(mod_data.shape[0])
     new_obs = np.zeros(obs_data.shape[0])
     depth = np.abs(depth)
@@ -198,6 +198,6 @@ def depthFromBott(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
         else:
             new_obs[ii] = np.nan
 
-    if debug: print "...depthFromSurf done."
+    if debug: print "...depthFromBott done."
 
     return (new_mod, new_obs)

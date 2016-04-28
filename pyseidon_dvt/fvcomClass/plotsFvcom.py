@@ -301,7 +301,7 @@ class PlotsFvcom:
             ax.set_xlim([bb[0], bb[1]])
             ax.set_ylim([bb[2], bb[3]])
             ax.set_axis_off()
-            plt.savefig('overlay.png', dpi=300, transparent=True)
+            plt.savefig('overlay.png', dpi=200, transparent=True)
 
             # Write kmz
             fz = zipfile.ZipFile(kmzfile, 'w')
