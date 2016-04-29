@@ -224,7 +224,13 @@ class PlotsFvcom:
         self._fig.show()
 
         # Saving
-        savename=title.lower().replace(" ","_")
+        title.replace(" ", "_")
+        title.replace("(", "_")
+        title.replace(")", "_")
+        title.replace("-", "_")
+        title.replace("/", "_")
+        title.replace(".", "_")
+        savename=title.lower()
         if png:
             if kmz:
                 self._fig.savefig("overlay.png", bbox_inches='tight', transparent=True)
@@ -362,7 +368,13 @@ class PlotsFvcom:
         self._fig.show()
 
         # Saving
-        savename=title.lower().replace(" ","_")
+        title.replace(" ", "_")
+        title.replace("(", "_")
+        title.replace(")", "_")
+        title.replace("-", "_")
+        title.replace("/", "_")
+        title.replace(".", "_")
+        savename=title.lower()
         if png:
             self._fig.savefig(savename+".png", bbox_inches='tight')
 
@@ -414,6 +426,12 @@ class PlotsFvcom:
 
         self._fig.show()
         # Saving
+        title.replace(" ", "_")
+        title.replace("(", "_")
+        title.replace(")", "_")
+        title.replace("-", "_")
+        title.replace("/", "_")
+        title.replace(".", "_")
         savename=title.lower().replace(" ","_")
         if png:
             self._fig.savefig(savename+".png", bbox_inches='tight')
@@ -464,7 +482,13 @@ class PlotsFvcom:
         self._fig.show() 
 
         # Saving
-        savename=title.lower().replace(" ","_")
+        title.replace(" ", "_")
+        title.replace("(", "_")
+        title.replace(")", "_")
+        title.replace("-", "_")
+        title.replace("/", "_")
+        title.replace(".", "_")
+        savename=title.lower()
         if png:
             self._fig.savefig(savename+".png", bbox_inches='tight')
         if dump: self._dump_profile_data_as_csv(bins[1:], unity_density,
@@ -573,6 +597,7 @@ class PlotsFvcom:
             title.replace(")", "_")
             title.replace("-", "_")
             title.replace("/", "_")
+            title.replace(".", "_")
 
         filename=title + '.shp'
 
