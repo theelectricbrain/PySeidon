@@ -224,12 +224,12 @@ class PlotsFvcom:
         self._fig.show()
 
         # Saving
-        title.replace(" ", "_")
-        title.replace("(", "_")
-        title.replace(")", "_")
-        title.replace("-", "_")
-        title.replace("/", "_")
-        title.replace(".", "_")
+        title = title.replace(" ", "_")
+        title = title.replace("(", "_")
+        title = title.replace(")", "_")
+        title = title.replace("-", "_")
+        title = title.replace("/", "_")
+        title = title.replace(".", "_")
         savename=title.lower()
         if png:
             if kmz:
@@ -368,12 +368,12 @@ class PlotsFvcom:
         self._fig.show()
 
         # Saving
-        title.replace(" ", "_")
-        title.replace("(", "_")
-        title.replace(")", "_")
-        title.replace("-", "_")
-        title.replace("/", "_")
-        title.replace(".", "_")
+        title = title.replace(" ", "_")
+        title = title.replace("(", "_")
+        title = title.replace(")", "_")
+        title = title.replace("-", "_")
+        title = title.replace("/", "_")
+        title = title.replace(".", "_")
         savename=title.lower()
         if png:
             self._fig.savefig(savename+".png", bbox_inches='tight')
@@ -426,12 +426,12 @@ class PlotsFvcom:
 
         self._fig.show()
         # Saving
-        title.replace(" ", "_")
-        title.replace("(", "_")
-        title.replace(")", "_")
-        title.replace("-", "_")
-        title.replace("/", "_")
-        title.replace(".", "_")
+        title = title.replace(" ", "_")
+        title = title.replace("(", "_")
+        title = title.replace(")", "_")
+        title = title.replace("-", "_")
+        title = title.replace("/", "_")
+        title = title.replace(".", "_")
         savename=title.lower().replace(" ","_")
         if png:
             self._fig.savefig(savename+".png", bbox_inches='tight')
@@ -482,12 +482,12 @@ class PlotsFvcom:
         self._fig.show() 
 
         # Saving
-        title.replace(" ", "_")
-        title.replace("(", "_")
-        title.replace(")", "_")
-        title.replace("-", "_")
-        title.replace("/", "_")
-        title.replace(".", "_")
+        title = title.replace(" ", "_")
+        title = title.replace("(", "_")
+        title = title.replace(")", "_")
+        title = title.replace("-", "_")
+        title = title.replace("/", "_")
+        title = title.replace(".", "_")
         savename=title.lower()
         if png:
             self._fig.savefig(savename+".png", bbox_inches='tight')
@@ -592,12 +592,12 @@ class PlotsFvcom:
         if title == ' ':
             title = 'save_map_data'
         else:  # reformat file name
-            title.replace(" ", "_")
-            title.replace("(", "_")
-            title.replace(")", "_")
-            title.replace("-", "_")
-            title.replace("/", "_")
-            title.replace(".", "_")
+            title = title.replace(" ", "_")
+            title = title.replace("(", "_")
+            title = title.replace(")", "_")
+            title = title.replace("-", "_")
+            title = title.replace("/", "_")
+            title = title.replace(".", "_")
 
         filename=title + '.shp'
 
