@@ -142,7 +142,7 @@ class PlotsFvcom:
             y = self._grid.y[:]
             if debug:
                 print "Computing bounding box..."
-            if bb is not None:
+            if bb is None:
                 bb = [x.min(), x.max(), y.min(), y.max()]
 
             if not hasattr(self._grid, 'triangleXY'):        
@@ -201,6 +201,7 @@ class PlotsFvcom:
             ticks = ticker.FuncFormatter(lambda lon, pos: '{0:g}'.format(lon/scale))
             self._ax.xaxis.set_major_formatter(ticks)
             self._ax.yaxis.set_major_formatter(ticks)
+
         self._ax.set_xlim([bb[0],bb[1]])
         self._ax.set_ylim([bb[2],bb[3]])
 
