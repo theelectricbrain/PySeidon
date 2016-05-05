@@ -166,7 +166,6 @@ class PlotsFvcom:
                 print "Computing cmax..."
             cmax=var[:].max()
         step = (cmax-cmin) / 50.0
-        levels=np.arange(cmin, (cmax+step), step)   # depth contours to plot
 
         #Figure window params
         self._def_fig()
@@ -209,7 +208,7 @@ class PlotsFvcom:
         # Isolines
         if isoline == 'bathy':
             if not isostep == None:
-                levels = list(np.arange(cmin, cmax, isostep))
+                levels = list(np.arange(round(self._grid.h.min()), round(self._grid.h.max()), isostep))
                 cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0, levels=levels)
             else:
                 cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
