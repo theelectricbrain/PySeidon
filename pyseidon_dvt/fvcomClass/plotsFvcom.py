@@ -76,7 +76,7 @@ class PlotsFvcom:
 
 
     def colormap_var(self, var, title=' ', cmin=[], cmax=[], cmap=[], bb = None,
-                     degree=True, mesh=False, isoline = 'bathy',
+                     degree=True, mesh=False, isoline = 'bathy', isostep = None,
                      dump=False, png=False, shapefile=False, kmz=False, debug=False, **kwargs):
         """
         2D xy colormap plot of any given variable and mesh.
@@ -94,7 +94,8 @@ class PlotsFvcom:
                  bb = [minimun x, maximun x, minimun y, maximum y]
           - mesh = True, with mesh; False, without mesh
           - degree = boolean, coordinates in degrees (True) or meters (False)
-          - isloline = 'bathy': bathymetric isolines, 'var': variable isolines, 'none': no isolines
+          - isoline = 'bathy': bathymetric isolines, 'var': variable isolines, 'none': no isolines
+          - isostep = increment between isolines, float
           - dump = boolean, dump profile data in csv file
           - png = boolean, save map as png
           - shapefile = boolean, save map as shapefile
@@ -207,7 +208,11 @@ class PlotsFvcom:
 
         # Isolines
         if isoline == 'bathy':
-            cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
+            if not isostep == None:
+                levels = list(np.arange(cmin, cmax, isostep))
+                cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0, levels=levels)
+            else:
+                cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
             plt.clabel(cs, fontsize=11, inline=1)
             plt.figtext(.12, .95, "Notes: white lines = bathymetric isolines", size='x-small')
         elif isoline == 'var':
@@ -216,7 +221,11 @@ class PlotsFvcom:
             else:
                 vari = var
             bounds=np.linspace(cmin,cmax,11)
-            cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
+            if not isostep == None:
+                levels = list(np.arange(cmin, cmax, isostep))
+                cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=levels)
+            else:
+                cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
             plt.clabel(cs, fontsize=11, inline=1)
             plt.figtext(.12, .95, "Notes: white lines = isolines", size='x-small')
 
