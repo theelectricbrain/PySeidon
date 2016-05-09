@@ -126,7 +126,7 @@ def regioner(gridVar, ax, debug=False):
     lnbe = len(nbe_tmp[:,0])
     #nbe_tmp2 = np.empty((1, lnbe*3))
     #TR: np.empty sometimes generates freak values
-    nbe_tmp2 = np.zeros((1, lnbe*3))
+    nbe_tmp2 = np.ones((1, lnbe*3)) * l  # ghost point default value
 
     if debug:
         print 'Re-labelling elements...'

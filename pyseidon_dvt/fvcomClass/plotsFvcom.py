@@ -179,9 +179,8 @@ class PlotsFvcom:
         if debug:
             print "Computing colormap..."
         if cmap==[]:
-            f = self._ax.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=plt.cm.gist_earth)
-        else:
-            f = self._ax.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=cmap) 
+            cmap = plt.cm.gist_earth
+        f = self._ax.tripcolor(tri, var[:],vmax=cmax,vmin=cmin,cmap=cmap)
         if mesh:
             plt.triplot(tri, color='white', linewidth=0.5)
 
@@ -241,8 +240,8 @@ class PlotsFvcom:
         title = title.replace(".", "_")
         savename=title.lower()
         if png:
-            if kmz:
-                self._fig.savefig("overlay.png", bbox_inches='tight', transparent=True)
+            #if kmz:
+            #    self._fig.savefig("overlay.png", bbox_inches='tight', transparent=True)
             self._fig.savefig(savename+".png", bbox_inches='tight')
 
         if dump:
@@ -307,16 +306,28 @@ class PlotsFvcom:
             fig = plt.figure(figsize=figsize, facecolor=None, frameon=False, dpi=pixels // 5)
             # fig = figure(facecolor=None, frameon=False, dpi=pixels//10)
             ax = fig.add_axes([0, 0, 1, 1])
-            if cmap == []:
-                pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=plt.cm.gist_earth)
-            else:
-                pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=cmap)
-            #ax.set_xlim(xmin, xmax)
-            #ax.set_ylim(ymin, ymax)
+            pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=cmap)
+
+            # Isolines
+            if isoline == 'bathy':
+                if not isostep == None:
+                    levels = list(np.arange(round(self._grid.h.min()), round(self._grid.h.max()), isostep))
+                    cs = ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0, levels=levels)
+                else:
+                    cs = ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
+                units += " & bathymetric isolines"
+            elif isoline == 'var':
+                if not isostep == None:
+                    levels = list(np.arange(cmin, cmax, isostep))
+                    cs = ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=levels)
+                else:
+                    cs = ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
+            plt.clabel(cs, fontsize=11, inline=1)
+
             ax.set_xlim([bb[0], bb[1]])
             ax.set_ylim([bb[2], bb[3]])
             ax.set_axis_off()
-            plt.savefig('overlay.png', dpi=200, transparent=True)
+            fig.savefig('overlay.png', dpi=200, transparent=True)
 
             # Write kmz
             fz = zipfile.ZipFile(kmzfile, 'w')
@@ -334,11 +345,11 @@ class PlotsFvcom:
             fig = plt.figure(figsize=(1.0, 4.0), facecolor=None, frameon=False)
             ax = fig.add_axes([0.0, 0.05, 0.2, 0.9])
             cb = fig.colorbar(pc, cax=ax)
-            cb.set_label(units, color='0.9')
+            cb.set_label(units, color='0.0')
             for lab in cb.ax.get_yticklabels():
-                plt.setp(lab, 'color', '0.9')
+                plt.setp(lab, 'color', '0.0')
 
-            plt.savefig('legend.png', transparent=True)
+            fig.savefig('legend.png', transparent=True)
             fz.write('legend.png')
             os.remove('legend.png')
             fz.close()
