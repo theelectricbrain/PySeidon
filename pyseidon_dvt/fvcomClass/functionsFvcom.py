@@ -509,6 +509,8 @@ class FunctionsFvcom:
                 dx_sph =dx_sph+360.0
             pt_x = TPI * np.cos(np.deg2rad(pt_lat + latweight)*0.5) * dx_sph
 
+            if debug: print "coordinates in meters: ", pt_x, pt_y
+
             if var.shape[-1] == self._grid.nnode:
                 varInterp = interpN_at_pt(var, pt_x, pt_y, index, trinodes,
                                           self._grid.aw0, self._grid.awx,

@@ -205,27 +205,28 @@ class PlotsFvcom:
         self._ax.set_ylim([bb[2],bb[3]])
 
         # Isolines
-        if isoline == 'bathy':
-            if not isostep == None:
-                levels = list(np.arange(round(self._grid.h.min()), round(self._grid.h.max()), isostep))
-                cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0, levels=levels)
-            else:
-                cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
-            plt.clabel(cs, fontsize=11, inline=1)
-            plt.figtext(.12, .95, "Notes: white lines = bathymetric isolines", size='x-small')
-        elif isoline == 'var':
-            if var.shape[0] == self._grid.nele:
-                vari = interp_linear_to_nodes(var, self._grid.xc, self._grid.yc, self._grid.x, self._grid.y)
-            else:
-                vari = var
-            bounds=np.linspace(cmin,cmax,11)
-            if not isostep == None:
-                levels = list(np.arange(cmin, cmax, isostep))
-                cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=levels)
-            else:
-                cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
-            plt.clabel(cs, fontsize=11, inline=1)
-            plt.figtext(.12, .95, "Notes: white lines = isolines", size='x-small')
+        if not isoline == 'none':
+            if isoline == 'bathy':
+                if not isostep == None:
+                    levels = list(np.arange(round(self._grid.h.min()), round(self._grid.h.max()), isostep))
+                    cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0, levels=levels)
+                else:
+                    cs = self._ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
+                plt.clabel(cs, fontsize=11, inline=1)
+                plt.figtext(.12, .95, "Notes: white lines = bathymetric isolines", size='x-small')
+            elif isoline == 'var':
+                if var.shape[0] == self._grid.nele:
+                    vari = interp_linear_to_nodes(var, self._grid.xc, self._grid.yc, self._grid.x, self._grid.y)
+                else:
+                    vari = var
+                bounds=np.linspace(cmin,cmax,11)
+                if not isostep == None:
+                    levels = list(np.arange(cmin, cmax, isostep))
+                    cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=levels)
+                else:
+                    cs = self._ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
+                plt.clabel(cs, fontsize=11, inline=1)
+                plt.figtext(.12, .95, "Notes: white lines = isolines", size='x-small')
 
         # Show plot
         self._ax.grid()
@@ -309,20 +310,21 @@ class PlotsFvcom:
             pc = ax.tripcolor(tri, var[:], vmax=cmax, vmin=cmin, cmap=cmap)
 
             # Isolines
-            if isoline == 'bathy':
-                if not isostep == None:
-                    levels = list(np.arange(round(self._grid.h.min()), round(self._grid.h.max()), isostep))
-                    cs = ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0, levels=levels)
-                else:
-                    cs = ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
-                units += " & bathymetric isolines"
-            elif isoline == 'var':
-                if not isostep == None:
-                    levels = list(np.arange(cmin, cmax, isostep))
-                    cs = ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=levels)
-                else:
-                    cs = ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
-            plt.clabel(cs, fontsize=11, inline=1)
+            if not isoline == 'none':
+                if isoline == 'bathy':
+                    if not isostep == None:
+                        levels = list(np.arange(round(self._grid.h.min()), round(self._grid.h.max()), isostep))
+                        cs = ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0, levels=levels)
+                    else:
+                        cs = ax.tricontour(tri, self._grid.h, colors='w', linewidths=1.0)
+                    units += " & bathymetric isolines"
+                elif isoline == 'var':
+                    if not isostep == None:
+                        levels = list(np.arange(cmin, cmax, isostep))
+                        cs = ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=levels)
+                    else:
+                        cs = ax.tricontour(tri, vari[:], vmin=cmin, vmax=cmax, colors='w', linewidths=1.0, levels=bounds)
+                plt.clabel(cs, fontsize=11, inline=1)
 
             ax.set_xlim([bb[0], bb[1]])
             ax.set_ylim([bb[2], bb[3]])
@@ -638,7 +640,7 @@ class PlotsFvcom:
         lyr = shapeData.CreateLayer("poly_layer", spatialRefi, ogr.wkbPolygon)
 
         #Features
-        if varLabel==' ': valLabel = 'var'
+        if varLabel==' ': varLabel = 'var'
         lyr.CreateField(ogr.FieldDefn(varLabel, ogr.OFTReal))
 
         if debug: print "Writing ESRI Shapefile %s..." % filename
