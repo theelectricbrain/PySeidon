@@ -22,6 +22,8 @@ from pyseidon_dvt.utilities.interpolation_utils import *
 # Local import
 from plotsValidation import taylorDiagram, benchmarksMap
 from valReport import write_report
+from pyseidon_dvt.utilities.miscellaneous import mattime_to_datetime
+
 # Custom error
 from pyseidon_dvt.utilities.pyseidon_error import PyseidonError
 
@@ -84,6 +86,12 @@ class Validation:
         if not self._multi:
             self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
             self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
+
+            # -Append message to History field
+            start = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[0]])
+            end = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[-1]])
+            text = 'Temporal domain from ' + str(start) + ' to ' + str(end)
+            self.History.append(text)
 
         # Creates folder once compatibility test passed
         if not self._outpath == './':
@@ -416,6 +424,13 @@ class Validation:
             for meas in self._observed:
                 try:
                     self.Variables = _load_validation(self._outpath, meas, self._simulated, flow=self._flow, debug=self._debug)
+
+                    # -Append message to History field
+                    start = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[0]])
+                    end = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[-1]])
+                    text = 'Temporal domain from ' + str(start) + ' to ' + str(end)
+                    self.History[1] = text
+
                     self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
                     self._validate_data(filename, depth, slack_velo, plot, save_csv, debug, debug_plot)
                     if I == 0:
