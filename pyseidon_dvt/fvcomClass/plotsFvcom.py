@@ -666,7 +666,7 @@ class PlotsFvcom:
             #Now add field values from array
             feat = ogr.Feature(lyr.GetLayerDefn())
             feat.SetGeometry(poly)
-            feat.SetField(varLabel, var[cnt])
+            feat.SetField(varLabel, float(var[cnt]))
 
             lyr.CreateFeature(feat)
             feat.Destroy()
