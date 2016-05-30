@@ -171,10 +171,13 @@ class FunctionsFvcomThreeD:
             self.depth()
         Depth = self._grid.depth[:]#otherwise to slow with netcdf4 lib
         if depth > 0.0:  # Changing vertical axis convention
-            for tt in range(Depth.shape[0]):
-                for ii in range(Depth.shape[2]):
-                    mini = np.min(np.squeeze(Depth[tt, :, ii]))
-                    Depth[tt, :, ii] = Depth[tt, :, ii] - mini
+            # for tt in range(Depth.shape[0]):
+            #     for ii in range(Depth.shape[2]):
+            #         mini = np.min(np.squeeze(Depth[tt, :, ii]))
+            #         Depth[tt, :, ii] = Depth[tt, :, ii] - mini
+            # Alternative
+            mini = np.min(Depth, axis=1)
+            Depth = Depth - mini[:, None, :]
         dep = Depth[:] - depth
         #Finding closest values to specified depth
         if ind==[]:
