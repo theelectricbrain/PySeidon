@@ -89,6 +89,7 @@ class PlotsFvcom:
           - cmin = minimum limit colorbar
           - cmax = maximum limit colorbar
           - cmap = matplolib colormap
+          - units = string, var's units
           - bb = bounding box, ex.:
                  bb = [minimun longitude, maximun longitude, minimun latitude, maximum latitude]
                  bb = [minimun x, maximun x, minimun y, maximum y]
@@ -192,8 +193,10 @@ class PlotsFvcom:
             self._ax.set_ylabel('Distance (m)')
             self._ax.set_xlabel('Distance (m)')
         self._ax.patch.set_facecolor('0.5')
+        self._ax.set_title(title)
+        units = kwargs.pop('units', '-')
         cbar=self._fig.colorbar(f, ax=self._ax)
-        cbar.set_label(title, rotation=-90,labelpad=30)
+        cbar.set_label(units, rotation=-90,labelpad=30)
         scale = 1
 
         if degree:
