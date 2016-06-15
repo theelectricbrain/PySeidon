@@ -545,7 +545,7 @@ class TidalStats:
         #try: #Fix for Drifter's data
         #    stats['phase'] = self.getPhase(debug=debug)
         #except:
-        stats['phase'] = 0.0
+        #    stats['phase'] = 0.0
         stats['phase'] = self.getPhase()
         stats['CORR'] = self.getCORR()
         stats['NRMSE'] = self.getNRMSE()
