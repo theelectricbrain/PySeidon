@@ -63,7 +63,36 @@ class FunctionsFvcom:
         print '-Central bathy and elevation added to FVCOM.Grid.-'
 
         if debug:
-            print '...Passed'   
+            print '...Passed'
+
+    def slope(self, debug=False):
+        """
+        This method computes a new variable: 'bathymetric slope' (-)
+        -> FVCOM.Grid.slope
+        """
+        x = self._grid.x[:]
+        y = self._grid.y[:]
+        if not hasattr(self._grid, 'triangleXY'):
+            # Mesh triangle
+            if debug:
+                print "Computing triangulation..."
+            trinodes = self._grid.trinodes[:]
+            tri = Tri.Triangulation(x, y, triangles=trinodes)
+            self._grid.triangleXY = tri
+        else:
+            tri = self._grid.triangleXY
+
+        if debug: print "Cubic interpolation..."
+        tci = Tri.CubicTriInterpolator(tri, self._grid.h[:])
+        (Ex, Ey) = tci.gradient(tri.x, tri.y)
+        slope = np.sqrt(Ex**2 + Ey**2)
+
+        # Custom return
+        setattr(self._grid, 'slope', slope)
+
+        # Add metadata entry
+        self._History.append('bathymetric slope computed')
+        print '-Bathymetric slope added to FVCOM.Grid.-'
 
     def hori_velo_norm(self, debug=False):
         """
