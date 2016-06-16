@@ -266,8 +266,6 @@ class _load_validation:
             for key in self._commonlist_nondata:
                 obs_mod[key] = getattr(self.obs,key)
                 
-                
-                
         else:
             self._obstype = 'drifter'
             obstype = 'Drifter'

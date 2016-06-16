@@ -429,8 +429,10 @@ class Validation:
                     start = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[0]])
                     end = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[-1]])
                     text = 'Temporal domain from ' + str(start) + ' to ' + str(end)
-                    self.History[1] = text
-
+                    try:
+                        self.History[1] = text
+                    except IndexError:
+                        self.History.append(text)
                     self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
                     self._validate_data(filename, depth, slack_velo, plot, save_csv, debug, debug_plot)
                     if I == 0:

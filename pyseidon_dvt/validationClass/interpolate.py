@@ -22,7 +22,7 @@ def interpol(data_1, data_2, time_step=timedelta(minutes=5),
     '''
     if debug: print "interpol..."
     if debug: print "...line up points in the time, step=5min..."
-    domain
+
     dt_1 = data_1['time']
     dt_2 = data_2['time']
 
