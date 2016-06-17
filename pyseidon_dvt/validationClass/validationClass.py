@@ -99,7 +99,8 @@ class Validation:
             if debug: print '-Saving results to {}-'.format(self._outpath)
         return
 
-    def _validate_data(self, filename=[], depth=[], slack_velo=0.1,  plot=False,  save_csv=False, debug=False, debug_plot=False):
+    def _validate_data(self, filename=[], depth=[], slack_velo=0.1,  plot=False,  save_csv=False, phase_shift=False,
+                       debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -109,7 +110,9 @@ class Validation:
                    Only applicable for 3D simulations.
           - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
           - plot = plot series of validation graphs, boolean.
-          - flow = flow comparison by surface flow ('sf'), depth-averaged flow ('daf') or at any depth (float)
+                       as well as associated plots in specific folder
+          - phase_shift = applies phase shift correction to model quantities
+
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -148,7 +151,7 @@ class Validation:
         if self.Variables.struct['type'] == 'ADCP':
             suites = compareOBS(self.Variables.struct, self.Variables._save_path, threeD,
                                     plot=plot, depth=depth, slack_velo=slack_velo, save_csv=save_csv,
-                                    debug=debug, debug_plot=debug_plot)
+                                    phase_shift=phase_shift, debug=debug, debug_plot=debug_plot)
                                     
             for key in suites:
                 self.Suites[key] = suites[key]
@@ -157,7 +160,7 @@ class Validation:
         elif self.Variables.struct['type'] == 'TideGauge':
             suites = compareOBS(self.Variables.struct, self.Variables._save_path,
                                       plot=plot, slack_velo=slack_velo, save_csv=save_csv,
-                                      debug=debug, debug_plot=debug_plot)
+                                      phase_shift=phase_shift, debug=debug, debug_plot=debug_plot)
             for key in suites:
                 self.Suites[key] = suites[key]
                 vars.append(key)
@@ -165,7 +168,7 @@ class Validation:
         elif self.Variables.struct['type'] == 'Drifter':
             suites = compareOBS(self.Variables.struct, self.Variables._save_path, self.Variables._3D,
                                     depth=depth, plot=plot, slack_velo=slack_velo, save_csv=save_csv,
-                                    debug=debug, debug_plot=debug_plot)
+                                    phase_shift=phase_shift, debug=debug, debug_plot=debug_plot)
 
             for key in suites:
                 self.Suites[key] = suites[key]
@@ -387,7 +390,8 @@ class Validation:
             # save dataframe in attribute
             self._HarmonicBenchmarks.velocity = table
 
-    def validate_data(self, filename=[], depth=[], slack_velo=0.1, plot=False, save_csv=False, debug=False, debug_plot=False):
+    def validate_data(self, filename=[], depth=[], slack_velo=0.1, plot=False, save_csv=False, phase_shift=False,
+                      debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
 
@@ -399,7 +403,8 @@ class Validation:
           - slack_velo = slack water's velocity (m/s), float, everything below will be dumped out
           - plot = plot series of validation graphs, boolean.
           - save_csv = will save benchmark values into *.csv file
-                       as well as associated plots in specific folderssta
+                       as well as associated plots in specific folder
+          - phase_shift = applies phase shift correction to model quantities
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -417,7 +422,7 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         if not self._multi:
-            self._validate_data(filename, depth, slack_velo, plot, save_csv, debug, debug_plot)
+            self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
             I=0
@@ -434,7 +439,7 @@ class Validation:
                     except IndexError:
                         self.History.append(text)
                     self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
-                    self._validate_data(filename, depth, slack_velo, plot, save_csv, debug, debug_plot)
+                    self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, debug, debug_plot)
                     if I == 0:
                         self.Benchmarks = self._Benchmarks
                         I += 1

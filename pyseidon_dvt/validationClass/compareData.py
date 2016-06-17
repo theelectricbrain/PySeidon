@@ -24,7 +24,7 @@ def dn2dt(datenum):
            timedelta(days=366)
 
 def compareOBS(data, save_path, threeDim=False, depth=5, slack_velo=0.8, plot=False, save_csv=False,
-              debug=False, debug_plot=False):
+              phase_shift=False, debug=False, debug_plot=False):
     """
     Does a comprehensive validation process between modeled and observed.
     Outputs a list of important statistics for each variable, calculated
@@ -217,39 +217,39 @@ def compareOBS(data, save_path, threeDim=False, depth=5, slack_velo=0.8, plot=Fa
         suites['el'] = tidalSuite(gear, mod_el_int, obs_el_int, step_el_int, start_el_int,
                                 [], [], [], [], [], [],
                                 kind='elevation', plot=plot,
-                                save_csv=save_csv, save_path=save_path,
+                                save_csv=save_csv, save_path=save_path, phase_shift=phase_shift,
                                 debug=debug, debug_plot=debug_plot)
     if hasUV:    
         suites['speed'] = tidalSuite(gear, mod_sp_int, obs_sp_int, step_sp_int, start_sp_int,
                                  [], [], [], [], [], [],
                                  kind='speed', plot=plot,
-                                 save_csv=save_csv, save_path=save_path,
+                                 save_csv=save_csv, save_path=save_path, phase_shift=phase_shift,
                                  debug=debug, debug_plot=debug_plot)
         suites['dir'] = tidalSuite(gear, mod_dr_int, obs_dr_int, step_dr_int, start_dr_int,
                                mod_u, obs_u, mod_v, obs_v,
                                mod_dt, obs_dt,
                                kind='direction', plot=plot,
-                               save_csv=save_csv, save_path=save_path,
+                               save_csv=save_csv, save_path=save_path, phase_shift=phase_shift,
                                debug=debug, debug_plot=debug_plot)
         suites['u'] = tidalSuite(gear, mod_u_int, obs_u_int, step_u_int, start_u_int,
                              [], [], [], [], [], [],
-                             kind='u velocity', plot=plot, save_csv=save_csv, save_path=save_path,
+                             kind='u velocity', plot=plot, save_csv=save_csv, save_path=save_path, phase_shift=phase_shift,
                              debug=debug, debug_plot=debug_plot)
         suites['v'] = tidalSuite(gear, mod_v_int, obs_v_int, step_v_int, start_v_int,
                              [], [], [], [], [], [],
-                             kind='v velocity', plot=plot, save_csv=save_csv, save_path=save_path,
+                             kind='v velocity', plot=plot, save_csv=save_csv, save_path=save_path, phase_shift=phase_shift,
                              debug=debug, debug_plot=debug_plot)
 
         # TR: requires special treatments from here on
         suites['vel'] = tidalSuite(gear, mod_ve_int, obs_ve_int, step_ve_int, start_ve_int,
                                mod_u, obs_u, mod_v, obs_v,
                                mod_dt, obs_dt,
-                               kind='velocity', plot=plot, save_csv=save_csv, save_path=save_path,
+                               kind='velocity', plot=plot, save_csv=save_csv, save_path=save_path, phase_shift=phase_shift,
                                debug=debug, debug_plot=debug_plot)
         suites['cubic_speed'] = tidalSuite(gear, mod_cspd_int, obs_cspd_int, step_cspd_int, start_cspd_int,
                                mod_u, obs_u, mod_v, obs_v,
                                mod_dt, obs_dt,
-                               kind='cubic speed', plot=plot, save_csv=save_csv, save_path=save_path,
+                               kind='cubic speed', plot=plot, save_csv=save_csv, save_path=save_path, phase_shift=phase_shift,
                                debug=debug, debug_plot=debug_plot)
 
     # output statistics in useful format
@@ -263,7 +263,7 @@ def compareOBS(data, save_path, threeDim=False, depth=5, slack_velo=0.8, plot=Fa
 def tidalSuite(gear, model, observed, step, start,
                model_u, observed_u, model_v, observed_v,
                model_time, observed_time,
-               kind='', plot=False, save_csv=False, save_path='./',
+               kind='', plot=False, save_csv=False, save_path='./', phase_shift=False,
                debug=False, debug_plot=False):
     """
     Create stats classes for a given tidal variable.
@@ -277,9 +277,9 @@ def tidalSuite(gear, model, observed, step, start,
     if debug: print "tidalSuite..."
     stats = TidalStats(gear, model, observed, step, start,
                        model_u = model_u, observed_u = observed_u, model_v = model_v, observed_v = observed_v,
-                       model_time = model_time, observed_time = observed_time,
+                       model_time = model_time, observed_time = observed_time, phase_shift=phase_shift,
                        kind=kind, debug=debug, debug_plot=debug_plot)
-    stats_suite = stats.getStats()
+    stats_suite = stats.getStats(phase_shift=phase_shift)
     stats_suite['r_squared'] = stats.linReg()['r_2']
     # calling special methods
     if kind == 'direction':
