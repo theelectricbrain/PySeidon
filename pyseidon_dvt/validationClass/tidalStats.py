@@ -173,11 +173,11 @@ class TidalStats:
                 # left shift
                 iM = np.s_[-phaseIndex:]
                 iO = np.s_[:self.length + phaseIndex]
-            if (phaseIndex > 0):
+            elif (phaseIndex > 0):
                 # right shift
                 iM = np.s_[:self.length - phaseIndex]
                 iO = np.s_[phaseIndex:]
-            if (phaseIndex == 0):
+            else:  # if (phaseIndex == 0):
                 # no shift
                 iM = np.s_[:]
                 iO = np.s_[:]

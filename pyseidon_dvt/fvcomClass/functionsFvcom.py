@@ -67,7 +67,7 @@ class FunctionsFvcom:
 
     def slope(self, debug=False):
         """
-        This method computes a new variable: 'bathymetric slope' (-)
+        This method computes a new variable: 'bathymetric slope' (degrees)
         -> FVCOM.Grid.slope
         """
         x = self._grid.x[:]
@@ -86,6 +86,9 @@ class FunctionsFvcom:
         tci = Tri.CubicTriInterpolator(tri, self._grid.h[:])
         (Ex, Ey) = tci.gradient(tri.x, tri.y)
         slope = np.sqrt(Ex**2 + Ey**2)
+
+        if debug: print "Conversion to degrees..."
+        slope = np.rad2deg(np.arctan(slope))
 
         # Custom return
         setattr(self._grid, 'slope', slope)
