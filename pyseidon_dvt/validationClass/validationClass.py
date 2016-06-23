@@ -445,7 +445,9 @@ class Validation:
                         I += 1
                     else:
                         self.Benchmarks = pd.concat([self.Benchmarks, self._Benchmarks])
-                except PyseidonError:
+                #except PyseidonError:
+                except:  # making it even more permissive
+                    print "Error with measurement object "+meas.History[0]
                     pass
         if save_csv:
             #if self._multi:
