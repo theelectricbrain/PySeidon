@@ -212,31 +212,41 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
         if lat < latmin: latmin = lat
     #  redefine colorbar min/max
     margin = 0.01
+    if valClass._multi_sim:
+        for sim in valClass._simulated:
+            try:
+                if 'fvcom' in sim.__module__:
+                    fvcom = sim
+                    break
+            except AttributeError:
+                continue
+    else:
+        fvcom = valClass._simulated
     indices = np.where(np.logical_and(
-                       np.logical_and(valClass._simulated.Grid.lon[:] < lonmax + margin,
-                                      valClass._simulated.Grid.lon[:] > lonmin - margin),
-                       np.logical_and(valClass._simulated.Grid.lat[:] < latmax + margin,
-                                      valClass._simulated.Grid.lat[:] > latmin - margin)))[0]
-    cmax = valClass._simulated.Grid.h[indices].max()
-    cmin = valClass._simulated.Grid.h[indices].min()
-    valClass._simulated.Plots.colormap_var(valClass._simulated.Grid.h,
+                       np.logical_and(fvcom.Grid.lon[:] < lonmax + margin,
+                                      fvcom.Grid.lon[:] > lonmin - margin),
+                       np.logical_and(fvcom.Grid.lat[:] < latmax + margin,
+                                      fvcom.Grid.lat[:] > latmin - margin)))[0]
+    cmax = fvcom.Grid.h[indices].max()
+    cmin = fvcom.Grid.h[indices].min()
+    fvcom.Plots.colormap_var(fvcom.Grid.h,
                                            title='Bathymetric Map & Measurement location(s)',
                                            cmax=cmax, cmin=cmin, isoline='var', mesh=False)
     #  redefine frame
-    valClass._simulated.Plots._ax.set_xlim([lonmin - margin, lonmax + margin])
-    valClass._simulated.Plots._ax.set_ylim([latmin - margin, latmax + margin])
+    fvcom.Plots._ax.set_xlim([lonmin - margin, lonmax + margin])
+    fvcom.Plots._ax.set_ylim([latmin - margin, latmax + margin])
     color = cmap.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
     for ii, coor in enumerate(valClass._coordinates):
         lon = coor[0]
         lat = coor[1]
         name = coor[2]
         txt = str(ii)
-        valClass._simulated.Plots._ax.scatter(lon, lat, label=name,
+        fvcom.Plots._ax.scatter(lon, lat, label=name,
                                               lw=2, s=50, color=color[ii])
-        # valClass._simulated.Plots._ax.annotate(txt, (lon, lat), size=20)
-    valClass._simulated.Plots._ax.legend()
-    valClass._simulated.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
-    valClass._simulated.Plots._fig.clear()
+        # fvcom.Plots._ax.annotate(txt, (lon, lat), size=20)
+    fvcom.Plots._ax.legend()
+    fvcom.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
+    fvcom.Plots._fig.clear()
     # image = Image(savename, width=doc.width, height=doc.height / 1.5)
     # story.append(image)
     story.append(get_image(savename, width=16*cm))
