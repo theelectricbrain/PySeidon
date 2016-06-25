@@ -260,9 +260,6 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
           ('FONT', (0,0), (-1,0), 'Times-Bold')]
 
     if benchflag:
-        story.append(NextPageTemplate('landscape'))
-        story.append(PageBreak())
-        story.append(Paragraph("Validation Benchmarks", styles['Heading2']))
         df = valClass.Benchmarks
         values = df.values.tolist()
         # clean up
@@ -271,10 +268,25 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                 if type(e) == float:
                     values[ii][jj] = float(Decimal("%.2f" % e))
         lista = [df.columns[:,].values.astype(str).tolist()] + values
-        table = Table(lista, style=ts)
-        story.append(table)
-        pgtemp.append(PageTemplate(id='landscape', frames=frameL, onPage=make_landscape))
-
+        nb_pages = -(-len(lista)/20)
+        if nb_pages == 1:
+            story.append(NextPageTemplate('landscape'))
+            story.append(PageBreak())
+            story.append(Paragraph("Validation Benchmarks", styles['Heading2']))
+            table = Table(lista, style=ts) # , repeatRows=1, rowSplitRange=20)
+            story.append(table)
+            pgtemp.append(PageTemplate(id='landscape', frames=frameL, onPage=make_landscape))
+        else:
+            for i in range(nb_pages):
+                story.append(NextPageTemplate('landscape'))
+                story.append(PageBreak())
+                if i == 0:
+                    story.append(Paragraph("Validation Benchmarks", styles['Heading2']))
+                    table = Table(lista[i*20:(i+1)*20], style=ts) # , repeatRows=1, rowSplitRange=20)
+                else:
+                    table = Table([lista[0]]+lista[(i*20)+1:(i+1)*20], style=ts) # , repeatRows=1, rowSplitRange=20)
+                story.append(table)
+                pgtemp.append(PageTemplate(id='landscape', frames=frameL, onPage=make_landscape))
     if harmoflag:
         story.append(NextPageTemplate('OneCol'))
         story.append(PageBreak())
