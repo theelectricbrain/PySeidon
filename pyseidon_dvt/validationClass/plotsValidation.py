@@ -222,13 +222,13 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     contours = ax.contour(ts, rs, rms, 5, colors='0.5')
     ax.clabel(contours, inline=1, fontsize=10, fmt='%.1f')
     # Add a figure legend
-    fig.legend(samplePoints,[p.get_label() for p in samplePoints],
-               numpoints=1, prop=dict(size='small'), loc='upper right')
+    lgd = fig.legend(samplePoints,[p.get_label() for p in samplePoints],
+                     numpoints=1, prop=dict(size='small'), loc='upper right')
     fig.tight_layout()
 
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
-            fig.savefig(savepath+fname, bbox_inches='tight')
+            fig.savefig(savepath+fname, bbox_extra_artists=(lgd,), bbox_inches='tight')
             fig.clear()
             plt.close(fig)
     else:
