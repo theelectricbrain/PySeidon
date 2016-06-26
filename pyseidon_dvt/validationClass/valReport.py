@@ -267,7 +267,10 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
             for jj, e in enumerate(l):
                 if type(e) == float:
                     values[ii][jj] = float(Decimal("%.2f" % e))
-        lista = [df.columns[:,].values.astype(str).tolist()] + values
+        # Adding id. numbers
+        for ii in range(len(values)):
+            values[ii] = [str(ii + 1)] + values[ii]
+        lista = [['Id.'] + df.columns[:,].values.astype(str).tolist()] + values
         nb_pages = -(-len(lista)/20)
         if nb_pages == 1:
             story.append(NextPageTemplate('landscape'))
@@ -299,7 +302,10 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                 for jj, e in enumerate(l):
                     if type(e) == float:
                         values[ii][jj] = float(Decimal("%.2f" % e))
-            lista = [df.columns[:,].values.astype(str).tolist()] + values
+            # Adding id. numbers
+            for ii in range(len(values)):
+                values[ii] = [str(ii+1)]+values[ii]
+            lista = [['Id.'] + df.columns[:,].values.astype(str).tolist()] + values
             table = Table(lista, style=ts)
             story.append(table)
         if type(valClass.HarmonicBenchmarks.velocity) != str:
@@ -324,10 +330,12 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                                 other in terms of their correlation, their root-mean-square difference and the ratio of \
                                 their variances.",
                                styles['BodyText']))
+        story.append(Paragraph("Measurements' identification numbers (Id.) can be found in the table above.",
+                               styles['BodyText']))
         story.append(Spacer(1, 12))
         imNb += 1
         savename = 'tmp_'+str(imNb)+'_plot.png'
-        valClass.taylor_diagram(savepath="./", fname=savename)
+        valClass.taylor_diagram(savepath="./", fname=savename, labels=False)
         # image = Image(savename, width=doc.width , height=doc.height / 2.25)
         # story.append(image)
         story.append(get_image(savename, width=16*cm))

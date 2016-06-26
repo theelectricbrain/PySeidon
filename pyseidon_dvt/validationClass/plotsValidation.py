@@ -141,7 +141,7 @@ def plotData(tidalStatClass, graph='time', savepath='', fname='', debug=False):
         fig.show()
         plt.show()
 
-def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
+def taylorDiagram(benchmarks, savepath='', fname='', labels=True, debug=False):
     """
     References:
       Taylor, K.E.:  Summarizing multiple aspects of model performance in a single diagram.
@@ -207,9 +207,13 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     sampleLenght = benchmarks['Type'].shape[0]
     colors = plt.matplotlib.cm.jet(np.linspace(0,1,sampleLenght))
     for i in range(sampleLenght):
-        l, = ax.plot(benchmarks['NRMSE'][i]/100.0, benchmarks['r2'][i],
-                    marker='$%d$' % (i+1), ms=10, ls='', mfc=colors[i], mec=colors[i],
-                    label= benchmarks['Type'][i] + " " + benchmarks['gear'][i])
+        if labels:
+            l, = ax.plot(benchmarks['NRMSE'][i]/100.0, benchmarks['r2'][i],
+                        marker='$%d$' % (i+1), ms=10, ls='', mfc=colors[i], mec=colors[i],
+                        label= benchmarks['Type'][i] + " " + benchmarks['gear'][i])
+        else:
+            l, = ax.plot(benchmarks['NRMSE'][i]/100.0, benchmarks['r2'][i],
+                        marker='$%d$' % (i+1), ms=10, ls='', mfc=colors[i], mec=colors[i])
         samplePoints.append(l)
     t = np.linspace(0, np.pi/2)
     r = np.zeros_like(t) + 1.0
@@ -222,13 +226,17 @@ def taylorDiagram(benchmarks, savepath='', fname='', debug=False):
     contours = ax.contour(ts, rs, rms, 5, colors='0.5')
     ax.clabel(contours, inline=1, fontsize=10, fmt='%.1f')
     # Add a figure legend
-    lgd = fig.legend(samplePoints,[p.get_label() for p in samplePoints],
-                     numpoints=1, prop=dict(size='small'), loc='upper right')
+    if labels:
+        lgd = fig.legend(samplePoints,[p.get_label() for p in samplePoints],
+                         numpoints=1, prop=dict(size='small'), loc='upper right')
     fig.tight_layout()
 
     if savepath.strip() and fname.strip():
         if os.exists(savepath):
-            fig.savefig(savepath+fname, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            if labels:
+                fig.savefig(savepath+fname, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            else:
+                fig.savefig(savepath+fname, bbox_inches='tight')
             fig.clear()
             plt.close(fig)
     else:

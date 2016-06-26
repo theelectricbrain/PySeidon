@@ -543,16 +543,18 @@ class Validation:
             except AttributeError:
                 raise PyseidonError("-No matching measurement-")
 
-    def taylor_diagram(self, savepath='', fname="taylor_diagram", debug=False):
+    def taylor_diagram(self, savepath='', fname="taylor_diagram", labels=True, debug=False):
         """
         Plots Taylor diagram based on the results of 'validate_data'
 
         Options:
           - savepath = folder path for saving plot, string
           - fname = filename for saving plot, string
+          - labels = labels and legend, boolean
         """
         try:
-            self._fig, self._ax = taylorDiagram(self.Benchmarks, savepath=savepath, fname=fname, debug=debug)
+            self._fig, self._ax = taylorDiagram(self.Benchmarks,
+                                                savepath=savepath, fname=fname, labels=labels, debug=debug)
         except AttributeError:
             raise PyseidonError("-validate_data needs to be run first-")
 
