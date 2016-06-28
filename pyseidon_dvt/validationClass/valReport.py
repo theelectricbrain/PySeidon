@@ -86,7 +86,7 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                            statistics mostly adhere to the benchmarks defined as standards for \
                            hydrodynamic model validation by NOAA [1]. Additional statistics have been \
                            added to provide additional clarity on the skill of the model [2, 3, 4]."
-                           , styles['BodyText']))
+                           , styles['Justify']))  # , styles['BodyText']))
     story.append(Paragraph("The present validation set is performed the following variables:"
                            , styles['BodyText']))
     if benchflag:
@@ -190,11 +190,9 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     story.append(PageBreak())
     story.append(Paragraph("Results", styles['Heading1']))
     story.append(Paragraph("The simulated and measured data sets, used in this document to generate the validation \
-                            benchmarks, cover a " + valClass.History[1].lower() + ".",
-                           styles['BodyText']))
+                            benchmarks, cover a " + valClass.History[1].lower() + ".", styles['Justify']))  # , styles['BodyText']))
     story.append(Paragraph("The following map displays the location(s) as well as the type(s) of the measurement(s)  \
-                           used in this validation report.",
-                           styles['BodyText']))
+                           used in this validation report.", styles['Justify']))  # , styles['BodyText']))
     story.append(Spacer(1, 12))
     # Map: measurement's locations
     imNb += 1
@@ -326,12 +324,12 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     if benchflag:
         story.append(NextPageTemplate('OneCol'))
         story.append(PageBreak())
-        story.append(Paragraph("The Taylor diagram above is a concise statistical summary of how well patterns match each \
+        story.append(Paragraph("Taylor Diagram", styles['Heading2']))
+        story.append(Paragraph("The Taylor diagram below is a concise statistical summary of how well patterns match each \
                                 other in terms of their correlation, their root-mean-square difference and the ratio of \
-                                their variances.",
-                               styles['BodyText']))
-        story.append(Paragraph("Measurements' identification numbers (Id.) can be found in the table above.",
-                               styles['BodyText']))
+                                their variances.", styles['Justify']))  # , styles['BodyText']))
+        story.append(Paragraph("Measurements' identification numbers (Id.) \
+                                can be found in the table above.", styles['Justify']))  # ,  styles['BodyText']))
         story.append(Spacer(1, 12))
         imNb += 1
         savename = 'tmp_'+str(imNb)+'_plot.png'

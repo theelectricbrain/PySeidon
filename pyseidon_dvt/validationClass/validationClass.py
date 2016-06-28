@@ -524,11 +524,11 @@ class Validation:
         self.HarmonicBenchmarks.elevation.drop_duplicates(inplace=True)
 
         if save_csv:
-            if self._multi_meas:
-                savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
-            else:
-                savepath = self.Variables._save_path
-            savepath = self.Variables._save_path
+            #if self._multi_meas:
+            #    savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
+            #else:
+            #    savepath = self.Variables._save_path
+            savepath = self._outpath
             try:
                 try:
                     out_file = '{}{}_elevation_harmonic_benchmarks.csv'.format(savepath, filename)
