@@ -102,9 +102,9 @@ class Validation:
             self.History.append(text)
         elif (self._multi_meas) and (not self._multi_sim):
             self._observed = observed
-            self._simulated = list(simulated)
+            self._simulated = [simulated]
         elif (not self._multi_meas) and (self._multi_sim):
-            self._observed = list(observed)
+            self._observed = [observed]
             self._simulated = simulated
         else:
             self._observed = observed
