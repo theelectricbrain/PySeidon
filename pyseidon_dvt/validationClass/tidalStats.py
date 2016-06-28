@@ -104,7 +104,6 @@ class TidalStats:
             #TR: those are not the real times though
 
         # Applying phase shift correction if needed
-        # todo: further beta-testing...it makes it worse so far
         if phase_shift:
             if debug: print "...applying phase shift..."
             try:  # Fix for Drifter's data

@@ -287,7 +287,7 @@ def tidalSuite(gear, model, observed, step, start,
         stats_suite['RMSE'] = rmse
         stats_suite['NRMSE'] = nrmse
     try: #Fix for Drifter's data
-        stats_suite['phase'] = stats.getPhase(debug=debug)
+        stats_suite['phase'] = stats.getPhase(phase_shift=phase_shift, debug=debug)
     except:
         stats_suite['phase'] = 0.0
 
