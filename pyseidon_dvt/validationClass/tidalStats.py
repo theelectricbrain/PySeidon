@@ -15,6 +15,9 @@ from sys import exit
 # local imports
 from pyseidon_dvt.utilities.BP_tools import principal_axis
 
+# Custom error
+from pyseidon_dvt.utilities.pyseidon_error import PyseidonError
+
 class TidalStats:
     """
     An object representing a set of statistics on tidal heights used
@@ -57,13 +60,16 @@ class TidalStats:
 
         # TR: pass this step if dealing with Drifter's data
         if not self.gear == 'Drifter':
-            # TR: fix for interpolation pb when 0 index or -1 index array values = nan
-            if debug: print "...trim nans at start and end of data.."
-            start_index, end_index = 0, -1
-            while np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index]):
-                start_index += 1
-            while np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index]):
-                end_index -= 1
+            try:
+                # TR: fix for interpolation pb when 0 index or -1 index array values = nan
+                if debug: print "...trim nans at start and end of data.."
+                start_index, end_index = 0, -1
+                while np.isnan(self.observed[start_index]) or np.isnan(self.model[start_index]):
+                    start_index += 1
+                while np.isnan(self.observed[end_index]) or np.isnan(self.model[end_index]):
+                    end_index -= 1
+            except IndexError:  # due too nans everywhere, itself due to no obs data at requested depth
+                raise  PyseidonError("-No matching measurement-")
 
             # Correction for bound index call
             if end_index == -1:
