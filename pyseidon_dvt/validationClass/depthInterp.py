@@ -129,7 +129,7 @@ def depthFromSurf(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
                 location = obs_depth[ii] - depth
                 new_obs[ii] = f_obs(location)
             except ValueError:
-                f_obs = interp1d(bin_nonan[::-1], col_nonan[::-1])
+                f_obs = interp1d(bin_nonan[::-1], col_nonan[::-1], bounds_error=False)
                 location = obs_depth[ii] - depth
                 new_obs[ii] = f_obs(location)
         else:
@@ -193,7 +193,7 @@ def depthFromBott(mod_data, mod_depth, siglay, obs_data, obs_depth, bins, depth=
                 f_obs = interp1d(bin_nonan, col_nonan) #, bounds_error=False)
                 new_obs[ii] = f_obs(depth)
             except ValueError:
-                f_obs = interp1d(bin_nonan[::-1], col_nonan[::-1]) #, bounds_error=False)
+                f_obs = interp1d(bin_nonan[::-1], col_nonan[::-1], bounds_error=False)
                 new_obs[ii] = f_obs(depth)
         else:
             new_obs[ii] = np.nan
