@@ -456,13 +456,17 @@ class Validation:
                             self.History[1] = text
                         except IndexError:
                             self.History.append(text)
-                        self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
+
                         self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, debug, debug_plot)
                         if I == 0:
                             self.Benchmarks = self._Benchmarks
                             I += 1
                         else:
                             self.Benchmarks = pd.concat([self.Benchmarks, self._Benchmarks])
+
+                        self._coordinates.append([np.mean(self.Variables.obs.lon),
+                                                  np.mean(self.Variables.obs.lat),
+                                                  self.Variables._obstype])
                     except PyseidonError:
                     #except:  # making it even more permissive
                         print "Error with measurement object "+meas.History[0]
