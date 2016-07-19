@@ -682,12 +682,16 @@ class FunctionsFvcom:
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
         
-        ##change end bound indices 
-        #test = self._grid.triele.shape[0]
+        ##change end bound indices
         test = -1
         n1[np.where(n1==test)[0]] = 0
         n2[np.where(n2==test)[0]] = 0
         n3[np.where(n3==test)[0]] = 0
+        # double check due to chunking and nans
+        test = self._grid.triele.shape[0]
+        n1[np.where(n1>=test)[0]] = 0
+        n2[np.where(n2>=test)[0]] = 0
+        n3[np.where(n3>=test)[0]] = 0
         #TR quick fix: due to error with pydap.proxy.ArrayProxy
         #              not able to cop with numpy.int
         N1 = []
@@ -706,19 +710,37 @@ class FunctionsFvcom:
         dvdx = np.zeros((self._grid.ntime,self._grid.nele))
         dudy = np.zeros((self._grid.ntime,self._grid.nele))
 
-        j=0
-        for i in t:
-            dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
-                      + np.multiply(self._grid.a1u[1,:], self._var.va[i,N1]) \
-                      + np.multiply(self._grid.a1u[2,:], self._var.va[i,N2]) \
-                      + np.multiply(self._grid.a1u[3,:], self._var.va[i,N3])
-            dudy[j,:] = np.multiply(self._grid.a2u[0,:], self._var.ua[i,:]) \
-                      + np.multiply(self._grid.a2u[1,:], self._var.ua[i,N1]) \
-                      + np.multiply(self._grid.a2u[2,:], self._var.ua[i,N2]) \
-                      + np.multiply(self._grid.a2u[3,:], self._var.ua[i,N3])
-            j+=1
-        if debug:
-            print "loop number ", i
+        try:
+            j=0
+            for i in t:
+                dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
+                          + np.multiply(self._grid.a1u[1,:], self._var.va[i,N1]) \
+                          + np.multiply(self._grid.a1u[2,:], self._var.va[i,N2]) \
+                          + np.multiply(self._grid.a1u[3,:], self._var.va[i,N3])
+                dudy[j,:] = np.multiply(self._grid.a2u[0,:], self._var.ua[i,:]) \
+                          + np.multiply(self._grid.a2u[1,:], self._var.ua[i,N1]) \
+                          + np.multiply(self._grid.a2u[2,:], self._var.ua[i,N2]) \
+                          + np.multiply(self._grid.a2u[3,:], self._var.ua[i,N3])
+                j+=1
+            if debug:
+                print "loop number ", i
+        except IndexError:  # Strange error due to netCDF4/utils.py
+            j=0
+            N1 = np.asarray(N1).astype(int)
+            N2 = np.asarray(N2).astype(int)
+            N3 = np.asarray(N3).astype(int)
+            for i in t:
+                dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
+                          + np.multiply(self._grid.a1u[1,:], self._var.va[i,N1]) \
+                          + np.multiply(self._grid.a1u[2,:], self._var.va[i,N2]) \
+                          + np.multiply(self._grid.a1u[3,:], self._var.va[i,N3])
+                dudy[j,:] = np.multiply(self._grid.a2u[0,:], self._var.ua[i,:]) \
+                          + np.multiply(self._grid.a2u[1,:], self._var.ua[i,N1]) \
+                          + np.multiply(self._grid.a2u[2,:], self._var.ua[i,N2]) \
+                          + np.multiply(self._grid.a2u[3,:], self._var.ua[i,N3])
+                j+=1
+            if debug:
+                print "loop number ", i
 
         vort = dvdx - dudy
 
