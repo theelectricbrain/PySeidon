@@ -83,7 +83,10 @@ class FunctionsFvcom:
             tri = self._grid.triangleXY
 
         if debug: print "Cubic interpolation..."
-        tci = Tri.CubicTriInterpolator(tri, self._grid.h[:])
+        try:
+            tci = Tri.CubicTriInterpolator(tri, self._grid.h[:])
+        except ValueError:  # quick fix for library incompatibility on Acadia's server
+            tci = Tri.CubicTriInterpolator(tri, self._grid.h[:].copy())
         (Ex, Ey) = tci.gradient(tri.x, tri.y)
         slope = np.sqrt(Ex**2 + Ey**2)
 
