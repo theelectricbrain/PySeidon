@@ -447,7 +447,7 @@ class FunctionsStation:
 
         return harmo
 
-    def Harmonic_reconstruction(self, harmo, time_ind=slice(None), debug=False, **kwarg):
+    def Harmonic_reconstruction(self, harmo, recon_time=[], time_ind=slice(None), debug=False, **kwarg):
         """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
@@ -457,6 +457,7 @@ class FunctionsStation:
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
           - time_ind = time indices to process, list of integers
+	  - recon_time = time you want the harmonic coefficients to be reconstructed at
         
         Output:
           - Reconstruct = reconstructed signal, dictionary
@@ -472,8 +473,11 @@ class FunctionsStation:
 
         """
         debug = (debug or self._debug)
-        time = self._var.matlabTime[time_ind]
-        Reconstruct = reconstruct(time, harmo)
+	if recon_time == []:
+            time = self._var.matlabTime[time_ind]
+    	else:
+	    time = recon_time
+	Reconstruct = reconstruct(time, harmo)
 
 
         return Reconstruct  
