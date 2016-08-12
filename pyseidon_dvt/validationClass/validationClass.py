@@ -106,9 +106,9 @@ class Validation:
             self.History.append(text)
         elif (self._multi_meas) and (not self._multi_sim):
             self._observed = observed
-            self._simulated = [simulated] #[simulated]
+            self._simulated = [simulated]
         elif (not self._multi_meas) and (self._multi_sim):
-            self._observed = [observed] #[observed]
+            self._observed = [observed]
             self._simulated = simulated
         else:
             self._observed = observed
@@ -164,22 +164,27 @@ class Validation:
         if depth == []: depth = 5.0
 	
 
-	# Harmonically reconstruct simulation properties at the original observed matlabTime    
+	# Harmonically reconstruct simulation properties at the original observed matlabTime if harmo is on   
 	if self.Variables.harmo['On']:
+	    observed = self.Variables.harmo['Observed']
+	    simulated = self.Variables.harmo['Simulated']
+	    # Harmonic Analysis
 	    if self.Variables._simtype == 'station':
-	        harmo_simEl = self._simulated.Util2D.Harmonic_analysis_at_point(self.Variables.harmo['nameSite'], elevation=True, velocity=False)
-                harmo_simVel = self._simulated.Util2D.Harmonic_analysis_at_point(self.Variables.harmo['nameSite'], elevation=False, velocity=True)
+	        harmo_simEl = simulated.Util2D.Harmonic_analysis_at_point(self.Variables.harmo['nameSite'], elevation=True, velocity=False)
+                harmo_simVel = simulated.Util2D.Harmonic_analysis_at_point(self.Variables.harmo['nameSite'], elevation=False, velocity=True)
             elif self.Variables._simtype == 'fvcom':
-	        harmo_simEl = self._simulated.Util2D.Harmonic_analysis_at_point(self._observed.Variables.lon, self._observed.Variables.lat, elevation=True, velocity=False)
-	        harmo_simVel = self._simulated.Util2D.Harmonic_analysis_at_point(self._observed.Variables.lon, self._observed.Variables.lat, elevation=False, velocity=True)
+	        harmo_simEl = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=True, velocity=False)
+	        harmo_simVel = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=False, velocity=True)
 	    else:
                 raise PyseidonError("--Harmonic Analysis not possible with this type of measurement--")
-	    simEl = self._simulated.Util2D.Harmonic_reconstruction(harmo_simEl, recon_time=self._observed.Variables.matlabTime)
-	    simVel = self._simulated.Util2D.Harmonic_reconstruction(harmo_simVel, recon_time=self._observed.Variables.matlabTime) 
+	    # Reconstruction at recon_time
+	    simEl = simulated.Util2D.Harmonic_reconstruction(harmo_simEl, recon_time=observed.Variables.matlabTime)
+	    simVel = simulated.Util2D.Harmonic_reconstruction(harmo_simVel, recon_time=observed.Variables.matlabTime) 
+	    # Pass reconstructed timeseries to variables structure for validation
 	    self.Variables.struct['mod_timeseries']['ua'] = simVel['u']
 	    self.Variables.struct['mod_timeseries']['va'] = simVel['v']
 	    self.Variables.struct['mod_timeseries']['el'] = simEl['h']
-	    self.Variables.struct['mod_time'] = self._observed.Variables.matlabTime
+	    self.Variables.struct['mod_time'] = observed.Variables.matlabTime
 	
 	#initialisation
         vars = []
