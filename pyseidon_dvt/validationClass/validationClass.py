@@ -13,11 +13,11 @@ from os.path import exists
 from math import *
 from cmath import *
 
-#Quick fix
+# Quick fix
 from scipy.io import savemat
 from utide import solve
 
-#Local import
+# Local import
 from compareData import *
 from valTable import valTable
 from variablesValidation import _load_validation
@@ -232,6 +232,7 @@ class Validation:
         pd.reset_option('display.max_rows')
 
 	# Reload _load_validation to return original values
+	# Is this even needed? -Jeremy
 	#print '-- Reloading Validation Variables --'
 	#self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)	
 
@@ -300,10 +301,10 @@ class Validation:
 
 
         # find matching and non-matching coef & hold their magnitude and phase for comparison
-        matchElCoef = []
-        matchElCoefInd = []
-	matchEl_Adiff = []
-	matchEl_gdiff = []
+        matchElCoef = [] # Coefficient Names
+        matchElCoefInd = [] # Coefficient Names' Indexes
+	matchEl_Adiff = [] # Coefficents' Maginitude Difference
+	matchEl_gdiff = [] # Coefficients' Phase Difference
         for i1, key1 in enumerate(self.Variables.sim.elCoef['name']):
             for i2, key2 in enumerate(self.Variables.obs.elCoef['name']):
                 if key1 == key2:
@@ -315,7 +316,8 @@ class Validation:
         matchElCoefInd=np.array(matchElCoefInd)
         noMatchElCoef = np.delete(self.Variables.sim.elCoef['name'], matchElCoefInd[:,0])
         np.hstack((noMatchElCoef, np.delete(self.Variables.obs.elCoef['name'], matchElCoefInd[:,1])))
-
+	
+	# Repeat for Velocity Coefficients
         matchVelCoef = []
         matchVelCoefInd = []
 	matchVel_LsmajDiff = []
@@ -339,6 +341,7 @@ class Validation:
             pass
 
 	# Compare largest ten obs. vs sim. coefficients visually on Polar plots
+	# I would prefer to have these plots saved to the directory created by validate_harmonics()
 	top10_el = zip(matchEl_Adiff, matchElCoef, matchEl_gdiff)
 	top10_el.sort()
 	top10_el = top10_el[-10:]
