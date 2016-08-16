@@ -222,24 +222,25 @@ class Station:
         #Find matching elements
         origNele = self.Grid.nele
         origEle = []
-        #origName = self.Grid.name
-        origX = self.Grid.x[:]
-        origY = self.Grid.y[:]
+        origName = self.Grid.name
+        #origX = self.Grid.x[:]
+        #origY = self.Grid.y[:]
         newNele = StationClass.Grid.nele
         newEle = []
-        #newName = StationClass.Grid.name
-        newX = StationClass.Grid.x[:]
-        newY = StationClass.Grid.y[:]
+        newName = StationClass.Grid.name
+        #newX = StationClass.Grid.x[:]
+        #newY = StationClass.Grid.y[:]
         for i in range(origNele):
             for j in range(newNele):
                 #Match based on names
                 #if (all(origName[i,:]==newName[j,:])):
+		if origName[i]==newName[j]:
+		    origEle.append(i)
+                    newEle.append(j)
+                #Match based on coordinates
+                #if ((origX[i]==newX[j]) and (origY[i]==newY[j])):
                 #    origEle.append(i)
                 #    newEle.append(j)
-                #Match based on coordinates
-                if ((origX[i]==newX[j]) and (origY[i]==newY[j])):
-                    origEle.append(i)
-                    newEle.append(j)
                 
         print len(origEle), " points will be stacked..."
 

@@ -85,7 +85,10 @@ class FunctionsFvcom:
             tri = self._grid.triangleXY
 
         if debug: print "Cubic interpolation..."
-        tci = Tri.CubicTriInterpolator(tri, self._grid.h[:])
+        try:
+            tci = Tri.CubicTriInterpolator(tri, self._grid.h[:])
+        except ValueError:  # quick fix for library incompatibility on Acadia's server
+            tci = Tri.CubicTriInterpolator(tri, self._grid.h[:].copy())
         (Ex, Ey) = tci.gradient(tri.x, tri.y)
         slope = np.sqrt(Ex**2 + Ey**2)
 
@@ -1124,7 +1127,7 @@ class FunctionsFvcom:
 
         return harmo
 
-    def Harmonic_reconstruction(self, harmo, time_ind=slice(None), debug=False, **kwarg):
+    def Harmonic_reconstruction(self, harmo, recon_time=[], time_ind=slice(None), debug=False, **kwarg):
         """
         This function reconstructs the velocity components or the surface elevation
         from harmonic coefficients.
@@ -1134,7 +1137,8 @@ class FunctionsFvcom:
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
           - time_ind = time indices to process, list of integers
-        
+          - recon_time = time you want the harmonic coefficients to be reconstructed at
+
         Output:
           - Reconstruct = reconstructed signal, dictionary
 
@@ -1149,8 +1153,11 @@ class FunctionsFvcom:
 
         """
         debug = (debug or self._debug)
-        time = self._var.matlabTime[time_ind]
-        #TR_comments: Add debug flag in Utide: debug=self._debug
+	if recon_time == []:
+            time = self._var.matlabTime[time_ind]
+    	else:
+	    time = recon_time
+	#TR_comments: Add debug flag in Utide: debug=self._debug
         Reconstruct = reconstruct(time,harmo)
 
         return Reconstruct  

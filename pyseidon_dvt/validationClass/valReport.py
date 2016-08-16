@@ -195,59 +195,64 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
                            used in this validation report.", styles['Justify']))  # , styles['BodyText']))
     story.append(Spacer(1, 12))
     # Map: measurement's locations
-    imNb += 1
-    savename = 'tmp_'+str(imNb)+'_plot.png'
-    lonmax = -1.0 * np.inf
-    lonmin = np.inf
-    latmax = -1.0 * np.inf
-    latmin = np.inf
-    for ii, coor in enumerate(valClass._coordinates):
-        lon = coor[0]
-        lat = coor[1]
-        if lon > lonmax: lonmax = lon
-        if lat > latmax: latmax = lat
-        if lon < lonmin: lonmin = lon
-        if lat < latmin: latmin = lat
-    #  redefine colorbar min/max
-    margin = 0.01
-    if valClass._multi_sim:
-        for sim in valClass._simulated:
-            try:
-                if 'fvcom' in sim.__module__:
-                    fvcom = sim
-                    break
-            except AttributeError:
-                continue
-    else:
-        fvcom = valClass._simulated
-    indices = np.where(np.logical_and(
-                       np.logical_and(fvcom.Grid.lon[:] < lonmax + margin,
-                                      fvcom.Grid.lon[:] > lonmin - margin),
-                       np.logical_and(fvcom.Grid.lat[:] < latmax + margin,
-                                      fvcom.Grid.lat[:] > latmin - margin)))[0]
-    cmax = fvcom.Grid.h[indices].max()
-    cmin = fvcom.Grid.h[indices].min()
-    fvcom.Plots.colormap_var(fvcom.Grid.h,
-                                           title='Bathymetric Map & Measurement location(s)',
-                                           cmax=cmax, cmin=cmin, isoline='var', mesh=False)
-    #  redefine frame
-    fvcom.Plots._ax.set_xlim([lonmin - margin, lonmax + margin])
-    fvcom.Plots._ax.set_ylim([latmin - margin, latmax + margin])
-    color = cmap.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
-    for ii, coor in enumerate(valClass._coordinates):
-        lon = coor[0]
-        lat = coor[1]
-        name = coor[2]
-        txt = str(ii)
-        fvcom.Plots._ax.scatter(lon, lat, label=name,
-                                              lw=2, s=50, color=color[ii])
-        # fvcom.Plots._ax.annotate(txt, (lon, lat), size=20)
-    fvcom.Plots._ax.legend()
-    fvcom.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
-    fvcom.Plots._fig.clear()
-    # image = Image(savename, width=doc.width, height=doc.height / 1.5)
-    # story.append(image)
-    story.append(get_image(savename, width=16*cm))
+    #    TR: Quick Fix for stationClass - try/except
+    try:
+        imNb += 1
+        savename = 'tmp_'+str(imNb)+'_plot.png'
+        lonmax = -1.0 * np.inf
+        lonmin = np.inf
+        latmax = -1.0 * np.inf
+        latmin = np.inf
+        for ii, coor in enumerate(valClass._coordinates):
+            lon = coor[0]
+            lat = coor[1]
+            if lon > lonmax: lonmax = lon
+            if lat > latmax: latmax = lat
+            if lon < lonmin: lonmin = lon
+            if lat < latmin: latmin = lat
+        #  redefine colorbar min/max
+        margin = 0.01
+        if valClass._multi_sim:
+            for sim in valClass._simulated:
+                try:
+                    if 'fvcom' in sim.__module__:
+                        fvcom = sim
+                        break
+                except AttributeError:
+                    continue
+        else:
+            fvcom = valClass._simulated
+        indices = np.where(np.logical_and(
+                           np.logical_and(fvcom.Grid.lon[:] < lonmax + margin,
+                                          fvcom.Grid.lon[:] > lonmin - margin),
+                           np.logical_and(fvcom.Grid.lat[:] < latmax + margin,
+                                          fvcom.Grid.lat[:] > latmin - margin)))[0]
+        cmax = fvcom.Grid.h[indices].max()
+        cmin = fvcom.Grid.h[indices].min()
+        fvcom.Plots.colormap_var(fvcom.Grid.h,
+                                               title='Bathymetric Map & Measurement location(s)',
+                                               cmax=cmax, cmin=cmin, isoline='var', mesh=False)
+        #  redefine frame
+        fvcom.Plots._ax.set_xlim([lonmin - margin, lonmax + margin])
+        fvcom.Plots._ax.set_ylim([latmin - margin, latmax + margin])
+        color = cmap.rainbow(np.linspace(0, 1, len(valClass._coordinates)))
+        for ii, coor in enumerate(valClass._coordinates):
+            lon = coor[0]
+            lat = coor[1]
+            name = coor[2]
+            txt = str(ii)
+            fvcom.Plots._ax.scatter(lon, lat, label=name,
+                                                  lw=2, s=50, color=color[ii])
+            # fvcom.Plots._ax.annotate(txt, (lon, lat), size=20)
+        fvcom.Plots._ax.legend()
+        fvcom.Plots._fig.savefig(savename, format='png', bbox_inches='tight')
+        fvcom.Plots._fig.clear()
+        # image = Image(savename, width=doc.width, height=doc.height / 1.5)
+        # story.append(image)
+        story.append(get_image(savename, width=16*cm))
+    except ValueError:
+        pass
+    #    TR: end quick fix for stationfile
 
     pgtemp.append(PageTemplate(id='OneCol', frames=frameP, onPage=footpagenumber))
 
