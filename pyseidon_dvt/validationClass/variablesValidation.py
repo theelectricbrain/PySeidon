@@ -21,7 +21,8 @@ class _load_validation:
 
                              _obs. = measurement/observational variables
       Validation.Variables._|_sim. = simulated variables
-                            |_struct. = dictionnary structure for validation purposes
+                            |_struct. = dictionary structure for validation purposes
+			    |_harmo. = dictionary stricture for harmonic analysis validation purposes
 
     """
     def __init__(self, outpath, observed, simulated, flow='sf', nn=True, debug=False, debug_plot=False):
@@ -65,8 +66,15 @@ class _load_validation:
             self._c = np.asarray(c)
 
             if len(C) == 0:
-                raise PyseidonError("---Time between simulation and measurement does not match up---")
-        except AttributeError:
+                print "---Time between simulation and measurement does not match up, only Harmonic Analysis can be done---"
+		self.harmo = {'On':True, 'Observed':observed, 'Simulated':simulated}
+		C = np.where(self.sim.matlabTime[:] >= simMin)[0].tolist()
+		c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
+		self._C = np.asarray(C)
+		self._c = np.asarray(c)
+	    else:
+		self.harmo = {'On':False}
+	except AttributeError:
             raise PyseidonError("---Observations missing matlabTime comparison is impossible---")
 
         # Check which variables are available in the observations for comparison
@@ -85,7 +93,8 @@ class _load_validation:
                 nameSite = ''.join(simulated.Grid.name[ind,:][0,:])
             except IndexError:  # TR: quick fix
                 nameSite = ''.join(simulated.Grid.name[ind])
-            print "Station site: " + nameSite
+            self.harmo['nameSite'] = nameSite
+	    print "Station site: " + nameSite
             self.sim.lat = simulated.Grid.lat[ind]
             el = self.sim.el[:, ind].ravel()
             ua = self.sim.ua[:, ind].ravel()
