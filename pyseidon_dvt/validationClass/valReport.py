@@ -191,12 +191,12 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     story.append(Paragraph("Results", styles['Heading1']))
     story.append(Paragraph("The simulated and measured data sets, used in this document to generate the validation \
                             benchmarks, cover a " + valClass.History[1].lower() + ".", styles['Justify']))  # , styles['BodyText']))
-    story.append(Paragraph("The following map displays the location(s) as well as the type(s) of the measurement(s)  \
-                           used in this validation report.", styles['Justify']))  # , styles['BodyText']))
-    story.append(Spacer(1, 12))
-    # Map: measurement's locations
     #    TR: Quick Fix for stationClass - try/except
     try:
+        story.append(Paragraph("The following map displays the location(s) as well as the type(s) of the measurement(s)  \
+                               used in this validation report.", styles['Justify']))  # , styles['BodyText']))
+        story.append(Spacer(1, 12))
+        # Map: measurement's locations
         imNb += 1
         savename = 'tmp_'+str(imNb)+'_plot.png'
         lonmax = -1.0 * np.inf

@@ -234,8 +234,8 @@ class Station:
             for j in range(newNele):
                 #Match based on names
                 #if (all(origName[i,:]==newName[j,:])):
-		if origName[i]==newName[j]:
-		    origEle.append(i)
+                if origName[i] == newName[j]:
+                    origEle.append(i)
                     newEle.append(j)
                 #Match based on coordinates
                 #if ((origX[i]==newX[j]) and (origY[i]==newY[j])):
