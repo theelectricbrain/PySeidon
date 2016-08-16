@@ -15,6 +15,8 @@ import matplotlib.tri as Tri
 from pydap.exceptions import ServerError
 from pyseidon_dvt.utilities.pyseidon_error import PyseidonError
 
+from progressbar import ProgressBar
+
 class FunctionsFvcom:
     """
     **'Util2D' subset of FVCOM class gathers useful functions and methods for 2D and 3D runs**
@@ -684,14 +686,14 @@ class FunctionsFvcom:
         
         ##change end bound indices
         test = -1
-        n1[np.where(n1==test)[0]] = 0
-        n2[np.where(n2==test)[0]] = 0
-        n3[np.where(n3==test)[0]] = 0
+        n1[np.where(n1 == test)[0]] = 0
+        n2[np.where(n2 == test)[0]] = 0
+        n3[np.where(n3 == test)[0]] = 0
         # double check due to chunking and nans
-        test = self._grid.triele.shape[0]
-        n1[np.where(n1>=test)[0]] = 0
-        n2[np.where(n2>=test)[0]] = 0
-        n3[np.where(n3>=test)[0]] = 0
+        test = self._grid.triele.nele - 1
+        n1[np.where(n1 > test)[0]] = -1
+        n2[np.where(n2 > test)[0]] = -1
+        n3[np.where(n3 > test)[0]] = -1
         #TR quick fix: due to error with pydap.proxy.ArrayProxy
         #              not able to cop with numpy.int
         N1 = []
@@ -729,7 +731,8 @@ class FunctionsFvcom:
             N1 = np.asarray(N1).astype(int)
             N2 = np.asarray(N2).astype(int)
             N3 = np.asarray(N3).astype(int)
-            for i in t:
+            pbar = ProgressBar()
+            for i in pbar(t):
                 dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
                           + np.multiply(self._grid.a1u[1,:], self._var.va[i,N1]) \
                           + np.multiply(self._grid.a1u[2,:], self._var.va[i,N2]) \

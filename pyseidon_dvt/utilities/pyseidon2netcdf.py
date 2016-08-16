@@ -37,6 +37,8 @@ def pyseidon_to_netcdf(fvcom, filename, exceptions=[], compression=False, debug=
     f = nc.Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     #history attribut
     f.history = fvcom.History[:]
+    #source attribut
+    f.source = "FVCOM model"
 
     #create dimensions
     if not fvcom.Variables._3D:
