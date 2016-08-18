@@ -374,8 +374,11 @@ def write_report(valClass, report_title="validation_report.pdf", debug=False):
     doc.build(story)
     # remove tmp plots
     for ii in range(imNb+1):
-        savename = 'tmp_'+str(ii)+'_plot.png'
-        os.remove(savename)
+        try:  # TR: quick fix for station objects
+            savename = 'tmp_'+str(ii)+'_plot.png'
+            os.remove(savename)
+        except OSError:
+            continue
 
 
 def footpagenumber(canvas, doc):
