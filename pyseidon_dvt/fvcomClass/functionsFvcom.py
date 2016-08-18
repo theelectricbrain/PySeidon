@@ -15,8 +15,6 @@ import matplotlib.tri as Tri
 from pydap.exceptions import ServerError
 from pyseidon_dvt.utilities.pyseidon_error import PyseidonError
 
-from progressbar import ProgressBar
-
 class FunctionsFvcom:
     """
     **'Util2D' subset of FVCOM class gathers useful functions and methods for 2D and 3D runs**
@@ -734,8 +732,7 @@ class FunctionsFvcom:
             N1 = np.asarray(N1).astype(int)
             N2 = np.asarray(N2).astype(int)
             N3 = np.asarray(N3).astype(int)
-            pbar = ProgressBar()
-            for i in pbar(t):
+            for i in t:
                 dvdx[j,:] = np.multiply(self._grid.a1u[0,:], self._var.va[i,:]) \
                           + np.multiply(self._grid.a1u[1,:], self._var.va[i,N1]) \
                           + np.multiply(self._grid.a1u[2,:], self._var.va[i,N2]) \
