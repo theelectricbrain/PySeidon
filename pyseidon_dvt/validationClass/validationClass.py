@@ -120,7 +120,8 @@ class Validation:
             if debug: print '-Saving results to {}-'.format(self._outpath)
         return
 
-    def _validate_data(self, filename=[], depth=[], slack_velo=0.1,  plot=False,  save_csv=False, phase_shift=False,
+    def _validate_data(self, filename=[], depth=[], slack_velo=0.1,
+                       plot=False,  save_csv=False, phase_shift=False, harmo_reconstruct=False,
                        debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -133,7 +134,8 @@ class Validation:
           - plot = plot series of validation graphs, boolean.
                        as well as associated plots in specific folder
           - phase_shift = applies phase shift correction to model quantities
-
+          - harmo_reconstruct = uses harmonic reconstruction is there is no matching period between
+                                measurements and simulation
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -161,32 +163,34 @@ class Validation:
         if (depth == [] and self.Variables._3D):
             depth = input('Depth from surface at which the validation will be performed: ')
             depth = float(depth)
-        if depth == []: depth = 5.0
-	
+        if depth == []:
+            depth = 5.0
 
-	# Harmonically reconstruct simulation properties at the original observed matlabTime if harmo is on   
-	if self.Variables.harmo['On']:
-	    observed = self.Variables.harmo['Observed']
-	    simulated = self.Variables.harmo['Simulated']
-	    # Harmonic Analysis
-	    if self.Variables._simtype == 'station':
-	        harmo_simEl = simulated.Util2D.Harmonic_analysis_at_point(self.Variables.harmo['nameSite'], elevation=True, velocity=False)
+        # Harmonically reconstruct simulation properties at the original observed matlabTime if harmo is on
+        if self.Variables.harmo['On'] and harmo_reconstruct:
+            observed = self.Variables.harmo['Observed']
+            simulated = self.Variables.harmo['Simulated']
+            # Harmonic Analysis
+            if self.Variables._simtype == 'station':
+                harmo_simEl = simulated.Util2D.Harmonic_analysis_at_point(self.Variables.harmo['nameSite'], elevation=True, velocity=False)
                 harmo_simVel = simulated.Util2D.Harmonic_analysis_at_point(self.Variables.harmo['nameSite'], elevation=False, velocity=True)
             elif self.Variables._simtype == 'fvcom':
-	        harmo_simEl = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=True, velocity=False)
-	        harmo_simVel = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=False, velocity=True)
-	    else:
+                harmo_simEl = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=True, velocity=False)
+                harmo_simVel = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=False, velocity=True)
+            else:
                 raise PyseidonError("--Harmonic Analysis not possible with this type of measurement--")
-	    # Reconstruction at recon_time
-	    simEl = simulated.Util2D.Harmonic_reconstruction(harmo_simEl, recon_time=observed.Variables.matlabTime)
-	    simVel = simulated.Util2D.Harmonic_reconstruction(harmo_simVel, recon_time=observed.Variables.matlabTime) 
-	    # Pass reconstructed timeseries to variables structure for validation
-	    self.Variables.struct['mod_timeseries']['ua'] = simVel['u']
-	    self.Variables.struct['mod_timeseries']['va'] = simVel['v']
-	    self.Variables.struct['mod_timeseries']['el'] = simEl['h']
-	    self.Variables.struct['mod_time'] = observed.Variables.matlabTime
-	
-	#initialisation
+            # Reconstruction at recon_time
+            simEl = simulated.Util2D.Harmonic_reconstruction(harmo_simEl, recon_time=observed.Variables.matlabTime)
+            simVel = simulated.Util2D.Harmonic_reconstruction(harmo_simVel, recon_time=observed.Variables.matlabTime)
+            # Pass reconstructed timeseries to variables structure for validation
+            self.Variables.struct['mod_timeseries']['ua'] = simVel['u']
+            self.Variables.struct['mod_timeseries']['va'] = simVel['v']
+            self.Variables.struct['mod_timeseries']['el'] = simEl['h']
+            self.Variables.struct['mod_time'] = observed.Variables.matlabTime
+        else:
+            raise PyseidonError("-no matching period. Use 'harmo_reconstruct' option-")
+
+        #initialisation
         vars = []
         self.Suites={}
         threeD = self.Variables.sim._3D
@@ -225,13 +229,13 @@ class Validation:
         self._Benchmarks = valTable(self.Variables.struct, self.Suites, self.Variables._save_path, filename,  vars,
                                     save_csv=save_csv, debug=debug, debug_plot=debug_plot)
 	        
-	# Display csv
+    # Display csv
         print "---Validation benchmarks---"
         pd.set_option('display.max_rows', len(self._Benchmarks))
         print(self._Benchmarks)
         pd.reset_option('display.max_rows')
 
-	# Reload _load_validation to return original values
+    # Reload _load_validation to return original values
 	# Is this even needed? -Jeremy
 	#print '-- Reloading Validation Variables --'
 	#self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)	

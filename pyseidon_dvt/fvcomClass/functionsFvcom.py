@@ -1101,7 +1101,7 @@ class FunctionsFvcom:
                 time = time[argtime[:]]
                 u = u[argtime[:]]
                 v = v[argtime[:]]
-
+            # TODO: bug here. Index outside of lat's index range
             lat = self._grid.lat[index]
             harmo = solve(time, u, v, lat, **kwarg)
 
@@ -1117,7 +1117,7 @@ class FunctionsFvcom:
             if not argtime==[]:
                 time = time[argtime[:]]
                 el = el[argtime[:]]
-
+            # TODO: bug here. Index outside of lat's index range
             lat = self._grid.lat[index]
             harmo = solve(time, el, None, lat, **kwarg)
             #Write meta-data only if computed over all the elements

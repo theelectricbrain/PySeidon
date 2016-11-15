@@ -22,7 +22,7 @@ class _load_validation:
                              _obs. = measurement/observational variables
       Validation.Variables._|_sim. = simulated variables
                             |_struct. = dictionary structure for validation purposes
-			    |_harmo. = dictionary stricture for harmonic analysis validation purposes
+                            |_harmo. = dictionary stricture for harmonic analysis validation purposes
 
     """
     def __init__(self, outpath, observed, simulated, flow='sf', nn=True, debug=False, debug_plot=False):
@@ -67,14 +67,14 @@ class _load_validation:
 
             if len(C) == 0:
                 print "---Time between simulation and measurement does not match up, only Harmonic Analysis can be done---"
-		self.harmo = {'On':True, 'Observed':observed, 'Simulated':simulated}
-		C = np.where(self.sim.matlabTime[:] >= simMin)[0].tolist()
-		c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
-		self._C = np.asarray(C)
-		self._c = np.asarray(c)
-	    else:
-		self.harmo = {'On':False}
-	except AttributeError:
+                self.harmo = {'On':True, 'Observed':observed, 'Simulated':simulated}
+                C = np.where(self.sim.matlabTime[:] >= simMin)[0].tolist()
+                c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
+                self._C = np.asarray(C)
+                self._c = np.asarray(c)
+            else:
+                self.harmo = {'On':False}
+        except AttributeError:
             raise PyseidonError("---Observations missing matlabTime comparison is impossible---")
 
         # Check which variables are available in the observations for comparison
