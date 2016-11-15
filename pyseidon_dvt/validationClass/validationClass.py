@@ -188,7 +188,8 @@ class Validation:
             self.Variables.struct['mod_timeseries']['el'] = simEl['h']
             self.Variables.struct['mod_time'] = observed.Variables.matlabTime
         else:
-            raise PyseidonError("-no matching period. Use 'harmo_reconstruct' option-")
+            # raise PyseidonError("-no matching period. Use 'harmo_reconstruct' option-")
+            print "-no matching period. Use 'harmo_reconstruct' option-"
 
         #initialisation
         vars = []
@@ -530,7 +531,7 @@ class Validation:
             I=0
             for sim in self._simulated:
                 for meas in self._observed:
-                    try:
+                    #try:
                         self.Variables = _load_validation(self._outpath, meas, sim, flow=self._flow, debug=self._debug)
 
                         # -Append message to History field
@@ -552,10 +553,10 @@ class Validation:
                         self._coordinates.append([np.mean(self.Variables.obs.lon),
                                                   np.mean(self.Variables.obs.lat),
                                                   self.Variables._obstype])
-                    except PyseidonError:
+                    #except PyseidonError:
                     #except:  # making it even more permissive
-                        print "Error with measurement object "+meas.History[0]
-                        continue
+                    #    print "Error with measurement object "+meas.History[0]
+                    #    continue
         if save_csv:
             #if self._multi_meas:
             #    savepath = self.Variables._save_path[:(self.Variables._save_path[:-1].rfind('/')+1)]
