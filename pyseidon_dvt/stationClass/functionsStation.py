@@ -456,8 +456,9 @@ class FunctionsStation:
 
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
+        Options:
           - time_ind = time indices to process, list of integers
-	  - recon_time = time you want the harmonic coefficients to be reconstructed at
+          - recon_time = matlab times you want the harmonic coefficients to be reconstructed at
         
         Output:
           - Reconstruct = reconstructed signal, dictionary
@@ -473,11 +474,9 @@ class FunctionsStation:
 
         """
         debug = (debug or self._debug)
-	if recon_time == []:
-            time = self._var.matlabTime[time_ind]
-    	else:
-	    time = recon_time
-	Reconstruct = reconstruct(time, harmo)
+        if recon_time == []:
+            times = self._var.matlabTime[time_ind]
+        else:
+            times = recon_time
 
-
-        return Reconstruct  
+        return reconstruct(times, harmo)

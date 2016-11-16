@@ -680,7 +680,7 @@ class FunctionsFvcom:
 
         t = np.arange(self._grid.ntime)  
 
-        #Surrounding elements
+        # Surrounding elements
         n1 = self._grid.triele[:,0]
         n2 = self._grid.triele[:,1]
         n3 = self._grid.triele[:,2]
@@ -1133,6 +1133,8 @@ class FunctionsFvcom:
 
         Inputs:
           - Harmo = harmonic coefficient from harmo_analysis
+
+        Options:
           - time_ind = time indices to process, list of integers
           - recon_time = time you want the harmonic coefficients to be reconstructed at
 
@@ -1150,11 +1152,10 @@ class FunctionsFvcom:
 
         """
         debug = (debug or self._debug)
-	if recon_time == []:
+        if recon_time == []:
             time = self._var.matlabTime[time_ind]
-    	else:
-	    time = recon_time
-	#TR_comments: Add debug flag in Utide: debug=self._debug
-        Reconstruct = reconstruct(time,harmo)
+        else:
+            time = recon_time
+        #TR_comments: Add debug flag in Utide: debug=self._debug
 
-        return Reconstruct  
+        return reconstruct(time,harmo)

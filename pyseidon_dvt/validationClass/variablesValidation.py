@@ -66,7 +66,6 @@ class _load_validation:
             self._c = np.asarray(c)
 
             if len(C) == 0:
-                print "---Time between simulation and measurement does not match up, only Harmonic Analysis can be done---"
                 self.harmo = {'On':True, 'Observed':observed, 'Simulated':simulated}
                 C = np.where(self.sim.matlabTime[:] >= simMin)[0].tolist()
                 c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
@@ -94,7 +93,7 @@ class _load_validation:
             except IndexError:  # TR: quick fix
                 nameSite = ''.join(simulated.Grid.name[ind])
             self.harmo['nameSite'] = nameSite
-	    print "Station site: " + nameSite
+            print "Station site: " + nameSite
             self.sim.lat = simulated.Grid.lat[ind]
             el = self.sim.el[:, ind].ravel()
             ua = self.sim.ua[:, ind].ravel()

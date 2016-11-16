@@ -100,7 +100,7 @@ class Validation:
             self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
 
             # -Append message to History field
-	    start = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[0]])
+            start = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[0]])
             end = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[-1]])
             text = 'Temporal domain from ' + str(start) + ' to ' + str(end)
             self.History.append(text)
@@ -178,7 +178,7 @@ class Validation:
                 harmo_simEl = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=True, velocity=False)
                 harmo_simVel = simulated.Util2D.Harmonic_analysis_at_point(observed.Variables.lon, observed.Variables.lat, elevation=False, velocity=True)
             else:
-                raise PyseidonError("--Harmonic Analysis not possible with this type of measurement--")
+                raise PyseidonError("--Harmonic Analysis not possible with this type of simulation--")
             # Reconstruction at recon_time
             simEl = simulated.Util2D.Harmonic_reconstruction(harmo_simEl, recon_time=observed.Variables.matlabTime)
             simVel = simulated.Util2D.Harmonic_reconstruction(harmo_simVel, recon_time=observed.Variables.matlabTime)
@@ -188,10 +188,9 @@ class Validation:
             self.Variables.struct['mod_timeseries']['el'] = simEl['h']
             self.Variables.struct['mod_time'] = observed.Variables.matlabTime
         else:
-            raise PyseidonError("-no matching period. Use 'harmo_reconstruct' option-")
-            #print "-no matching period. Use 'harmo_reconstruct' option-"
+            raise PyseidonError("---Time between simulation and measurement does not match up, only Harmonic Analysis can be done---")
 
-        #initialisation
+        # Initialisation
         vars = []
         self.Suites={}
         threeD = self.Variables.sim._3D
@@ -229,17 +228,11 @@ class Validation:
         # Make csv file
         self._Benchmarks = valTable(self.Variables.struct, self.Suites, self.Variables._save_path, filename,  vars,
                                     save_csv=save_csv, debug=debug, debug_plot=debug_plot)
-	        
-    # Display csv
+        # Display csv
         print "---Validation benchmarks---"
         pd.set_option('display.max_rows', len(self._Benchmarks))
         print(self._Benchmarks)
         pd.reset_option('display.max_rows')
-
-    # Reload _load_validation to return original values
-	# Is this even needed? -Jeremy
-	#print '-- Reloading Validation Variables --'
-	#self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)	
 
     def _validate_harmonics(self, filename='', save_csv=False, debug=False, debug_plot=False):
         """
@@ -283,8 +276,8 @@ class Validation:
         mod_time = self.Variables.struct['mod_time']
         mod_lat = self.Variables.struct['mod_lat']
         if hasEL:     
-            obs_el =  self.Variables.struct['obs_timeseries']['el'][:]
-            mod_el =  self.Variables.struct['mod_timeseries']['el'][:]
+            obs_el = self.Variables.struct['obs_timeseries']['el'][:]
+            mod_el = self.Variables.struct['mod_timeseries']['el'][:]
             self.Variables.obs.elCoef = solve(obs_time, obs_el, None, obs_lat,
                                          constit='auto', trend=False, Rayleigh_min=0.95,
                                          method='ols', conf_int='linear')
@@ -293,10 +286,10 @@ class Validation:
                                          method='ols', conf_int='linear')
 
         if hasUV:
-            obs_ua =  self.Variables.struct['obs_timeseries']['ua'][:]
-            obs_va =  self.Variables.struct['obs_timeseries']['va'][:]
-            mod_ua =  self.Variables.struct['mod_timeseries']['ua'][:]
-            mod_va =  self.Variables.struct['mod_timeseries']['va'][:]
+            obs_ua = self.Variables.struct['obs_timeseries']['ua'][:]
+            obs_va = self.Variables.struct['obs_timeseries']['va'][:]
+            mod_ua = self.Variables.struct['mod_timeseries']['ua'][:]
+            mod_va = self.Variables.struct['mod_timeseries']['va'][:]
             self.Variables.obs.velCoef = solve(obs_time, obs_ua, obs_va, obs_lat,
                                          constit='auto', trend=False, Rayleigh_min=0.95,
                                          method='ols', conf_int='linear')
@@ -308,80 +301,80 @@ class Validation:
         # find matching and non-matching coef & hold their magnitude and phase for comparison
         matchElCoef = [] # Coefficient Names
         matchElCoefInd = [] # Coefficient Names' Indexes
-	matchEl_Adiff = [] # Coefficents' Maginitude Difference
-	matchEl_gdiff = [] # Coefficients' Phase Difference
+        matchEl_Adiff = [] # Coefficents' Maginitude Difference
+        matchEl_gdiff = [] # Coefficients' Phase Difference
         for i1, key1 in enumerate(self.Variables.sim.elCoef['name']):
             for i2, key2 in enumerate(self.Variables.obs.elCoef['name']):
                 if key1 == key2:
-                   matchElCoefInd.append((i1,i2))
-                   matchElCoef.append(key1)
-		   matchEl_Adiff.append(abs(self.Variables.sim.elCoef['A'][i1]*exp(1j*radians(self.Variables.sim.elCoef['g'][i1])) - 
-				       	    self.Variables.obs.elCoef['A'][i2]*exp(1j*radians(self.Variables.obs.elCoef['g'][i2]))))
-		   matchEl_gdiff.append(abs(self.Variables.sim.elCoef['g'][i1] - self.Variables.obs.elCoef['g'][i2]))
+                    matchElCoefInd.append((i1,i2))
+                    matchElCoef.append(key1)
+                    matchEl_Adiff.append(abs(self.Variables.sim.elCoef['A'][i1]*exp(1j*radians(self.Variables.sim.elCoef['g'][i1])) - \
+                                             self.Variables.obs.elCoef['A'][i2]*exp(1j*radians(self.Variables.obs.elCoef['g'][i2]))))
+                    matchEl_gdiff.append(abs(self.Variables.sim.elCoef['g'][i1] - self.Variables.obs.elCoef['g'][i2]))
         matchElCoefInd=np.array(matchElCoefInd)
         noMatchElCoef = np.delete(self.Variables.sim.elCoef['name'], matchElCoefInd[:,0])
         np.hstack((noMatchElCoef, np.delete(self.Variables.obs.elCoef['name'], matchElCoefInd[:,1])))
-	
-	# Repeat for Velocity Coefficients
+
+        # Repeat for Velocity Coefficients
         matchVelCoef = []
         matchVelCoefInd = []
-	matchVel_LsmajDiff = []
-	matchVel_LsminDiff = []
-	matchVel_gdiff = []
+        matchVel_LsmajDiff = []
+        matchVel_LsminDiff = []
+        matchVel_gdiff = []
         try:
             for i1, key1 in enumerate(self.Variables.sim.velCoef['name']):
                 for i2, key2 in enumerate(self.Variables.obs.velCoef['name']):
                     if key1 == key2:
                         matchVelCoefInd.append((i1, i2))
                         matchVelCoef.append(key1)
-			matchVel_LsmajDiff.append(abs(self.Variables.sim.velCoef['Lsmaj'][i1]*exp(1j*radians(self.Variables.sim.velCoef['g'][i1])) - 
-						  self.Variables.obs.velCoef['Lsmaj'][i2]*exp(1j*radians(self.Variables.obs.velCoef['g'][i2]))))
-		   	matchVel_LsminDiff.append(abs(self.Variables.sim.velCoef['Lsmin'][i1]*exp(1j*radians(self.Variables.sim.velCoef['g'][i1])) - 
-						  self.Variables.obs.velCoef['Lsmin'][i2]*exp(1j*radians(self.Variables.obs.velCoef['g'][i2]))))
-			matchVel_gdiff.append(abs(self.Variables.sim.velCoef['g'][i1] - self.Variables.obs.velCoef['g'][i2]))
+                        matchVel_LsmajDiff.append(abs(self.Variables.sim.velCoef['Lsmaj'][i1]*exp(1j*radians(self.Variables.sim.velCoef['g'][i1])) - \
+                                                      self.Variables.obs.velCoef['Lsmaj'][i2]*exp(1j*radians(self.Variables.obs.velCoef['g'][i2]))))
+                        matchVel_LsminDiff.append(abs(self.Variables.sim.velCoef['Lsmin'][i1]*exp(1j*radians(self.Variables.sim.velCoef['g'][i1])) - \
+                                                      self.Variables.obs.velCoef['Lsmin'][i2]*exp(1j*radians(self.Variables.obs.velCoef['g'][i2]))))
+                        matchVel_gdiff.append(abs(self.Variables.sim.velCoef['g'][i1] - self.Variables.obs.velCoef['g'][i2]))
             matchVelCoefInd = np.array(matchVelCoefInd)
             noMatchVelCoef = np.delete(self.Variables.sim.velCoef['name'], matchVelCoefInd[:, 0])
             np.hstack((noMatchVelCoef, np.delete(self.Variables.obs.velCoef['name'], matchVelCoefInd[:, 1])))
         except AttributeError:
             pass
 
-	# Compare largest ten obs. vs sim. coefficients visually on Polar plots
-	# I would prefer to have these plots saved to the directory created by validate_harmonics()
-	top10_el = zip(matchEl_Adiff, matchElCoef, matchEl_gdiff)
-	top10_el.sort()
-	top10_el = top10_el[-10:]
-	top10_el = zip(*top10_el)
-	plt.axes(polar=True)
-	plt.plot(top10_el[2], top10_el[0], 'r.')
-	for i, txt in enumerate(top10_el[1]):
-	    plt.annotate(top10_el[1][i], (str(top10_el[2][i]), str(top10_el[0][i])), size=8)
-	plt.title('Harmonic Analysis Elevation Coefficient comparison')
-	plt.savefig('HarmoEl_coeffcompare', format='png')
-	plt.clf()
+        # Compare largest ten obs. vs sim. coefficients visually on Polar plots
+        # I would prefer to have these plots saved to the directory created by validate_harmonics()
+        top10_el = zip(matchEl_Adiff, matchElCoef, matchEl_gdiff)
+        top10_el.sort()
+        top10_el = top10_el[-10:]
+        top10_el = zip(*top10_el)
+        plt.axes(polar=True)
+        plt.plot(top10_el[2], top10_el[0], 'r.')
+        for i, txt in enumerate(top10_el[1]):
+            plt.annotate(top10_el[1][i], (str(top10_el[2][i]), str(top10_el[0][i])), size=8)
+        plt.title('Harmonic Analysis Elevation Coefficient comparison')
+        plt.savefig('HarmoEl_coeffcompare', format='png')
+        plt.clf()
 
-	top10_vel_Lsmaj = zip(matchVel_LsmajDiff, matchVelCoef, matchVel_gdiff)
-	top10_vel_Lsmaj.sort()
-	top10_vel_Lsmaj = top10_vel_Lsmaj[-10:]
-	top10_vel_Lsmaj = zip(*top10_vel_Lsmaj)
-	plt.axes(polar=True)
-	plt.plot(top10_vel_Lsmaj[2], top10_vel_Lsmaj[0], 'r.')
-	for i, txt in enumerate(top10_vel_Lsmaj[1]):
-	    plt.annotate(top10_vel_Lsmaj[1][i], (str(top10_vel_Lsmaj[2][i]), str(top10_vel_Lsmaj[0][i])), size=8)
-	plt.title('Harmonic Analysis Lsmaj Velocity Coefficient comparison')
-	plt.savefig('HarmoVel_Lsmaj_coeffcompare', format='png')
-	plt.clf()
+        top10_vel_Lsmaj = zip(matchVel_LsmajDiff, matchVelCoef, matchVel_gdiff)
+        top10_vel_Lsmaj.sort()
+        top10_vel_Lsmaj = top10_vel_Lsmaj[-10:]
+        top10_vel_Lsmaj = zip(*top10_vel_Lsmaj)
+        plt.axes(polar=True)
+        plt.plot(top10_vel_Lsmaj[2], top10_vel_Lsmaj[0], 'r.')
+        for i, txt in enumerate(top10_vel_Lsmaj[1]):
+            plt.annotate(top10_vel_Lsmaj[1][i], (str(top10_vel_Lsmaj[2][i]), str(top10_vel_Lsmaj[0][i])), size=8)
+        plt.title('Harmonic Analysis Lsmaj Velocity Coefficient comparison')
+        plt.savefig('HarmoVel_Lsmaj_coeffcompare', format='png')
+        plt.clf()
 
-	top10_vel_Lsmin = zip(matchVel_LsminDiff, matchVelCoef, matchVel_gdiff)
-	top10_vel_Lsmin.sort()
-	top10_vel_Lsmin = top10_vel_Lsmin[-10:]
-	top10_vel_Lsmin = zip(*top10_vel_Lsmin)	
-	plt.axes(polar=True)
-	plt.plot(top10_vel_Lsmin[2], top10_vel_Lsmin[0], 'r.')
-	for i, txt in enumerate(top10_vel_Lsmin[1]):
-	    plt.annotate(top10_vel_Lsmin[1][i], (str(top10_vel_Lsmin[2][i]), str(top10_vel_Lsmin[0][i])), size=8)
-	plt.title('Harmonic Analysis Lsmin Velocity Coefficient comparison')
-	plt.savefig('HarmoVel_Lsmin_coeffcompare', format='png')
-	plt.clf()
+        top10_vel_Lsmin = zip(matchVel_LsminDiff, matchVelCoef, matchVel_gdiff)
+        top10_vel_Lsmin.sort()
+        top10_vel_Lsmin = top10_vel_Lsmin[-10:]
+        top10_vel_Lsmin = zip(*top10_vel_Lsmin)
+        plt.axes(polar=True)
+        plt.plot(top10_vel_Lsmin[2], top10_vel_Lsmin[0], 'r.')
+        for i, txt in enumerate(top10_vel_Lsmin[1]):
+            plt.annotate(top10_vel_Lsmin[1][i], (str(top10_vel_Lsmin[2][i]), str(top10_vel_Lsmin[0][i])), size=8)
+        plt.title('Harmonic Analysis Lsmin Velocity Coefficient comparison')
+        plt.savefig('HarmoVel_Lsmin_coeffcompare', format='png')
+        plt.clf()
 
         # Compare obs. vs. sim. elevation harmo coef
         data = {}
@@ -493,7 +486,8 @@ class Validation:
             # save dataframe in attribute
             self._HarmonicBenchmarks.velocity = table
 
-    def validate_data(self, filename=[], depth=[], slack_velo=0.1, plot=False, save_csv=False, phase_shift=False,
+    def validate_data(self, filename=[], depth=[], slack_velo=0.1,
+                      plot=False, save_csv=False, phase_shift=False, harmo_reconstruct=False,
                       debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -508,6 +502,8 @@ class Validation:
           - save_csv = will save benchmark values into *.csv file
                        as well as associated plots in specific folder
           - phase_shift = applies phase shift correction to model quantities
+          - harmo_reconstruct = uses harmonic reconstruction is there is no matching period between
+                                measurements and simulation
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -525,7 +521,8 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         if (not self._multi_meas) and (not self._multi_sim):
-            self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, debug, debug_plot)
+            self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, harmo_reconstruct,
+                                debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
             I=0
@@ -537,13 +534,22 @@ class Validation:
                         # -Append message to History field
                         start = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[0]])
                         end = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[-1]])
-                        text = 'Temporal domain from ' + str(start) + ' to ' + str(end)
+                        if I==0:
+                            Start = start
+                            End = end
+                        else:
+                            if start < Start:
+                                Start = start
+                            if end > End:
+                                End = end
+                        text = 'Temporal domain from ' + str(Start) + ' to ' + str(End)
                         try:
                             self.History[1] = text
                         except IndexError:
                             self.History.append(text)
 
-                        self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, debug, debug_plot)
+                        self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, harmo_reconstruct,
+                                            debug, debug_plot)
                         if I == 0:
                             self.Benchmarks = self._Benchmarks
                             I += 1
