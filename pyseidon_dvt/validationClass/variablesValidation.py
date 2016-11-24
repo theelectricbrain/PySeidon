@@ -72,7 +72,7 @@ class _load_validation:
                 self._C = np.asarray(C)
                 self._c = np.asarray(c)
             else:
-                self.harmo = {'On':False}
+                self.harmo = {'On': False}
         except AttributeError:
             raise PyseidonError("---Observations missing matlabTime comparison is impossible---")
 

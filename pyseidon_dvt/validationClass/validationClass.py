@@ -517,7 +517,7 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         if (not self._multi_meas) and (not self._multi_sim):
-            if not harmo_reconstruct and self.Variables.harmo['On']:
+            if not (harmo_reconstruct and self.Variables.harmo['On']):
                 raise PyseidonError("---Time between simulation and measurement does not match up, use ---")
             # Make directory
             name = self.struct['name']
@@ -572,9 +572,10 @@ class Validation:
                         self._coordinates.append([np.mean(self.Variables.obs.lon),
                                                   np.mean(self.Variables.obs.lat),
                                                   self.Variables._obstype])
-                    except PyseidonError:
+                    except PyseidonError as e:
                         #except:  # making it even more permissive
                         print "Error with measurement object "+meas.History[0]
+                        print str(e)
                         continue
         if save_csv:
             #if self._multi_meas:
