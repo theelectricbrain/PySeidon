@@ -185,8 +185,6 @@ class Validation:
             self.Variables.struct['mod_timeseries']['va'] = simVel['v']
             self.Variables.struct['mod_timeseries']['el'] = simEl['h']
             self.Variables.struct['mod_time'] = observed.Variables.matlabTime
-        else:
-            raise PyseidonError("---Time between simulation and measurement does not match up, only Harmonic Analysis can be done---")
 
         # Initialisation
         vars = []
@@ -537,7 +535,7 @@ class Validation:
                 for meas in self._observed:
                     try:
                         self.Variables = _load_validation(self._outpath, meas, sim, flow=self._flow, debug=self._debug)
-                        if not harmo_reconstruct and self.Variables.harmo['On']:
+                        if not (harmo_reconstruct and self.Variables.harmo['On']):
                             raise PyseidonError("---Time between simulation and measurement does not match up, use ---")
                         # Make directory
                         name = self.Variables.struct['name']
