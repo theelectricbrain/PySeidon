@@ -532,8 +532,9 @@ class Validation:
                         self.Variables = _load_validation(self._outpath, meas, sim, flow=self._flow, debug=self._debug)
 
                         # -Append message to History field
-                        start = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[0]])
-                        end = mattime_to_datetime(self.Variables.obs.matlabTime[self.Variables._c[-1]])
+                        # TODO: fix that block as it does not work
+                        start = mattime_to_datetime(self.Variables.obs.matlabTime[0])  # self.Variables._c[0]])
+                        end = mattime_to_datetime(self.Variables.obs.matlabTime[-1])  # self.Variables._c[-1]])
                         if I==0:
                             Start = start
                             End = end
