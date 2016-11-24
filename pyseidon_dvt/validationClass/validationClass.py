@@ -540,7 +540,7 @@ class Validation:
                         if not harmo_reconstruct and self.Variables.harmo['On']:
                             raise PyseidonError("---Time between simulation and measurement does not match up, use ---")
                         # Make directory
-                        name = self.struct['name']
+                        name = self.Variables.struct['name']
                         save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
                         while exists(save_path):
                             save_path = save_path[:-1] + '_bis/'
