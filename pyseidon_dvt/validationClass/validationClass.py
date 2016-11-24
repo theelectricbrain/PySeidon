@@ -22,8 +22,6 @@ from compareData import *
 from valTable import valTable
 from variablesValidation import _load_validation
 from pyseidon_dvt.utilities.interpolation_utils import *
-
-# Local import
 from plotsValidation import taylorDiagram, benchmarksMap
 from valReport import write_report
 from pyseidon_dvt.utilities.miscellaneous import mattime_to_datetime
@@ -521,6 +519,15 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         if (not self._multi_meas) and (not self._multi_sim):
+            if not harmo_reconstruct and self.Variables.harmo['On']:
+                raise PyseidonError("---Time between simulation and measurement does not match up, use ---")
+            # Make directory
+            name = self.struct['name']
+            save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
+            while exists(save_path):
+                save_path = save_path[:-1] + '_bis/'
+            makedirs(save_path)
+            # Validate
             self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, harmo_reconstruct,
                                 debug, debug_plot)
             self.Benchmarks = self._Benchmarks
@@ -530,7 +537,14 @@ class Validation:
                 for meas in self._observed:
                     try:
                         self.Variables = _load_validation(self._outpath, meas, sim, flow=self._flow, debug=self._debug)
-
+                        if not harmo_reconstruct and self.Variables.harmo['On']:
+                            raise PyseidonError("---Time between simulation and measurement does not match up, use ---")
+                        # Make directory
+                        name = self.struct['name']
+                        save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
+                        while exists(save_path):
+                            save_path = save_path[:-1] + '_bis/'
+                        makedirs(save_path)
                         # -Append message to History field
                         # TODO: fix that block as it does not work
                         start = mattime_to_datetime(self.Variables.obs.matlabTime[0])  # self.Variables._c[0]])

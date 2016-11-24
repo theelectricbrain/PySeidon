@@ -71,7 +71,6 @@ class _load_validation:
                 c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
                 self._C = np.asarray(C)
                 self._c = np.asarray(c)
-                raise PyseidonError("---Time between simulation and measurement does not match up---")
             else:
                 self.harmo = {'On':False}
         except AttributeError:
@@ -306,26 +305,5 @@ class _load_validation:
                            '_commonlist_data': ['u', 'v']}
 
         if debug: print "..done"
-        
-        # find save_path
-        # self._save_path = ''
-        # for s in observed.History:
-        #     if 'Create save_path ' not in s:
-        #         continue
-        #     else:
-        #         self._save_path=s.split()[2]
-        #
-        # if '' is self._save_path:
-        #     name = self.struct['name']
-        #     self._save_path = outpath+name.split('/')[-1].split('.')[0]+'/'
-        #     while exists(self._save_path):
-        #         self._save_path = self._save_path[:-1] + '_bis/'
-        #     makedirs(self._save_path)
-        #     observed.History.append('Create save_path {}'.format(self._save_path))
-        name = self.struct['name']
-        self._save_path = outpath+name.split('/')[-1].split('.')[0]+'/'
-        while exists(self._save_path):
-            self._save_path = self._save_path[:-1] + '_bis/'
-        makedirs(self._save_path)
 
         return

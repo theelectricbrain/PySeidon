@@ -477,7 +477,7 @@ class FunctionsFvcom:
 
         return index
 
-    def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], nn=True, debug=False):
+    def interpolation_at_point(self, var, pt_lon, pt_lat, index=[], nn=False, debug=False):
         """
         This function interpolates any given variables at any give location.
 
