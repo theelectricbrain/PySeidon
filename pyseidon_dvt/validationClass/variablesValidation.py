@@ -71,6 +71,7 @@ class _load_validation:
                 c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
                 self._C = np.asarray(C)
                 self._c = np.asarray(c)
+                raise PyseidonError("---Time between simulation and measurement does not match up---")
             else:
                 self.harmo = {'On':False}
         except AttributeError:
