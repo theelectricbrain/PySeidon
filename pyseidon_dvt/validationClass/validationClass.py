@@ -51,13 +51,17 @@ class Validation:
                , if negative = from sea surface downwards, if positive = from sea bottom upwards
       - nn = if True then use the nearest location in the grid if the location is outside the grid.
       - outpath = specify a path to save validation results (default = './')
+      - harmo_reconstruct = uses harmonic reconstruction is there is no matching period between
+                            measurements and simulation
     """
-    def __init__(self, observed, simulated, flow=[], nn=True, outpath='./', debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow=[], nn=True, outpath='./',  harmo_reconstruct=False,
+                 debug=False, debug_plot=False):
         self._debug = debug
         self._flow = flow
         self._coordinates = []
         self._fig = None
         self._ax = None
+        self._harmo_reconstruct = harmo_reconstruct
         if type(observed) in [tuple, list]:
             self._multi_meas = True
         else:
@@ -94,7 +98,9 @@ class Validation:
         if (not self._multi_meas) and (not self._multi_sim):
             self._observed = observed
             self._simulated = simulated
-            self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, nn=self._nn, debug=self._debug)
+            self.Variables = _load_validation(self._outpath, self._observed, self._simulated,
+                                              flow=self._flow, nn=self._nn, harmo_reconstruct=self._harmo_reconstruct,
+                                              debug=self._debug)
             self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
 
             # -Append message to History field
@@ -119,7 +125,7 @@ class Validation:
         return
 
     def _validate_data(self, filename=[], depth=[], slack_velo=0.1,
-                       plot=False,  save_csv=False, phase_shift=False, harmo_reconstruct=False,
+                       plot=False,  save_csv=False, phase_shift=False,
                        debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -132,8 +138,6 @@ class Validation:
           - plot = plot series of validation graphs, boolean.
                        as well as associated plots in specific folder
           - phase_shift = applies phase shift correction to model quantities
-          - harmo_reconstruct = uses harmonic reconstruction is there is no matching period between
-                                measurements and simulation
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -165,7 +169,7 @@ class Validation:
             depth = 5.0
 
         # Harmonically reconstruct simulation properties at the original observed matlabTime if harmo is on
-        if self.Variables.harmo['On'] and harmo_reconstruct:
+        if self._harmo_reconstruct and self.Variables.harmo['On']:
             observed = self.Variables.harmo['Observed']
             simulated = self.Variables.harmo['Simulated']
             # Harmonic Analysis
@@ -483,7 +487,7 @@ class Validation:
             self._HarmonicBenchmarks.velocity = table
 
     def validate_data(self, filename=[], depth=[], slack_velo=0.1,
-                      plot=False, save_csv=False, phase_shift=False, harmo_reconstruct=False,
+                      plot=False, save_csv=False, phase_shift=False,
                       debug=False, debug_plot=False):
         """
         This method computes series of standard validation benchmarks.
@@ -498,8 +502,6 @@ class Validation:
           - save_csv = will save benchmark values into *.csv file
                        as well as associated plots in specific folder
           - phase_shift = applies phase shift correction to model quantities
-          - harmo_reconstruct = uses harmonic reconstruction is there is no matching period between
-                                measurements and simulation
 
         *References*
           - NOAA. NOS standards for evaluating operational nowcast and
@@ -517,8 +519,6 @@ class Validation:
             the Columbia River plume in summer 2004, J. Geophys. Res., 114
         """
         if (not self._multi_meas) and (not self._multi_sim):
-            if not (harmo_reconstruct and self.Variables.harmo['On']):
-                raise PyseidonError("---Time between simulation and measurement does not match up, use ---")
             # Make directory
             name = self.struct['name']
             save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
@@ -526,7 +526,7 @@ class Validation:
                 save_path = save_path[:-1] + '_bis/'
             makedirs(save_path)
             # Validate
-            self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, harmo_reconstruct,
+            self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift,
                                 debug, debug_plot)
             self.Benchmarks = self._Benchmarks
         else:
@@ -534,9 +534,9 @@ class Validation:
             for sim in self._simulated:
                 for meas in self._observed:
                     try:
-                        self.Variables = _load_validation(self._outpath, meas, sim, flow=self._flow, debug=self._debug)
-                        if not (harmo_reconstruct and self.Variables.harmo['On']):
-                            raise PyseidonError("---Time between simulation and measurement does not match up, use ---")
+                        self.Variables = _load_validation(self._outpath, meas, sim,
+                                                          flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
+                                                          debug=self._debug)
                         # Make directory
                         name = self.Variables.struct['name']
                         save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
@@ -561,7 +561,7 @@ class Validation:
                         except IndexError:
                             self.History.append(text)
 
-                        self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift, harmo_reconstruct,
+                        self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift,
                                             debug, debug_plot)
                         if I == 0:
                             self.Benchmarks = self._Benchmarks
@@ -601,7 +601,9 @@ class Validation:
                     coefficients into *.csv files (i.e. *_harmo_coef.csv)
         """
         if (not self._multi_meas) and (not self._multi_sim):
-            self.Variables = _load_validation(self._outpath, self._observed, self._simulated, flow=self._flow, debug=self._debug)
+            self.Variables = _load_validation(self._outpath, self._observed, self._simulated,
+                                              flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
+                                              debug=self._debug)
             self._validate_harmonics(filename, save_csv, debug, debug_plot)
             self.HarmonicBenchmarks = self._HarmonicBenchmarks
         else:
@@ -610,7 +612,9 @@ class Validation:
             for sim in self._simulated:
                 for meas in self._observed:
                     try:
-                        self.Variables = _load_validation(self._outpath, meas, sim, flow=self._flow, debug=self._debug)
+                        self.Variables = _load_validation(self._outpath, meas, sim,
+                                                          flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
+                                                          debug=self._debug)
                         self._validate_harmonics(filename, save_csv, debug, debug_plot)
                         if I == 0 and J == 0:
                             self.HarmonicBenchmarks = HarmonicBenchmarks()

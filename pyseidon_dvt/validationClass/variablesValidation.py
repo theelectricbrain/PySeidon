@@ -25,11 +25,12 @@ class _load_validation:
                             |_harmo. = dictionary stricture for harmonic analysis validation purposes
 
     """
-    def __init__(self, outpath, observed, simulated, flow='sf', nn=True, debug=False, debug_plot=False):
+    def __init__(self, observed, simulated, flow='sf', nn=True, harmo_reconstruct=False, debug=False, debug_plot=False):
         if debug: print "..variables.."
         self.obs = observed.Variables
         self.sim = simulated.Variables
         self._nn =  nn
+        self.harmo = {'On': False}
         # Compatibility test
         if (observed.__module__.split('.')[-1] == 'drifterClass' and
            simulated.__module__.split('.')[-1] == 'stationClass'):
@@ -66,13 +67,14 @@ class _load_validation:
             self._c = np.asarray(c)
 
             if len(C) == 0:
-                self.harmo = {'On':True, 'Observed':observed, 'Simulated':simulated}
-                C = np.where(self.sim.matlabTime[:] >= simMin)[0].tolist()
-                c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
-                self._C = np.asarray(C)
-                self._c = np.asarray(c)
-            else:
-                self.harmo = {'On': False}
+                if harmo_reconstruct:
+                    self.harmo = {'On':True, 'Observed':observed, 'Simulated':simulated}
+                    C = np.where(self.sim.matlabTime[:] >= simMin)[0].tolist()
+                    c = np.where(self.obs.matlabTime[:] >= obsMin)[0].tolist()
+                    self._C = np.asarray(C)
+                    self._c = np.asarray(c)
+                else:
+                    raise PyseidonError("---Time between simulation and measurement does not match up---")
         except AttributeError:
             raise PyseidonError("---Observations missing matlabTime comparison is impossible---")
 
