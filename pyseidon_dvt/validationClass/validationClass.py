@@ -98,7 +98,7 @@ class Validation:
         if (not self._multi_meas) and (not self._multi_sim):
             self._observed = observed
             self._simulated = simulated
-            self.Variables = _load_validation(self._outpath, self._observed, self._simulated,
+            self.Variables = _load_validation(self._observed, self._simulated,
                                               flow=self._flow, nn=self._nn, harmo_reconstruct=self._harmo_reconstruct,
                                               debug=self._debug)
             self._coordinates.append([np.mean(self.Variables.obs.lon), np.mean(self.Variables.obs.lat), self.Variables._obstype])
@@ -534,7 +534,7 @@ class Validation:
             for sim in self._simulated:
                 for meas in self._observed:
                     try:
-                        self.Variables = _load_validation(self._outpath, meas, sim,
+                        self.Variables = _load_validation(meas, sim,
                                                           flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
                                                           debug=self._debug)
                         # Make directory
@@ -601,7 +601,7 @@ class Validation:
                     coefficients into *.csv files (i.e. *_harmo_coef.csv)
         """
         if (not self._multi_meas) and (not self._multi_sim):
-            self.Variables = _load_validation(self._outpath, self._observed, self._simulated,
+            self.Variables = _load_validation(self._observed, self._simulated,
                                               flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
                                               debug=self._debug)
             self._validate_harmonics(filename, save_csv, debug, debug_plot)
@@ -612,7 +612,7 @@ class Validation:
             for sim in self._simulated:
                 for meas in self._observed:
                     try:
-                        self.Variables = _load_validation(self._outpath, meas, sim,
+                        self.Variables = _load_validation(meas, sim,
                                                           flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
                                                           debug=self._debug)
                         self._validate_harmonics(filename, save_csv, debug, debug_plot)
