@@ -124,6 +124,15 @@ class Validation:
             if debug: print '-Saving results to {}-'.format(self._outpath)
         return
 
+    def _make_save_folder(self):
+        # Make directory
+        name = self.struct['name']
+        save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
+        while exists(save_path):
+            save_path = save_path[:-1] + '_bis/'
+        self._save_path = save_path
+        makedirs(save_path)
+
     def _validate_data(self, filename=[], depth=[], slack_velo=0.1,
                        plot=False,  save_csv=False, phase_shift=False,
                        debug=False, debug_plot=False):
@@ -197,7 +206,7 @@ class Validation:
         if self._flow == 'daf': threeD = False
 
         if self.Variables.struct['type'] == 'ADCP':
-            suites = compareOBS(self.Variables.struct, self.Variables._save_path, threeD,
+            suites = compareOBS(self.Variables.struct, self._save_path, threeD,
                                     plot=plot, depth=depth, slack_velo=slack_velo, save_csv=save_csv,
                                     phase_shift=phase_shift, debug=debug, debug_plot=debug_plot)
                                     
@@ -206,7 +215,7 @@ class Validation:
                 vars.append(key)
 
         elif self.Variables.struct['type'] == 'TideGauge':
-            suites = compareOBS(self.Variables.struct, self.Variables._save_path,
+            suites = compareOBS(self.Variables.struct, self._save_path,
                                       plot=plot, slack_velo=slack_velo, save_csv=save_csv,
                                       phase_shift=phase_shift, debug=debug, debug_plot=debug_plot)
             for key in suites:
@@ -214,7 +223,7 @@ class Validation:
                 vars.append(key)
 
         elif self.Variables.struct['type'] == 'Drifter':
-            suites = compareOBS(self.Variables.struct, self.Variables._save_path, self.Variables._3D,
+            suites = compareOBS(self.Variables.struct, self._save_path, self.Variables._3D,
                                     depth=depth, plot=plot, slack_velo=slack_velo, save_csv=save_csv,
                                     phase_shift=phase_shift, debug=debug, debug_plot=debug_plot)
 
@@ -226,7 +235,7 @@ class Validation:
             raise PyseidonError("-This kind of measurements is not supported yet-")
 
         # Make csv file
-        self._Benchmarks = valTable(self.Variables.struct, self.Suites, self.Variables._save_path, filename,  vars,
+        self._Benchmarks = valTable(self.Variables.struct, self.Suites, self._save_path, filename,  vars,
                                     save_csv=save_csv, debug=debug, debug_plot=debug_plot)
         # Display csv
         print "---Validation benchmarks---"
@@ -391,7 +400,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=measlist,
                                  columns=columns + ['constituent'])
             # export as .csv file
-            out_file = '{}{}_obs_el_harmo_coef.csv'.format(self.Variables._save_path, filename)
+            out_file = '{}{}_obs_el_harmo_coef.csv'.format(self._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -403,7 +412,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=measlist,
                                  columns=columns + ['constituent'])
             # export as .csv file
-            out_file = '{}{}_sim_el_harmo_coef.csv'.format(self.Variables._save_path, filename)
+            out_file = '{}{}_sim_el_harmo_coef.csv'.format(self._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -420,7 +429,7 @@ class Validation:
                 ##create table
                 table = pd.DataFrame(data=data, index=measlist, columns=columns + ['constituent'])
                 ##export as .csv file
-                out_file = '{}{}_el_harmo_error.csv'.format(self.Variables._save_path, filename)
+                out_file = '{}{}_el_harmo_error.csv'.format(self._save_path, filename)
                 table.to_csv(out_file)
                 ##print non-matching coefs
                 if not noMatchElCoef.shape[0]==0:
@@ -446,7 +455,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=measlist,
                                  columns=columns + ['constituent'])
             ##export as .csv file
-            out_file = '{}{}_obs_velo_harmo_coef.csv'.format(self.Variables._save_path, filename)
+            out_file = '{}{}_obs_velo_harmo_coef.csv'.format(self._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -458,7 +467,7 @@ class Validation:
             table = pd.DataFrame(data=data, index=measlist,
                                  columns=columns + ['constituent'])
             ##export as .csv file
-            out_file = '{}{}_sim_velo_harmo_coef.csv'.format(self.Variables._save_path, filename)
+            out_file = '{}{}_sim_velo_harmo_coef.csv'.format(self._save_path, filename)
             table.to_csv(out_file)
             data = {}
 
@@ -475,7 +484,7 @@ class Validation:
                 ##create table
                 table = pd.DataFrame(data=data, index=measlist, columns=columns + ['constituent'])
                 ##export as .csv file
-                out_file = '{}{}_vel0_harmo_error.csv'.format(self.Variables._save_path, filename)
+                out_file = '{}{}_vel0_harmo_error.csv'.format(self._save_path, filename)
                 table.to_csv(out_file)
                 ##print non-matching coefs
                 if not noMatchVelCoef.shape[0]==0:
@@ -520,11 +529,7 @@ class Validation:
         """
         if (not self._multi_meas) and (not self._multi_sim):
             # Make directory
-            name = self.struct['name']
-            save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
-            while exists(save_path):
-                save_path = save_path[:-1] + '_bis/'
-            makedirs(save_path)
+            self._make_save_folder()
             # Validate
             self._validate_data(filename, depth, slack_velo, plot, save_csv, phase_shift,
                                 debug, debug_plot)
@@ -538,11 +543,7 @@ class Validation:
                                                           flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
                                                           debug=self._debug)
                         # Make directory
-                        name = self.Variables.struct['name']
-                        save_path = self._outpath + name.split('/')[-1].split('.')[0] + '/'
-                        while exists(save_path):
-                            save_path = save_path[:-1] + '_bis/'
-                        makedirs(save_path)
+                        self._make_save_folder()
                         # -Append message to History field
                         # TODO: fix that block as it does not work
                         start = mattime_to_datetime(self.Variables.obs.matlabTime[0])  # self.Variables._c[0]])
@@ -601,9 +602,8 @@ class Validation:
                     coefficients into *.csv files (i.e. *_harmo_coef.csv)
         """
         if (not self._multi_meas) and (not self._multi_sim):
-            self.Variables = _load_validation(self._observed, self._simulated,
-                                              flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
-                                              debug=self._debug)
+            # Make directory
+            self._make_save_folder()
             self._validate_harmonics(filename, save_csv, debug, debug_plot)
             self.HarmonicBenchmarks = self._HarmonicBenchmarks
         else:
@@ -615,6 +615,8 @@ class Validation:
                         self.Variables = _load_validation(meas, sim,
                                                           flow=self._flow, harmo_reconstruct=self._harmo_reconstruct,
                                                           debug=self._debug)
+                        # Make directory
+                        self._make_save_folder()
                         self._validate_harmonics(filename, save_csv, debug, debug_plot)
                         if I == 0 and J == 0:
                             self.HarmonicBenchmarks = HarmonicBenchmarks()
