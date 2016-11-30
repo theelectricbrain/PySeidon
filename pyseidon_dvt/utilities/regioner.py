@@ -8,23 +8,58 @@ import matplotlib.tri as Tri
 import scipy.io.netcdf as nc
 
 def node_region(ax, lon, lat):
-
-    region_n = np.argwhere((lon >= ax[0]) &
-                            (lon <= ax[1]) &
-                            (lat >= ax[2]) &
-                            (lat <= ax[3]))
-
+    if len(ax)==4:
+        region_n = np.argwhere((lon >= ax[0]) &
+                                (lon <= ax[1]) &
+                                (lat >= ax[2]) &
+                                (lat <= ax[3]))
+    else:
+        # ax is four corners of rect,
+        # 4 x then 4 y counter clockwise around rect,
+        # rotate coords to match axis of rect
+        x0 = ax[0]
+        y0 = ax[4]
+        vx = ax[1] - ax[0]
+        vy = ax[5] - ax[4]
+        lv = (vx ** 2 + vy ** 2) ** (1 / 2)
+        vx = vx / lv
+        vy = vy / lv
+        rax = [0, (ax[2] - x0) * vx + (ax[6] - y0) * vy, 0, -(ax[2] - x0) * vy + (ax[6] - y0) * vx]
+        rlon = (lon - x0) * vx + (lat - y0) * vy
+        rlat = -(lon - x0) * vy + (lat - y0) * vx
+        region_n = np.argwhere((rlon >= rax[0]) &
+                               (rlon <= rax[1]) &
+                               (rlat >= rax[2]) &
+                               (rlat <= rax[3]))
     region_n = region_n.ravel()
 
     return region_n
 
 def element_region(ax, lonc, latc):
 
-    region_e = np.argwhere((lonc >= ax[0]) &
-                            (lonc <= ax[1]) &
-                            (latc >= ax[2]) &
-                            (latc <= ax[3]))
-
+    if len(ax) == 4:
+        region_e = np.argwhere((lonc >= ax[0]) &
+                                (lonc <= ax[1]) &
+                                (latc >= ax[2]) &
+                                (latc <= ax[3]))
+    else:
+        # ax is four corners of rect,
+        # 4 x then 4 y counter clockwise around rect,
+        # rotate coords to match axis of rect
+        x0 = ax[0]
+        y0 = ax[4]
+        vx = ax[1] - ax[0]
+        vy = ax[5] - ax[4]
+        lv = (vx ** 2 + vy ** 2) ** (1 / 2)
+        vx = vx / lv
+        vy = vy / lv
+        rax = [0, (ax[2] - x0) * vx + (ax[6] - y0) * vy, 0, -(ax[2] - x0) * vy + (ax[6] - y0) * vx]
+        rlon = (lonc - x0) * vx + (latc - y0) * vy
+        rlat = -(lonc - x0) * vy + (latc - y0) * vx
+        region_e = np.argwhere((rlon >= rax[0]) &
+                               (rlon <= rax[1]) &
+                               (rlat >= rax[2]) &
+                               (rlat <= rax[3]))
     region_e = region_e.ravel()
 
     return region_e

@@ -50,7 +50,9 @@ class FVCOM:
 
     Options:
       - ax = defines for a specific spatial region to work with, as such:
-           ax = [minimun longitude, maximun longitude, minimun latitude, maximum latitude]
+           ax = [minimun longitude, maximun longitude, minimun latitude, maximum latitude] or
+           ax = [pt0long, pt1long, pt2long, pt3long, pt0lat, pt1lat, pt2lat, pt3lat] where
+            pt0, 1, 2, 3 are the counter clockwise corner points around a rectangle,
            or use one of the following pre-defined region: ax = 'GP', 'PP', 'DG' or 'MP'
            Note that this option permits to extract partial data from the overall file
            and therefore reduce memory and cpu use.
