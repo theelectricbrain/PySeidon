@@ -229,12 +229,12 @@ class FVCOM:
         #Define bounding box
         if debug:
             print "Computing bounding box..."
-        if self.Grid._ax == []:
+        if self.Grid._ax == []  or len(self.Grid._ax) != 4:
             lon = self.Grid.lon[:]
             lat = self.Grid.lat[:]
             self.Grid._ax = [lon.min(), lon.max(),
                              lat.min(), lat.max()]
-        if FvcomClass.Grid._ax == []:
+        if FvcomClass.Grid._ax == [] or len(FvcomClass.Grid._ax) != 4:
             lon = FvcomClass.Grid.lon[:]
             lat = FvcomClass.Grid.lat[:]
             FvcomClass.Grid._ax = [lon.min(), lon.max(),

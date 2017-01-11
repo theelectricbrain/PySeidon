@@ -692,6 +692,7 @@ class FunctionsFvcom:
         n3[np.where(n3 == test)[0]] = 0
         # double check due to chunking and nans
         test >= self._grid.triele.shape[0]
+        test >= self._grid.triele.shape[0]
         n1[np.where(n1 > test)[0]] = -1
         n2[np.where(n2 > test)[0]] = -1
         n3[np.where(n3 > test)[0]] = -1

@@ -104,7 +104,7 @@ class _load_validation:
                 u = np.squeeze(self.sim.u[:, :,ind])
                 v = np.squeeze(self.sim.v[:, :,ind])
                 sig = np.squeeze(simulated.Grid.siglay[:, ind])
-                h = simulated.Grid.h[:]
+                h = simulated.Grid.h[ind]
 
         # Alternative simulation type
         elif simulated.__module__.split('.')[-1] == 'fvcomClass':

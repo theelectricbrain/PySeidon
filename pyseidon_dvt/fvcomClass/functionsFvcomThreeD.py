@@ -706,7 +706,7 @@ class FunctionsFvcomThreeD:
 
     def vorticity(self, debug=False):
         """
-        This method creates a new variable: 'depth averaged vorticity' (1/s)
+        This method creates a new variable: 'vorticity' (1/s)
         -> FVCOM.Variables.vorticity
      
         *Notes*

@@ -124,7 +124,7 @@ class PlotsFvcom:
             if debug:
                 print "Computing bounding box..."
             if bb is None:
-                if self._grid._ax == []:
+                if self._grid._ax == [] or len(self._grid._ax) != 4:
                     self._grid._ax = [lon.min(), lon.max(),
                                      lat.min(), lat.max()]
                 bb = self._grid._ax

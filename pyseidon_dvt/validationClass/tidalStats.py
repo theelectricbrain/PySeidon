@@ -525,7 +525,12 @@ class TidalStats:
             #     shift_mod = self.model
             #     shift_obs = self.observed
 
-            start = self.times[abs(i)]
+            # Quick fix for drifter
+            try:
+                start = self.times[abs(i)]
+            except IndexError:
+                start = self.times[0]
+            # End quick fix
             step = self.times[1] - self.times[0]
 
             # create TidalStats class for shifted data and get the RMSE
