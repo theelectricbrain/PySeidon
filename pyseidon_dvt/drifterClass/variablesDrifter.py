@@ -2,10 +2,11 @@
 # encoding: utf-8
 
 from __future__ import division
-# import numpy as np
+import numpy as np
 # from numpy.ma import MaskError
 # import h5py
 from pyseidon_dvt.utilities.miscellaneous import mattime_to_datetime
+import sys
 
 class _load_drifter:
     """
@@ -24,22 +25,48 @@ class _load_drifter:
             print 'Loading variables...'
         # Pointer to History
         setattr(self, '_History', History)
-
-        self.matlabTime = cls.Data['velocity'].vel_time[:]
-        #Sorting values with increasing time step
-        sortedInd = self.matlabTime.argsort()
-        self.matlabTime.sort()
-        self.lat = cls.Data['velocity'].vel_lat[sortedInd]
-        self.lon = cls.Data['velocity'].vel_lon[sortedInd]
-        self.u = cls.Data['velocity'].u[sortedInd]
-        self.v = cls.Data['velocity'].v[sortedInd]
+        try:
+            self.matlabTime = cls.Data['velocity'].vel_time[:]
+            #Sorting values with increasing time step
+            sortedInd = self.matlabTime.argsort()
+            self.matlabTime.sort()
+            self.lat = cls.Data['velocity'].vel_lat[sortedInd]
+            self.lon = cls.Data['velocity'].vel_lon[sortedInd]
+            self.u = cls.Data['velocity'].u[sortedInd]
+            self.v = cls.Data['velocity'].v[sortedInd]
+        # Luna Ocean Consulting Ltd. new drifter format
+        except KeyError:
+            self.matlabTime = cls.Data['time']
+            self.original = {}
+            self.original['lat'] = cls.Data['lat']
+            self.original['lon'] = cls.Data['lon']
+            self.original['u'] = cls.Data['u']
+            self.original['v'] = cls.Data['v']
+            self.original['drift_start'] = cls.Data['drift_start']
+            self.original['drift_stop'] = cls.Data['drift_stop']
+            self.smooth = {}
+            self.smooth['lat'] = cls.Data['lat_smooth']
+            self.smooth['lon'] = cls.Data['lon_smooth']
+            self.smooth['u'] = cls.Data['u_smooth']
+            self.smooth['v'] = cls.Data['v_smooth']
+            self.smooth['drift_start'] = cls.Data['drift_start_smooth']
+            self.smooth['drift_stop'] = cls.Data['drift_stop_smooth']
+        except:
+            sys.exit('Drifter file format incompatible')
 
         #-Append message to History field
-        start = mattime_to_datetime(self.matlabTime[0])
-        end = mattime_to_datetime(self.matlabTime[-1])
-        text = 'Temporal domain from ' + str(start) +\
-                ' to ' + str(end)
-        self._History.append(text)
+        try:
+            start = mattime_to_datetime(self.matlabTime[0])
+            end = mattime_to_datetime(self.matlabTime[-1])
+            text = 'Temporal domain from ' + str(start) +\
+                    ' to ' + str(end)
+            self._History.append(text)
+        except ValueError:
+            start = mattime_to_datetime(np.nanmin(self.matlabTime))
+            end = mattime_to_datetime(np.nanmax(self.matlabTime))
+            text = 'Temporal domain from ' + str(start) +\
+                    ' to ' + str(end)
+            self._History.append(text)
 
         if debug: print '...Passed'
 
