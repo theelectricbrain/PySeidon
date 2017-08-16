@@ -224,14 +224,22 @@ class _load_validation:
                 # Interpolation of timeseries at drifter's trajectory points
                 uSimInterp = np.zeros(len(uniqCloInd))
                 vSimInterp = np.zeros(len(uniqCloInd))
-                for i in range(len(uniqCloInd)):
-                    uSimInterp[i]=simulated.Util2D.interpolation_at_point(uSim[i,:],
-                                                self.obs.lon[uniqCloInd[i]],
-                                                self.obs.lat[uniqCloInd[i]])
-                    vSimInterp[i]=simulated.Util2D.interpolation_at_point(vSim[i,:],
-                                                self.obs.lon[uniqCloInd[i]],
-                                                self.obs.lat[uniqCloInd[i]])
-                # print 'vSimInterp: \n', vSimInterp, '\nuSimInterp: \n', uSimInterp
+                if not len(uniqCloInd) == 1:
+                    for i in range(len(uniqCloInd)):
+                        uSimInterp[i]=simulated.Util2D.interpolation_at_point(uSim[i,:],
+                                                    self.obs.lon[uniqCloInd[i]],
+                                                    self.obs.lat[uniqCloInd[i]])
+                        vSimInterp[i]=simulated.Util2D.interpolation_at_point(vSim[i,:],
+                                                    self.obs.lon[uniqCloInd[i]],
+                                                    self.obs.lat[uniqCloInd[i]])
+                    # print 'vSimInterp: \n', vSimInterp, '\nuSimInterp: \n', uSimInterp
+                else:
+                    uSimInterp=simulated.Util2D.interpolation_at_point(uSim,
+                                                    self.obs.lon[uniqCloInd],
+                                                    self.obs.lat[uniqCloInd])
+                    vSimInterp=simulated.Util2D.interpolation_at_point(vSim,
+                                                    self.obs.lon[uniqCloInd],
+                                                    self.obs.lat[uniqCloInd])
 
         else:
             raise PyseidonError("-This type of simulations is not supported yet-")
