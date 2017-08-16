@@ -38,20 +38,20 @@ class _load_drifter:
         except KeyError:
             self.matlabTime = cls.Data['time']
             #Sorting values with increasing time step
-            sortedInd = self.matlabTime.argsort()
-            self.matlabTime.sort()
+            #sortedInd = self.matlabTime.argsort()
+            #self.matlabTime.sort()
             if not smooth:
-                self.lat = cls.Data['lat'][sortedInd]
-                self.lon = cls.Data['lon'][sortedInd]
-                self.u = cls.Data['u'][sortedInd]
-                self.v = cls.Data['v'][sortedInd]
+                self.lat = cls.Data['lat']
+                self.lon = cls.Data['lon']
+                self.u = cls.Data['u']
+                self.v = cls.Data['v']
                 self.drift_start = cls.Data['drift_start'] - 1
                 self.drift_stop = cls.Data['drift_stop'] - 1
             else:
-                self.lat = cls.Data['lat_smooth'][sortedInd]
-                self.lon = cls.Data['lon_smooth'][sortedInd]
-                self.u = cls.Data['u_smooth'][sortedInd]
-                self.v = cls.Data['v_smooth'][sortedInd]
+                self.lat = cls.Data['lat_smooth']
+                self.lon = cls.Data['lon_smooth']
+                self.u = cls.Data['u_smooth']
+                self.v = cls.Data['v_smooth']
                 self.drift_start = cls.Data['drift_start_smooth'] - 1
                 self.drift_stop = cls.Data['drift_stop_smooth'] - 1
             self.smoothed_data = smooth
@@ -59,18 +59,18 @@ class _load_drifter:
             sys.exit('Drifter file format incompatible')
 
         #-Append message to History field
-        try:
-            start = mattime_to_datetime(self.matlabTime[0])
-            end = mattime_to_datetime(self.matlabTime[-1])
-            text = 'Temporal domain from ' + str(start) +\
-                    ' to ' + str(end)
-            self._History.append(text)
-        except ValueError:
-            start = mattime_to_datetime(np.nanmin(self.matlabTime))
-            end = mattime_to_datetime(np.nanmax(self.matlabTime))
-            text = 'Temporal domain from ' + str(start) +\
-                    ' to ' + str(end)
-            self._History.append(text)
+        #try:
+        #    start = mattime_to_datetime(self.matlabTime[0])
+        #    end = mattime_to_datetime(self.matlabTime[-1])
+        #    text = 'Temporal domain from ' + str(start) +\
+                #            ' to ' + str(end)
+        #    self._History.append(text)
+        #except ValueError:
+        start = mattime_to_datetime(np.nanmin(self.matlabTime))
+        end = mattime_to_datetime(np.nanmax(self.matlabTime))
+        text = 'Temporal domain from ' + str(start) +\
+                ' to ' + str(end)
+        self._History.append(text)
 
         if debug: print '...Passed'
 
