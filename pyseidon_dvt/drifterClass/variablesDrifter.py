@@ -20,7 +20,7 @@ class _load_drifter:
                         |_lat = latitudes (deg.), 1D array (ntime)
 
     """
-    def __init__(self,cls, History, debug=False):
+    def __init__(self,cls, History, smooth=False, debug=False):
         if debug:
             print 'Loading variables...'
         # Pointer to History
@@ -37,20 +37,24 @@ class _load_drifter:
         # Luna Ocean Consulting Ltd. new drifter format
         except KeyError:
             self.matlabTime = cls.Data['time']
-            self.original = {}
-            self.original['lat'] = cls.Data['lat']
-            self.original['lon'] = cls.Data['lon']
-            self.original['u'] = cls.Data['u']
-            self.original['v'] = cls.Data['v']
-            self.original['drift_start'] = cls.Data['drift_start']
-            self.original['drift_stop'] = cls.Data['drift_stop']
-            self.smooth = {}
-            self.smooth['lat'] = cls.Data['lat_smooth']
-            self.smooth['lon'] = cls.Data['lon_smooth']
-            self.smooth['u'] = cls.Data['u_smooth']
-            self.smooth['v'] = cls.Data['v_smooth']
-            self.smooth['drift_start'] = cls.Data['drift_start_smooth']
-            self.smooth['drift_stop'] = cls.Data['drift_stop_smooth']
+            #Sorting values with increasing time step
+            sortedInd = self.matlabTime.argsort()
+            self.matlabTime.sort()
+            if not smooth:
+                self.lat = cls.Data['lat'][sortedInd]
+                self.lon = cls.Data['lon'][sortedInd]
+                self.u = cls.Data['u'][sortedInd]
+                self.v = cls.Data['v'][sortedInd]
+                self.drift_start = cls.Data['drift_start'] - 1
+                self.drift_stop = cls.Data['drift_stop'] - 1
+            else:
+                self.lat = cls.Data['lat_smooth'][sortedInd]
+                self.lon = cls.Data['lon_smooth'][sortedInd]
+                self.u = cls.Data['u_smooth'][sortedInd]
+                self.v = cls.Data['v_smooth'][sortedInd]
+                self.drift_start = cls.Data['drift_start_smooth'] - 1
+                self.drift_stop = cls.Data['drift_stop_smooth'] - 1
+            self.smoothed_data = smooth
         except:
             sys.exit('Drifter file format incompatible')
 
