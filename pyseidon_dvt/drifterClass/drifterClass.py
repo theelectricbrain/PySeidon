@@ -28,7 +28,10 @@ class Drifter:
                   |_method_n
 
     Inputs:
-      - Only takes a file name as input, ex: testDrifter=Drifter('./path_to_matlab_file/filename')
+      - Takes a file name as input, ex: testDrifter=Drifter('./path_to_matlab_file/filename')
+    
+    Options
+      - smooth : uses smoothed drifter data (new Luna Ocean drifter format)
 
     Notes:
       Only handle fully processed drifter matlab data previously quality-controlled at the mo.
@@ -39,7 +42,7 @@ class Drifter:
                      +/-180=West, -90=South
       - Depth = 0m is the free surface and depth is negative
     """
-    def __init__(self, filename, debug=False):
+    def __init__(self, filename, smooth = False, debug=False):
         """ Initialize Drifter class.
             Notes: only handle processed Drifter matlab data at the mo."""
         self._debug = debug
@@ -73,7 +76,7 @@ class Drifter:
 
 
         #Initialize class structure
-        self.Variables = _load_drifter(self, self.History, debug=self._debug)
+        self.Variables = _load_drifter(self, self.History, smooth=smooth, debug=self._debug)
         self.Plots = PlotsDrifter(self.Variables, debug=self._debug)
         #self.Utils = FunctionsAdcp(self.Variables,
         #                           self.Plots,
